@@ -1,0 +1,64 @@
+= ICM Build Gradle Plugin
+:latestRevision: 1.0.0
+:icons: font
+
+== Summary
+This plugin contains tasks for building necessary artifacts for Intershop Commerce Management Server.
+It contains also some helper tasks to support the development of projects.
+
+== Usage
+To apply the ICM Gradle Plugin to your project, add the following in your build script of the root project:
+
+[source,groovy]
+[subs=+attributes]
+.build.gradle
+----
+plugins {
+    id 'com.intershop.gradle.icm' version '{latestRevision}'
+}
+
+intershop {
+}
+----
+
+== Tasks
+The ICM Build Gradle plugin adds ... to the project.
+
+
+[cols="25%,30%,45%", width="90%, options="header"]
+|===
+|Task name                          | Type                              |Description
+|===
+
+== Project Extension 'intershop'
+This plugin adds an extension *`intershop`* to the project.
+
+=== Methods
+[cols="20%,15%,65%", width="90%", options="header"]
+|===
+|Method  | Values | Description
+|===
+
+===== Properties
+
+[cols="25%,10%,10%,55%", width="90%, options="header"]
+|===
+|Property | Type | Default value | Description
+|===
+
+===== Methods
+
+[cols="17%,17%,66%", width="90%, options="header"]
+|===
+|Method | Parameter | Description
+|===
+
+== License
+
+Copyright 2014-2018 Intershop Communications.
+
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
