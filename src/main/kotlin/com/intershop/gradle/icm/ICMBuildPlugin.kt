@@ -17,6 +17,7 @@
 package com.intershop.gradle.icm
 
 import com.intershop.gradle.icm.extension.IntershopExtension
+import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 
@@ -24,11 +25,21 @@ class ICMBuildPlugin : Plugin<Project> {
 
     override fun apply(project: Project) {
         with(project) {
-            logger.info("ICM build plugin adds extension {} to {}", IntershopExtension.INTERSHOP_EXTENSION_NAME, name)
-            val extension = extensions.findByType(
-                IntershopExtension::class.java) ?: extensions.create(
-                IntershopExtension.INTERSHOP_EXTENSION_NAME, IntershopExtension::class.java, this
-            )
+            if(project.rootProject == project) {
+                logger.info(
+                    "ICM build plugin adds extension {} to {}",
+                    IntershopExtension.INTERSHOP_EXTENSION_NAME,
+                    name
+                )
+
+                val extension = extensions.findByType(
+                    IntershopExtension::class.java
+                ) ?: extensions.create(
+                    IntershopExtension.INTERSHOP_EXTENSION_NAME, IntershopExtension::class.java, this
+                )
+            } else {
+                logger.warn("ICM build plugin will be not applied to the sub project '{}'", project.name)
+            }
         }
     }
 

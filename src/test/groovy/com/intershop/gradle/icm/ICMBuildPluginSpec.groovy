@@ -14,15 +14,24 @@
  * limitations under the License.
  *
  */
-package com.intershop.gradle.icm.extension
+package com.intershop.gradle.icm
 
-import org.gradle.api.Project
+import com.intershop.gradle.icm.extension.IntershopExtension
+import com.intershop.gradle.test.AbstractProjectSpec
+import org.gradle.api.Plugin
 
-open class IntershopExtension(project: Project)  {
+class ICMBuildPluginSpec extends AbstractProjectSpec {
 
-    companion object {
-        // names for the plugin
-        const val INTERSHOP_EXTENSION_NAME = "intershop"
-        const val INTERSHOP_GROUP_NAME = "Intershop Commerce Management build plugin"
+    @Override
+    Plugin getPlugin() {
+        return new ICMBuildPlugin()
+    }
+
+    def 'should add extension named wsdl'() {
+        when:
+        plugin.apply(project)
+
+        then:
+        project.extensions.getByName(IntershopExtension.INTERSHOP_EXTENSION_NAME)
     }
 }
