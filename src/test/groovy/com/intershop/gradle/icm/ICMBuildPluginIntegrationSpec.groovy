@@ -17,12 +17,11 @@
 package com.intershop.gradle.icm
 
 import com.intershop.gradle.test.AbstractIntegrationGroovySpec
-import static org.gradle.testkit.runner.TaskOutcome.SUCCESS as SUCCESS
-import static org.gradle.testkit.runner.TaskOutcome.FAILED as FAILED
+import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 class ICMBuildPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
-    def 'Plugin can is applied to the root project'() {
+    def 'Plugin is applied to the root project'() {
         given:
         settingsFile << """
         rootProject.name='rootproject'
@@ -31,9 +30,6 @@ class ICMBuildPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         buildFile << """
             plugins {
                 id 'com.intershop.gradle.icm'
-            }
-
-            intershop {
             }
         """.stripIndent()
 
@@ -94,6 +90,77 @@ class ICMBuildPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         then:
         result.task(':projects').outcome == SUCCESS
         result.output.contains("ICM build plugin will be not applied to the sub project 'subprj1'")
+
+        where:
+        gradleVersion << supportedGradleVersions
+    }
+
+    def 'CreateServerInfoProperties is configured and works with default'() {
+        given:
+        settingsFile << """
+        rootProject.name='rootproject'
+        """.stripIndent()
+
+        buildFile << """
+            plugins {
+                id 'com.intershop.gradle.icm'
+            }
+            
+            version = '1.0.0'
+
+            intershop {
+            }
+        """.stripIndent()
+
+        when:
+        def result = getPreparedGradleRunner()
+                .withArguments("createServerInfoProperties")
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        File f = new File(testProjectDir, "build/serverInfoProps/version.properties")
+        Properties props = new Properties()
+        props.load(f.newDataInputStream())
+
+        then:
+        result.task(':createServerInfoProperties').outcome == SUCCESS
+        props.getProperty("version.information.productName") == "Intershop Commerce Management 7"
+
+        where:
+        gradleVersion << supportedGradleVersions
+    }
+
+    def 'CreateServerInfoProperties is configured and works with changed configuration'() {
+        given:
+        settingsFile << """
+        rootProject.name='rootproject'
+        """.stripIndent()
+
+        buildFile << """
+            plugins {
+                id 'com.intershop.gradle.icm'
+            }
+            
+            version = '1.0.0'
+
+            icmProjectinfo {
+                productName = "Intershop Commerce Management 7 B2C"               
+            }
+        """.stripIndent()
+
+        when:
+        def result = getPreparedGradleRunner()
+                .withArguments("createServerInfoProperties")
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        File f = new File(testProjectDir, "build/serverInfoProps/version.properties")
+        Properties props = new Properties()
+        props.load(f.newDataInputStream())
+
+        then:
+        result.task(':createServerInfoProperties').outcome == SUCCESS
+        props.getProperty("version.information.productName") == "Intershop Commerce Management 7 B2C"
 
         where:
         gradleVersion << supportedGradleVersions

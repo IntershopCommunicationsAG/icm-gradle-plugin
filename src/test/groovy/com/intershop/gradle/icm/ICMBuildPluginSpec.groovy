@@ -27,7 +27,7 @@ class ICMBuildPluginSpec extends AbstractProjectSpec {
         return new ICMBuildPlugin()
     }
 
-    def 'should add extension named wsdl'() {
+    def 'should add extension named intershop'() {
         when:
         plugin.apply(project)
 

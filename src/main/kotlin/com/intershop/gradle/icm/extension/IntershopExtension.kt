@@ -16,8 +16,15 @@
  */
 package com.intershop.gradle.icm.extension
 
+import groovy.lang.Closure
+import org.gradle.api.Action
+import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Project
+import org.gradle.util.ConfigureUtil
 
+/**
+ * Extension for ICM properties.
+ */
 open class IntershopExtension(project: Project)  {
 
     companion object {
@@ -25,4 +32,5 @@ open class IntershopExtension(project: Project)  {
         const val INTERSHOP_EXTENSION_NAME = "intershop"
         const val INTERSHOP_GROUP_NAME = "Intershop Commerce Management build plugin"
     }
+
 }

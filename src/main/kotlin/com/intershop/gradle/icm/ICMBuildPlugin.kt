@@ -16,11 +16,15 @@
  */
 package com.intershop.gradle.icm
 
+import com.intershop.gradle.icm.extension.ICMProjectInfo
 import com.intershop.gradle.icm.extension.IntershopExtension
-import org.gradle.api.GradleException
+import com.intershop.gradle.icm.tasks.CreateServerInfoProperties
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 
+/**
+ * The main plugin class of this plugin.
+ */
 class ICMBuildPlugin : Plugin<Project> {
 
     override fun apply(project: Project) {
@@ -37,10 +41,29 @@ class ICMBuildPlugin : Plugin<Project> {
                 ) ?: extensions.create(
                     IntershopExtension.INTERSHOP_EXTENSION_NAME, IntershopExtension::class.java, this
                 )
+
+                val icmProductInfoExtension = extensions.findByType(
+                    ICMProjectInfo::class.java
+                ) ?: extensions.create(
+                    ICMProjectInfo.EXTENSION_NAME, ICMProjectInfo::class.java, this
+                )
+
+                configureCreateServerInfoPropertiesTask(project, icmProductInfoExtension)
             } else {
                 logger.warn("ICM build plugin will be not applied to the sub project '{}'", project.name)
             }
         }
     }
 
+    private fun configureCreateServerInfoPropertiesTask(project: Project, extension: ICMProjectInfo) {
+        with(project) {
+            tasks.maybeCreate("createServerInfoProperties", CreateServerInfoProperties::class.java).apply {
+                provideProductId(extension.productIDProvider)
+                provideProductName(extension.productNameProvider)
+                provideCopyrightOwner(extension.copyrightOwnerProvider)
+                provideCopyrightFrom(extension.copyrightFromProvider)
+                provideOrganization(extension.organizationProvider)
+            }
+        }
+    }
 }
