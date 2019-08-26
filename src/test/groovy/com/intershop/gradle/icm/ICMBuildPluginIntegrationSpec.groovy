@@ -143,8 +143,10 @@ class ICMBuildPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
             
             version = '1.0.0'
 
-            icmProjectinfo {
-                productName = "Intershop Commerce Management 7 B2C"               
+            intershop {
+                projectInfo {
+                    productName = "Intershop Commerce Management 7 B2C"        
+                }       
             }
         """.stripIndent()
 

@@ -25,7 +25,7 @@ import org.gradle.util.ConfigureUtil
 /**
  * Extension for ICM properties.
  */
-open class IntershopExtension(project: Project)  {
+open class IntershopExtension(var project: Project)  {
 
     companion object {
         // names for the plugin
@@ -33,4 +33,13 @@ open class IntershopExtension(project: Project)  {
         const val INTERSHOP_GROUP_NAME = "Intershop Commerce Management build plugin"
     }
 
+    val projectInfo: ProjectInfo = ProjectInfo(project)
+
+    fun projectInfo(closure: Closure<Any>) {
+        project.configure(projectInfo, closure)
+    }
+
+    fun projectInfo(action: Action<in ProjectInfo>) {
+        action.execute(projectInfo)
+    }
 }

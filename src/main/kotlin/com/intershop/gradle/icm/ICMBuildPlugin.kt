@@ -16,7 +16,6 @@
  */
 package com.intershop.gradle.icm
 
-import com.intershop.gradle.icm.extension.ICMProjectInfo
 import com.intershop.gradle.icm.extension.IntershopExtension
 import com.intershop.gradle.icm.tasks.CreateServerInfoProperties
 import org.gradle.api.Plugin
@@ -42,27 +41,21 @@ class ICMBuildPlugin : Plugin<Project> {
                     IntershopExtension.INTERSHOP_EXTENSION_NAME, IntershopExtension::class.java, this
                 )
 
-                val icmProductInfoExtension = extensions.findByType(
-                    ICMProjectInfo::class.java
-                ) ?: extensions.create(
-                    ICMProjectInfo.EXTENSION_NAME, ICMProjectInfo::class.java, this
-                )
-
-                configureCreateServerInfoPropertiesTask(project, icmProductInfoExtension)
+                configureCreateServerInfoPropertiesTask(project, extension)
             } else {
                 logger.warn("ICM build plugin will be not applied to the sub project '{}'", project.name)
             }
         }
     }
 
-    private fun configureCreateServerInfoPropertiesTask(project: Project, extension: ICMProjectInfo) {
+    private fun configureCreateServerInfoPropertiesTask(project: Project, extension: IntershopExtension) {
         with(project) {
             tasks.maybeCreate("createServerInfoProperties", CreateServerInfoProperties::class.java).apply {
-                provideProductId(extension.productIDProvider)
-                provideProductName(extension.productNameProvider)
-                provideCopyrightOwner(extension.copyrightOwnerProvider)
-                provideCopyrightFrom(extension.copyrightFromProvider)
-                provideOrganization(extension.organizationProvider)
+                provideProductId(extension.projectInfo.productIDProvider)
+                provideProductName(extension.projectInfo.productNameProvider)
+                provideCopyrightOwner(extension.projectInfo.copyrightOwnerProvider)
+                provideCopyrightFrom(extension.projectInfo.copyrightFromProvider)
+                provideOrganization(extension.projectInfo.organizationProvider)
             }
         }
     }

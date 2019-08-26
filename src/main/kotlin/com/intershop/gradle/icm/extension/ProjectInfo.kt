@@ -33,7 +33,7 @@ operator fun <T> Property<T>.getValue(receiver: Any?, property: KProperty<*>): T
 /**
  * Extension for server info properties.
  */
-open class ICMProjectInfo(project: Project) {
+open class ProjectInfo(project: Project) {
 
     private val productIDProperty: Property<String> = project.objects.property(String::class.java)
     private val productNameProperty: Property<String> = project.objects.property(String::class.java)
