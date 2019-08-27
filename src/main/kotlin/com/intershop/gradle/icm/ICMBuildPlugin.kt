@@ -20,6 +20,7 @@ import com.intershop.gradle.icm.extension.IntershopExtension
 import com.intershop.gradle.icm.tasks.CreateServerInfoProperties
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.plugins.JavaPlugin
 
 /**
  * The main plugin class of this plugin.
@@ -42,9 +43,11 @@ class ICMBuildPlugin : Plugin<Project> {
                 )
 
                 // create configurations for ICM project
-                val dbinit = configurations.maybeCreate("dbinit")
-                dbinit.extendsFrom(configurations.getByName("Implementation"))
-                dbinit.setTransitive(false)
+                plugins.withType(JavaPlugin::class.java) {
+                    val dbinit = configurations.maybeCreate("dbinit")
+                    dbinit.extendsFrom(configurations.getByName("implementation"))
+                    dbinit.setTransitive(false)
+                }
 
                 val icmserver = configurations.maybeCreate("icmserver")
                 icmserver.setTransitive(false)
