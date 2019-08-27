@@ -41,6 +41,17 @@ class ICMBuildPlugin : Plugin<Project> {
                     IntershopExtension.INTERSHOP_EXTENSION_NAME, IntershopExtension::class.java, this
                 )
 
+                // create configurations for ICM project
+                val dbinit = configurations.maybeCreate("dbinit")
+                dbinit.extendsFrom(configurations.getByName("Implementation"))
+                dbinit.setTransitive(false)
+
+                val icmserver = configurations.maybeCreate("icmserver")
+                icmserver.setTransitive(false)
+
+                configurations.maybeCreate("runtimeLib")
+                configurations.maybeCreate("dockerRuntimeLib")
+
                 configureCreateServerInfoPropertiesTask(project, extension)
             } else {
                 logger.warn("ICM build plugin will be not applied to the sub project '{}'", project.name)
