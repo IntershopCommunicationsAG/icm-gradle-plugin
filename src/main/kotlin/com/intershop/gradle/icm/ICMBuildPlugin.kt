@@ -43,11 +43,8 @@ class ICMBuildPlugin : Plugin<Project> {
                 )
 
                 // create configurations for ICM project
-                plugins.withType(JavaPlugin::class.java) {
-                    val dbinit = configurations.maybeCreate("dbinit")
-                    dbinit.extendsFrom(configurations.getByName("implementation"))
-                    dbinit.setTransitive(false)
-                }
+                val dbinit = configurations.maybeCreate("dbinit")
+                dbinit.setTransitive(false)
 
                 val icmserver = configurations.maybeCreate("icmserver")
                 icmserver.setTransitive(false)
