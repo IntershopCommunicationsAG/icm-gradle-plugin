@@ -17,10 +17,12 @@
 package com.intershop.gradle.icm
 
 import com.intershop.gradle.icm.extension.IntershopExtension
+import com.intershop.gradle.icm.tasks.CopyThirdpartyLibs
 import com.intershop.gradle.icm.tasks.CreateServerInfoProperties
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaPlugin
+import java.io.File
 
 /**
  * The main plugin class of this plugin.
@@ -42,6 +44,8 @@ class ICMBuildPlugin : Plugin<Project> {
                     IntershopExtension.INTERSHOP_EXTENSION_NAME, IntershopExtension::class.java, this
                 )
 
+
+
                 // create configurations for ICM project
                 val dbinit = configurations.maybeCreate("dbinit")
                 dbinit.setTransitive(false)
@@ -53,6 +57,14 @@ class ICMBuildPlugin : Plugin<Project> {
                 configurations.maybeCreate("dockerRuntimeLib")
 
                 configureCreateServerInfoPropertiesTask(project, extension)
+
+                rootProject.subprojects.forEach { prj ->
+                    prj.plugins.withType(JavaPlugin::class.java) { plugin ->
+                        prj.tasks.maybeCreate("copyThirdpartyLibs", CopyThirdpartyLibs::class.java).apply {
+                            outputDir = File(prj.buildDir, "lib" )
+                        }
+                    }
+                }
             } else {
                 logger.warn("ICM build plugin will be not applied to the sub project '{}'", project.name)
             }

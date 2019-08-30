@@ -17,6 +17,8 @@
 package com.intershop.gradle.icm
 
 import com.intershop.gradle.test.AbstractIntegrationGroovySpec
+import org.gradle.testkit.runner.TaskOutcome
+
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 class ICMBuildPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
@@ -163,6 +165,184 @@ class ICMBuildPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         then:
         result.task(':createServerInfoProperties').outcome == SUCCESS
         props.getProperty("version.information.productName") == "Intershop Commerce Management 7 B2C"
+
+        where:
+        gradleVersion << supportedGradleVersions
+    }
+
+    def 'CopyThirdpartyLibs of subprojects to empty folder'() {
+        given:
+        settingsFile << """
+        rootProject.name='rootproject'
+        """.stripIndent()
+
+        buildFile << """
+            plugins {
+                id 'java'
+                id 'com.intershop.gradle.icm'
+            }
+            
+            repositories {
+                jcenter()
+            }
+            """.stripIndent()
+
+        def prj1dir = createSubProject('testCartridge1', """
+        apply plugin: 'java'
+        
+        dependencies {
+            implementation 'com.google.inject:guice:4.0'
+            implementation 'com.google.inject.extensions:guice-servlet:3.0'
+            implementation 'javax.servlet:javax.servlet-api:3.1.0'
+        
+            implementation 'io.prometheus:simpleclient:0.6.0'
+            implementation 'io.prometheus:simpleclient_hotspot:0.6.0'
+            implementation 'io.prometheus:simpleclient_servlet:0.6.0'
+        } 
+        
+        repositories {
+            jcenter()
+        }
+        """.stripIndent())
+
+        def prj2dir = createSubProject('testCartridge2', """
+        apply plugin: 'java'
+        
+        dependencies {
+            implementation 'org.codehaus.janino:janino:2.5.16'
+            implementation 'org.codehaus.janino:commons-compiler:3.0.6'
+            implementation 'ch.qos.logback:logback-core:1.2.3'
+            implementation 'ch.qos.logback:logback-classic:1.2.3'
+            implementation 'commons-collections:commons-collections:3.2.2'
+        } 
+        
+        repositories {
+            jcenter()
+        }        
+        """.stripIndent())
+
+        writeJavaTestClass("com.intershop.testCartridge1", prj1dir)
+        writeJavaTestClass("com.intershop.testCartridge2", prj2dir)
+
+        when:
+        def result = getPreparedGradleRunner()
+                .withArguments("copyThirdpartyLibs")
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        result.task(':testCartridge1:copyThirdpartyLibs').outcome == SUCCESS
+        result.task(':testCartridge2:copyThirdpartyLibs').outcome == SUCCESS
+
+        file("testCartridge2/build/lib/ch.qos.logback-logback-classic-1.2.3.jar").exists()
+        file("testCartridge1/build/lib/com.google.inject-guice-4.0.jar").exists()
+
+        when:
+        def result2 = getPreparedGradleRunner()
+                .withArguments("copyThirdpartyLibs")
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        result2.task(':testCartridge1:copyThirdpartyLibs').outcome == TaskOutcome.UP_TO_DATE
+        result2.task(':testCartridge2:copyThirdpartyLibs').outcome == TaskOutcome.UP_TO_DATE
+
+        where:
+        gradleVersion << supportedGradleVersions
+    }
+
+    def 'CopyThirdpartyLibs of subprojects with changed dependencies'() {
+        given:
+        settingsFile << """
+        rootProject.name='rootproject'
+        """.stripIndent()
+
+        buildFile << """
+            plugins {
+                id 'java'
+                id 'com.intershop.gradle.icm'
+            }
+            
+            repositories {
+                jcenter()
+            }
+            """.stripIndent()
+
+        def prj1dir = createSubProject('testCartridge1', """
+        apply plugin: 'java'
+        
+        dependencies {
+            implementation "com.google.inject:guice:\${project.ext.inject_guice_version}"
+            implementation 'com.google.inject.extensions:guice-servlet:3.0'
+            implementation 'javax.servlet:javax.servlet-api:3.1.0'
+        
+            implementation 'io.prometheus:simpleclient:0.6.0'
+            implementation 'io.prometheus:simpleclient_hotspot:0.6.0'
+            implementation 'io.prometheus:simpleclient_servlet:0.6.0'
+        } 
+        
+        repositories {
+            jcenter()
+        }
+        """.stripIndent())
+
+        def prj2dir = createSubProject('testCartridge2', """
+        apply plugin: 'java'
+        
+        dependencies {
+            implementation "ch.qos.logback:logback-core:\${project.ext.logback_logback_classic_version}"
+            implementation "ch.qos.logback:logback-classic:\${project.ext.logback_logback_classic_version}"
+        } 
+        
+        repositories {
+            jcenter()
+        }        
+        """.stripIndent())
+
+        writeJavaTestClass("com.intershop.testCartridge1", prj1dir)
+        writeJavaTestClass("com.intershop.testCartridge2", prj2dir)
+
+        when:
+        File gradleProps = file("gradle.properties")
+        gradleProps.createNewFile()
+        gradleProps << """
+        inject_guice_version = 4.0
+        logback_logback_classic_version = 1.2.3
+        """.stripIndent()
+
+        def result = getPreparedGradleRunner()
+                .withArguments("copyThirdpartyLibs")
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        result.task(':testCartridge1:copyThirdpartyLibs').outcome == SUCCESS
+        result.task(':testCartridge2:copyThirdpartyLibs').outcome == SUCCESS
+
+        new File(testProjectDir,"testCartridge2/build/lib/ch.qos.logback-logback-classic-1.2.3.jar").exists()
+        new File(testProjectDir,"testCartridge1/build/lib/com.google.inject-guice-4.0.jar").exists()
+
+        when:
+        gradleProps.delete()
+        gradleProps.createNewFile()
+        gradleProps << """
+        inject_guice_version = 4.2.2
+        logback_logback_classic_version = 1.2.0
+        """.stripIndent()
+
+        def result2 = getPreparedGradleRunner()
+                .withArguments("copyThirdpartyLibs")
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        result2.task(':testCartridge1:copyThirdpartyLibs').outcome == SUCCESS
+        result2.task(':testCartridge2:copyThirdpartyLibs').outcome == SUCCESS
+
+        new File(testProjectDir,"testCartridge2/build/lib/ch.qos.logback-logback-classic-1.2.0.jar").exists()
+        new File(testProjectDir,"testCartridge1/build/lib/com.google.inject-guice-4.2.2.jar").exists()
+        ! new File(testProjectDir,"testCartridge2/build/lib/ch.qos.logback-logback-classic-1.2.3.jar").exists()
+        ! new File(testProjectDir,"testCartridge1/build/lib/com.google.inject-guice-4.0.jar").exists()
 
         where:
         gradleVersion << supportedGradleVersions
