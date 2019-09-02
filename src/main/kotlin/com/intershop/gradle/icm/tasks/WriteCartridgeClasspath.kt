@@ -14,7 +14,6 @@
  * limitations under the License.
  *
  */
-
 package com.intershop.gradle.icm.tasks
 
 import com.intershop.gradle.icm.ICMBuildPlugin
@@ -27,14 +26,26 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import java.io.File
 
+/**
+ * WriteCartridgeClasspath Gradle task 'writeCartridgeClasspath'
+ *
+ * This task writes all classpath entries of runtime classpath
+ * to an file. This file is used by some tools and tests.
+ */
 open class WriteCartridgeClasspath : DefaultTask() {
 
     private val outputFileProperty: RegularFileProperty = project.objects.fileProperty()
 
     init {
-        outputFileProperty.set(File(project.buildDir, "${ICMBuildPlugin.CARTRIDGE_CLASSPATH_DIR}/${ICMBuildPlugin.CARTRIDGE_CLASSPATH_FILE}"))
+        outputFileProperty.set(File(project.buildDir,
+            "${ICMBuildPlugin.CARTRIDGE_CLASSPATH_DIR}/${ICMBuildPlugin.CARTRIDGE_CLASSPATH_FILE}"))
     }
 
+    /**
+     * The output file contains the classpath entries of the cartridge.
+     *
+     * @property outputFile real file on file system with descriptor
+     */
     @get:OutputFile
     var outputFile: File
         get() = outputFileProperty.get().asFile
@@ -54,6 +65,10 @@ open class WriteCartridgeClasspath : DefaultTask() {
         returnFiles
     }
 
+    /**
+     * Task method for the creation of a descriptor file.
+     */
+    @Suppress("unused")
     @TaskAction
     fun runFileCreation() {
         if (!outputFile.parentFile.exists()) {

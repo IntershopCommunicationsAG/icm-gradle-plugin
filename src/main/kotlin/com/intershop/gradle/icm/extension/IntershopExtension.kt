@@ -35,10 +35,21 @@ open class IntershopExtension(var project: Project)  {
 
     val projectInfo: ProjectInfo = ProjectInfo(project)
 
+    /**
+     * Configures the project information configuration.
+     *
+     * @param closure closure with project information configuration
+     */
+    @Suppress("unused")
     fun projectInfo(closure: Closure<Any>) {
         project.configure(projectInfo, closure)
     }
 
+    /**
+     * Configures the project information configuration.
+     *
+     * @param action action with project information configuration
+     */
     fun projectInfo(action: Action<in ProjectInfo>) {
         action.execute(projectInfo)
     }

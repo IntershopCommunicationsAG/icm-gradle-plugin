@@ -18,6 +18,7 @@ package com.intershop.gradle.icm.tasks
 
 import com.intershop.gradle.icm.ICMBuildPlugin.Companion.THIRDPARTYLIB_DIR
 import org.gradle.api.DefaultTask
+import org.gradle.api.GradleException
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileCollection
 import org.gradle.api.plugins.JavaPluginConvention
@@ -29,6 +30,12 @@ import java.io.File
 import java.util.stream.Collectors
 import java.util.stream.Stream
 
+/**
+ * CopyThirdpartyLibs Gradle task 'copyThirdpartyLibs'
+ *
+ * This task copy all dependend thirdparty dependencies to
+ * a lib folder. This is used for the build of containerimages.
+ */
 open class CopyThirdpartyLibs : DefaultTask() {
 
     private val outputDirProperty: DirectoryProperty = project.objects.directoryProperty()
@@ -58,6 +65,11 @@ open class CopyThirdpartyLibs : DefaultTask() {
         returnFiles
     }
 
+    /**
+     * Task method for the creation of a descriptor file.
+     */
+    @Suppress("unused")
+    @Throws(GradleException::class)
     @TaskAction
     fun runCopy() {
         // we are not sure what is changed.
@@ -69,13 +81,20 @@ open class CopyThirdpartyLibs : DefaultTask() {
         project.configurations.getByName("runtimeClasspath")
             .resolvedConfiguration.resolvedArtifacts.forEach { artifact ->
             if (artifact.id is DefaultModuleComponentArtifactIdentifier) {
-                var identifier = artifact.id as DefaultModuleComponentArtifactIdentifier
-                var name = "${identifier.componentIdentifier.group}-${identifier.componentIdentifier.module}-${identifier.componentIdentifier.version}.${artifact.type}"
-                println(name)
-                artifact.file.copyTo(
-                    File(outputDir, name),
-                    overwrite = true
-                )
+
+                var identifier = artifact.id
+                if(identifier is DefaultModuleComponentArtifactIdentifier) {
+                    var name = "${identifier.componentIdentifier.group}-" +
+                            "${identifier.componentIdentifier.module}-" +
+                            "${identifier.componentIdentifier.version}.${artifact.type}"
+
+                    artifact.file.copyTo(
+                        File(outputDir, name),
+                        overwrite = true
+                    )
+                } else {
+                    throw GradleException("Artifact ID is not a module identifier.")
+                }
             }
         }
     }

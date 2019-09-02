@@ -44,30 +44,39 @@ class ICMBuildPlugin : Plugin<Project> {
         const val CARTRIDGE_CLASSPATH_DIR = "classpath"
         const val CARTRIDGE_CLASSPATH_FILE = "cartridge.classpath"
 
+        /**
+         * Calculates transitive project cartridge dependencies.
+         *
+         * @param prj the project object
+         */
         fun getTransitiveCartridgeDependencies(prj: Project) : List<String> {
+            val returnValue = ArrayList<String>()
+
             if(prj.extensions.extraProperties.has("cartridges.transitive.dependsOn")) {
-                var transDepnendsOn = prj.extensions.extraProperties.get("cartridges.transitive.dependsOn")
-                if(transDepnendsOn is List<*>) {
-                    return transDepnendsOn as List<String>
-                } else {
-                    return listOf()
-                }
+                returnValue.addAll(
+                    prj.extensions.extraProperties.get("cartridges.transitive.dependsOn") as List<String>)
             } else {
                 var cartridgeConf = prj.configurations.getByName("cartridge")
-                val cartridges = ArrayList<String>()
 
                 cartridgeConf.allDependencies.forEach { dependency ->
                     if (dependency is ProjectDependency) {
-                        cartridges.add(dependency.name)
-                        cartridges.addAll(getTransitiveCartridgeDependencies(dependency.dependencyProject))
+                        returnValue.add(dependency.name)
+                        returnValue.addAll(getTransitiveCartridgeDependencies(dependency.dependencyProject))
                     } else {
                         //TODO: add handling for non project dependency
                     }
                 }
-                return cartridges
             }
+            return returnValue
         }
 
+        /**
+         * Add two extra properties to the project:
+         * - cartridges.dependsOn
+         * - cartridges.transitive.dependsOn
+         *
+         * @param prj the project object
+         */
         fun addCartridgeDependenciesProps(prj: Project) {
             val cartridges = HashSet<String>()
             val transCartridges = HashSet<String>()
@@ -142,8 +151,10 @@ class ICMBuildPlugin : Plugin<Project> {
                         cartridgeAll.setTransitive(false)
 
                         prj.tasks.maybeCreate("copyThirdpartyLibs", CopyThirdpartyLibs::class.java)
-                        var descriptorTask = prj.tasks.maybeCreate("writeCartridgeDescriptor", WriteCartridgeDescriptor::class.java)
-                        var classpathTask = prj.tasks.maybeCreate("writeCartridgeClasspath", WriteCartridgeClasspath::class.java)
+                        var descriptorTask = prj.tasks.maybeCreate("writeCartridgeDescriptor",
+                            WriteCartridgeDescriptor::class.java)
+                        var classpathTask = prj.tasks.maybeCreate("writeCartridgeClasspath",
+                            WriteCartridgeClasspath::class.java)
 
                         var jarTask = prj.tasks.findByName("jar")
                         if(jarTask != null) {

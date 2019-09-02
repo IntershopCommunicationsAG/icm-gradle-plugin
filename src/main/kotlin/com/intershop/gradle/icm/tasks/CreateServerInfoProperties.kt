@@ -33,6 +33,12 @@ import com.intershop.gradle.icm.getValue
 /**
  * Task for the creation of server info properties.
  */
+/**
+ * CreateServerInfoProperties Gradle task 'createServerInfoProperties'
+ *
+ * This task creates a properties file with all project
+ * information. This property is used by the server.
+ */
 open class CreateServerInfoProperties: WriteProperties() {
 
     companion object {
@@ -56,6 +62,8 @@ open class CreateServerInfoProperties: WriteProperties() {
 
     /**
      * Configure product id provider for this task.
+     *
+     * @property productId provider for product ID
      */
     fun provideProductId(productId: Provider<String>) = productIdProperty.set(productId)
 
@@ -64,6 +72,8 @@ open class CreateServerInfoProperties: WriteProperties() {
 
     /**
      * Configure product name provider for this task.
+     *
+     * @property productName provider for product name
      */
     fun provideProductName(productName: Provider<String>) = productNameProperty.set(productName)
 
@@ -72,6 +82,8 @@ open class CreateServerInfoProperties: WriteProperties() {
 
     /**
      * Configure copyright owner provider for this task.
+     *
+     * @property copyrightOwner provider for copyright owner property
      */
     fun provideCopyrightOwner(copyrightOwner: Provider<String>) = copyrightOwnerProperty.set(copyrightOwner)
 
@@ -80,6 +92,8 @@ open class CreateServerInfoProperties: WriteProperties() {
 
     /**
      * Configure copyright from provider for this task.
+     *
+     * @property copyrightFrom provider for copyright from property
      */
     fun provideCopyrightFrom(copyrightFrom: Provider<String>) = copyrightFromProperty.set(copyrightFrom)
 
@@ -88,6 +102,8 @@ open class CreateServerInfoProperties: WriteProperties() {
 
     /**
      * Configure organization provider for this task.
+     *
+     * @property organization provider for organization
      */
     fun provideOrganization(organization: Provider<String>) = organizationProperty.set(organization)
 

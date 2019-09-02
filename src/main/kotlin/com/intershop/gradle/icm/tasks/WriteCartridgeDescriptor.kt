@@ -14,7 +14,6 @@
  * limitations under the License.
  *
  */
-
 package com.intershop.gradle.icm.tasks
 
 import com.intershop.gradle.icm.ICMBuildPlugin
@@ -34,6 +33,12 @@ import java.io.File
 import java.io.FileOutputStream
 import java.util.Properties
 
+/**
+ * WriteCartridgeDescriptor Gradle task 'writeCartridgeDescriptor'
+ *
+ * This task writes a cartridge descriptor file. This file
+ * is used by the server startup and special tests.
+ */
 open class WriteCartridgeDescriptor : WriteProperties() {
 
     private val versionProperty: Property<String> = project.objects.property(String::class.java)
@@ -42,28 +47,58 @@ open class WriteCartridgeDescriptor : WriteProperties() {
     private val displayNameProperty: Property<String> = project.objects.property(String::class.java)
 
     init {
-        outputFile = File(project.buildDir, "${ICMBuildPlugin.CARTRIDGE_DESCRIPTOR_DIR}/${ICMBuildPlugin.CARTRIDGE_DESCRIPTOR_FILE}")
+        outputFile = File(project.buildDir,
+            "${ICMBuildPlugin.CARTRIDGE_DESCRIPTOR_DIR}/${ICMBuildPlugin.CARTRIDGE_DESCRIPTOR_FILE}")
         versionProperty.set(project.version.toString())
         nameProperty.set(project.name)
-        descritpionProperty.set(if (project.description != null && project.description.toString().length > 0) project.description else project.name)
+        descritpionProperty.set(
+            if (project.description != null && project.description.toString().length > 0)
+                project.description
+            else
+                project.name)
         displayNameProperty.set(project.name)
     }
 
+    /**
+     * Set provider for descriptor version property.
+     *
+     * @param cartridgeVersion set provider for project version.
+     */
+    @Suppress( "unused")
     fun provideCartridgeVersion(cartridgeVersion: Provider<String>) = versionProperty.set(cartridgeVersion)
 
     @get:Input
     var cartridgeVersion by versionProperty
 
+    /**
+     * Set provider for descriptor cartridge name property.
+     *
+     * @param cartridgeName set provider for cartridge name.
+     */
+    @Suppress( "unused")
     fun provideCartridgeName(cartridgeName: Provider<String>) = nameProperty.set(cartridgeName)
 
     @get:Input
     var cartridgeName by nameProperty
 
-    fun provideCartridgeDescription(cartridgeDescription: Provider<String>) = descritpionProperty.set(cartridgeDescription)
+    /**
+     * Set provider for descriptor cartridge description property.
+     *
+     * @param cartridgeDescription set provider for cartridge description.
+     */
+    @Suppress( "unused")
+    fun provideCartridgeDescription(cartridgeDescription: Provider<String>) =
+        descritpionProperty.set(cartridgeDescription)
 
     @get:Input
     var cartridgeDescription by descritpionProperty
 
+    /**
+     * Set provider for descriptor display name property.
+     *
+     * @param displayName set provider for display name.
+     */
+    @Suppress( "unused")
     fun provideDisplayName(displayName: Provider<String>) = displayNameProperty.set(displayName)
 
     @get:Input
@@ -80,6 +115,10 @@ open class WriteCartridgeDescriptor : WriteProperties() {
         returnFiles
     }
 
+    /**
+     * Task method for the creation of a descriptor file.
+     */
+    @Suppress("unused")
     @TaskAction
     fun runFileCreation() {
         if(! outputFile.parentFile.exists()) {
@@ -102,7 +141,11 @@ open class WriteCartridgeDescriptor : WriteProperties() {
         if(cartridgestTransitivDependsOn is List<*>) {
             property("cartridge.transitive.dependsOn", cartridgestTransitivDependsOn.joinToString(separator = ";"))
         } else {
-            property("cartridge.transitive.dependsOn", if( cartridgestTransitivDependsOn != null) cartridgestTransitivDependsOn else "")
+            property("cartridge.transitive.dependsOn",
+                if( cartridgestTransitivDependsOn != null)
+                    cartridgestTransitivDependsOn
+                else
+                    "")
         }
 
         property("cartridge.name", cartridgeName)
@@ -112,6 +155,4 @@ open class WriteCartridgeDescriptor : WriteProperties() {
 
         super.writeProperties()
     }
-
-
 }
