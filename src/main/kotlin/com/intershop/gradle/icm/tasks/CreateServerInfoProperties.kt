@@ -16,6 +16,8 @@
  */
 package com.intershop.gradle.icm.tasks
 
+import com.intershop.gradle.icm.ICMBuildPlugin.Companion.PROJECT_INFO_DIR
+import com.intershop.gradle.icm.ICMBuildPlugin.Companion.PROJECT_INFO_FILE
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Input
@@ -25,16 +27,8 @@ import java.io.File
 import java.io.IOException
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import kotlin.reflect.KProperty
-
-/**
- * Add a set function to a String property.
- */
-operator fun <T> Property<T>.setValue(receiver: Any?, property: KProperty<*>, value: T) = set(value)
-/**
- * Add a get function to a String property.
- */
-operator fun <T> Property<T>.getValue(receiver: Any?, property: KProperty<*>): T = get()
+import com.intershop.gradle.icm.setValue
+import com.intershop.gradle.icm.getValue
 
 /**
  * Task for the creation of server info properties.
@@ -42,7 +36,6 @@ operator fun <T> Property<T>.getValue(receiver: Any?, property: KProperty<*>): T
 open class CreateServerInfoProperties: WriteProperties() {
 
     companion object {
-        const val FILENAME = "version.properties"
         private val now = LocalDateTime.now()
         val dateTime = now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
         val year = now.format(DateTimeFormatter.ofPattern("yyyy"))
@@ -55,7 +48,7 @@ open class CreateServerInfoProperties: WriteProperties() {
     private val organizationProperty: Property<String> = project.objects.property(String::class.java)
 
     init {
-        outputFile = File(project.buildDir.absolutePath, "serverInfoProps/version.properties")
+        outputFile = File(project.buildDir, "$PROJECT_INFO_DIR/$PROJECT_INFO_FILE")
     }
 
     @get:Input

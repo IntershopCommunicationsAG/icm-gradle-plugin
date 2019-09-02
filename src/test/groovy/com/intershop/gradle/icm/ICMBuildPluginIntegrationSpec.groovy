@@ -347,4 +347,292 @@ class ICMBuildPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         where:
         gradleVersion << supportedGradleVersions
     }
+
+    def 'Simple test of WriteCartridgeClasspath'(){
+        given:
+        settingsFile << """
+        rootProject.name='rootproject'
+        """.stripIndent()
+
+        buildFile << """
+            plugins {
+                id 'java'
+                id 'com.intershop.gradle.icm'
+            }
+            
+            version = "1.0.0"
+            
+            repositories {
+                jcenter()
+            }
+            """.stripIndent()
+
+            def prj1dir = createSubProject('testCartridge1', """
+            plugins {
+                id 'java'
+            }
+            
+            dependencies {
+                implementation "com.google.inject:guice:4.0"
+                implementation 'com.google.inject.extensions:guice-servlet:3.0'
+                implementation 'javax.servlet:javax.servlet-api:3.1.0'
+            } 
+            
+            repositories {
+                jcenter()
+            }
+            """.stripIndent())
+
+            def prj2dir = createSubProject('testCartridge2', """
+            plugins {
+                id 'java'
+            }
+                
+            dependencies {
+                cartridge project(':testCartridge1')
+                implementation "com.google.inject:guice:4.0"
+                implementation 'com.google.inject.extensions:guice-servlet:3.0'
+                implementation 'javax.servlet:javax.servlet-api:3.1.0'
+            } 
+                
+            repositories {
+                jcenter()
+            }
+            """.stripIndent())
+
+            def prj3dir = createSubProject('testCartridge3', """
+            plugins {
+                id 'java'
+            }
+
+            dependencies {
+                cartridge project(':testCartridge2')
+                implementation "com.google.inject:guice:4.0"
+                implementation 'com.google.inject.extensions:guice-servlet:3.0'
+                implementation 'javax.servlet:javax.servlet-api:3.1.0'
+            } 
+                
+            repositories {
+                jcenter()
+            }
+            """.stripIndent())
+
+        when:
+        def result = getPreparedGradleRunner()
+                .withArguments("writeCartridgeClasspath", "-s")
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        result.task(':testCartridge1:writeCartridgeClasspath').outcome == SUCCESS
+        result.task(':testCartridge2:writeCartridgeClasspath').outcome == SUCCESS
+        result.task(':testCartridge3:writeCartridgeClasspath').outcome == SUCCESS
+
+        where:
+        gradleVersion << supportedGradleVersions
+    }
+
+    def 'Simple test of WriteCartridgeDescriptor'(){
+        given:
+        settingsFile << """
+        rootProject.name='rootproject'
+        """.stripIndent()
+
+        buildFile << """
+            plugins {
+                id 'java'
+                id 'com.intershop.gradle.icm'
+            }
+            
+            version = "1.0.0"
+            
+            repositories {
+                jcenter()
+            }
+            """.stripIndent()
+
+        def prj1dir = createSubProject('testCartridge1', """
+            plugins {
+                id 'java'
+            }
+            
+            dependencies {
+                implementation "com.google.inject:guice:4.0"
+                implementation 'com.google.inject.extensions:guice-servlet:3.0'
+                implementation 'javax.servlet:javax.servlet-api:3.1.0'
+            } 
+            
+            repositories {
+                jcenter()
+            }
+            """.stripIndent())
+
+        def prj2dir = createSubProject('testCartridge2', """
+            plugins {
+                id 'java'
+            }
+            
+            dependencies {
+                cartridge project(':testCartridge1')
+                implementation "com.google.inject:guice:4.0"
+                implementation 'com.google.inject.extensions:guice-servlet:3.0'
+                implementation 'javax.servlet:javax.servlet-api:3.1.0'
+            } 
+                
+            repositories {
+                jcenter()
+            }
+            """.stripIndent())
+
+        def prj3dir = createSubProject('testCartridge3', """
+            plugins {
+                id 'java'
+            }
+             
+            dependencies {
+                cartridge project(':testCartridge2')
+                implementation "com.google.inject:guice:4.0"
+                implementation 'com.google.inject.extensions:guice-servlet:3.0'
+                implementation 'javax.servlet:javax.servlet-api:3.1.0'
+            } 
+                
+            repositories {
+                jcenter()
+            }
+            """.stripIndent())
+
+        when:
+        def result = getPreparedGradleRunner()
+                .withArguments("writeCartridgeDescriptor")
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        result.task(':testCartridge1:writeCartridgeDescriptor').outcome == SUCCESS
+        result.task(':testCartridge2:writeCartridgeDescriptor').outcome == SUCCESS
+        result.task(':testCartridge3:writeCartridgeDescriptor').outcome == SUCCESS
+
+        where:
+        gradleVersion << supportedGradleVersions
+
+    }
+
+    def 'Extended test of WriteCartridgeDescriptor'(){
+        given:
+        settingsFile << """
+        rootProject.name='rootproject'
+        """.stripIndent()
+
+        buildFile << """
+            plugins {
+                id 'java'
+                id 'com.intershop.gradle.icm'
+            }
+            
+            version = "1.0.0"
+            
+            repositories {
+                jcenter()
+            }
+            """.stripIndent()
+
+        def prj1dir = createSubProject('testCartridge1', """
+            plugins {
+                id 'java'
+            }
+            
+            dependencies {
+                implementation "com.google.inject:guice:4.0"
+                implementation 'com.google.inject.extensions:guice-servlet:3.0'
+                implementation 'javax.servlet:javax.servlet-api:3.1.0'
+            } 
+            
+            repositories {
+                jcenter()
+            }
+            """.stripIndent())
+
+        def prj2dir = createSubProject('testCartridge2', """
+            plugins {
+                id 'java'
+            }
+            
+            dependencies {
+                cartridge project(':testCartridge1')
+                implementation "com.google.inject:guice:4.0"
+                implementation 'com.google.inject.extensions:guice-servlet:3.0'
+                implementation 'javax.servlet:javax.servlet-api:3.1.0'
+            } 
+                
+            repositories {
+                jcenter()
+            }
+            """.stripIndent())
+
+        def prj3dir = createSubProject('testCartridge3', """
+            plugins {
+                id 'java'
+            }
+
+            dependencies {
+                cartridge project(':testCartridge2')
+                implementation "com.google.inject:guice:4.0"
+                implementation 'com.google.inject.extensions:guice-servlet:3.0'
+                implementation 'javax.servlet:javax.servlet-api:3.1.0'
+            } 
+                
+            repositories {
+                jcenter()
+            }
+            """.stripIndent())
+
+        def prj4dir = createSubProject('testCartridge4', """
+            plugins {
+                id 'java'
+            }
+                
+            dependencies {
+                cartridge project(':testCartridge3')
+                implementation "com.google.inject:guice:4.0"
+                implementation 'com.google.inject.extensions:guice-servlet:3.0'
+                implementation 'javax.servlet:javax.servlet-api:3.1.0'
+            } 
+                
+            repositories {
+                jcenter()
+            }
+            """.stripIndent())
+
+        def prj5dir = createSubProject('testCartridge5', """
+            plugins {
+                id 'java'
+            }
+             
+            dependencies {
+                cartridge project(':testCartridge3')
+                implementation "com.google.inject:guice:4.0"
+                implementation 'com.google.inject.extensions:guice-servlet:3.0'
+                implementation 'javax.servlet:javax.servlet-api:3.1.0'
+            } 
+                
+            repositories {
+                jcenter()
+            }
+            """.stripIndent())
+
+        when:
+        def result = getPreparedGradleRunner()
+                .withArguments("writeCartridgeDescriptor")
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        result.task(':testCartridge1:writeCartridgeDescriptor').outcome == SUCCESS
+        result.task(':testCartridge2:writeCartridgeDescriptor').outcome == SUCCESS
+        result.task(':testCartridge3:writeCartridgeDescriptor').outcome == SUCCESS
+
+        where:
+        gradleVersion << supportedGradleVersions
+
+    }
 }

@@ -16,6 +16,7 @@
  */
 package com.intershop.gradle.icm.tasks
 
+import com.intershop.gradle.icm.ICMBuildPlugin.Companion.THIRDPARTYLIB_DIR
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileCollection
@@ -31,6 +32,10 @@ import java.util.stream.Stream
 open class CopyThirdpartyLibs : DefaultTask() {
 
     private val outputDirProperty: DirectoryProperty = project.objects.directoryProperty()
+
+    init {
+        outputDirProperty.set(File(project.buildDir, THIRDPARTYLIB_DIR ))
+    }
 
     /**
      * Output directory for generated files.

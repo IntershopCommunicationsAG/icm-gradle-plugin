@@ -19,8 +19,11 @@ package com.intershop.gradle.icm
 import com.intershop.gradle.icm.extension.IntershopExtension
 import com.intershop.gradle.icm.tasks.CopyThirdpartyLibs
 import com.intershop.gradle.icm.tasks.CreateServerInfoProperties
+import com.intershop.gradle.icm.tasks.WriteCartridgeClasspath
+import com.intershop.gradle.icm.tasks.WriteCartridgeDescriptor
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.plugins.JavaPlugin
 import java.io.File
 
@@ -28,6 +31,73 @@ import java.io.File
  * The main plugin class of this plugin.
  */
 class ICMBuildPlugin : Plugin<Project> {
+
+    companion object {
+        const val PROJECT_INFO_FILE = "version.properties"
+        const val PROJECT_INFO_DIR = "serverInfoProps"
+
+        const val THIRDPARTYLIB_DIR = "lib"
+
+        const val CARTRIDGE_DESCRIPTOR_DIR = "descriptor"
+        const val CARTRIDGE_DESCRIPTOR_FILE = "cartridge.descriptor"
+
+        const val CARTRIDGE_CLASSPATH_DIR = "classpath"
+        const val CARTRIDGE_CLASSPATH_FILE = "cartridge.classpath"
+
+        fun getTransitiveCartridgeDependencies(prj: Project) : List<String> {
+            if(prj.extensions.extraProperties.has("cartridges.transitive.dependsOn")) {
+                var transDepnendsOn = prj.extensions.extraProperties.get("cartridges.transitive.dependsOn")
+                if(transDepnendsOn is List<*>) {
+                    return transDepnendsOn as List<String>
+                } else {
+                    return listOf()
+                }
+            } else {
+                var cartridgeConf = prj.configurations.getByName("cartridge")
+                val cartridges = ArrayList<String>()
+
+                cartridgeConf.allDependencies.forEach { dependency ->
+                    if (dependency is ProjectDependency) {
+                        cartridges.add(dependency.name)
+                        cartridges.addAll(getTransitiveCartridgeDependencies(dependency.dependencyProject))
+                    } else {
+                        //TODO: add handling for non project dependency
+                    }
+                }
+                return cartridges
+            }
+        }
+
+        fun addCartridgeDependenciesProps(prj: Project) {
+            val cartridges = HashSet<String>()
+            val transCartridges = HashSet<String>()
+
+            if (!prj.extensions.extraProperties.has("cartridges.dependsOn")) {
+                var cartridgeConf = prj.configurations.getByName("cartridge")
+                cartridgeConf.allDependencies.forEach { dependency ->
+                    if (dependency is ProjectDependency) {
+                        cartridges.add(dependency.name)
+                    }
+                }
+
+                var cartridgeList = cartridges.toMutableList()
+                cartridgeList.sort()
+                prj.extensions.extraProperties.set("cartridges.dependsOn", cartridgeList)
+            }
+            else {
+                cartridges.addAll(prj.extensions.extraProperties.get("cartridges.dependsOn") as List<String>)
+            }
+
+            if (!prj.extensions.extraProperties.has("cartridges.transitive.dependsOn")) {
+                transCartridges.addAll(cartridges)
+                transCartridges.addAll(getTransitiveCartridgeDependencies(prj))
+                var transCartridgesList = transCartridges.toMutableList()
+                transCartridgesList.sort()
+
+                prj.extensions.extraProperties.set("cartridges.transitive.dependsOn", transCartridgesList)
+            }
+        }
+    }
 
     override fun apply(project: Project) {
         with(project) {
@@ -44,8 +114,6 @@ class ICMBuildPlugin : Plugin<Project> {
                     IntershopExtension.INTERSHOP_EXTENSION_NAME, IntershopExtension::class.java, this
                 )
 
-
-
                 // create configurations for ICM project
                 val dbinit = configurations.maybeCreate("dbinit")
                 dbinit.setTransitive(false)
@@ -59,11 +127,30 @@ class ICMBuildPlugin : Plugin<Project> {
                 configureCreateServerInfoPropertiesTask(project, extension)
 
                 rootProject.subprojects.forEach { prj ->
-                    prj.plugins.withType(JavaPlugin::class.java) { plugin ->
-                        prj.tasks.maybeCreate("copyThirdpartyLibs", CopyThirdpartyLibs::class.java).apply {
-                            outputDir = File(prj.buildDir, "lib" )
+                    prj.plugins.withType(JavaPlugin::class.java) {
+
+                        var implementation = prj.configurations.findByName("implementation");
+
+                        val cartridge = prj.configurations.maybeCreate("cartridge")
+                        cartridge.setTransitive(false)
+                        if(implementation != null) {
+                            implementation.extendsFrom(cartridge)
                         }
-                    }
+
+                        val cartridgeAll = prj.configurations.maybeCreate("cartridgeAll")
+                        cartridgeAll.extendsFrom(cartridge)
+                        cartridgeAll.setTransitive(false)
+
+                        prj.tasks.maybeCreate("copyThirdpartyLibs", CopyThirdpartyLibs::class.java)
+                        var descriptorTask = prj.tasks.maybeCreate("writeCartridgeDescriptor", WriteCartridgeDescriptor::class.java)
+                        var classpathTask = prj.tasks.maybeCreate("writeCartridgeClasspath", WriteCartridgeClasspath::class.java)
+
+                        var jarTask = prj.tasks.findByName("jar")
+                        if(jarTask != null) {
+                            jarTask.dependsOn( descriptorTask )
+                            jarTask.dependsOn( classpathTask )
+                        }
+                     }
                 }
             } else {
                 logger.warn("ICM build plugin will be not applied to the sub project '{}'", project.name)
