@@ -139,9 +139,9 @@ open class WriteCartridgeDescriptor : WriteProperties() {
         }
 
         if(cartridgestTransitivDependsOn is List<*>) {
-            property("cartridge.transitive.dependsOn", cartridgestTransitivDependsOn.joinToString(separator = ";"))
+            property("cartridge.dependsOn.transitive", cartridgestTransitivDependsOn.joinToString(separator = ";"))
         } else {
-            property("cartridge.transitive.dependsOn",
+            property("cartridge.dependsOn.transitive",
                 if( cartridgestTransitivDependsOn != null)
                     cartridgestTransitivDependsOn
                 else
