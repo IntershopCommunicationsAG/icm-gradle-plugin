@@ -193,9 +193,12 @@ open class WriteCartridgeDescriptor : WriteProperties() {
                     .find { it is ResolvedArtifactResult &&
                             it.file.name == "${moduleID.module}-${moduleID.version}.pom"} as ResolvedArtifactResult
 
-            val xml = XmlSlurper().parse(modulePomArtifact.file)
-
-            println("found .... " + modulePomArtifact.file.name + " ... " + xml.getProperty("name"))
+            try {
+                val xml = XmlSlurper().parse(modulePomArtifact.file)
+                println("found .... " + modulePomArtifact.file.name + " ... " + xml.getProperty("name"))
+            }catch (ex: Exception) {
+                project.logger.info("Pom file is not readable - " + moduleID.moduleIdentifier)
+            }
         }
         return false
     }
