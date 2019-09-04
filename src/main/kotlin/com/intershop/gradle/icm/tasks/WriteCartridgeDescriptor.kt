@@ -19,8 +19,14 @@ package com.intershop.gradle.icm.tasks
 import com.intershop.gradle.icm.ICMBuildPlugin
 import com.intershop.gradle.icm.getValue
 import com.intershop.gradle.icm.setValue
+import groovy.util.XmlSlurper
 import org.gradle.api.artifacts.ModuleDependency
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier
+import org.gradle.api.artifacts.query.ArtifactResolutionQuery
+import org.gradle.api.artifacts.result.ArtifactResolutionResult
+import org.gradle.api.artifacts.result.ArtifactResult
+import org.gradle.api.artifacts.result.ResolvedArtifactResult
 import org.gradle.api.file.FileCollection
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.provider.Property
@@ -29,6 +35,8 @@ import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.WriteProperties
+import org.gradle.maven.MavenModule
+import org.gradle.maven.MavenPomArtifact
 import java.io.File
 
 /**
@@ -146,16 +154,17 @@ open class WriteCartridgeDescriptor : WriteProperties() {
         }
 
         project.configurations.getByName("cartridgeRuntime").resolvedConfiguration.lenientConfiguration.allModuleDependencies.forEach {
-            println("cartridge runtime ... " + it)
             it.moduleArtifacts.forEach {
                 var identifier = it.id.componentIdentifier
                 if(identifier is ProjectComponentIdentifier) {
                     cartridgesTransitive.add(project.project( identifier.projectPath ).name)
                 }
-                /**
+
                 if(identifier is ModuleComponentIdentifier) {
-                    cartridgesTransitive.add( identifier.module )
-                } **/
+                    if(isCartridge(identifier)) {
+                        cartridgesTransitive.add(identifier.module)
+                    }
+                }
             }
         }
 
@@ -168,5 +177,26 @@ open class WriteCartridgeDescriptor : WriteProperties() {
         property("cartridge.description", cartridgeDescription)
 
         super.writeProperties()
+    }
+
+    private fun isCartridge(moduleID : ModuleComponentIdentifier) : Boolean {
+        val query: ArtifactResolutionQuery = project.dependencies.createArtifactResolutionQuery()
+            .forModule(moduleID.group, moduleID.module, moduleID.version)
+            .withArtifacts(MavenModule::class.java, MavenPomArtifact::class.java)
+
+        val result: ArtifactResolutionResult = query.execute()
+
+        result.resolvedComponents.forEach { component ->
+            val mavenPomArtifacts: Set<ArtifactResult> = component.getArtifacts(MavenPomArtifact::class.java)
+            val modulePomArtifact =
+                mavenPomArtifacts
+                    .find { it is ResolvedArtifactResult &&
+                            it.file.name == "${moduleID.module}-${moduleID.version}.pom"} as ResolvedArtifactResult
+
+            val xml = XmlSlurper().parse(modulePomArtifact.file)
+
+            println("found .... " + modulePomArtifact.file.name + " ... " + xml.getProperty("name"))
+        }
+        return false
     }
 }
