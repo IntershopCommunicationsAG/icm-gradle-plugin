@@ -19,19 +19,17 @@ package com.intershop.gradle.icm.tasks
 import com.intershop.gradle.icm.ICMBuildPlugin
 import com.intershop.gradle.icm.getValue
 import com.intershop.gradle.icm.setValue
+import org.gradle.api.artifacts.ModuleDependency
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import org.gradle.api.file.FileCollection
-import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.WriteProperties
 import java.io.File
-import java.io.FileOutputStream
-import java.util.Properties
 
 /**
  * WriteCartridgeDescriptor Gradle task 'writeCartridgeDescriptor'
@@ -115,6 +113,17 @@ open class WriteCartridgeDescriptor : WriteProperties() {
         returnFiles
     }
 
+    @get:Classpath
+    private val cartridgeTransitivelist: FileCollection by lazy {
+        val returnFiles = project.files()
+
+        if (project.convention.findPlugin(JavaPluginConvention::class.java) != null) {
+            returnFiles.from(project.configurations.getByName("cartridgeRuntime").files)
+        }
+
+        returnFiles
+    }
+
     /**
      * Task method for the creation of a descriptor file.
      */
@@ -125,28 +134,33 @@ open class WriteCartridgeDescriptor : WriteProperties() {
             outputFile.parentFile.mkdirs()
         }
 
-        ICMBuildPlugin.addCartridgeDependenciesProps(project)
-
         comment = "Intershop descriptor file"
 
-        var cartridgesDependsOn = project.extensions.extraProperties.get("cartridges.dependsOn")
-        var cartridgestTransitivDependsOn = project.extensions.extraProperties.get("cartridges.transitive.dependsOn")
+        var cartridges = HashSet<String>()
+        var cartridgesTransitive = HashSet<String>()
 
-        if(cartridgesDependsOn is List<*>) {
-            property("cartridge.dependsOn", cartridgesDependsOn.joinToString(separator = ";"))
-        } else {
-            property("cartridge.dependsOn", if( cartridgesDependsOn != null) cartridgesDependsOn else "")
+        project.configurations.getByName("cartridge").allDependencies.forEach { dependensy ->
+            if(dependensy is ModuleDependency) {
+                cartridges.add(dependensy.name)
+            }
         }
 
-        if(cartridgestTransitivDependsOn is List<*>) {
-            property("cartridge.dependsOn.transitive", cartridgestTransitivDependsOn.joinToString(separator = ";"))
-        } else {
-            property("cartridge.dependsOn.transitive",
-                if( cartridgestTransitivDependsOn != null)
-                    cartridgestTransitivDependsOn
-                else
-                    "")
+        project.configurations.getByName("cartridgeRuntime").resolvedConfiguration.lenientConfiguration.allModuleDependencies.forEach {
+            println("cartridge runtime ... " + it)
+            it.moduleArtifacts.forEach {
+                var identifier = it.id.componentIdentifier
+                if(identifier is ProjectComponentIdentifier) {
+                    cartridgesTransitive.add(project.project( identifier.projectPath ).name)
+                }
+                /**
+                if(identifier is ModuleComponentIdentifier) {
+                    cartridgesTransitive.add( identifier.module )
+                } **/
+            }
         }
+
+        property("cartridge.dependsOn", cartridges.toSortedSet().joinToString( separator = ";" ))
+        property("cartridge.dependsOn.transitive", cartridgesTransitive.toSortedSet().joinToString( separator = ";" ))
 
         property("cartridge.name", cartridgeName)
         property("cartridge.version", cartridgeVersion)

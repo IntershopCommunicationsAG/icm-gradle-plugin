@@ -43,69 +43,6 @@ class ICMBuildPlugin : Plugin<Project> {
 
         const val CARTRIDGE_CLASSPATH_DIR = "classpath"
         const val CARTRIDGE_CLASSPATH_FILE = "cartridge.classpath"
-
-        /**
-         * Calculates transitive project cartridge dependencies.
-         *
-         * @param prj the project object
-         */
-        fun getTransitiveCartridgeDependencies(prj: Project) : List<String> {
-            val returnValue = ArrayList<String>()
-
-            if(prj.extensions.extraProperties.has("cartridges.transitive.dependsOn")) {
-                returnValue.addAll(
-                    prj.extensions.extraProperties.get("cartridges.transitive.dependsOn") as List<String>)
-            } else {
-                var cartridgeConf = prj.configurations.getByName("cartridge")
-
-                cartridgeConf.allDependencies.forEach { dependency ->
-                    if (dependency is ProjectDependency) {
-                        returnValue.add(dependency.name)
-                        returnValue.addAll(getTransitiveCartridgeDependencies(dependency.dependencyProject))
-                    } else {
-                        //TODO: add handling for non project dependency
-                    }
-                }
-            }
-            return returnValue
-        }
-
-        /**
-         * Add two extra properties to the project:
-         * - cartridges.dependsOn
-         * - cartridges.transitive.dependsOn
-         *
-         * @param prj the project object
-         */
-        fun addCartridgeDependenciesProps(prj: Project) {
-            val cartridges = HashSet<String>()
-            val transCartridges = HashSet<String>()
-
-            if (!prj.extensions.extraProperties.has("cartridges.dependsOn")) {
-                var cartridgeConf = prj.configurations.getByName("cartridge")
-                cartridgeConf.allDependencies.forEach { dependency ->
-                    if (dependency is ProjectDependency) {
-                        cartridges.add(dependency.name)
-                    }
-                }
-
-                var cartridgeList = cartridges.toMutableList()
-                cartridgeList.sort()
-                prj.extensions.extraProperties.set("cartridges.dependsOn", cartridgeList)
-            }
-            else {
-                cartridges.addAll(prj.extensions.extraProperties.get("cartridges.dependsOn") as List<String>)
-            }
-
-            if (!prj.extensions.extraProperties.has("cartridges.transitive.dependsOn")) {
-                transCartridges.addAll(cartridges)
-                transCartridges.addAll(getTransitiveCartridgeDependencies(prj))
-                var transCartridgesList = transCartridges.toMutableList()
-                transCartridgesList.sort()
-
-                prj.extensions.extraProperties.set("cartridges.transitive.dependsOn", transCartridgesList)
-            }
-        }
     }
 
     override fun apply(project: Project) {
@@ -146,13 +83,15 @@ class ICMBuildPlugin : Plugin<Project> {
                             implementation.extendsFrom(cartridge)
                         }
 
-                        val cartridgeAll = prj.configurations.maybeCreate("cartridgeAll")
-                        cartridgeAll.extendsFrom(cartridge)
-                        cartridgeAll.setTransitive(false)
+                        val cartridgeRuntime = prj.configurations.maybeCreate("cartridgeRuntime")
+                        cartridgeRuntime.extendsFrom(cartridge)
+                        cartridgeRuntime.setTransitive(true)
 
                         prj.tasks.maybeCreate("copyThirdpartyLibs", CopyThirdpartyLibs::class.java)
                         var descriptorTask = prj.tasks.maybeCreate("writeCartridgeDescriptor",
-                            WriteCartridgeDescriptor::class.java)
+                            WriteCartridgeDescriptor::class.java).apply {
+                            dependsOn(cartridgeRuntime)
+                        }
                         var classpathTask = prj.tasks.maybeCreate("writeCartridgeClasspath",
                             WriteCartridgeClasspath::class.java)
 

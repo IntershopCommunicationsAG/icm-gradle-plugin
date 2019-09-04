@@ -541,6 +541,8 @@ class ICMBuildPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                 id 'java'
             }
             
+            group = 'com.intershop'
+            
             dependencies {
                 implementation "com.google.inject:guice:4.0"
                 implementation 'com.google.inject.extensions:guice-servlet:3.0'
@@ -556,6 +558,8 @@ class ICMBuildPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
             plugins {
                 id 'java'
             }
+            
+            group = 'com.intershop'
             
             dependencies {
                 cartridge project(':testCartridge1')
@@ -573,6 +577,8 @@ class ICMBuildPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
             plugins {
                 id 'java'
             }
+            
+            group = 'com.intershop'
 
             dependencies {
                 cartridge project(':testCartridge2')
@@ -591,6 +597,8 @@ class ICMBuildPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                 id 'java'
             }
                 
+            group = 'com.intershop'
+            
             dependencies {
                 cartridge project(':testCartridge3')
                 implementation "com.google.inject:guice:4.0"
@@ -607,6 +615,8 @@ class ICMBuildPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
             plugins {
                 id 'java'
             }
+             
+            group = 'com.intershop'
              
             dependencies {
                 cartridge project(':testCartridge3')
