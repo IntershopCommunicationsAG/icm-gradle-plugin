@@ -604,6 +604,8 @@ class ICMBuildPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                 implementation "com.google.inject:guice:4.0"
                 implementation 'com.google.inject.extensions:guice-servlet:3.0'
                 implementation 'javax.servlet:javax.servlet-api:3.1.0'
+                
+                runtime 'net.logstash.logback:logstash-logback-encoder:4.11'
             } 
                 
             repositories {

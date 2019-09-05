@@ -89,9 +89,9 @@ class ICMBuildPlugin : Plugin<Project> {
                         cartridgeRuntime.setTransitive(true)
 
                         val cartridgeClasspath = prj.configurations.maybeCreate("cartridgeClasspath")
-                        cartridgeRuntime.extendsFrom(cartridge)
-                        cartridgeRuntime.extendsFrom(runtime)
-                        cartridgeRuntime.setTransitive(false)
+                        cartridgeClasspath.extendsFrom(cartridge)
+                        cartridgeClasspath.extendsFrom(runtime)
+                        cartridgeClasspath.setTransitive(false)
 
                         prj.tasks.maybeCreate("copyThirdpartyLibs", CopyThirdpartyLibs::class.java)
                         var descriptorTask = prj.tasks.maybeCreate("writeCartridgeDescriptor",
