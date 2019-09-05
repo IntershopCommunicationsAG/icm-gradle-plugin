@@ -88,11 +88,6 @@ class ICMBuildPlugin : Plugin<Project> {
                         cartridgeRuntime.extendsFrom(cartridge)
                         cartridgeRuntime.setTransitive(true)
 
-                        val cartridgeClasspath = prj.configurations.maybeCreate("cartridgeClasspath")
-                        cartridgeClasspath.extendsFrom(cartridge)
-                        cartridgeClasspath.extendsFrom(runtime)
-                        cartridgeClasspath.setTransitive(false)
-
                         prj.tasks.maybeCreate("copyThirdpartyLibs", CopyThirdpartyLibs::class.java)
                         var descriptorTask = prj.tasks.maybeCreate("writeCartridgeDescriptor",
                             WriteCartridgeDescriptor::class.java).apply {
@@ -100,7 +95,7 @@ class ICMBuildPlugin : Plugin<Project> {
                         }
                         var classpathTask = prj.tasks.maybeCreate("writeCartridgeClasspath",
                             WriteCartridgeClasspath::class.java).apply {
-                            dependsOn(cartridgeClasspath)
+                            dependsOn(cartridge, runtime)
                         }
 
                         var jarTask = prj.tasks.findByName("jar")

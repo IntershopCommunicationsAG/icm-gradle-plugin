@@ -52,11 +52,22 @@ open class WriteCartridgeClasspath : DefaultTask() {
         set(value) = outputFileProperty.set(value)
 
     @get:Classpath
-    private val classpath: FileCollection by lazy {
+    private val cartridgeRuntimelist: FileCollection by lazy {
         val returnFiles = project.files()
 
         if (project.convention.findPlugin(JavaPluginConvention::class.java) != null) {
-            returnFiles.from(project.configurations.getByName("cartridgeClasspath").files)
+            returnFiles.from(project.configurations.getByName("cartridgeRuntime").files)
+        }
+
+        returnFiles
+    }
+
+    @get:Classpath
+    private val runtimelist: FileCollection by lazy {
+        val returnFiles = project.files()
+
+        if (project.convention.findPlugin(JavaPluginConvention::class.java) != null) {
+            returnFiles.from(project.configurations.getByName("runtime").files)
         }
 
         returnFiles
@@ -76,7 +87,10 @@ open class WriteCartridgeClasspath : DefaultTask() {
         }
 
         outputFile.printWriter().use { out ->
-            classpath.files.forEach { cpFile ->
+            cartridgeRuntimelist.files.forEach { cpFile ->
+                out.println(cpFile.absolutePath)
+            }
+            runtimelist.files.forEach { cpFile ->
                 out.println(cpFile.absolutePath)
             }
         }
