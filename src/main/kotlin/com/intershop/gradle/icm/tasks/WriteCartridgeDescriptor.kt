@@ -152,6 +152,11 @@ open class WriteCartridgeDescriptor : WriteProperties() {
                 cartridges.add(dependensy.name)
             }
         }
+        project.configurations.getByName("cartridgeRuntime").allDependencies.forEach { dependensy ->
+            if(dependensy is ModuleDependency) {
+                cartridges.add(dependensy.name)
+            }
+        }
 
         project.configurations.getByName("cartridgeRuntime").resolvedConfiguration.lenientConfiguration.allModuleDependencies.forEach {
             it.moduleArtifacts.forEach {
