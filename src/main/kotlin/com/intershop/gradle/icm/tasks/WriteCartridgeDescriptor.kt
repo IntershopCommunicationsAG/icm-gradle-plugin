@@ -122,7 +122,7 @@ open class WriteCartridgeDescriptor : WriteProperties() {
     }
 
     @get:Classpath
-    private val cartridgeTransitivelist: FileCollection by lazy {
+    private val cartridgeRuntimelist: FileCollection by lazy {
         val returnFiles = project.files()
 
         if (project.convention.findPlugin(JavaPluginConvention::class.java) != null) {

@@ -75,7 +75,8 @@ class ICMBuildPlugin : Plugin<Project> {
                 rootProject.subprojects.forEach { prj ->
                     prj.plugins.withType(JavaPlugin::class.java) {
 
-                        var implementation = prj.configurations.findByName("implementation");
+                        var implementation = prj.configurations.findByName("implementation")
+                        var runtime = prj.configurations.findByName("runtime")
 
                         val cartridge = prj.configurations.maybeCreate("cartridge")
                         cartridge.setTransitive(false)
@@ -85,6 +86,7 @@ class ICMBuildPlugin : Plugin<Project> {
 
                         val cartridgeRuntime = prj.configurations.maybeCreate("cartridgeRuntime")
                         cartridgeRuntime.extendsFrom(cartridge)
+                        cartridgeRuntime.extendsFrom(runtime)
                         cartridgeRuntime.setTransitive(true)
 
                         prj.tasks.maybeCreate("copyThirdpartyLibs", CopyThirdpartyLibs::class.java)
