@@ -604,7 +604,7 @@ class ICMBuildPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                 implementation "com.google.inject:guice:4.0"
                 implementation 'com.google.inject.extensions:guice-servlet:3.0'
                 implementation 'javax.servlet:javax.servlet-api:3.1.0'
-                
+
                 runtime 'net.logstash.logback:logstash-logback-encoder:4.11'
             } 
                 
@@ -614,6 +614,30 @@ class ICMBuildPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
             """.stripIndent())
 
         def prj5dir = createSubProject('testCartridge5', """
+            plugins {
+                id 'java'
+            }
+             
+            group = 'com.intershop'
+            
+            writeCartridgeClasspath.addClasspathEntry = "/path/to/file/addjar.jar"
+            writeCartridgeClasspath.exclude = ".*\\\\/hamcrest-.*\\\\.jar"
+             
+            dependencies {
+                cartridge project(':testCartridge3')
+                implementation "com.google.inject:guice:4.0"
+                implementation 'com.google.inject.extensions:guice-servlet:3.0'
+                implementation 'javax.servlet:javax.servlet-api:3.1.0'
+                
+                implementation 'org.hamcrest:hamcrest-library:2.1'
+            } 
+                
+            repositories {
+                jcenter()
+            }
+            """.stripIndent())
+
+        def prj6dir = createSubProject('testCartridge6', """
             plugins {
                 id 'java'
             }

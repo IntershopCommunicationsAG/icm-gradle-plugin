@@ -17,12 +17,17 @@
 package com.intershop.gradle.icm.tasks
 
 import com.intershop.gradle.icm.ICMBuildPlugin
+import com.intershop.gradle.icm.getValue
+import com.intershop.gradle.icm.setValue
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.plugins.JavaPluginConvention
+import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Classpath
+import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import java.io.File
@@ -37,6 +42,8 @@ open class WriteCartridgeClasspath : DefaultTask() {
 
     private val outputFileProperty: RegularFileProperty = project.objects.fileProperty()
     private val addJarFileProperty: RegularFileProperty = project.objects.fileProperty()
+    //private val excludeProperty: Property<String?> = project.objects.property(String::class.java)
+    //private val addClasspathEntryProperty: Property<String?> = project.objects.property(String::class.java)
 
     init {
         outputFileProperty.set(File(project.buildDir,
@@ -64,10 +71,19 @@ open class WriteCartridgeClasspath : DefaultTask() {
      *
      * @property addJarFile additional jar file for classpath creation. This should be the jar file of the jar task.
      */
+    @get:Optional
     @get:InputFile
     var addJarFile: File
         get() = addJarFileProperty.get().asFile
         set(value) = addJarFileProperty.set(value)
+
+    @get:Input
+    @get:Optional
+    var exclude : String? = null
+
+    @get:Input
+    @get:Optional
+    var addClasspathEntry : String? = null
 
     @get:Classpath
     private val cartridgeRuntimelist: FileCollection by lazy {
@@ -115,8 +131,13 @@ open class WriteCartridgeClasspath : DefaultTask() {
             fileSet.toSortedSet().forEach { cpFile ->
                 val path = getNormalizedFilePath(cpFile)
                 if(! checkForSource(path)) {
-                    out.println(cpFile.absolutePath)
+                    if(exclude == null || ! path.matches(Regex(exclude.toString()))) {
+                        out.println(path)
+                    }
                 }
+            }
+            if(addClasspathEntry != null) {
+                out.println(addClasspathEntry?.replace("\\", "/"))
             }
         }
     }
