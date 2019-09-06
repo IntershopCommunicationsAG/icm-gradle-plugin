@@ -23,9 +23,7 @@ import com.intershop.gradle.icm.tasks.WriteCartridgeClasspath
 import com.intershop.gradle.icm.tasks.WriteCartridgeDescriptor
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.plugins.JavaPlugin
-import java.io.File
 
 /**
  * The main plugin class of this plugin.
@@ -91,17 +89,11 @@ class ICMBuildPlugin : Plugin<Project> {
                         prj.tasks.maybeCreate("copyThirdpartyLibs", CopyThirdpartyLibs::class.java)
                         var descriptorTask = prj.tasks.maybeCreate("writeCartridgeDescriptor",
                             WriteCartridgeDescriptor::class.java).apply {
-                            dependsOn(cartridgeRuntime)
+                            dependsOn(cartridge, cartridgeRuntime)
                         }
                         var classpathTask = prj.tasks.maybeCreate("writeCartridgeClasspath",
                             WriteCartridgeClasspath::class.java).apply {
-                            dependsOn(cartridge, runtime)
-                        }
-
-                        var jarTask = prj.tasks.findByName("jar")
-                        if(jarTask != null) {
-                            jarTask.dependsOn( descriptorTask )
-                            jarTask.dependsOn( classpathTask )
+                            dependsOn(cartridgeRuntime, runtime)
                         }
                      }
                 }

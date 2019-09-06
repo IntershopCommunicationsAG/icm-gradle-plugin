@@ -21,7 +21,6 @@ import com.intershop.gradle.icm.getValue
 import com.intershop.gradle.icm.setValue
 import groovy.util.XmlSlurper
 import org.gradle.api.artifacts.ModuleDependency
-import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import org.gradle.api.artifacts.query.ArtifactResolutionQuery

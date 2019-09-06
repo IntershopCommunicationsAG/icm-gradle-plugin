@@ -634,7 +634,7 @@ class ICMBuildPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         when:
         def result = getPreparedGradleRunner()
-                .withArguments("writeCartridgeDescriptor")
+                .withArguments("writeCartridgeDescriptor", "writeCartridgeClasspath")
                 .withGradleVersion(gradleVersion)
                 .build()
 

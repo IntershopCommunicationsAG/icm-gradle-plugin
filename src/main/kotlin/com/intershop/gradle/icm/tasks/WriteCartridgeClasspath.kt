@@ -22,6 +22,7 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.tasks.Classpath
+import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import java.io.File
@@ -35,10 +36,17 @@ import java.io.File
 open class WriteCartridgeClasspath : DefaultTask() {
 
     private val outputFileProperty: RegularFileProperty = project.objects.fileProperty()
+    private val addJarFileProperty: RegularFileProperty = project.objects.fileProperty()
 
     init {
         outputFileProperty.set(File(project.buildDir,
             "${ICMBuildPlugin.CARTRIDGE_CLASSPATH_DIR}/${ICMBuildPlugin.CARTRIDGE_CLASSPATH_FILE}"))
+
+        var jarTask = project.tasks.findByName("jar")
+        if(jarTask != null) {
+            addJarFileProperty.set(jarTask.outputs.files.first())
+            this.dependsOn(jarTask)
+        }
     }
 
     /**
@@ -50,6 +58,16 @@ open class WriteCartridgeClasspath : DefaultTask() {
     var outputFile: File
         get() = outputFileProperty.get().asFile
         set(value) = outputFileProperty.set(value)
+
+    /**
+     * The input of a single jar file if available.
+     *
+     * @property addJarFile additional jar file for classpath creation. This should be the jar file of the jar task.
+     */
+    @get:InputFile
+    var addJarFile: File
+        get() = addJarFileProperty.get().asFile
+        set(value) = addJarFileProperty.set(value)
 
     @get:Classpath
     private val cartridgeRuntimelist: FileCollection by lazy {
@@ -90,15 +108,28 @@ open class WriteCartridgeClasspath : DefaultTask() {
             outputFile.delete()
         }
 
+        var fileSet = cartridgeRuntimelist.files + classpathfiles.files
+
         outputFile.printWriter().use { out ->
-            cartridgeRuntimelist.files.forEach { cpFile ->
-                out.println(cpFile.absolutePath)
-            }
-            classpathfiles.files.forEach { cpFile ->
-                out.println(cpFile.absolutePath)
+            out.println(getNormalizedFilePath(addJarFile))
+            fileSet.toSortedSet().forEach { cpFile ->
+                val path = getNormalizedFilePath(cpFile)
+                if(! checkForSource(path)) {
+                    out.println(cpFile.absolutePath)
+                }
             }
         }
+    }
 
+    private fun getNormalizedFilePath(file: File) : String {
+        return file.absolutePath.replace("\\", "/")
+    }
 
+    private fun checkForSource(filePath: String) : Boolean {
+        var buildPath = getNormalizedFilePath(project.buildDir)
+        if(filePath.startsWith("${buildPath}/classes") || filePath.startsWith("${buildPath}/resources")) {
+            return true
+        }
+        return false
     }
 }
