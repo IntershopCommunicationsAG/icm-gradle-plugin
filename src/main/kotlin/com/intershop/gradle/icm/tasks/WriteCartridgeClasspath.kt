@@ -63,11 +63,15 @@ open class WriteCartridgeClasspath : DefaultTask() {
     }
 
     @get:Classpath
-    private val runtimelist: FileCollection by lazy {
+    private val classpathfiles : FileCollection by lazy {
         val returnFiles = project.files()
 
-        if (project.convention.findPlugin(JavaPluginConvention::class.java) != null) {
-            returnFiles.from(project.configurations.getByName("runtime").files)
+        // search all files for classpath
+        if(project.convention.findPlugin(JavaPluginConvention::class.java) != null) {
+            val javaConvention = project.convention.getPlugin(JavaPluginConvention::class.java)
+            val mainSourceSet = javaConvention.sourceSets.getByName("main")
+
+            returnFiles.from(mainSourceSet.runtimeClasspath)
         }
 
         returnFiles
@@ -90,7 +94,7 @@ open class WriteCartridgeClasspath : DefaultTask() {
             cartridgeRuntimelist.files.forEach { cpFile ->
                 out.println(cpFile.absolutePath)
             }
-            runtimelist.files.forEach { cpFile ->
+            classpathfiles.files.forEach { cpFile ->
                 out.println(cpFile.absolutePath)
             }
         }
