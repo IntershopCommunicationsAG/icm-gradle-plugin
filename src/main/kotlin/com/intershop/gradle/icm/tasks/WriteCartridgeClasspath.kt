@@ -20,15 +20,18 @@ import com.intershop.gradle.icm.ICMBuildPlugin
 import com.intershop.gradle.icm.getValue
 import com.intershop.gradle.icm.setValue
 import org.gradle.api.DefaultTask
+import org.gradle.api.artifacts.ModuleDependency
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.InputFile
-import org.gradle.api.tasks.Optional
+import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputFile
+import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskAction
 import java.io.File
 
@@ -41,19 +44,32 @@ import java.io.File
 open class WriteCartridgeClasspath : DefaultTask() {
 
     private val outputFileProperty: RegularFileProperty = project.objects.fileProperty()
-    private val addJarFileProperty: RegularFileProperty = project.objects.fileProperty()
-    //private val excludeProperty: Property<String?> = project.objects.property(String::class.java)
-    //private val addClasspathEntryProperty: Property<String?> = project.objects.property(String::class.java)
+    private val jarTaskNameProperty: Property<String> = project.objects.property(String::class.java)
+    private val useClassesFolderProperty: Property<Boolean> = project.objects.property(Boolean::class.java)
 
     init {
         outputFileProperty.set(File(project.buildDir,
             "${ICMBuildPlugin.CARTRIDGE_CLASSPATH_DIR}/${ICMBuildPlugin.CARTRIDGE_CLASSPATH_FILE}"))
+        jarTaskNameProperty.set("jar")
+        useClassesFolderProperty.set(false)
+    }
 
-        var jarTask = project.tasks.findByName("jar")
+    @get:Input
+    var jarTaskName by jarTaskNameProperty
+
+    @get:Input
+    var useClassesFolder by useClassesFolderProperty
+
+    @get:InputFiles
+    private val jarFiles: FileCollection by lazy {
+        val returnFiles = project.files()
+
+        var jarTask = project.tasks.findByName(jarTaskName)
         if(jarTask != null) {
-            addJarFileProperty.set(jarTask.outputs.files.first())
-            this.dependsOn(jarTask)
+            returnFiles.setFrom(jarTask.outputs.files.singleFile)
         }
+
+        returnFiles
     }
 
     /**
@@ -66,27 +82,8 @@ open class WriteCartridgeClasspath : DefaultTask() {
         get() = outputFileProperty.get().asFile
         set(value) = outputFileProperty.set(value)
 
-    /**
-     * The input of a single jar file if available.
-     *
-     * @property addJarFile additional jar file for classpath creation. This should be the jar file of the jar task.
-     */
-    @get:Optional
-    @get:InputFile
-    var addJarFile: File
-        get() = addJarFileProperty.get().asFile
-        set(value) = addJarFileProperty.set(value)
-
-    @get:Input
-    @get:Optional
-    var exclude : String? = null
-
-    @get:Input
-    @get:Optional
-    var addClasspathEntry : String? = null
-
     @get:Classpath
-    private val cartridgeRuntimelist: FileCollection by lazy {
+    private val cartridgeRuntimeFiles: FileCollection by lazy {
         val returnFiles = project.files()
 
         if (project.convention.findPlugin(JavaPluginConvention::class.java) != null) {
@@ -97,7 +94,7 @@ open class WriteCartridgeClasspath : DefaultTask() {
     }
 
     @get:Classpath
-    private val classpathfiles : FileCollection by lazy {
+    private val classpathFiles : FileCollection by lazy {
         val returnFiles = project.files()
 
         // search all files for classpath
@@ -124,26 +121,36 @@ open class WriteCartridgeClasspath : DefaultTask() {
             outputFile.delete()
         }
 
-        var fileSet = cartridgeRuntimelist.files + classpathfiles.files
+        var fileSet = cartridgeRuntimeFiles.files + classpathFiles.files
+        var rootProjectDir = getNormalizedFilePath(project.rootProject.projectDir)
+        var buildDirName = project.buildDir.getName()
+        var regex = Regex(".*${buildDirName}\\/libs\\/.*")
 
         outputFile.printWriter().use { out ->
-            out.println(getNormalizedFilePath(addJarFile))
             fileSet.toSortedSet().forEach { cpFile ->
                 val path = getNormalizedFilePath(cpFile)
-                if(! checkForSource(path)) {
-                    if(exclude == null || ! path.matches(Regex(exclude.toString()))) {
+                if(useClassesFolderProperty.get()) {
+                    if (path.startsWith(rootProjectDir) && path.matches(regex)) {
+                        var projectDirPath =
+                            path.replace("${buildDirName}[\\/|\\\\]libs[\\/|\\\\].*".toRegex(), "")
+                                .replace("\\", "/")
+                        out.println("${projectDirPath}/resources/main")
+                        out.println("${projectDirPath}/classes/java/main")
+                    } else {
+                        out.println(path)
+                    }
+                } else {
+                    if(! checkForSource(path)) {
                         out.println(path)
                     }
                 }
             }
-            if(addClasspathEntry != null) {
-                out.println(addClasspathEntry?.replace("\\", "/"))
+            if(!useClassesFolderProperty.get()) {
+                jarFiles.files.forEach { jarFile ->
+                    out.println(getNormalizedFilePath(jarFile))
+                }
             }
         }
-    }
-
-    private fun getNormalizedFilePath(file: File) : String {
-        return file.absolutePath.replace("\\", "/")
     }
 
     private fun checkForSource(filePath: String) : Boolean {
@@ -152,5 +159,9 @@ open class WriteCartridgeClasspath : DefaultTask() {
             return true
         }
         return false
+    }
+
+    private fun getNormalizedFilePath(file: File) : String {
+        return file.absolutePath.replace("\\", "/")
     }
 }

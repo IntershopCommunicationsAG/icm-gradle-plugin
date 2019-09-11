@@ -620,8 +620,7 @@ class ICMBuildPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
              
             group = 'com.intershop'
             
-            writeCartridgeClasspath.addClasspathEntry = "/path/to/file/addjar.jar"
-            writeCartridgeClasspath.exclude = ".*\\\\/hamcrest-.*\\\\.jar"
+            writeCartridgeClasspath.useClassesFolder = true
              
             dependencies {
                 cartridge project(':testCartridge3')
@@ -636,6 +635,8 @@ class ICMBuildPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                 jcenter()
             }
             """.stripIndent())
+
+        writeJavaTestClass("com.intershop.test", prj5dir)
 
         def prj6dir = createSubProject('testCartridge6', """
             plugins {
