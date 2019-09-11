@@ -71,7 +71,8 @@ description = "Intershop Commerce Management Build Plugin"
 
 version = scm.version.version
 
-val pluginId = "com.intershop.gradle.icm"
+val pluginIdICMPlugin = "com.intershop.gradle.icm"
+val pluginIdICMTestPlugin = "com.intershop.gradle.icm.ishunittest"
 
 repositories {
     mavenCentral()
@@ -80,10 +81,16 @@ repositories {
 gradlePlugin {
     plugins {
         create("icmPlugin") {
-            id = pluginId
+            id = pluginIdICMPlugin
             implementationClass = "com.intershop.gradle.icm.ICMBuildPlugin"
             displayName = project.name
             description = project.description
+        }
+        create("icmTestPlugin") {
+            id = pluginIdICMTestPlugin
+            implementationClass = "com.intershop.gradle.icm.ICMTestPlugin"
+            displayName = "icm-test-plugin"
+            description = "This plugin should be applied to test projects with ishunit tests"
         }
     }
 }
@@ -113,7 +120,7 @@ detekt {
 
 tasks {
     withType<Test>().configureEach {
-        systemProperty("intershop.gradle.versions", "5.5.1")
+        systemProperty("intershop.gradle.versions", "5.6.2")
 
         dependsOn("jar")
     }
