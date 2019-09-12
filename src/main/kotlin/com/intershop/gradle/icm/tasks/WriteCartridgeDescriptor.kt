@@ -17,8 +17,8 @@
 package com.intershop.gradle.icm.tasks
 
 import com.intershop.gradle.icm.ICMBuildPlugin
-import com.intershop.gradle.icm.getValue
-import com.intershop.gradle.icm.setValue
+import com.intershop.gradle.icm.utils.getValue
+import com.intershop.gradle.icm.utils.setValue
 import groovy.util.XmlSlurper
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier

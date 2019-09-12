@@ -25,6 +25,8 @@ class ICMTestPlugin : Plugin<Project> {
 
     override fun apply(project: Project) {
         with(project) {
+            logger.info( "ICM test plugin will be initialized" )
+
             tasks.maybeCreate("ishUnitTest", ISHUnitTest::class.java)
 
         }

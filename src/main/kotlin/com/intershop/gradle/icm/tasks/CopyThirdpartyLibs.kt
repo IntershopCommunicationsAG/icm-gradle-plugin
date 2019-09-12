@@ -27,8 +27,6 @@ import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactIdentifier
 import java.io.File
-import java.util.stream.Collectors
-import java.util.stream.Stream
 
 /**
  * CopyThirdpartyLibs Gradle task 'copyThirdpartyLibs'

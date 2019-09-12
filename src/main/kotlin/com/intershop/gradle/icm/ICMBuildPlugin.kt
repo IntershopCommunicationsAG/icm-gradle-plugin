@@ -45,12 +45,9 @@ class ICMBuildPlugin : Plugin<Project> {
 
     override fun apply(project: Project) {
         with(project) {
-            if(project.rootProject == project) {
-                logger.info(
-                    "ICM build plugin adds extension {} to {}",
-                    IntershopExtension.INTERSHOP_EXTENSION_NAME,
-                    name
-                )
+            if(project.rootProject == this) {
+
+                logger.info( "ICM build plugin will be initialized" )
 
                 val extension = extensions.findByType(
                     IntershopExtension::class.java
@@ -64,9 +61,6 @@ class ICMBuildPlugin : Plugin<Project> {
 
                 val icmserver = configurations.maybeCreate("icmserver")
                 icmserver.setTransitive(false)
-
-                configurations.maybeCreate("runtimeLib")
-                configurations.maybeCreate("dockerRuntimeLib")
 
                 configureCreateServerInfoPropertiesTask(project, extension)
 
@@ -87,11 +81,11 @@ class ICMBuildPlugin : Plugin<Project> {
                         cartridgeRuntime.setTransitive(true)
 
                         prj.tasks.maybeCreate("copyThirdpartyLibs", CopyThirdpartyLibs::class.java)
-                        var descriptorTask = prj.tasks.maybeCreate("writeCartridgeDescriptor",
+                        prj.tasks.maybeCreate("writeCartridgeDescriptor",
                             WriteCartridgeDescriptor::class.java).apply {
                             dependsOn(cartridge, cartridgeRuntime)
                         }
-                        var classpathTask = prj.tasks.maybeCreate("writeCartridgeClasspath",
+                        prj.tasks.maybeCreate("writeCartridgeClasspath",
                             WriteCartridgeClasspath::class.java).apply {
                             dependsOn(cartridgeRuntime, runtime)
                         }

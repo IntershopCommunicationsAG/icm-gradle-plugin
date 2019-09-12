@@ -27,8 +27,8 @@ import java.io.File
 import java.io.IOException
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import com.intershop.gradle.icm.setValue
-import com.intershop.gradle.icm.getValue
+import com.intershop.gradle.icm.utils.setValue
+import com.intershop.gradle.icm.utils.getValue
 
 /**
  * Task for the creation of server info properties.

@@ -15,7 +15,7 @@
  *
  */
 
-package com.intershop.gradle.icm
+package com.intershop.gradle.icm.utils
 
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property

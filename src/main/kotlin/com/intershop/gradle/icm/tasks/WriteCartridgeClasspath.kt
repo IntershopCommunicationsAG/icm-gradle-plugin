@@ -17,21 +17,17 @@
 package com.intershop.gradle.icm.tasks
 
 import com.intershop.gradle.icm.ICMBuildPlugin
-import com.intershop.gradle.icm.getValue
-import com.intershop.gradle.icm.setValue
+import com.intershop.gradle.icm.utils.getValue
+import com.intershop.gradle.icm.utils.setValue
 import org.gradle.api.DefaultTask
-import org.gradle.api.artifacts.ModuleDependency
-import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.RegularFileProperty
-import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputFile
-import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskAction
 import java.io.File
 

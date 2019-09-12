@@ -16,19 +16,11 @@
  */
 package com.intershop.gradle.icm.extension
 
+import com.intershop.gradle.icm.utils.getValue
+import com.intershop.gradle.icm.utils.setValue
 import org.gradle.api.Project
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
-import kotlin.reflect.KProperty
-
-/**
- * Add a set function to a String property.
- */
-operator fun <T> Property<T>.setValue(receiver: Any?, property: KProperty<*>, value: T) = set(value)
-/**
- * Add a get function to a String property.
- */
-operator fun <T> Property<T>.getValue(receiver: Any?, property: KProperty<*>): T = get()
 
 /**
  * Extension for server info properties.
@@ -40,11 +32,6 @@ open class ProjectInfo(project: Project) {
     private val copyrightOwnerProperty: Property<String> = project.objects.property(String::class.java)
     private val copyrightFromProperty: Property<String> = project.objects.property(String::class.java)
     private val organizationProperty: Property<String> = project.objects.property(String::class.java)
-
-    companion object {
-        // name of the extension
-        const val EXTENSION_NAME = "icmProjectinfo"
-    }
 
     init {
         productIDProperty.set("ICM")

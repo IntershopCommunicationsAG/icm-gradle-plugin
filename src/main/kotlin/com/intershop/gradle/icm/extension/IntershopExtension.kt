@@ -18,9 +18,7 @@ package com.intershop.gradle.icm.extension
 
 import groovy.lang.Closure
 import org.gradle.api.Action
-import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Project
-import org.gradle.util.ConfigureUtil
 
 /**
  * Extension for ICM properties.
@@ -30,10 +28,11 @@ open class IntershopExtension(var project: Project)  {
     companion object {
         // names for the plugin
         const val INTERSHOP_EXTENSION_NAME = "intershop"
-        const val INTERSHOP_GROUP_NAME = "Intershop Commerce Management build plugin"
+        const val INTERSHOP_GROUP_NAME = "Intershop Commerce Management Plugins"
     }
 
     val projectInfo: ProjectInfo = ProjectInfo(project)
+    val baseConfig: BaseConfiguration = BaseConfiguration(project)
 
     /**
      * Configures the project information configuration.
@@ -52,5 +51,24 @@ open class IntershopExtension(var project: Project)  {
      */
     fun projectInfo(action: Action<in ProjectInfo>) {
         action.execute(projectInfo)
+    }
+
+    /**
+     * Configures the base project of Intershop Commerce Management.
+     *
+     * @param closure closure with base project configuration of Intershop Commerce Management
+     */
+    @Suppress("unused")
+    fun baseConfig(closure: Closure<Any>) {
+        project.configure(baseConfig, closure)
+    }
+
+    /**
+     * Configures the base project of Intershop Commerce Management.
+     *
+     * @param action action with base project configuration of Intershop Commerce Management
+     */
+    fun baseConfig(action: Action<in BaseConfiguration>) {
+        action.execute(baseConfig)
     }
 }
