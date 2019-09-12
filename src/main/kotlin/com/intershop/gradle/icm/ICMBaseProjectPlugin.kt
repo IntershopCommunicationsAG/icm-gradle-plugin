@@ -24,6 +24,9 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.tasks.Copy
 import java.io.File
 
+/**
+ * The plugin for the configuration of the ICM base project.
+ */
 class ICMBaseProjectPlugin : Plugin<Project> {
 
     private lateinit var runtimeLibConfiguration: Configuration
@@ -57,14 +60,13 @@ class ICMBaseProjectPlugin : Plugin<Project> {
     }
 
     private fun addRuntimeDependencies(project: Project, extension: IntershopExtension) {
-        val dependencyBase = "${extension.baseConfig.runtimeModule}:${extension.baseConfig.runtimeVersion}"
         val dependencyHandler = project.dependencies
 
         runtimeLibConfiguration = project.configurations.maybeCreate("runtimeLib")
             .setTransitive(false)
             .setDescription("Configuration for native runtime library")
             .defaultDependencies {
-
+                val dependencyBase = "${extension.baseConfig.runtimeModule}:${extension.baseConfig.runtimeVersion}"
 
                 if(OsCheck.getDetectedOS() == OsCheck.OSType.MacOS) {
                     it.add( dependencyHandler.create("${dependencyBase}:darwin@dylib") )
@@ -83,6 +85,9 @@ class ICMBaseProjectPlugin : Plugin<Project> {
             .setTransitive(false)
             .setDescription("Configuration for native runtime library used with Docker")
             .defaultDependencies {
+                val dependencyBase = "${extension.baseConfig.runtimeModule}:${extension.baseConfig.runtimeVersion}"
+
+
                 it.add( dependencyHandler.create("${dependencyBase}:darwin@dylib") )
                 it.add( dependencyHandler.create("${dependencyBase}:darwin@setpgid") )
             }

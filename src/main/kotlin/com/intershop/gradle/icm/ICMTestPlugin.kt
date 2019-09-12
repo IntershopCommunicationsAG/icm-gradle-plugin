@@ -21,6 +21,9 @@ import com.intershop.gradle.icm.tasks.ISHUnitTest
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 
+/**
+ * The plugin for Intershop ishUnitTests.
+ */
 class ICMTestPlugin : Plugin<Project> {
 
     override fun apply(project: Project) {

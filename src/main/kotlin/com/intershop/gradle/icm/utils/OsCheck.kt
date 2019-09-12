@@ -19,10 +19,13 @@ package com.intershop.gradle.icm.utils
 
 import java.util.Locale
 
+/**
+ * Utility class to identify the OS.
+ */
 object OsCheck {
 
     /**
-     * types of Operating Systems.
+     * Types of Operating Systems.
      */
     enum class OSType {
         Windows, MacOS, Linux, Other
@@ -31,7 +34,7 @@ object OsCheck {
     private var detectedOS: OSType
 
     /**
-     * detect the operating system from the os.name System property and cache
+     * Detect the operating system from the os.name System property and cache
      * the result.
      */
     init {
