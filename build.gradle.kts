@@ -91,7 +91,7 @@ gradlePlugin {
         }
         create("icmBaseProjectPlugin") {
             id = "com.intershop.gradle.icm.ishbuild"
-            implementationClass = "com.intershop.gradle.icm.ICMBaselugin"
+            implementationClass = "com.intershop.gradle.icm.ICMBaseProjectPlugin"
             displayName = "icm-base-plugin"
             description = "This plugin should be applied to the original Intershop Commerce Management base product project"
         }

@@ -22,6 +22,9 @@ import org.gradle.api.Project
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 
+/**
+ * Extension needed for the configuration of an INTERSHOP base project.
+ */
 class BaseConfiguration(project: Project) {
 
     private val runtimeModuleProperty: Property<String> = project.objects.property(String::class.java)

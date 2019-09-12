@@ -57,7 +57,7 @@ open class WriteCartridgeClasspath : DefaultTask() {
     var useClassesFolder by useClassesFolderProperty
 
     @get:InputFiles
-    private val jarFiles: FileCollection by lazy {
+    val jarFiles: FileCollection by lazy {
         val returnFiles = project.files()
 
         var jarTask = project.tasks.findByName(jarTaskName)
@@ -79,7 +79,7 @@ open class WriteCartridgeClasspath : DefaultTask() {
         set(value) = outputFileProperty.set(value)
 
     @get:Classpath
-    private val cartridgeRuntimeFiles: FileCollection by lazy {
+    val cartridgeRuntimeFiles: FileCollection by lazy {
         val returnFiles = project.files()
 
         if (project.convention.findPlugin(JavaPluginConvention::class.java) != null) {
@@ -90,7 +90,7 @@ open class WriteCartridgeClasspath : DefaultTask() {
     }
 
     @get:Classpath
-    private val classpathFiles : FileCollection by lazy {
+    val classpathFiles : FileCollection by lazy {
         val returnFiles = project.files()
 
         // search all files for classpath

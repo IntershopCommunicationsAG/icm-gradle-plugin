@@ -19,6 +19,10 @@ package com.intershop.gradle.icm.tasks
 
 import org.gradle.api.tasks.testing.Test
 
+/**
+ * This class contains the base configuration for a special Intershop
+ * test task. It runs special ishUnitTests.
+ */
 class ISHUnitTest : Test() {
 
     init {
@@ -31,5 +35,4 @@ class ISHUnitTest : Test() {
                 "${installRuntimeLib.outputs.files.singleFile.absolutePath}"
         }
     }
-
 }

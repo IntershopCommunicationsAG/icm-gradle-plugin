@@ -24,7 +24,7 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.tasks.Copy
 import java.io.File
 
-class ICMBasePlugin : Plugin<Project> {
+class ICMBaseProjectPlugin : Plugin<Project> {
 
     private lateinit var runtimeLibConfiguration: Configuration
 

@@ -122,7 +122,7 @@ open class WriteCartridgeDescriptor : WriteProperties() {
     }
 
     @get:Classpath
-    private val cartridgeRuntimelist: FileCollection by lazy {
+    val cartridgeRuntimelist: FileCollection by lazy {
         val returnFiles = project.files()
 
         if (project.convention.findPlugin(JavaPluginConvention::class.java) != null) {
@@ -158,7 +158,9 @@ open class WriteCartridgeDescriptor : WriteProperties() {
             }
         }
 
-        project.configurations.getByName("cartridgeRuntime").resolvedConfiguration.lenientConfiguration.allModuleDependencies.forEach {
+        project.configurations.
+            getByName("cartridgeRuntime").
+            resolvedConfiguration.lenientConfiguration.allModuleDependencies.forEach {
             it.moduleArtifacts.forEach {
                 var identifier = it.id.componentIdentifier
                 if(identifier is ProjectComponentIdentifier) {

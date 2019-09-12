@@ -22,19 +22,17 @@ import java.util.Locale
 object OsCheck {
 
     /**
-     * types of Operating Systems
+     * types of Operating Systems.
      */
     enum class OSType {
         Windows, MacOS, Linux, Other
     }
 
-    private lateinit var detectedOS: OSType
+    private var detectedOS: OSType
 
     /**
      * detect the operating system from the os.name System property and cache
-     * the result
-     *
-     * @returns - the operating system detected
+     * the result.
      */
     init {
         val OS = System.getProperty("os.name", "generic").toLowerCase(Locale.ENGLISH)
@@ -49,5 +47,10 @@ object OsCheck {
         }
     }
 
+    /**
+     * Provides the information for other classes.
+     *
+     * @returns - the operating system detected.
+     */
     fun getDetectedOS() = detectedOS
 }
