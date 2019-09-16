@@ -20,11 +20,11 @@ import com.intershop.gradle.icm.extension.IntershopExtension
 import com.intershop.gradle.test.AbstractProjectSpec
 import org.gradle.api.Plugin
 
-class ICMBuildPluginSpec extends AbstractProjectSpec {
+class ICMProductPluginSpec extends AbstractProjectSpec {
 
     @Override
     Plugin getPlugin() {
-        return new ICMBuildPlugin()
+        return new ICMProductPlugin()
     }
 
     def 'should add extension named intershop'() {

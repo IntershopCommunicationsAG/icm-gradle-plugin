@@ -14,30 +14,16 @@
  * limitations under the License.
  *
  */
-
 package com.intershop.gradle.icm
 
-import com.intershop.gradle.icm.tasks.ISHUnitTest
+import com.intershop.gradle.icm.extension.IntershopExtension
+import com.intershop.gradle.test.AbstractProjectSpec
 import org.gradle.api.Plugin
-import org.gradle.api.Project
-import org.gradle.api.plugins.JavaLibraryPlugin
 
-/**
- * The plugin for Intershop ishUnitTests.
- */
-class ICMTestPlugin : Plugin<Project> {
+class ICMTestPluginSpec extends AbstractProjectSpec {
 
-    override fun apply(project: Project) {
-        with(project) {
-
-            // base plugin must be applied
-            if(plugins.findPlugin(ICMBasePlugin::class.java) == null) {
-                plugins.apply(ICMBasePlugin::class.java)
-            }
-
-            plugins.withType(JavaLibraryPlugin::class.java) {
-                tasks.maybeCreate("ishUnitTest", ISHUnitTest::class.java)
-            }
-        }
+    @Override
+    Plugin getPlugin() {
+        return new ICMTestPlugin()
     }
 }

@@ -17,13 +17,15 @@
 
 package com.intershop.gradle.icm.tasks
 
+import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.tasks.testing.Test
+import java.io.File
 
 /**
  * This class contains the base configuration for a special Intershop
  * test task. It runs special ishUnitTests.
  */
-class ISHUnitTest : Test() {
+open class ISHUnitTest : Test() {
 
     init {
         group = "verification"
@@ -34,5 +36,38 @@ class ISHUnitTest : Test() {
             systemProperties["java.library.path"] =
                 "${installRuntimeLib.outputs.files.singleFile.absolutePath}"
         }
+
+        val javaConvention = project.convention.getPlugin(JavaPluginConvention::class.java)
+        val mainSourceSet = javaConvention.sourceSets.getByName("main")
+
+        setTestClassesDirs(mainSourceSet.output.classesDirs)
+        //setClasspath(mainSourceSet.runtimeClasspath + project.configurations.findByName("cartridgeRuntime"))
+
+        include("tests/unit/**/*")
+        include("tests/embedded/**/*")
+        include("tests/query/**/*")
+
+        exclude("tests/unit/com/intershop/ui/web/property/mapping/UIMapperTest.class")
+        exclude("**/*TestSuite*")
+
+        minHeapSize = "512m"
+        maxHeapSize = "2048m"
+
+        /*
+jvmArgs '-agentlib:jdwp=transport=dt_socket,server=y,address=6666,suspend=n'
+*/
+
+        jvmArgs("-DUnitTestCase.allowServerRestart=false")
+        jvmArgs("-DEmbeddedServerRule.loadAllCartridges=true")
+        // jvmArgs("-Dintershop.ServerConfig=${rootProject.tasks.createServerDirProperties.outputs.files.first().absolutePath}")
+
+        var cartridgeDescriptor = File(project.buildDir, "descriptor/cartridge.descriptor")
+        jvmArgs("-DcartridgeDescriptor=${cartridgeDescriptor.absolutePath}")
+
+        environment("INTERSHOP_EVENT_MESSENGERCLASS", "com.intershop.beehive.messaging.internal.noop.NoOpMessenger")
+        environment("INTERSHOP_CACHESYNC_MESSENGERCLASS", "com.intershop.beehive.messaging.internal.noop.NoOpMessenger")
+        environment("INTERSHOP_CACHEENGINE_WRAPPED_MESSENGERCLASS", "com.intershop.beehive.messaging.internal.noop.NoOpMessenger")
     }
+
+
 }

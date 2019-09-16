@@ -1,0 +1,118 @@
+/*
+ * Copyright 2019 Intershop Communications AG.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+
+package com.intershop.gradle.icm
+
+import com.intershop.gradle.icm.extension.IntershopExtension
+import com.intershop.gradle.icm.tasks.CopyThirdpartyLibs
+import com.intershop.gradle.icm.tasks.CreateServerInfoProperties
+import com.intershop.gradle.icm.tasks.WriteCartridgeClasspath
+import com.intershop.gradle.icm.tasks.WriteCartridgeDescriptor
+import com.intershop.gradle.icm.utils.ICMPluginBase
+import org.gradle.api.Plugin
+import org.gradle.api.Project
+import org.gradle.api.plugins.JavaPlugin
+import org.gradle.api.tasks.TaskContainer
+
+open class ICMBasePlugin : Plugin<Project> {
+
+    companion object {
+        const val CONFIGURATION_CARTRIDGE = "cartridge"
+        const val CONFIGURATION_CARTRIDGERUNTIME = "cartridgeRuntime"
+
+        fun checkForTask(tasks: TaskContainer, taskname: String): Boolean {
+            return tasks.names.contains(taskname)
+        }
+    }
+
+    override fun apply(project: Project) {
+        with(project) {
+            if (project.rootProject == this) {
+
+                logger.info("ICM build plugin will be initialized")
+
+                val extension = extensions.findByType(
+                    IntershopExtension::class.java
+                ) ?: extensions.create(
+                    IntershopExtension.INTERSHOP_EXTENSION_NAME, IntershopExtension::class.java, this
+                )
+
+                configureCreateServerInfoPropertiesTask(project, extension)
+                rootProject.subprojects.forEach { subPoject  ->
+
+                    var implementation = subPoject.configurations.findByName(JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME)
+                    var runtime = subPoject.configurations.findByName(JavaPlugin.RUNTIME_ELEMENTS_CONFIGURATION_NAME)
+
+                    val cartridge = subPoject.configurations.maybeCreate(CONFIGURATION_CARTRIDGE)
+                    cartridge.setTransitive(false)
+                    implementation?.extendsFrom(cartridge)
+
+                    val cartridgeRuntime = subPoject.configurations.maybeCreate(CONFIGURATION_CARTRIDGERUNTIME)
+                    cartridgeRuntime.extendsFrom(cartridge)
+                    cartridgeRuntime.setTransitive(true)
+
+                    if(! checkForTask(tasks, WriteCartridgeDescriptor.DEFAULT_NAME)) {
+                        subPoject.tasks.register(
+                            WriteCartridgeDescriptor.DEFAULT_NAME,
+                            WriteCartridgeDescriptor::class.java
+                        ) {
+                            it.dependsOn(cartridge, cartridgeRuntime)
+                        }
+                    }
+
+                    if(! checkForTask(tasks, WriteCartridgeClasspath.DEFAULT_NAME)) {
+                        subPoject.tasks.register(
+                            WriteCartridgeClasspath.DEFAULT_NAME,
+                            WriteCartridgeClasspath::class.java
+                        ) {
+                            it.dependsOn(cartridgeRuntime)
+                            if (runtime != null) it.dependsOn(runtime)
+                        }
+                    }
+
+                    if (!checkForTask(subPoject.tasks, CopyThirdpartyLibs.DEFAULT_NAME)) {
+                        subPoject.tasks.register(
+                            CopyThirdpartyLibs.DEFAULT_NAME,
+                            CopyThirdpartyLibs::class.java
+                        )
+                    }
+
+
+                }
+            } else {
+                logger.warn("ICM build plugin will be not applied to the sub project '{}'", name)
+            }
+        }
+    }
+
+    private fun configureCreateServerInfoPropertiesTask(project: Project, extension: IntershopExtension) {
+        with(project) {
+            if(! checkForTask(tasks, CreateServerInfoProperties.DEFAULT_NAME)) {
+                tasks.register(
+                    CreateServerInfoProperties.DEFAULT_NAME,
+                    CreateServerInfoProperties::class.java
+                ) { task ->
+                    task.provideProductId(extension.projectInfo.productIDProvider)
+                    task.provideProductName(extension.projectInfo.productNameProvider)
+                    task.provideCopyrightOwner(extension.projectInfo.copyrightOwnerProvider)
+                    task.provideCopyrightFrom(extension.projectInfo.copyrightFromProvider)
+                    task.provideOrganization(extension.projectInfo.organizationProvider)
+                }
+            }
+        }
+    }
+}

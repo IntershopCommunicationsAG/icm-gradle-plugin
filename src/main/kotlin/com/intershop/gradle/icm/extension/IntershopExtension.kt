@@ -71,4 +71,5 @@ open class IntershopExtension(var project: Project)  {
     fun baseConfig(action: Action<in BaseConfiguration>) {
         action.execute(baseConfig)
     }
+
 }

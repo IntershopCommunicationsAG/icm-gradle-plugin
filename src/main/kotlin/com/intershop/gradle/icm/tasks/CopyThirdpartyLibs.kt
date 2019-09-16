@@ -16,12 +16,12 @@
  */
 package com.intershop.gradle.icm.tasks
 
-import com.intershop.gradle.icm.ICMBuildPlugin.Companion.THIRDPARTYLIB_DIR
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileCollection
-import org.gradle.api.plugins.JavaPluginConvention
+import org.gradle.api.plugins.JavaPlatformPlugin.RUNTIME_ELEMENTS_CONFIGURATION_NAME
+import org.gradle.api.plugins.JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
@@ -37,6 +37,11 @@ import java.io.File
 open class CopyThirdpartyLibs : DefaultTask() {
 
     private val outputDirProperty: DirectoryProperty = project.objects.directoryProperty()
+
+    companion object {
+        const val DEFAULT_NAME = "copyThirdpartyLibs"
+        const val THIRDPARTYLIB_DIR = "lib"
+    }
 
     init {
         outputDirProperty.set(File(project.buildDir, THIRDPARTYLIB_DIR ))
@@ -55,11 +60,7 @@ open class CopyThirdpartyLibs : DefaultTask() {
     @get:Classpath
     private val configurationClasspath: FileCollection by lazy {
         val returnFiles = project.files()
-
-        if (project.convention.findPlugin(JavaPluginConvention::class.java) != null) {
-            returnFiles.from(project.configurations.getByName("runtimeClasspath").files)
-        }
-
+        returnFiles.from(project.configurations.getByName(RUNTIME_CLASSPATH_CONFIGURATION_NAME).files)
         returnFiles
     }
 
@@ -76,7 +77,7 @@ open class CopyThirdpartyLibs : DefaultTask() {
             outputDir.mkdirs()
         }
 
-        project.configurations.getByName("runtimeClasspath")
+        project.configurations.getByName(RUNTIME_CLASSPATH_CONFIGURATION_NAME)
             .resolvedConfiguration.resolvedArtifacts.forEach { artifact ->
             if (artifact.id is DefaultModuleComponentArtifactIdentifier) {
 

@@ -16,8 +16,8 @@
  */
 package com.intershop.gradle.icm.tasks
 
-import com.intershop.gradle.icm.ICMBuildPlugin.Companion.PROJECT_INFO_DIR
-import com.intershop.gradle.icm.ICMBuildPlugin.Companion.PROJECT_INFO_FILE
+import com.intershop.gradle.icm.ICMProjectPlugin.Companion.PROJECT_INFO_DIR
+import com.intershop.gradle.icm.ICMProjectPlugin.Companion.PROJECT_INFO_FILE
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Input
@@ -31,9 +31,6 @@ import com.intershop.gradle.icm.utils.setValue
 import com.intershop.gradle.icm.utils.getValue
 
 /**
- * Task for the creation of server info properties.
- */
-/**
  * CreateServerInfoProperties Gradle task 'createServerInfoProperties'
  *
  * This task creates a properties file with all project
@@ -42,6 +39,11 @@ import com.intershop.gradle.icm.utils.getValue
 open class CreateServerInfoProperties: WriteProperties() {
 
     companion object {
+        const val DEFAULT_NAME = "createServerInfoProperties"
+
+        const val PROJECT_INFO_FILE = "version.properties"
+        const val PROJECT_INFO_DIR = "serverInfoProps"
+
         private val now = LocalDateTime.now()
         val dateTime = now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
         val year = now.format(DateTimeFormatter.ofPattern("yyyy"))

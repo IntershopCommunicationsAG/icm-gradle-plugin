@@ -44,7 +44,7 @@ class ICMBaseProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec 
         buildFile << """
             plugins {
                 id 'java'
-                id 'com.intershop.gradle.icm.ishbuild'
+                id 'com.intershop.gradle.icm.product'
             }
             
             intershop {

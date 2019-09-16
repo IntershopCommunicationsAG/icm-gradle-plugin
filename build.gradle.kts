@@ -67,7 +67,7 @@ scm {
 }
 
 group = "com.intershop.gradle.icm"
-description = "Intershop Commerce Management Build Plugin"
+description = "Intershop Commerce Management Plugins"
 
 version = scm.version.version
 
@@ -77,23 +77,29 @@ repositories {
 
 gradlePlugin {
     plugins {
-        create("icmPlugin") {
-            id = "com.intershop.gradle.icm"
-            implementationClass = "com.intershop.gradle.icm.ICMBuildPlugin"
-            displayName = project.name
-            description = project.description
+        create("icmBasePlugin") {
+            id = "com.intershop.gradle.icm.base"
+            implementationClass = "com.intershop.gradle.icm.ICMBasePlugin"
+            displayName = "icm-base-plugin"
+            description = "This ICM plugin contains configuration and some main aspects of all plugins."
         }
         create("icmTestPlugin") {
             id = "com.intershop.gradle.icm.ishunittest"
             implementationClass = "com.intershop.gradle.icm.ICMTestPlugin"
             displayName = "icm-test-plugin"
-            description = "This plugin should be applied to test projects with ishunit tests"
+            description = "This ICM plugin should be applied to test projects with ishunit tests"
         }
-        create("icmBaseProjectPlugin") {
-            id = "com.intershop.gradle.icm.ishbuild"
-            implementationClass = "com.intershop.gradle.icm.ICMBaseProjectPlugin"
-            displayName = "icm-base-plugin"
-            description = "This plugin should be applied to the original Intershop Commerce Management base product project"
+        create("icmProductPlugin") {
+            id = "com.intershop.gradle.icm.product"
+            implementationClass = "com.intershop.gradle.icm.ICMProductPlugin"
+            displayName = "icm-product-plugin"
+            description = "This ICM plugin should be applied to the original Intershop Commerce Management base product project"
+        }
+        create("icmProjectPlugin") {
+            id = "com.intershop.gradle.icm.project"
+            implementationClass = "com.intershop.gradle.icm.ICMProjectPlugin"
+            displayName = "icm-project-plugin"
+            description = "This plugin should be applied to Intershop Commerce Management customer projects."
         }
     }
 }

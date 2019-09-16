@@ -16,7 +16,7 @@
  */
 package com.intershop.gradle.icm.tasks
 
-import com.intershop.gradle.icm.ICMBuildPlugin
+import com.intershop.gradle.icm.ICMProjectPlugin
 import com.intershop.gradle.icm.utils.getValue
 import com.intershop.gradle.icm.utils.setValue
 import org.gradle.api.DefaultTask
@@ -43,9 +43,15 @@ open class WriteCartridgeClasspath : DefaultTask() {
     private val jarTaskNameProperty: Property<String> = project.objects.property(String::class.java)
     private val useClassesFolderProperty: Property<Boolean> = project.objects.property(Boolean::class.java)
 
+    companion object {
+        const val DEFAULT_NAME = "writeCartridgeClasspath"
+
+        const val CARTRIDGE_CLASSPATH_DIR = "classpath"
+        const val CARTRIDGE_CLASSPATH_FILE = "cartridge.classpath"
+    }
+
     init {
-        outputFileProperty.set(File(project.buildDir,
-            "${ICMBuildPlugin.CARTRIDGE_CLASSPATH_DIR}/${ICMBuildPlugin.CARTRIDGE_CLASSPATH_FILE}"))
+        outputFileProperty.set(File(project.buildDir, "${CARTRIDGE_CLASSPATH_DIR}/${CARTRIDGE_CLASSPATH_FILE}"))
         jarTaskNameProperty.set("jar")
         useClassesFolderProperty.set(false)
     }

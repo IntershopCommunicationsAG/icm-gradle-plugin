@@ -16,7 +16,9 @@
  */
 package com.intershop.gradle.icm.tasks
 
-import com.intershop.gradle.icm.ICMBuildPlugin
+import com.intershop.gradle.icm.ICMProjectPlugin
+import com.intershop.gradle.icm.utils.ICMPluginBase.CONFIGURATION_CARTRIDGE
+import com.intershop.gradle.icm.utils.ICMPluginBase.CONFIGURATION_CARTRIDGERUNTIME
 import com.intershop.gradle.icm.utils.getValue
 import com.intershop.gradle.icm.utils.setValue
 import groovy.util.XmlSlurper
@@ -28,7 +30,6 @@ import org.gradle.api.artifacts.result.ArtifactResolutionResult
 import org.gradle.api.artifacts.result.ArtifactResult
 import org.gradle.api.artifacts.result.ResolvedArtifactResult
 import org.gradle.api.file.FileCollection
-import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Classpath
@@ -52,9 +53,15 @@ open class WriteCartridgeDescriptor : WriteProperties() {
     private val descritpionProperty: Property<String> = project.objects.property(String::class.java)
     private val displayNameProperty: Property<String> = project.objects.property(String::class.java)
 
+    companion object {
+        const val DEFAULT_NAME = "writeCartridgeDescriptor"
+        const val CARTRIDGE_DESCRIPTOR_DIR = "descriptor"
+        const val CARTRIDGE_DESCRIPTOR_FILE = "cartridge.descriptor"
+    }
+
     init {
         outputFile = File(project.buildDir,
-            "${ICMBuildPlugin.CARTRIDGE_DESCRIPTOR_DIR}/${ICMBuildPlugin.CARTRIDGE_DESCRIPTOR_FILE}")
+            "${CARTRIDGE_DESCRIPTOR_DIR}/${CARTRIDGE_DESCRIPTOR_FILE}")
         versionProperty.set(project.version.toString())
         nameProperty.set(project.name)
         descritpionProperty.set(
@@ -113,22 +120,14 @@ open class WriteCartridgeDescriptor : WriteProperties() {
     @get:Classpath
     private val cartridgelist: FileCollection by lazy {
         val returnFiles = project.files()
-
-        if (project.convention.findPlugin(JavaPluginConvention::class.java) != null) {
-            returnFiles.from(project.configurations.getByName("cartridge").files)
-        }
-
+        returnFiles.from(project.configurations.getByName(CONFIGURATION_CARTRIDGE).files)
         returnFiles
     }
 
     @get:Classpath
     val cartridgeRuntimelist: FileCollection by lazy {
         val returnFiles = project.files()
-
-        if (project.convention.findPlugin(JavaPluginConvention::class.java) != null) {
-            returnFiles.from(project.configurations.getByName("cartridgeRuntime").files)
-        }
-
+        returnFiles.from(project.configurations.getByName(CONFIGURATION_CARTRIDGERUNTIME).files)
         returnFiles
     }
 
@@ -147,33 +146,33 @@ open class WriteCartridgeDescriptor : WriteProperties() {
         var cartridges = HashSet<String>()
         var cartridgesTransitive = HashSet<String>()
 
-        project.configurations.getByName("cartridge").allDependencies.forEach { dependensy ->
+        project.configurations.getByName(CONFIGURATION_CARTRIDGE).allDependencies.forEach { dependensy ->
             if(dependensy is ModuleDependency) {
                 cartridges.add(dependensy.name)
             }
         }
-        project.configurations.getByName("cartridgeRuntime").allDependencies.forEach { dependensy ->
+        project.configurations.getByName(CONFIGURATION_CARTRIDGERUNTIME).allDependencies.forEach { dependensy ->
             if(dependensy is ModuleDependency) {
                 cartridges.add(dependensy.name)
             }
         }
 
         project.configurations.
-            getByName("cartridgeRuntime").
+            getByName(CONFIGURATION_CARTRIDGERUNTIME).
             resolvedConfiguration.lenientConfiguration.allModuleDependencies.forEach {
-            it.moduleArtifacts.forEach {
-                var identifier = it.id.componentIdentifier
-                if(identifier is ProjectComponentIdentifier) {
-                    cartridgesTransitive.add(project.project( identifier.projectPath ).name)
-                }
+                it.moduleArtifacts.forEach {
+                    var identifier = it.id.componentIdentifier
+                    if(identifier is ProjectComponentIdentifier) {
+                        cartridgesTransitive.add(project.project( identifier.projectPath ).name)
+                    }
 
-                if(identifier is ModuleComponentIdentifier) {
-                    if(isCartridge(identifier)) {
-                        cartridgesTransitive.add(identifier.module)
+                    if(identifier is ModuleComponentIdentifier) {
+                        if(isCartridge(identifier)) {
+                            cartridgesTransitive.add(identifier.module)
+                        }
                     }
                 }
             }
-        }
 
         property("cartridge.dependsOn", cartridges.toSortedSet().joinToString( separator = ";" ))
         property("cartridge.dependsOn.transitive", cartridgesTransitive.toSortedSet().joinToString( separator = ";" ))
