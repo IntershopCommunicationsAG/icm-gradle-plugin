@@ -59,14 +59,18 @@ jvmArgs '-agentlib:jdwp=transport=dt_socket,server=y,address=6666,suspend=n'
 
         jvmArgs("-DUnitTestCase.allowServerRestart=false")
         jvmArgs("-DEmbeddedServerRule.loadAllCartridges=true")
-        // jvmArgs("-Dintershop.ServerConfig=${rootProject.tasks.createServerDirProperties.outputs.files.first().absolutePath}")
+        // jvmArgs("-Dintershop.ServerConfig=
+        // ${rootProject.tasks.createServerDirProperties.outputs.files.first().absolutePath}")
 
         var cartridgeDescriptor = File(project.buildDir, "descriptor/cartridge.descriptor")
         jvmArgs("-DcartridgeDescriptor=${cartridgeDescriptor.absolutePath}")
 
-        environment("INTERSHOP_EVENT_MESSENGERCLASS", "com.intershop.beehive.messaging.internal.noop.NoOpMessenger")
-        environment("INTERSHOP_CACHESYNC_MESSENGERCLASS", "com.intershop.beehive.messaging.internal.noop.NoOpMessenger")
-        environment("INTERSHOP_CACHEENGINE_WRAPPED_MESSENGERCLASS", "com.intershop.beehive.messaging.internal.noop.NoOpMessenger")
+        environment("INTERSHOP_EVENT_MESSENGERCLASS",
+            "com.intershop.beehive.messaging.internal.noop.NoOpMessenger")
+        environment("INTERSHOP_CACHESYNC_MESSENGERCLASS",
+            "com.intershop.beehive.messaging.internal.noop.NoOpMessenger")
+        environment("INTERSHOP_CACHEENGINE_WRAPPED_MESSENGERCLASS",
+            "com.intershop.beehive.messaging.internal.noop.NoOpMessenger")
     }
 
 

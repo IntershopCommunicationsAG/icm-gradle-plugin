@@ -17,15 +17,8 @@
 package com.intershop.gradle.icm
 
 import com.intershop.gradle.icm.extension.IntershopExtension
-import com.intershop.gradle.icm.tasks.CreateServerInfoProperties
-import com.intershop.gradle.icm.tasks.WriteCartridgeClasspath
-import com.intershop.gradle.icm.tasks.WriteCartridgeDescriptor
-import com.intershop.gradle.icm.utils.ICMPluginBase.CONFIGURATION_CARTRIDGE
-import com.intershop.gradle.icm.utils.ICMPluginBase.CONFIGURATION_CARTRIDGERUNTIME
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.plugins.JavaPlugin
-import org.gradle.api.tasks.TaskContainer
 
 /**
  * The main plugin class of this plugin.

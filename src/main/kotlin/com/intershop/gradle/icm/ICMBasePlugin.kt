@@ -22,18 +22,26 @@ import com.intershop.gradle.icm.tasks.CopyThirdpartyLibs
 import com.intershop.gradle.icm.tasks.CreateServerInfoProperties
 import com.intershop.gradle.icm.tasks.WriteCartridgeClasspath
 import com.intershop.gradle.icm.tasks.WriteCartridgeDescriptor
-import com.intershop.gradle.icm.utils.ICMPluginBase
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.TaskContainer
 
+/**
+ * The base plugin for the configuration of the ICM project.
+ */
 open class ICMBasePlugin : Plugin<Project> {
 
     companion object {
         const val CONFIGURATION_CARTRIDGE = "cartridge"
         const val CONFIGURATION_CARTRIDGERUNTIME = "cartridgeRuntime"
 
+        /**
+         * checks if the specied name is available in the list of tasks.
+         *
+         * @param taskname  the name of the new task
+         * @param tasks     the task container self
+         */
         fun checkForTask(tasks: TaskContainer, taskname: String): Boolean {
             return tasks.names.contains(taskname)
         }
@@ -54,33 +62,35 @@ open class ICMBasePlugin : Plugin<Project> {
                 configureCreateServerInfoPropertiesTask(project, extension)
                 rootProject.subprojects.forEach { subPoject  ->
 
-                    var implementation = subPoject.configurations.findByName(JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME)
-                    var runtime = subPoject.configurations.findByName(JavaPlugin.RUNTIME_ELEMENTS_CONFIGURATION_NAME)
+                    with(subPoject.configurations) {
+                        var implementation = findByName(JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME)
+                        var runtime = findByName(JavaPlugin.RUNTIME_ELEMENTS_CONFIGURATION_NAME)
 
-                    val cartridge = subPoject.configurations.maybeCreate(CONFIGURATION_CARTRIDGE)
-                    cartridge.setTransitive(false)
-                    implementation?.extendsFrom(cartridge)
+                        val cartridge = maybeCreate(CONFIGURATION_CARTRIDGE)
+                        cartridge.setTransitive(false)
+                        implementation?.extendsFrom(cartridge)
 
-                    val cartridgeRuntime = subPoject.configurations.maybeCreate(CONFIGURATION_CARTRIDGERUNTIME)
-                    cartridgeRuntime.extendsFrom(cartridge)
-                    cartridgeRuntime.setTransitive(true)
+                        val cartridgeRuntime = maybeCreate(CONFIGURATION_CARTRIDGERUNTIME)
+                        cartridgeRuntime.extendsFrom(cartridge)
+                        cartridgeRuntime.setTransitive(true)
 
-                    if(! checkForTask(tasks, WriteCartridgeDescriptor.DEFAULT_NAME)) {
-                        subPoject.tasks.register(
-                            WriteCartridgeDescriptor.DEFAULT_NAME,
-                            WriteCartridgeDescriptor::class.java
-                        ) {
-                            it.dependsOn(cartridge, cartridgeRuntime)
+                        if(! checkForTask(tasks, WriteCartridgeDescriptor.DEFAULT_NAME)) {
+                            subPoject.tasks.register(
+                                WriteCartridgeDescriptor.DEFAULT_NAME,
+                                WriteCartridgeDescriptor::class.java
+                            ) {
+                                it.dependsOn(cartridge, cartridgeRuntime)
+                            }
                         }
-                    }
 
-                    if(! checkForTask(tasks, WriteCartridgeClasspath.DEFAULT_NAME)) {
-                        subPoject.tasks.register(
-                            WriteCartridgeClasspath.DEFAULT_NAME,
-                            WriteCartridgeClasspath::class.java
-                        ) {
-                            it.dependsOn(cartridgeRuntime)
-                            if (runtime != null) it.dependsOn(runtime)
+                        if(! checkForTask(tasks, WriteCartridgeClasspath.DEFAULT_NAME)) {
+                            subPoject.tasks.register(
+                                WriteCartridgeClasspath.DEFAULT_NAME,
+                                WriteCartridgeClasspath::class.java
+                            ) {
+                                it.dependsOn(cartridgeRuntime)
+                                if (runtime != null) it.dependsOn(runtime)
+                            }
                         }
                     }
 

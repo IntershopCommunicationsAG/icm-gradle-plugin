@@ -22,6 +22,12 @@ import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.tasks.OutputFile
 import java.io.File
 
+/**
+ * CreateServerDirProperties Gradle task 'createServerDirProperties'
+ *
+ * This task creates a configuration file with all available project
+ * directories of the ICM server.
+ */
 class CreateServerDirProperties : DefaultTask() {
 
     private val outputFileProperty: RegularFileProperty = project.objects.fileProperty()
@@ -37,7 +43,10 @@ class CreateServerDirProperties : DefaultTask() {
         set(value) = outputFileProperty.set(value)
 
     init {
-        outputFile = File(project.buildDir, "${ICMProductPlugin.SERVER_DIRECTORY_PROPERTIES_DIR}/${ICMProductPlugin.SERVER_DIRECTORY_PROPERTIES}")
+        outputFile = File(
+            project.buildDir,
+            "${ICMProductPlugin.SERVER_DIRECTORY_PROPERTIES_DIR}/${ICMProductPlugin.SERVER_DIRECTORY_PROPERTIES}"
+        )
     }
 
 

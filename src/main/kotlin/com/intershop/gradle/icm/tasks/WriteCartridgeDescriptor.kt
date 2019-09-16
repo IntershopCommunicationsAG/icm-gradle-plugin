@@ -16,9 +16,8 @@
  */
 package com.intershop.gradle.icm.tasks
 
-import com.intershop.gradle.icm.ICMProjectPlugin
-import com.intershop.gradle.icm.utils.ICMPluginBase.CONFIGURATION_CARTRIDGE
-import com.intershop.gradle.icm.utils.ICMPluginBase.CONFIGURATION_CARTRIDGERUNTIME
+import com.intershop.gradle.icm.ICMBasePlugin.Companion.CONFIGURATION_CARTRIDGE
+import com.intershop.gradle.icm.ICMBasePlugin.Companion.CONFIGURATION_CARTRIDGERUNTIME
 import com.intershop.gradle.icm.utils.getValue
 import com.intershop.gradle.icm.utils.setValue
 import groovy.util.XmlSlurper
@@ -118,7 +117,7 @@ open class WriteCartridgeDescriptor : WriteProperties() {
     var displayName by displayNameProperty
 
     @get:Classpath
-    private val cartridgelist: FileCollection by lazy {
+    val cartridgelist: FileCollection by lazy {
         val returnFiles = project.files()
         returnFiles.from(project.configurations.getByName(CONFIGURATION_CARTRIDGE).files)
         returnFiles

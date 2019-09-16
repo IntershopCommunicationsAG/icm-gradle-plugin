@@ -17,20 +17,12 @@
 package com.intershop.gradle.icm
 
 import com.intershop.gradle.icm.extension.IntershopExtension
-import com.intershop.gradle.icm.tasks.CopyThirdpartyLibs
 import com.intershop.gradle.icm.tasks.CreateServerInfoProperties
-import com.intershop.gradle.icm.tasks.WriteCartridgeClasspath
-import com.intershop.gradle.icm.utils.ICMPluginBase
-import com.intershop.gradle.icm.utils.ICMPluginBase.CONFIGURATION_DOCKER_RUNTIME_LIB
-import com.intershop.gradle.icm.utils.ICMPluginBase.CONFIGURATION_RUNTIME_LIB
-import com.intershop.gradle.icm.utils.ICMPluginBase.TASK_INSTALLPROJECTCONFIG
-import com.intershop.gradle.icm.utils.ICMPluginBase.TASK_INSTALLRUNTIMELIB
 import com.intershop.gradle.icm.utils.OsCheck
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.tasks.Copy
-import org.gradle.api.tasks.TaskContainer
 import java.io.File
 
 /**

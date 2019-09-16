@@ -16,8 +16,8 @@
  */
 package com.intershop.gradle.icm.tasks
 
-import com.intershop.gradle.icm.ICMProjectPlugin.Companion.PROJECT_INFO_DIR
-import com.intershop.gradle.icm.ICMProjectPlugin.Companion.PROJECT_INFO_FILE
+import com.intershop.gradle.icm.utils.getValue
+import com.intershop.gradle.icm.utils.setValue
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Input
@@ -27,8 +27,6 @@ import java.io.File
 import java.io.IOException
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import com.intershop.gradle.icm.utils.setValue
-import com.intershop.gradle.icm.utils.getValue
 
 /**
  * CreateServerInfoProperties Gradle task 'createServerInfoProperties'

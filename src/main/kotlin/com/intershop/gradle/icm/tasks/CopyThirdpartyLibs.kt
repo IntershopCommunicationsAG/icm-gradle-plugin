@@ -20,7 +20,6 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileCollection
-import org.gradle.api.plugins.JavaPlatformPlugin.RUNTIME_ELEMENTS_CONFIGURATION_NAME
 import org.gradle.api.plugins.JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.OutputDirectory
@@ -58,7 +57,7 @@ open class CopyThirdpartyLibs : DefaultTask() {
         set(value) = outputDirProperty.set(value)
 
     @get:Classpath
-    private val configurationClasspath: FileCollection by lazy {
+    val configurationClasspath: FileCollection by lazy {
         val returnFiles = project.files()
         returnFiles.from(project.configurations.getByName(RUNTIME_CLASSPATH_CONFIGURATION_NAME).files)
         returnFiles
