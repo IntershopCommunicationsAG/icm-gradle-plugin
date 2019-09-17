@@ -17,8 +17,11 @@
 package com.intershop.gradle.icm
 
 import com.intershop.gradle.icm.extension.IntershopExtension
+import com.intershop.gradle.icm.tasks.CopyThirdpartyLibs
+import com.intershop.gradle.icm.tasks.CreateServerDirProperties
 import com.intershop.gradle.icm.tasks.CreateServerInfoProperties
 import com.intershop.gradle.icm.utils.OsCheck
+import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
@@ -45,7 +48,7 @@ class ICMProductPlugin : Plugin<Project> {
         const val CONFIGURATION_DOCKER_RUNTIME_LIB = "dockerRuntimeLib"
 
         // ... parameters
-        const val PARAMETER_CONFIGDIR = "configDirectory"
+        const val PARAMETER_LOCALCONFIGURATION = "localConfig"
 
         // ... tasks
         const val TASK_INSTALLRUNTIMELIB = "installRuntimeLib"
@@ -74,18 +77,31 @@ class ICMProductPlugin : Plugin<Project> {
 
                 addRuntimeDependencies(this, extension)
                 addInstallRuntimeLib(this)
-            }
-        }
-    }
 
-    private fun addInstallProjectConfiguration(project: Project) {
-        with(project) {
-            val serverInfo = tasks.named(CreateServerInfoProperties.DEFAULT_NAME)
-            tasks.register(TASK_INSTALLPROJECTCONFIG, Copy::class.java) { cp ->
-                cp.dependsOn(serverInfo)
+                if (!ICMBasePlugin.checkForTask(tasks, CreateServerDirProperties.DEFAULT_NAME)) {
+                    tasks.register(
+                        CreateServerDirProperties.DEFAULT_NAME,
+                        CreateServerDirProperties::class.java
+                    ) {
 
-                cp.from(serverInfo.get().outputs.files)
-                cp.into(File(buildDir, "conf"))
+                        val configFolderTask = tasks.getByPath(extension.baseConfig.configurationFolderTaskPath)
+                        val sitesFolderTask = tasks.getByPath(extension.baseConfig.sitesFolderTaskPath)
+
+                        it.dependsOn(configFolderTask, sitesFolderTask)
+
+                        it.addSource(projectDir.absolutePath)
+                        this.subprojects.forEach { subprj ->
+                            if(subprj.getSubprojects().size > 0) {
+                                if(! File(subprj.projectDir, ".noCartridges").exists()) {
+                                    it.addSource(subprj.projectDir.absolutePath)
+                                }
+                            }
+                        }
+
+                        it.configDir = configFolderTask.outputs.files.singleFile
+                        it.sitesDir = sitesFolderTask.outputs.files.singleFile
+                    }
+                }
             }
         }
     }

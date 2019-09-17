@@ -21,7 +21,7 @@ import com.intershop.gradle.test.builder.TestMavenRepoBuilder
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
-class ICMBaseProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
+class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
     def setup() {
         new TestMavenRepoBuilder().repository {
@@ -68,6 +68,62 @@ class ICMBaseProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec 
 
         then:
         result.task(':installRuntimeLib').outcome == SUCCESS
+
+        where:
+        gradleVersion << supportedGradleVersions
+    }
+
+    def 'createServerDirProperties is working'() {
+        given:
+        settingsFile << """
+        rootProject.name='rootproject'
+        """.stripIndent()
+
+        buildFile << """
+            plugins {
+                id 'java'
+                id 'com.intershop.gradle.icm.product'
+            }
+            
+            intershop {
+                baseConfig {
+                    configurationFolderTaskPath = ':subprj1:createFolder'
+                    sitesFolderTaskPath = ':subprj2:createFolder'
+                }
+            }
+        """.stripIndent()
+
+        def file1 = createSubProject(":subprj1",
+                """
+                task createFolder(type: Copy) {
+                    from("base")
+                    into new File(buildDir, "test1")
+                }
+                """.stripIndent())
+
+        def file1Content = new File(file1, "base/content.file")
+        file1Content.getParentFile().mkdirs()
+        file1Content << "content 1"
+
+        def file2 = createSubProject(":subprj2",
+                """
+                task createFolder(type: Copy) {
+                    from("base")
+                    into new File(buildDir, "test2")
+                }
+                """.stripIndent())
+        def file2Content = new File(file2, "base/content.file")
+        file1Content.getParentFile().mkdirs()
+        file1Content << "content 2"
+
+        when:
+        def result = getPreparedGradleRunner()
+                .withArguments("createServerDirProperties", "-s")
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        result.task(':createServerDirProperties').outcome == SUCCESS
 
         where:
         gradleVersion << supportedGradleVersions

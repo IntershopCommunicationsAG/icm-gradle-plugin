@@ -29,6 +29,8 @@ class BaseConfiguration(project: Project) {
 
     private val runtimeModuleProperty: Property<String> = project.objects.property(String::class.java)
     private val runtimeVersionProperty: Property<String> = project.objects.property(String::class.java)
+    private val configurationFolderTaskPathProperty: Property<String> = project.objects.property(String::class.java)
+    private val sitesFolderTaskPathProperty: Property<String> = project.objects.property(String::class.java)
 
     init {
         runtimeModuleProperty.set("com.intershop.platform.lib:runtime-lib")
@@ -47,13 +49,35 @@ class BaseConfiguration(project: Project) {
     var runtimeModule by runtimeModuleProperty
 
     /**
-     * Runtime module property provider of ICM base project.
+     * Runtime version property provider of ICM base project.
      */
     val runtimeVersionProvider: Provider<String>
         get() = runtimeVersionProperty
 
     /**
-     * Runtime module of ICM base project.
+     * Runtime version of ICM base project.
      */
     var runtimeVersion by runtimeVersionProperty
+
+    /**
+     * Task path property provider of task which creates the ICM configuration folder of the ICM base project.
+     */
+    val configurationFolderTaskPathProvider: Provider<String>
+        get() = configurationFolderTaskPathProperty
+
+    /**
+     * Task path property of task which creates the ICM configuration folder of the ICM base project.
+     */
+    var configurationFolderTaskPath by configurationFolderTaskPathProperty
+
+    /**
+     * Task path property provider of task which creates the ICM sites folder of the ICM base project.
+     */
+    val sitesFolderTaskPathProvider: Provider<String>
+        get() = sitesFolderTaskPathProperty
+
+    /**
+     * Task path property of task which creates the ICM sites folder of the ICM base project.
+     */
+    var sitesFolderTaskPath by sitesFolderTaskPathProperty
 }

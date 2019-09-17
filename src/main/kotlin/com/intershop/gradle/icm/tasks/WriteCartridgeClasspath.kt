@@ -24,6 +24,7 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.provider.Property
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
@@ -56,8 +57,26 @@ open class WriteCartridgeClasspath : DefaultTask() {
         useClassesFolderProperty.set(false)
     }
 
+    /**
+     * Set provider for jar task name property.
+     *
+     * @param jarTaskName set provider for name of jar task.
+     */
+    @Suppress( "unused")
+    fun provideJarTaskName(jarTaskName: Provider<String>) =
+        jarTaskNameProperty.set(jarTaskName)
+
     @get:Input
     var jarTaskName by jarTaskNameProperty
+
+    /**
+     * Set provider for using classes folder instead of jar files.
+     *
+     * @param useClassesFolder set provider for using classes folder instead of jar files.
+     */
+    @Suppress( "unused")
+    fun provideUseClassesFolder(useClassesFolder: Provider<Boolean>) =
+        useClassesFolderProperty.set(useClassesFolder)
 
     @get:Input
     var useClassesFolder by useClassesFolderProperty
