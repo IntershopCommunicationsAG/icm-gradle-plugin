@@ -37,7 +37,7 @@ open class ICMBasePlugin : Plugin<Project> {
         const val CONFIGURATION_CARTRIDGERUNTIME = "cartridgeRuntime"
 
         /**
-         * checks if the specied name is available in the list of tasks.
+         * checks if the specified name is available in the list of tasks.
          *
          * @param taskname  the name of the new task
          * @param tasks     the task container self
@@ -60,22 +60,22 @@ open class ICMBasePlugin : Plugin<Project> {
                 )
 
                 configureCreateServerInfoPropertiesTask(project, extension)
-                rootProject.subprojects.forEach { subPoject  ->
+                rootProject.subprojects.forEach { subProject  ->
 
-                    with(subPoject.configurations) {
-                        var implementation = findByName(JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME)
-                        var runtime = findByName(JavaPlugin.RUNTIME_ELEMENTS_CONFIGURATION_NAME)
+                    with(subProject.configurations) {
+                        val implementation = findByName(JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME)
+                        val runtime = findByName(JavaPlugin.RUNTIME_ELEMENTS_CONFIGURATION_NAME)
 
                         val cartridge = maybeCreate(CONFIGURATION_CARTRIDGE)
-                        cartridge.setTransitive(false)
+                        cartridge.isTransitive = false
                         implementation?.extendsFrom(cartridge)
 
                         val cartridgeRuntime = maybeCreate(CONFIGURATION_CARTRIDGERUNTIME)
                         cartridgeRuntime.extendsFrom(cartridge)
-                        cartridgeRuntime.setTransitive(true)
+                        cartridgeRuntime.isTransitive = true
 
                         if(! checkForTask(tasks, WriteCartridgeDescriptor.DEFAULT_NAME)) {
-                            subPoject.tasks.register(
+                            subProject.tasks.register(
                                 WriteCartridgeDescriptor.DEFAULT_NAME,
                                 WriteCartridgeDescriptor::class.java
                             ) {
@@ -84,7 +84,7 @@ open class ICMBasePlugin : Plugin<Project> {
                         }
 
                         if(! checkForTask(tasks, WriteCartridgeClasspath.DEFAULT_NAME)) {
-                            subPoject.tasks.register(
+                            subProject.tasks.register(
                                 WriteCartridgeClasspath.DEFAULT_NAME,
                                 WriteCartridgeClasspath::class.java
                             ) {
@@ -94,8 +94,8 @@ open class ICMBasePlugin : Plugin<Project> {
                         }
                     }
 
-                    if (!checkForTask(subPoject.tasks, CopyThirdpartyLibs.DEFAULT_NAME)) {
-                        subPoject.tasks.register(
+                    if (!checkForTask(subProject.tasks, CopyThirdpartyLibs.DEFAULT_NAME)) {
+                        subProject.tasks.register(
                             CopyThirdpartyLibs.DEFAULT_NAME,
                             CopyThirdpartyLibs::class.java
                         )

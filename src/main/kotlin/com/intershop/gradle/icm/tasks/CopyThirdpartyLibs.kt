@@ -71,7 +71,7 @@ open class CopyThirdpartyLibs : DefaultTask() {
     @TaskAction
     fun runCopy() {
         // we are not sure what is changed.
-        if(outputDir.listFiles().size > 0) {
+        if(outputDir.listFiles().isNotEmpty()) {
             outputDir.deleteRecursively()
             outputDir.mkdirs()
         }
@@ -80,9 +80,9 @@ open class CopyThirdpartyLibs : DefaultTask() {
             .resolvedConfiguration.resolvedArtifacts.forEach { artifact ->
             if (artifact.id is DefaultModuleComponentArtifactIdentifier) {
 
-                var identifier = artifact.id
+                val identifier = artifact.id
                 if(identifier is DefaultModuleComponentArtifactIdentifier) {
-                    var name = "${identifier.componentIdentifier.group}-" +
+                    val name = "${identifier.componentIdentifier.group}-" +
                             "${identifier.componentIdentifier.module}-" +
                             "${identifier.componentIdentifier.version}.${artifact.type}"
 

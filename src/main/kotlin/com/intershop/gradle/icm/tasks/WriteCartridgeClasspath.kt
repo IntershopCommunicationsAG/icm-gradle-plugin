@@ -16,7 +16,6 @@
  */
 package com.intershop.gradle.icm.tasks
 
-import com.intershop.gradle.icm.ICMProjectPlugin
 import com.intershop.gradle.icm.utils.getValue
 import com.intershop.gradle.icm.utils.setValue
 import org.gradle.api.DefaultTask
@@ -85,7 +84,7 @@ open class WriteCartridgeClasspath : DefaultTask() {
     val jarFiles: FileCollection by lazy {
         val returnFiles = project.files()
 
-        var jarTask = project.tasks.findByName(jarTaskName)
+        val jarTask = project.tasks.findByName(jarTaskName)
         if(jarTask != null) {
             returnFiles.setFrom(jarTask.outputs.files.singleFile)
         }
@@ -142,18 +141,18 @@ open class WriteCartridgeClasspath : DefaultTask() {
             outputFile.delete()
         }
 
-        var fileSet = cartridgeRuntimeFiles.files + classpathFiles.files
-        var rootProjectDir = getNormalizedFilePath(project.rootProject.projectDir)
-        var buildDirName = project.buildDir.getName()
-        var regex = Regex(".*${buildDirName}\\/libs\\/.*")
+        val fileSet = cartridgeRuntimeFiles.files + classpathFiles.files
+        val rootProjectDir = getNormalizedFilePath(project.rootProject.projectDir)
+        val buildDirName = project.buildDir.name
+        val regex = Regex(".*${buildDirName}/libs/.*")
 
         outputFile.printWriter().use { out ->
             fileSet.toSortedSet().forEach { cpFile ->
                 val path = getNormalizedFilePath(cpFile)
                 if(useClassesFolderProperty.get()) {
                     if (path.startsWith(rootProjectDir) && path.matches(regex)) {
-                        var projectDirPath =
-                            path.replace("${buildDirName}[\\/|\\\\]libs[\\/|\\\\].*".toRegex(), "")
+                        val projectDirPath =
+                            path.replace("${buildDirName}[/|\\\\]libs[/|\\\\].*".toRegex(), "")
                                 .replace("\\", "/")
                         out.println("${projectDirPath}/resources/main")
                         out.println("${projectDirPath}/classes/java/main")
@@ -175,7 +174,7 @@ open class WriteCartridgeClasspath : DefaultTask() {
     }
 
     private fun checkForSource(filePath: String) : Boolean {
-        var buildPath = getNormalizedFilePath(project.buildDir)
+        val buildPath = getNormalizedFilePath(project.buildDir)
         if(filePath.startsWith("${buildPath}/classes") || filePath.startsWith("${buildPath}/resources")) {
             return true
         }

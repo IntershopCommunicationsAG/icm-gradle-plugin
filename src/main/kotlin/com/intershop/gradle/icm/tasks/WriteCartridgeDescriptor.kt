@@ -49,7 +49,7 @@ open class WriteCartridgeDescriptor : WriteProperties() {
 
     private val versionProperty: Property<String> = project.objects.property(String::class.java)
     private val nameProperty: Property<String> = project.objects.property(String::class.java)
-    private val descritpionProperty: Property<String> = project.objects.property(String::class.java)
+    private val descriptionProperty: Property<String> = project.objects.property(String::class.java)
     private val displayNameProperty: Property<String> = project.objects.property(String::class.java)
 
     companion object {
@@ -64,8 +64,8 @@ open class WriteCartridgeDescriptor : WriteProperties() {
 
         versionProperty.convention(project.version.toString())
         nameProperty.convention(project.name)
-        descritpionProperty.convention(
-            if (project.description != null && project.description.toString().length > 0)
+        descriptionProperty.convention(
+            if (project.description != null && project.description.toString().isNotEmpty())
                 project.description
             else
                 project.name)
@@ -101,10 +101,10 @@ open class WriteCartridgeDescriptor : WriteProperties() {
      */
     @Suppress( "unused")
     fun provideCartridgeDescription(cartridgeDescription: Provider<String>) =
-        descritpionProperty.set(cartridgeDescription)
+        descriptionProperty.set(cartridgeDescription)
 
     @get:Input
-    var cartridgeDescription by descritpionProperty
+    var cartridgeDescription by descriptionProperty
 
     /**
      * Set provider for descriptor display name property.
@@ -143,25 +143,25 @@ open class WriteCartridgeDescriptor : WriteProperties() {
 
         comment = "Intershop descriptor file"
 
-        var cartridges = HashSet<String>()
-        var cartridgesTransitive = HashSet<String>()
+        val cartridges = HashSet<String>()
+        val cartridgesTransitive = HashSet<String>()
 
-        project.configurations.getByName(CONFIGURATION_CARTRIDGE).allDependencies.forEach { dependensy ->
-            if(dependensy is ModuleDependency) {
-                cartridges.add(dependensy.name)
+        project.configurations.getByName(CONFIGURATION_CARTRIDGE).allDependencies.forEach { dependency ->
+            if(dependency is ModuleDependency) {
+                cartridges.add(dependency.name)
             }
         }
-        project.configurations.getByName(CONFIGURATION_CARTRIDGERUNTIME).allDependencies.forEach { dependensy ->
-            if(dependensy is ModuleDependency) {
-                cartridges.add(dependensy.name)
+        project.configurations.getByName(CONFIGURATION_CARTRIDGERUNTIME).allDependencies.forEach { dependency ->
+            if(dependency is ModuleDependency) {
+                cartridges.add(dependency.name)
             }
         }
 
         project.configurations.
             getByName(CONFIGURATION_CARTRIDGERUNTIME).
-            resolvedConfiguration.lenientConfiguration.allModuleDependencies.forEach {
-                it.moduleArtifacts.forEach {
-                    var identifier = it.id.componentIdentifier
+            resolvedConfiguration.lenientConfiguration.allModuleDependencies.forEach { dependency ->
+                dependency.moduleArtifacts.forEach { artifact ->
+                    val identifier = artifact.id.componentIdentifier
                     if(identifier is ProjectComponentIdentifier) {
                         cartridgesTransitive.add(project.project( identifier.projectPath ).name)
                     }

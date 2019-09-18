@@ -43,8 +43,8 @@ open class CreateServerInfoProperties: WriteProperties() {
         const val PROJECT_INFO_DIR = "serverInfoProps"
 
         private val now = LocalDateTime.now()
-        val dateTime = now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
-        val year = now.format(DateTimeFormatter.ofPattern("yyyy"))
+        val dateTime: String = now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
+        val year: String = now.format(DateTimeFormatter.ofPattern("yyyy"))
     }
 
     private val productIdProperty: Property<String> = project.objects.property(String::class.java)

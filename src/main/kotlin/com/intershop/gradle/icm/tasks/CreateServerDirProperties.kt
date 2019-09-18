@@ -19,7 +19,6 @@ package com.intershop.gradle.icm.tasks
 import com.intershop.gradle.icm.utils.getValue
 import com.intershop.gradle.icm.utils.setValue
 import org.gradle.api.DefaultTask
-import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
@@ -44,7 +43,7 @@ open class CreateServerDirProperties : DefaultTask() {
     private val configDirProperty: Property<String> = project.objects.property(String::class.java)
     private val sitesDirProperty: Property<String> = project.objects.property(String::class.java)
     private val licenseDirProperty: Property<String> = project.objects.property(String::class.java)
-    private val sourceListPropery: SetProperty<String> = project.objects.setProperty(String::class.java)
+    private val sourceListProperty: SetProperty<String> = project.objects.setProperty(String::class.java)
     private val cleanDirProperty: Property<Boolean> = project.objects.property(Boolean::class.java)
 
     private val shareReportingDirProperty: Property<String> = project.objects.property(String::class.java)
@@ -107,17 +106,17 @@ open class CreateServerDirProperties : DefaultTask() {
      */
     @Suppress( "unused")
     fun provideSourceList(sourceList: ListProperty<String>) {
-        sourceListPropery.set(sourceList)
+        sourceListProperty.set(sourceList)
     }
 
     @get:Input
-    var sourceList by sourceListPropery
+    var sourceList by sourceListProperty
 
     /**
      * Add a single source path to the path list.
      */
     fun addSource(path: String) {
-        sourceListPropery.add(path)
+        sourceListProperty.add(path)
     }
 
 
@@ -135,9 +134,9 @@ open class CreateServerDirProperties : DefaultTask() {
     var configDir by configDirProperty
 
     /**
-     * Set provider for configuration directory property.
+     * Set provider for sites directory property.
      *
-     * @param configDir set provider for configuration directory property
+     * @param sitesDir set provider for sites directory property
      */
     @Suppress( "unused")
     fun provideSitesDir(sitesDir: Property<String>) {
@@ -248,7 +247,7 @@ open class CreateServerDirProperties : DefaultTask() {
     }
 
     private fun getConfigSubDir(path: String): String {
-        var dir = File(File(configDir), path)
+        val dir = File(File(configDir), path)
         return normalizePath(dir.absolutePath)
     }
 

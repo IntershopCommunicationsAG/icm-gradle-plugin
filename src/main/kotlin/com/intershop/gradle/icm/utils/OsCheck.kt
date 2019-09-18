@@ -38,15 +38,15 @@ object OsCheck {
      * the result.
      */
     init {
-        val OS = System.getProperty("os.name", "generic").toLowerCase(Locale.ENGLISH)
-        if (OS.indexOf("mac") >= 0 || OS.indexOf("darwin") >= 0) {
-            detectedOS = OSType.MacOS
-        } else if (OS.indexOf("win") >= 0) {
-            detectedOS = OSType.Windows
-        } else if (OS.indexOf("nux") >= 0) {
-            detectedOS = OSType.Linux
+        val osName = System.getProperty("os.name", "generic").toLowerCase(Locale.ENGLISH)
+        detectedOS = if (osName.indexOf("mac") >= 0 || osName.indexOf("darwin") >= 0) {
+            OSType.MacOS
+        } else if (osName.indexOf("win") >= 0) {
+            OSType.Windows
+        } else if (osName.indexOf("nux") >= 0) {
+            OSType.Linux
         } else {
-            detectedOS = OSType.Other
+            OSType.Other
         }
     }
 

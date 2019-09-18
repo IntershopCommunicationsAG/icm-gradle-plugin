@@ -17,11 +17,8 @@
 package com.intershop.gradle.icm
 
 import com.intershop.gradle.icm.extension.IntershopExtension
-import com.intershop.gradle.icm.tasks.CopyThirdpartyLibs
 import com.intershop.gradle.icm.tasks.CreateServerDirProperties
-import com.intershop.gradle.icm.tasks.CreateServerInfoProperties
 import com.intershop.gradle.icm.utils.OsCheck
-import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
@@ -68,12 +65,10 @@ class ICMProductPlugin : Plugin<Project> {
 
                 // create configurations for ICM project
                 configurations.maybeCreate(CONFIGURATION_DBINIT)
-                    .setTransitive(false)
-                    .setDescription("Configuration for dbinit execution of the ICM base project")
+                    .setTransitive(false).description = "Configuration for dbinit execution of the ICM base project"
 
                 configurations.maybeCreate(CONFIGURATION_ICMSERVER)
-                    .setTransitive(false)
-                    .setDescription("Configuration for ICM server execution of the ICM base project")
+                    .setTransitive(false).description = "Configuration for ICM server execution of the ICM base project"
 
                 addRuntimeDependencies(this, extension)
                 addInstallRuntimeLib(this)
@@ -91,7 +86,7 @@ class ICMProductPlugin : Plugin<Project> {
 
                         it.addSource(projectDir.absolutePath)
                         this.subprojects.forEach { subprj ->
-                            if(subprj.getSubprojects().size > 0) {
+                            if(subprj.subprojects.size > 0) {
                                 if(! File(subprj.projectDir, ".noCartridges").exists()) {
                                     it.addSource(subprj.projectDir.absolutePath)
                                 }

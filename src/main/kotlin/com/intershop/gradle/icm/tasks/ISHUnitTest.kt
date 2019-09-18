@@ -31,7 +31,7 @@ open class ISHUnitTest : Test() {
         group = "verification"
         description = "Runs the ish unit test in ICM"
 
-        var installRuntimeLib = project.tasks.findByName("installRuntimeLib")
+        val installRuntimeLib = project.tasks.findByName("installRuntimeLib")
         if(installRuntimeLib != null) {
             systemProperties["java.library.path"] =
                 "${installRuntimeLib.outputs.files.singleFile.absolutePath}"
@@ -40,7 +40,7 @@ open class ISHUnitTest : Test() {
         val javaConvention = project.convention.getPlugin(JavaPluginConvention::class.java)
         val mainSourceSet = javaConvention.sourceSets.getByName("main")
 
-        setTestClassesDirs(mainSourceSet.output.classesDirs)
+        testClassesDirs = mainSourceSet.output.classesDirs
         //setClasspath(mainSourceSet.runtimeClasspath + project.configurations.findByName("cartridgeRuntime"))
 
         include("tests/unit/**/*")
@@ -62,7 +62,7 @@ jvmArgs '-agentlib:jdwp=transport=dt_socket,server=y,address=6666,suspend=n'
         // jvmArgs("-Dintershop.ServerConfig=
         // ${rootProject.tasks.createServerDirProperties.outputs.files.first().absolutePath}")
 
-        var cartridgeDescriptor = File(project.buildDir, "descriptor/cartridge.descriptor")
+        val cartridgeDescriptor = File(project.buildDir, "descriptor/cartridge.descriptor")
         jvmArgs("-DcartridgeDescriptor=${cartridgeDescriptor.absolutePath}")
 
         environment("INTERSHOP_EVENT_MESSENGERCLASS",
