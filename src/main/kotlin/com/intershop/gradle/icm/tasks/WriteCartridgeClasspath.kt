@@ -53,8 +53,8 @@ open class WriteCartridgeClasspath : DefaultTask() {
 
     init {
         outputFileProperty.set(File(project.buildDir, "${CARTRIDGE_CLASSPATH_DIR}/${CARTRIDGE_CLASSPATH_FILE}"))
-        jarTaskNameProperty.set("jar")
-        useClassesFolderProperty.set(false)
+        jarTaskNameProperty.convention("jar")
+        useClassesFolderProperty.convention(false)
     }
 
     /**

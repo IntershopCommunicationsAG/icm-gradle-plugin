@@ -29,6 +29,7 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.options.Option
 import java.io.File
 
 /**
@@ -42,6 +43,7 @@ open class CreateServerDirProperties : DefaultTask() {
     private val outputFileProperty: RegularFileProperty = project.objects.fileProperty()
     private val configDirProperty: Property<String> = project.objects.property(String::class.java)
     private val sitesDirProperty: Property<String> = project.objects.property(String::class.java)
+    private val licenseDirProperty: Property<String> = project.objects.property(String::class.java)
     private val sourceListPropery: SetProperty<String> = project.objects.setProperty(String::class.java)
     private val cleanDirProperty: Property<Boolean> = project.objects.property(Boolean::class.java)
 
@@ -56,13 +58,22 @@ open class CreateServerDirProperties : DefaultTask() {
     }
 
     init {
-        outputFileProperty.set(File(getBuildSubDir("${SERVER_DIRECTORY_PROPERTIES_DIR}/${SERVER_DIRECTORY_PROPERTIES}")))
+        outputFileProperty.set(
+            File(project.buildDir, "${SERVER_DIRECTORY_PROPERTIES_DIR}/${SERVER_DIRECTORY_PROPERTIES}"))
 
-        shareReportingDirProperty.set(createDir(getBuildSubDir("share/reportingrepository")))
-        shareDistDirProperty.set(createDir(getBuildSubDir("share/dist")))
-        shareImpexDirProperty.set(createDir(getBuildSubDir("share/impexschema")))
+        shareReportingDirProperty.convention(getBuildSubDir("share/reportingrepository"))
+        shareDistDirProperty.convention(getBuildSubDir("share/dist"))
+        shareImpexDirProperty.convention(getBuildSubDir("share/impexschema"))
 
-        cleanDirProperty.set(true)
+        cleanDirProperty.convention(true)
+
+        var licenseDirProp : String? = System.getProperty("licenseDir")
+        if(licenseDirProp == null && project.hasProperty("licenseDir")) {
+            licenseDirProp = project.property("licenseDir").toString()
+        }
+        if(licenseDirProp != null) {
+            licenseDirProperty.convention(licenseDirProp)
+        }
     }
 
     /**
@@ -99,12 +110,16 @@ open class CreateServerDirProperties : DefaultTask() {
         sourceListPropery.set(sourceList)
     }
 
+    @get:Input
+    var sourceList by sourceListPropery
+
+    /**
+     * Add a single source path to the path list.
+     */
     fun addSource(path: String) {
         sourceListPropery.add(path)
     }
 
-    @get:Input
-    var sourceList by sourceListPropery
 
     /**
      * Set provider for configuration directory property.
@@ -174,6 +189,24 @@ open class CreateServerDirProperties : DefaultTask() {
     @get:Input
     var shareImpexgDir by shareImpexDirProperty
 
+
+    /**
+     * Set provider for license directory property.
+     *
+     * @param licenseDir set provider for license directory property
+     */
+    @Suppress( "unused")
+    fun licenseDir(licenseDir: Property<String>) {
+        licenseDirProperty.set(licenseDir)
+    }
+
+    @set:Option(option = "licenseDir", description = "Set the directory with license")
+    @get:Input
+    var licenseDir by licenseDirProperty
+
+    /**
+     * Creates the file for this task.
+     */
     @TaskAction
     fun writeConfiguration() {
         if(outputFile.exists()) {
@@ -190,20 +223,23 @@ open class CreateServerDirProperties : DefaultTask() {
         outputFile.printWriter().use { out ->
             out.println("#Generated properties file with server directories")
             out.println("IS_SOURCE = ${normalizedList.joinToString(separator = File.pathSeparator)}")
-            out.println("IS_CLUSTER_CONFIG = ${normalizePath(getConfigSubDir("cluster"))}")
-            out.println("IS_SERVLETENGINE = ${normalizePath(createDir(getConfigSubDir("system/config/servletEngine")))}")
-            out.println("IS_WEBSERVICE_REPOSITORY = ${normalizePath(createDir(getConfigSubDir("webservices/repository")))}")
+            out.println("IS_CLUSTER_CONFIG = ${getConfigSubDir("cluster")}")
+            out.println("IS_SERVLETENGINE = ${getConfigSubDir("system/config/servletEngine")}")
+            out.println("IS_WEBSERVICE_REPOSITORY = ${getConfigSubDir("webservices/repository")}")
             out.println("IS_SITES = ${normalizePath(sitesDir)}")
 
             out.println("# empty server directories")
-            out.println("IS_LOG = ${normalizePath(createDir(getBuildSubDir("serverlogs")))}")
-            out.println("IS_TEMP = ${normalizePath(createDir(getBuildSubDir("tempdir")))}")
-            out.println("IS_FONTS = ${normalizePath(createDir(getBuildSubDir("fonts")))}")
+            out.println("IS_LOG = ${createDir(getBuildSubDir("serverlogs"))}")
+            out.println("IS_TEMP = ${createDir(getBuildSubDir("tempdir"))}")
+            out.println("IS_FONTS = ${createDir(getBuildSubDir("fonts"))}")
 
             out.println("# empty server directories - shared")
-            out.println("IS_IMPEX_SCHEMA = ${normalizePath(createDir(shareImpexgDir))}")
-            out.println("IS_REPORTING_REPOSITORY = ${normalizePath(createDir(shareReportingDir))}")
-            out.println("IS_DIST = ${normalizePath(createDir(shareDistDir))}")
+            out.println("IS_IMPEX_SCHEMA = ${createDir(shareImpexgDir)}")
+            out.println("IS_REPORTING_REPOSITORY = ${createDir(shareReportingDir)}")
+            out.println("IS_DIST = ${createDir(shareDistDir)}")
+
+            out.println("# license file directory")
+            out.println("IS_LICENSE = ${createDir(licenseDir)}")
         }
     }
 
@@ -212,7 +248,8 @@ open class CreateServerDirProperties : DefaultTask() {
     }
 
     private fun getConfigSubDir(path: String): String {
-        return File(File(configDir), path).absolutePath
+        var dir = File(File(configDir), path)
+        return normalizePath(dir.absolutePath)
     }
 
     private fun normalizePath(path: String): String {
@@ -226,6 +263,6 @@ open class CreateServerDirProperties : DefaultTask() {
         }
         dir.mkdirs()
 
-        return dir.absolutePath
+        return normalizePath(dir.absolutePath)
     }
 }

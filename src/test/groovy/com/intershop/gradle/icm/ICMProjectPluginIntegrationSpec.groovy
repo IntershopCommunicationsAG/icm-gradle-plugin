@@ -116,9 +116,11 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         file1Content.getParentFile().mkdirs()
         file1Content << "content 2"
 
+        def licFile = new File(testProjectDir, "licDir/license.xml")
+
         when:
         def result = getPreparedGradleRunner()
-                .withArguments("createServerDirProperties", "-s")
+                .withArguments("createServerDirProperties", "-s", "--licenseDir=${licFile.getParent()}")
                 .withGradleVersion(gradleVersion)
                 .build()
 

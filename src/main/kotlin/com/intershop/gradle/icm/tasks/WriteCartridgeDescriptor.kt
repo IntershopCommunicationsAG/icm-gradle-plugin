@@ -61,14 +61,15 @@ open class WriteCartridgeDescriptor : WriteProperties() {
     init {
         outputFile = File(project.buildDir,
             "${CARTRIDGE_DESCRIPTOR_DIR}/${CARTRIDGE_DESCRIPTOR_FILE}")
-        versionProperty.set(project.version.toString())
-        nameProperty.set(project.name)
-        descritpionProperty.set(
+
+        versionProperty.convention(project.version.toString())
+        nameProperty.convention(project.name)
+        descritpionProperty.convention(
             if (project.description != null && project.description.toString().length > 0)
                 project.description
             else
                 project.name)
-        displayNameProperty.set(project.name)
+        displayNameProperty.convention(project.name)
     }
 
     /**
