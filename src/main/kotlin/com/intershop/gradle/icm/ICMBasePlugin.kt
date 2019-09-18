@@ -61,47 +61,48 @@ open class ICMBasePlugin : Plugin<Project> {
 
                 configureCreateServerInfoPropertiesTask(project, extension)
                 rootProject.subprojects.forEach { subProject  ->
+                    subProject.plugins.withType(JavaPlugin::class.java) { javaPlugin ->
 
-                    with(subProject.configurations) {
-                        val implementation = findByName(JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME)
-                        val runtime = findByName(JavaPlugin.RUNTIME_ELEMENTS_CONFIGURATION_NAME)
+                        with(subProject.configurations) {
+                            val implementation = getByName(JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME)
+                            val runtime = getByName(JavaPlugin.RUNTIME_ELEMENTS_CONFIGURATION_NAME)
 
-                        val cartridge = maybeCreate(CONFIGURATION_CARTRIDGE)
-                        cartridge.isTransitive = false
-                        implementation?.extendsFrom(cartridge)
+                            val cartridge = maybeCreate(CONFIGURATION_CARTRIDGE)
+                            cartridge.isTransitive = false
+                            implementation.extendsFrom(cartridge)
 
-                        val cartridgeRuntime = maybeCreate(CONFIGURATION_CARTRIDGERUNTIME)
-                        cartridgeRuntime.extendsFrom(cartridge)
-                        cartridgeRuntime.isTransitive = true
+                            val cartridgeRuntime = maybeCreate(CONFIGURATION_CARTRIDGERUNTIME)
+                            cartridgeRuntime.extendsFrom(cartridge)
+                            cartridgeRuntime.isTransitive = true
 
-                        if(! checkForTask(tasks, WriteCartridgeDescriptor.DEFAULT_NAME)) {
-                            subProject.tasks.register(
-                                WriteCartridgeDescriptor.DEFAULT_NAME,
-                                WriteCartridgeDescriptor::class.java
-                            ) {
-                                it.dependsOn(cartridge, cartridgeRuntime)
+                            if (!checkForTask(tasks, WriteCartridgeDescriptor.DEFAULT_NAME)) {
+                                subProject.tasks.register(
+                                    WriteCartridgeDescriptor.DEFAULT_NAME,
+                                    WriteCartridgeDescriptor::class.java
+                                ) {
+                                    it.dependsOn(cartridge, cartridgeRuntime)
+                                }
+                            }
+
+                            if (!checkForTask(tasks, WriteCartridgeClasspath.DEFAULT_NAME)) {
+                                subProject.tasks.register(
+                                    WriteCartridgeClasspath.DEFAULT_NAME,
+                                    WriteCartridgeClasspath::class.java
+                                ) {
+                                    it.dependsOn(cartridgeRuntime)
+                                    if (runtime != null) it.dependsOn(runtime)
+                                }
                             }
                         }
 
-                        if(! checkForTask(tasks, WriteCartridgeClasspath.DEFAULT_NAME)) {
+                        if (!checkForTask(subProject.tasks, CopyThirdpartyLibs.DEFAULT_NAME)) {
                             subProject.tasks.register(
-                                WriteCartridgeClasspath.DEFAULT_NAME,
-                                WriteCartridgeClasspath::class.java
-                            ) {
-                                it.dependsOn(cartridgeRuntime)
-                                if (runtime != null) it.dependsOn(runtime)
-                            }
+                                CopyThirdpartyLibs.DEFAULT_NAME,
+                                CopyThirdpartyLibs::class.java
+                            )
                         }
+
                     }
-
-                    if (!checkForTask(subProject.tasks, CopyThirdpartyLibs.DEFAULT_NAME)) {
-                        subProject.tasks.register(
-                            CopyThirdpartyLibs.DEFAULT_NAME,
-                            CopyThirdpartyLibs::class.java
-                        )
-                    }
-
-
                 }
             } else {
                 logger.warn("ICM build plugin will be not applied to the sub project '{}'", name)
