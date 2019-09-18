@@ -65,7 +65,7 @@ open class ICMBasePlugin : Plugin<Project> {
 
                         with(subProject.configurations) {
                             val implementation = getByName(JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME)
-                            val runtime = getByName(JavaPlugin.RUNTIME_ELEMENTS_CONFIGURATION_NAME)
+                            val runtime = getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME)
 
                             val cartridge = maybeCreate(CONFIGURATION_CARTRIDGE)
                             cartridge.isTransitive = false
