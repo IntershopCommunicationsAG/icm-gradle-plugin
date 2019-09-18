@@ -40,14 +40,14 @@ import java.io.File
 open class CreateServerDirProperties : DefaultTask() {
 
     private val outputFileProperty: RegularFileProperty = project.objects.fileProperty()
-    private val configDirProperty: DirectoryProperty = project.objects.directoryProperty()
-    private val sitesDirProperty: DirectoryProperty = project.objects.directoryProperty()
+    private val configDirProperty: Property<String> = project.objects.property(String::class.java)
+    private val sitesDirProperty: Property<String> = project.objects.property(String::class.java)
     private val sourceListPropery: SetProperty<String> = project.objects.setProperty(String::class.java)
     private val cleanDirProperty: Property<Boolean> = project.objects.property(Boolean::class.java)
 
-    private val shareReportingDirProperty: DirectoryProperty = project.objects.directoryProperty()
-    private val shareDistDirProperty: DirectoryProperty = project.objects.directoryProperty()
-    private val shareImpexDirProperty: DirectoryProperty = project.objects.directoryProperty()
+    private val shareReportingDirProperty: Property<String> = project.objects.property(String::class.java)
+    private val shareDistDirProperty: Property<String> = project.objects.property(String::class.java)
+    private val shareImpexDirProperty: Property<String> = project.objects.property(String::class.java)
 
     companion object {
         const val DEFAULT_NAME = "createServerDirProperties"
@@ -56,7 +56,7 @@ open class CreateServerDirProperties : DefaultTask() {
     }
 
     init {
-        outputFileProperty.set(getBuildSubDir("${SERVER_DIRECTORY_PROPERTIES_DIR}/${SERVER_DIRECTORY_PROPERTIES}"))
+        outputFileProperty.set(File(getBuildSubDir("${SERVER_DIRECTORY_PROPERTIES_DIR}/${SERVER_DIRECTORY_PROPERTIES}")))
 
         shareReportingDirProperty.set(createDir(getBuildSubDir("share/reportingrepository")))
         shareDistDirProperty.set(createDir(getBuildSubDir("share/dist")))
@@ -85,7 +85,6 @@ open class CreateServerDirProperties : DefaultTask() {
     fun provideCleanDir(cleanDir: Provider<Boolean>) =
         cleanDirProperty.set(cleanDir)
 
-    @get:Optional
     @get:Input
     var cleanDir by cleanDirProperty
 
@@ -113,14 +112,12 @@ open class CreateServerDirProperties : DefaultTask() {
      * @param configDir set provider for configuration directory property
      */
     @Suppress( "unused")
-    fun provideConfigDir(configDir: DirectoryProperty) {
+    fun provideConfigDir(configDir: Property<String>) {
         configDirProperty.set(configDir)
     }
 
     @get:Input
-    var configDir: File
-        get() = configDirProperty.get().asFile
-        set(value) = configDirProperty.set(value)
+    var configDir by configDirProperty
 
     /**
      * Set provider for configuration directory property.
@@ -128,14 +125,12 @@ open class CreateServerDirProperties : DefaultTask() {
      * @param configDir set provider for configuration directory property
      */
     @Suppress( "unused")
-    fun provideSitesDir(sitesDir: DirectoryProperty) {
+    fun provideSitesDir(sitesDir: Property<String>) {
         sitesDirProperty.set(sitesDir)
     }
 
     @get:Input
-    var sitesDir: File
-        get() = sitesDirProperty.get().asFile
-        set(value) = sitesDirProperty.set(value)
+    var sitesDir by sitesDirProperty
 
     /**
      * Set provider for share dist directory property.
@@ -143,15 +138,13 @@ open class CreateServerDirProperties : DefaultTask() {
      * @param shareDistDir set provider for share dist directory property
      */
     @Suppress( "unused")
-    fun provideShareDistDir(shareDistDir: DirectoryProperty) {
+    fun provideShareDistDir(shareDistDir: Property<String>) {
         shareDistDirProperty.set(shareDistDir)
     }
 
     @get:Optional
     @get:Input
-    var shareDistDir: File
-        get() = shareDistDirProperty.get().asFile
-        set(value) = shareDistDirProperty.set(value)
+    var shareDistDir by shareDistDirProperty
 
     /**
      * Set provider for share reporting directory property.
@@ -159,15 +152,13 @@ open class CreateServerDirProperties : DefaultTask() {
      * @param shareReportingDir set provider for share reporting directory property
      */
     @Suppress( "unused")
-    fun provideShareReportingDir(shareReportingDir: DirectoryProperty) {
+    fun provideShareReportingDir(shareReportingDir: Property<String>) {
         shareReportingDirProperty.set(shareReportingDir)
     }
 
     @get:Optional
     @get:Input
-    var shareReportingDir: File
-        get() = shareReportingDirProperty.get().asFile
-        set(value) = shareReportingDirProperty.set(value)
+    var shareReportingDir by shareReportingDirProperty
 
     /**
      * Set provider for share impex directory property.
@@ -175,15 +166,13 @@ open class CreateServerDirProperties : DefaultTask() {
      * @param shareImpexgDir set provider for share impex directory property
      */
     @Suppress( "unused")
-    fun provideShareImpexDir(shareImpexgDir: DirectoryProperty) {
+    fun provideShareImpexDir(shareImpexgDir: Property<String>) {
         shareImpexDirProperty.set(shareImpexgDir)
     }
 
     @get:Optional
     @get:Input
-    var shareImpexgDir: File
-        get() = shareImpexDirProperty.get().asFile
-        set(value) = shareImpexDirProperty.set(value)
+    var shareImpexgDir by shareImpexDirProperty
 
     @TaskAction
     fun writeConfiguration() {
@@ -218,24 +207,25 @@ open class CreateServerDirProperties : DefaultTask() {
         }
     }
 
-    private fun getBuildSubDir(path: String): File {
-        return File (project.buildDir, "server/${path}")
+    private fun getBuildSubDir(path: String): String {
+        return File(project.buildDir, "server/${path}").absolutePath
     }
 
-    private fun getConfigSubDir(path: String): File {
-        return File (configDir, path)
+    private fun getConfigSubDir(path: String): String {
+        return File(File(configDir), path).absolutePath
     }
 
-    private fun normalizePath(dir: File): String {
-        return dir.absolutePath.replace("\\", "/")
+    private fun normalizePath(path: String): String {
+        return path.replace("\\", "/")
     }
 
-    private fun createDir(dir: File) : File {
+    private fun createDir(path: String) : String {
+        val dir = File(path)
         if(dir.exists() && cleanDir) {
             dir.deleteRecursively()
         }
         dir.mkdirs()
 
-        return dir
+        return dir.absolutePath
     }
 }

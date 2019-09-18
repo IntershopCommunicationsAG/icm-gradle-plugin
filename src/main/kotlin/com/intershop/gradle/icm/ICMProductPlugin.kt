@@ -98,8 +98,8 @@ class ICMProductPlugin : Plugin<Project> {
                             }
                         }
 
-                        it.configDir = configFolderTask.outputs.files.singleFile
-                        it.sitesDir = sitesFolderTask.outputs.files.singleFile
+                        it.configDir = configFolderTask.outputs.files.singleFile.absolutePath
+                        it.sitesDir = sitesFolderTask.outputs.files.singleFile.absolutePath
                     }
                 }
             }
