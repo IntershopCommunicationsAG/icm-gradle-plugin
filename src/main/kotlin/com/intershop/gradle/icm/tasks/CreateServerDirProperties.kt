@@ -223,6 +223,7 @@ open class CreateServerDirProperties : DefaultTask() {
             out.println("#Generated properties file with server directories")
             out.println("IS_SOURCE = ${normalizedList.joinToString(separator = File.pathSeparator)}")
             out.println("IS_CLUSTER_CONFIG = ${getConfigSubDir("cluster")}")
+            out.println("IS_CLUSTERID_DIR = ${getConfigSubDir("clusterID")}")
             out.println("IS_SERVLETENGINE = ${getConfigSubDir("system/config/servletEngine")}")
             out.println("IS_WEBSERVICE_REPOSITORY = ${getConfigSubDir("webservices/repository")}")
             out.println("IS_SITES = ${normalizePath(sitesDir)}")
