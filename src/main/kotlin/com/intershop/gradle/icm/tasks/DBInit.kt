@@ -58,7 +58,7 @@ open class DBInit : JavaExec() {
 
         val createServerDirProperties = project.tasks.getByName(CreateServerDirProperties.DEFAULT_NAME)
         dependsOn(createServerDirProperties)
-        systemProperty("intershop.ServerConfig=", createServerDirProperties.outputs.files.first().absolutePath)
+        systemProperty("intershop.ServerConfig", createServerDirProperties.outputs.files.first().absolutePath)
 
         var configDirectory : String? = System.getProperty("configDirectory")
         if(configDirectory == null && project.hasProperty("configDirectory")) {
