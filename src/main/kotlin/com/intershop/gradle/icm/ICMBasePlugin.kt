@@ -36,6 +36,8 @@ open class ICMBasePlugin : Plugin<Project> {
         const val CONFIGURATION_CARTRIDGE = "cartridge"
         const val CONFIGURATION_CARTRIDGERUNTIME = "cartridgeRuntime"
 
+        const val TASK_WRITECARTRIDGEFILES = "writeCartridgeFiles"
+
         /**
          * checks if the specified name is available in the list of tasks.
          *
@@ -60,7 +62,10 @@ open class ICMBasePlugin : Plugin<Project> {
                 )
 
                 configureCreateServerInfoPropertiesTask(project, extension)
-                rootProject.subprojects.forEach { subProject  ->
+
+                val writeCartridgeFiles = tasks.maybeCreate("TASK_WRITECARTRIDGEFILES")
+
+                subprojects.forEach { subProject  ->
                     subProject.plugins.withType(JavaPlugin::class.java) { javaPlugin ->
 
                         with(subProject.configurations) {
@@ -81,6 +86,7 @@ open class ICMBasePlugin : Plugin<Project> {
                                     WriteCartridgeDescriptor::class.java
                                 ) {
                                     it.dependsOn(cartridge, cartridgeRuntime)
+                                    writeCartridgeFiles.dependsOn(it)
                                 }
                             }
 
@@ -91,6 +97,7 @@ open class ICMBasePlugin : Plugin<Project> {
                                 ) {
                                     it.dependsOn(cartridgeRuntime)
                                     if (runtime != null) it.dependsOn(runtime)
+                                    writeCartridgeFiles.dependsOn(it)
                                 }
                             }
                         }

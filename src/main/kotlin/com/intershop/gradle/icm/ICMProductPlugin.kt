@@ -16,6 +16,7 @@
  */
 package com.intershop.gradle.icm
 
+import com.intershop.gradle.icm.ICMBasePlugin.Companion.TASK_WRITECARTRIDGEFILES
 import com.intershop.gradle.icm.extension.IntershopExtension
 import com.intershop.gradle.icm.tasks.CreateServerDirProperties
 import com.intershop.gradle.icm.tasks.DBInit
@@ -101,13 +102,11 @@ class ICMProductPlugin : Plugin<Project> {
                 }
 
                 if (!ICMBasePlugin.checkForTask(tasks, DBInit.DEFAULT_NAME)) {
-                    val dbinitProvider = tasks.register(
+                    tasks.register(
                         DBInit.DEFAULT_NAME,
                         DBInit::class.java
                     ) {
-                        it.mustRunAfter(JavaPlugin.CLASSES_TASK_NAME,
-                            WriteCartridgeDescriptor.DEFAULT_NAME)
-
+                        it.dependsOn(rootProject.tasks.getByName(TASK_WRITECARTRIDGEFILES))
                     }
                 }
             }

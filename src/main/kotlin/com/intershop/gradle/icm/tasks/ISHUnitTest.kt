@@ -58,11 +58,11 @@ open class ISHUnitTest : Test() {
         systemProperty("UnitTestCase.allowServerRestart", "false")
         systemProperty("EmbeddedServerRule.loadAllCartridges","true")
 
-        val createServerInfoProperties = project.tasks.getByName(CreateServerInfoProperties.DEFAULT_NAME)
+        val createServerInfoProperties = project.rootProject.tasks.getByName(CreateServerInfoProperties.DEFAULT_NAME)
         dependsOn(createServerInfoProperties)
         systemProperty("intershop.VersionInfo", createServerInfoProperties.outputs.files.first().absolutePath)
 
-        val createServerDirProperties = project.tasks.getByName(CreateServerDirProperties.DEFAULT_NAME)
+        val createServerDirProperties = project.rootProject.tasks.getByName(CreateServerDirProperties.DEFAULT_NAME)
         dependsOn(createServerDirProperties)
         systemProperty("intershop.ServerConfig=", createServerDirProperties.outputs.files.first().absolutePath)
 
