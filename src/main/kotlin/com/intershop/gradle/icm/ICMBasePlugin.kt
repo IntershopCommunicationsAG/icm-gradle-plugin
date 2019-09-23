@@ -63,7 +63,7 @@ open class ICMBasePlugin : Plugin<Project> {
 
                 configureCreateServerInfoPropertiesTask(project, extension)
 
-                val writeCartridgeFiles = tasks.maybeCreate("TASK_WRITECARTRIDGEFILES")
+                val writeCartridgeFiles = tasks.maybeCreate(TASK_WRITECARTRIDGEFILES)
 
                 subprojects.forEach { subProject  ->
                     subProject.plugins.withType(JavaPlugin::class.java) { javaPlugin ->
