@@ -14,10 +14,13 @@
  * limitations under the License.
  *
  */
-
 package com.intershop.gradle.icm.tasks
 
+import com.intershop.gradle.icm.ICMBasePlugin
+import com.intershop.gradle.icm.ICMProductPlugin.Companion.TASK_INSTALLRUNTIMELIB
 import org.gradle.api.plugins.JavaPluginConvention
+import org.gradle.api.plugins.ProjectReportsPluginConvention
+import org.gradle.api.tasks.SourceSet.MAIN_SOURCE_SET_NAME
 import org.gradle.api.tasks.testing.Test
 import java.io.File
 
@@ -29,19 +32,18 @@ open class ISHUnitTest : Test() {
 
     init {
         group = "verification"
-        description = "Runs the ish unit test in ICM"
+        description = "Runs the ISH unit test (package: tests.unit) in ICM"
 
-        val installRuntimeLib = project.tasks.findByName("installRuntimeLib")
-        if(installRuntimeLib != null) {
-            systemProperties["java.library.path"] =
-                "${installRuntimeLib.outputs.files.singleFile.absolutePath}"
-        }
+        val installRuntimeLib = project.tasks.getByName(TASK_INSTALLRUNTIMELIB)
+        dependsOn(installRuntimeLib)
+        systemProperty("java.library.path", "${installRuntimeLib.outputs.files.singleFile.absolutePath}")
 
         val javaConvention = project.convention.getPlugin(JavaPluginConvention::class.java)
-        val mainSourceSet = javaConvention.sourceSets.getByName("main")
+        val mainSourceSet = javaConvention.sourceSets.getByName(MAIN_SOURCE_SET_NAME)
 
         testClassesDirs = mainSourceSet.output.classesDirs
-        //setClasspath(mainSourceSet.runtimeClasspath + project.configurations.findByName("cartridgeRuntime"))
+        setClasspath(mainSourceSet.runtimeClasspath +
+                project.configurations.findByName(ICMBasePlugin.CONFIGURATION_CARTRIDGERUNTIME))
 
         include("tests/unit/**/*")
         include("tests/embedded/**/*")
@@ -53,17 +55,26 @@ open class ISHUnitTest : Test() {
         minHeapSize = "512m"
         maxHeapSize = "2048m"
 
-        /*
-jvmArgs '-agentlib:jdwp=transport=dt_socket,server=y,address=6666,suspend=n'
-*/
+        systemProperty("UnitTestCase.allowServerRestart", "false")
+        systemProperty("EmbeddedServerRule.loadAllCartridges","true")
 
-        jvmArgs("-DUnitTestCase.allowServerRestart=false")
-        jvmArgs("-DEmbeddedServerRule.loadAllCartridges=true")
-        // jvmArgs("-Dintershop.ServerConfig=
-        // ${rootProject.tasks.createServerDirProperties.outputs.files.first().absolutePath}")
+        val createServerInfoProperties = project.tasks.getByName(CreateServerInfoProperties.DEFAULT_NAME)
+        dependsOn(createServerInfoProperties)
+        systemProperty("intershop.VersionInfo", createServerInfoProperties.outputs.files.first().absolutePath)
 
-        val cartridgeDescriptor = File(project.buildDir, "descriptor/cartridge.descriptor")
-        jvmArgs("-DcartridgeDescriptor=${cartridgeDescriptor.absolutePath}")
+        val createServerDirProperties = project.tasks.getByName(CreateServerDirProperties.DEFAULT_NAME)
+        dependsOn(createServerDirProperties)
+        systemProperty("intershop.ServerConfig=", createServerDirProperties.outputs.files.first().absolutePath)
+
+        var configDirectory : String? = System.getProperty("configDirectory")
+        if(configDirectory == null && project.hasProperty("configDirectory")) {
+            configDirectory = project.property("configDirectory").toString()
+        }
+        systemProperty("intershop.LocalConfig", "${configDirectory}/cluster.properties")
+
+        val writeCartridgeDescriptor = project.tasks.getByName(WriteCartridgeDescriptor.DEFAULT_NAME)
+        dependsOn(writeCartridgeDescriptor)
+        systemProperty("cartridgeDescriptor", writeCartridgeDescriptor.outputs.files.first().absolutePath)
 
         environment("INTERSHOP_EVENT_MESSENGERCLASS",
             "com.intershop.beehive.messaging.internal.noop.NoOpMessenger")
@@ -71,7 +82,11 @@ jvmArgs '-agentlib:jdwp=transport=dt_socket,server=y,address=6666,suspend=n'
             "com.intershop.beehive.messaging.internal.noop.NoOpMessenger")
         environment("INTERSHOP_CACHEENGINE_WRAPPED_MESSENGERCLASS",
             "com.intershop.beehive.messaging.internal.noop.NoOpMessenger")
-    }
 
+        val reportConvention = project.convention.getPlugin(ProjectReportsPluginConvention::class.java)
+        reports.html.destination = File(reportConvention.projectReportDir, "ishUnitTest")
+
+        reports.junitXml.destination = File(project.buildDir, "test-results/ishUnitTest")
+    }
 
 }

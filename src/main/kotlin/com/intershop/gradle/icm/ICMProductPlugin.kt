@@ -18,10 +18,13 @@ package com.intershop.gradle.icm
 
 import com.intershop.gradle.icm.extension.IntershopExtension
 import com.intershop.gradle.icm.tasks.CreateServerDirProperties
+import com.intershop.gradle.icm.tasks.DBInit
+import com.intershop.gradle.icm.tasks.WriteCartridgeDescriptor
 import com.intershop.gradle.icm.utils.OsCheck
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.Copy
 import java.io.File
 
@@ -49,7 +52,6 @@ class ICMProductPlugin : Plugin<Project> {
 
         // ... tasks
         const val TASK_INSTALLRUNTIMELIB = "installRuntimeLib"
-        const val TASK_INSTALLPROJECTCONFIG = "installProjectConfig"
     }
 
     override fun apply(project: Project) {
@@ -95,6 +97,17 @@ class ICMProductPlugin : Plugin<Project> {
 
                         it.configDir = configFolderTask.outputs.files.singleFile.absolutePath
                         it.sitesDir = sitesFolderTask.outputs.files.singleFile.absolutePath
+                    }
+                }
+
+                if (!ICMBasePlugin.checkForTask(tasks, DBInit.DEFAULT_NAME)) {
+                    val dbinitProvider = tasks.register(
+                        DBInit.DEFAULT_NAME,
+                        DBInit::class.java
+                    ) {
+                        it.mustRunAfter(JavaPlugin.CLASSES_TASK_NAME,
+                            WriteCartridgeDescriptor.DEFAULT_NAME)
+
                     }
                 }
             }

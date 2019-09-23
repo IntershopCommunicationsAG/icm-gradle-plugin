@@ -29,12 +29,6 @@ class ICMTestPlugin : Plugin<Project> {
 
     override fun apply(project: Project) {
         with(project) {
-
-            // base plugin must be applied
-            if(plugins.findPlugin(ICMBasePlugin::class.java) == null) {
-                plugins.apply(ICMBasePlugin::class.java)
-            }
-
             plugins.withType(JavaLibraryPlugin::class.java) {
                 tasks.maybeCreate("ishUnitTest", ISHUnitTest::class.java)
             }
