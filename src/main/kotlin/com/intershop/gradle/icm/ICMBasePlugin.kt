@@ -24,6 +24,7 @@ import com.intershop.gradle.icm.tasks.WriteCartridgeClasspath
 import com.intershop.gradle.icm.tasks.WriteCartridgeDescriptor
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.Task
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.TaskContainer
 
@@ -80,25 +81,32 @@ open class ICMBasePlugin : Plugin<Project> {
                             cartridgeRuntime.extendsFrom(cartridge)
                             cartridgeRuntime.isTransitive = true
 
+                            val tasksWriteFiles = HashSet<Task>()
+
                             if (!checkForTask(tasks, WriteCartridgeDescriptor.DEFAULT_NAME)) {
-                                subProject.tasks.register(
+                                val taskWriteCartridgeDescriptor = subProject.tasks.register(
                                     WriteCartridgeDescriptor.DEFAULT_NAME,
                                     WriteCartridgeDescriptor::class.java
                                 ) {
                                     it.dependsOn(cartridge, cartridgeRuntime)
-                                    writeCartridgeFiles.dependsOn(it)
                                 }
+
+                                tasksWriteFiles.add(taskWriteCartridgeDescriptor.get())
                             }
 
                             if (!checkForTask(tasks, WriteCartridgeClasspath.DEFAULT_NAME)) {
-                                subProject.tasks.register(
+                                val taskWriteCartridgeClasspath = subProject.tasks.register(
                                     WriteCartridgeClasspath.DEFAULT_NAME,
                                     WriteCartridgeClasspath::class.java
                                 ) {
                                     it.dependsOn(cartridgeRuntime, runtime)
-                                    writeCartridgeFiles.dependsOn(it)
                                 }
+
+                                tasksWriteFiles.add(taskWriteCartridgeClasspath.get())
                             }
+
+                            writeCartridgeFiles.dependsOn(tasksWriteFiles)
+                            println(writeCartridgeFiles)
                         }
 
                         if (!checkForTask(subProject.tasks, CopyThirdpartyLibs.DEFAULT_NAME)) {
