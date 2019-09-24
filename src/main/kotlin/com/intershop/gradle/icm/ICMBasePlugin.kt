@@ -95,8 +95,7 @@ open class ICMBasePlugin : Plugin<Project> {
                                     WriteCartridgeClasspath.DEFAULT_NAME,
                                     WriteCartridgeClasspath::class.java
                                 ) {
-                                    it.dependsOn(cartridgeRuntime)
-                                    if (runtime != null) it.dependsOn(runtime)
+                                    it.dependsOn(cartridgeRuntime, runtime)
                                     writeCartridgeFiles.dependsOn(it)
                                 }
                             }

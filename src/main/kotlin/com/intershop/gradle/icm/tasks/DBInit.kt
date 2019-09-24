@@ -43,6 +43,7 @@ open class DBInit : JavaExec() {
         systemProperty("java.library.path", "${installRuntimeLib.outputs.files.singleFile.absolutePath}")
 
         main = "com.intershop.tool.dbinit.DBInit"
+
         classpath = project.configurations.findByName(CONFIGURATION_DBINIT)
 
         minHeapSize = "300m"
