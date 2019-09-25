@@ -22,22 +22,29 @@ import com.intershop.gradle.icm.tasks.CopyThirdpartyLibs
 import com.intershop.gradle.icm.tasks.CreateServerInfoProperties
 import com.intershop.gradle.icm.tasks.WriteCartridgeClasspath
 import com.intershop.gradle.icm.tasks.WriteCartridgeDescriptor
+import groovy.util.Node
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.plugins.JavaPlugin
+import org.gradle.api.publish.PublishingExtension
+import org.gradle.api.publish.maven.MavenPublication
+import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
 import org.gradle.api.tasks.TaskContainer
+import org.gradle.api.tasks.diagnostics.DependencyReportTask
+import java.time.Year
 
 /**
  * The base plugin for the configuration of the ICM project.
  */
-open class ICMBasePlugin : Plugin<Project> {
+open class ICMBasePlugin: Plugin<Project> {
 
     companion object {
         const val CONFIGURATION_CARTRIDGE = "cartridge"
         const val CONFIGURATION_CARTRIDGERUNTIME = "cartridgeRuntime"
 
         const val TASK_WRITECARTRIDGEFILES = "writeCartridgeFiles"
+        const val TASK_ALLDEPENDENCIESREPORT = "allDependencies"
 
         /**
          * checks if the specified name is available in the list of tasks.
@@ -56,6 +63,9 @@ open class ICMBasePlugin : Plugin<Project> {
 
                 logger.info("ICM build plugin will be initialized")
 
+                // apply maven publishing plugin to root project
+                plugins.apply(MavenPublishPlugin::class.java)
+
                 val extension = extensions.findByType(
                     IntershopExtension::class.java
                 ) ?: extensions.create(
@@ -64,9 +74,32 @@ open class ICMBasePlugin : Plugin<Project> {
 
                 configureCreateServerInfoPropertiesTask(project, extension)
 
+                if(! checkForTask(tasks, TASK_ALLDEPENDENCIESREPORT)) {
+                    tasks.register(TASK_ALLDEPENDENCIESREPORT, DependencyReportTask::class.java)
+                }
+
                 val writeCartridgeFiles = tasks.maybeCreate(TASK_WRITECARTRIDGEFILES)
 
                 subprojects.forEach { subProject  ->
+                    // apply maven publishing plugin to all subprojects project
+                    subProject.plugins.apply(MavenPublishPlugin::class.java)
+
+                    subProject.extensions.configure(PublishingExtension::class.java) { publishing ->
+                        publishing.publications.maybeCreate(
+                            extension.mavenPublicationName,
+                            MavenPublication::class.java
+                        ).apply {
+                            versionMapping {
+                                it.usage("java-api") {
+                                    it.fromResolutionResult()
+                                }
+                                it.usage("java-runtime") {
+                                    it.fromResolutionResult()
+                                }
+                            }
+                        }
+                    }
+
                     subProject.plugins.withType(JavaPlugin::class.java) { javaPlugin ->
 
                         with(subProject.configurations) {
@@ -106,7 +139,15 @@ open class ICMBasePlugin : Plugin<Project> {
                             }
 
                             writeCartridgeFiles.dependsOn(tasksWriteFiles)
-                            println(writeCartridgeFiles)
+                        }
+
+                        subProject.extensions.configure(PublishingExtension::class.java) { publishing ->
+                            publishing.publications.maybeCreate(
+                                extension.mavenPublicationName,
+                                MavenPublication::class.java
+                            ).apply {
+                                from( subProject.components.getAt( "java" ) )
+                            }
                         }
 
                         if (!checkForTask(subProject.tasks, CopyThirdpartyLibs.DEFAULT_NAME)) {
@@ -115,9 +156,11 @@ open class ICMBasePlugin : Plugin<Project> {
                                 CopyThirdpartyLibs::class.java
                             )
                         }
-
                     }
                 }
+
+                configureMvnPublishing(project, extension)
+
             } else {
                 logger.warn("ICM build plugin will be not applied to the sub project '{}'", name)
             }
@@ -136,6 +179,56 @@ open class ICMBasePlugin : Plugin<Project> {
                     task.provideCopyrightOwner(extension.projectInfo.copyrightOwnerProvider)
                     task.provideCopyrightFrom(extension.projectInfo.copyrightFromProvider)
                     task.provideOrganization(extension.projectInfo.organizationProvider)
+                }
+            }
+        }
+    }
+
+    private fun configureMvnPublishing(project: Project, extension: IntershopExtension) {
+
+        project.plugins.withType(MavenPublishPlugin::class.java) {
+            project.extensions.configure(PublishingExtension::class.java) { publishing ->
+                publishing.publications.maybeCreate(
+                    extension.mavenPublicationName,
+                    MavenPublication::class.java
+                ).apply {
+                    versionMapping {
+                        it.usage("java-api") {
+                            it.fromResolutionResult()
+                        }
+                        it.usage("java-runtime") {
+                            it.fromResolutionResult()
+                        }
+                    }
+
+                    pom.description.set(project.description)
+                    pom.inceptionYear.set(Year.now().getValue().toString())
+
+                    pom.withXml { xml ->
+                        val root = xml.asNode()
+                        val findDepMgt = root.children().find { it is Node && it.name() == "dependencyManagement" }
+
+                        // when merging two or more sources of dependencies, we want to only create one dependencyManagement section
+                        val dependencyManagement: Node = if(findDepMgt != null) {
+                            findDepMgt as Node
+                        } else {
+                            root.appendNode("dependencyManagement")
+                        }
+
+                        val findDep = dependencyManagement.children().find { it is Node && it.name() == "dependencies" }
+                        val dependencies: Node = if(findDep != null) {
+                            findDep as Node
+                        } else {
+                            dependencyManagement.appendNode("dependencies")
+                        }
+
+                        project.subprojects.forEach { subproject ->
+                            val dep = dependencies.appendNode("dependency")
+                            dep.appendNode("groupId").setValue( subproject.getGroup() )
+                            dep.appendNode("artifactId").setValue( subproject.getName() )
+                            dep.appendNode("version").setValue( subproject.getVersion() )
+                        }
+                    }
                 }
             }
         }

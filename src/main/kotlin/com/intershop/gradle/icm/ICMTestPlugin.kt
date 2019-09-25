@@ -17,7 +17,11 @@
 
 package com.intershop.gradle.icm
 
+import com.intershop.gradle.icm.ICMProductPlugin.Companion.TASK_ISHUNIT_PARALLEL
+import com.intershop.gradle.icm.ICMProductPlugin.Companion.TASK_ISHUNIT_SERIAL
+import com.intershop.gradle.icm.tasks.DBInit
 import com.intershop.gradle.icm.tasks.ISHUnitTest
+import com.intershop.gradle.icm.tasks.WriteCartridgeDescriptor
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaLibraryPlugin
@@ -30,7 +34,26 @@ class ICMTestPlugin : Plugin<Project> {
     override fun apply(project: Project) {
         with(project) {
             plugins.withType(JavaLibraryPlugin::class.java) {
-                tasks.maybeCreate("ishUnitTest", ISHUnitTest::class.java)
+                val taskName = "ishUnitTest" + project.name.capitalize()
+                val isSerialTest = project.hasProperty("serialISHUnitTest")
+                        && project.property("serialISHUnitTest").toString().toLowerCase() == "true"
+
+                if (!ICMBasePlugin.checkForTask(tasks, taskName)) {
+                    val mainTestTask = if(isSerialTest) { TASK_ISHUNIT_SERIAL } else { TASK_ISHUNIT_PARALLEL }
+
+                    val parallelTask = rootProject.tasks.getByName(TASK_ISHUNIT_PARALLEL)
+                    val dbinitTask = project.tasks.getByName(DBInit.DEFAULT_NAME)
+                    val ishUnitMain = rootProject.tasks.getByName(mainTestTask)
+
+                    val task = tasks.register(taskName, ISHUnitTest::class.java) {
+                        it.dependsOn(dbinitTask)
+                        if(isSerialTest) {
+                            it.mustRunAfter(parallelTask)
+                        }
+                    }
+                    ishUnitMain.dependsOn(task)
+                }
+
             }
         }
     }

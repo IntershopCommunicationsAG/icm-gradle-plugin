@@ -20,12 +20,11 @@ import com.intershop.gradle.icm.ICMBasePlugin.Companion.TASK_WRITECARTRIDGEFILES
 import com.intershop.gradle.icm.extension.IntershopExtension
 import com.intershop.gradle.icm.tasks.CreateServerDirProperties
 import com.intershop.gradle.icm.tasks.DBInit
-import com.intershop.gradle.icm.tasks.WriteCartridgeDescriptor
 import com.intershop.gradle.icm.utils.OsCheck
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.plugins.JavaPlugin
+import org.gradle.api.plugins.JavaBasePlugin.CHECK_TASK_NAME
 import org.gradle.api.tasks.Copy
 import java.io.File
 
@@ -53,6 +52,9 @@ class ICMProductPlugin : Plugin<Project> {
 
         // ... tasks
         const val TASK_INSTALLRUNTIMELIB = "installRuntimeLib"
+        const val TASK_ISHUNIT_PARALLEL = "ishUnitTestParallel"
+        const val TASK_ISHUNIT_SERIAL = "ishUnitTestSerial"
+        const val TASK_ISHUNIT = "ishUnitTest"
     }
 
     override fun apply(project: Project) {
@@ -109,6 +111,30 @@ class ICMProductPlugin : Plugin<Project> {
                         it.dependsOn(rootProject.tasks.getByName(TASK_WRITECARTRIDGEFILES))
                     }
                 }
+
+                if (!ICMBasePlugin.checkForTask(tasks, TASK_ISHUNIT)) {
+                    val checkTask = tasks.maybeCreate(CHECK_TASK_NAME)
+
+                    val ishUnitTask = tasks.register(TASK_ISHUNIT) {
+                        it.description = "Starts all ISHUnit tests"
+                    }
+
+                    checkTask.dependsOn(ishUnitTask)
+
+                    if (!ICMBasePlugin.checkForTask(tasks, TASK_ISHUNIT_PARALLEL)) {
+                        val ishUnitParallel = tasks.register(TASK_ISHUNIT_PARALLEL) {
+                            it.description = "Starts all ISHUnit tests in different projects parallel"
+                        }
+                        ishUnitTask.get().dependsOn(ishUnitParallel.get())
+                    }
+                    if (!ICMBasePlugin.checkForTask(tasks, TASK_ISHUNIT_SERIAL)) {
+                        val ishUnitSerial = tasks.register(TASK_ISHUNIT_SERIAL) {
+                            it.description = "Starts one test for serial execution"
+                        }
+                        ishUnitTask.get().dependsOn(ishUnitSerial.get())
+                    }
+                }
+
             }
         }
     }
