@@ -21,10 +21,9 @@ import com.intershop.gradle.icm.ICMProductPlugin.Companion.TASK_ISHUNIT_PARALLEL
 import com.intershop.gradle.icm.ICMProductPlugin.Companion.TASK_ISHUNIT_SERIAL
 import com.intershop.gradle.icm.tasks.DBInit
 import com.intershop.gradle.icm.tasks.ISHUnitTest
-import com.intershop.gradle.icm.tasks.WriteCartridgeDescriptor
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.plugins.JavaLibraryPlugin
+import org.gradle.api.plugins.JavaPlugin
 
 /**
  * The plugin for Intershop ishUnitTests.
@@ -33,7 +32,7 @@ class ICMTestPlugin : Plugin<Project> {
 
     override fun apply(project: Project) {
         with(project) {
-            plugins.withType(JavaLibraryPlugin::class.java) {
+            plugins.withType(JavaPlugin::class.java) {
                 val taskName = "ishUnitTest"
                 val isSerialTest = project.hasProperty("serialISHUnitTest")
                         && project.property("serialISHUnitTest").toString().toLowerCase() == "true"
