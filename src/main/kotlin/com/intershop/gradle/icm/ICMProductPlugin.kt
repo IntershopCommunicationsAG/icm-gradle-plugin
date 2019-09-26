@@ -55,7 +55,7 @@ class ICMProductPlugin : Plugin<Project> {
         const val TASK_INSTALLRUNTIMELIB = "installRuntimeLib"
         const val TASK_ISHUNIT_PARALLEL = "ishUnitTestParallel"
         const val TASK_ISHUNIT_SERIAL = "ishUnitTestSerial"
-        const val TASK_ISHUNIT = "ishUnitTest"
+        const val TASK_ISHUNITALL = "ishUnitTestAll"
     }
 
     override fun apply(project: Project) {
@@ -113,12 +113,12 @@ class ICMProductPlugin : Plugin<Project> {
                     }
                 }
 
-                if (!ICMBasePlugin.checkForTask(tasks, TASK_ISHUNIT)) {
+                if (!ICMBasePlugin.checkForTask(tasks, TASK_ISHUNITALL)) {
                     project.plugins.withType(LifecycleBasePlugin::class.java) {
 
                         val checkTask = tasks.findByName(CHECK_TASK_NAME)
 
-                        val ishUnitTask = tasks.register(TASK_ISHUNIT) {
+                        val ishUnitTask = tasks.register(TASK_ISHUNITALL) {
                             it.description = "Starts all ISHUnit tests"
                         }
 

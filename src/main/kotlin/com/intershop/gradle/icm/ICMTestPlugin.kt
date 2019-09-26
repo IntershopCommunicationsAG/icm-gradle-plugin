@@ -34,7 +34,7 @@ class ICMTestPlugin : Plugin<Project> {
     override fun apply(project: Project) {
         with(project) {
             plugins.withType(JavaLibraryPlugin::class.java) {
-                val taskName = "ishUnitTest" + project.name.capitalize()
+                val taskName = "ishUnitTest"
                 val isSerialTest = project.hasProperty("serialISHUnitTest")
                         && project.property("serialISHUnitTest").toString().toLowerCase() == "true"
 
