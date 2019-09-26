@@ -83,9 +83,7 @@ open class ISHUnitTest : Test() {
         environment("INTERSHOP_CACHEENGINE_WRAPPED_MESSENGERCLASS",
             "com.intershop.beehive.messaging.internal.noop.NoOpMessenger")
 
-        val reportConvention = project.convention.getPlugin(ProjectReportsPluginConvention::class.java)
-        reports.html.destination = File(reportConvention.projectReportDir, "ishUnitTest")
-
+        reports.html.destination = File(project.buildDir, "reports/ishUnitTest")
         reports.junitXml.destination = File(project.buildDir, "test-results/ishUnitTest")
     }
 
