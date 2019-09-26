@@ -24,8 +24,11 @@ import com.intershop.gradle.icm.utils.OsCheck
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.plugins.BasePlugin
+import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaBasePlugin.CHECK_TASK_NAME
 import org.gradle.api.tasks.Copy
+import org.gradle.language.base.plugins.LifecycleBasePlugin
 import java.io.File
 
 /**
@@ -113,25 +116,28 @@ class ICMProductPlugin : Plugin<Project> {
                 }
 
                 if (!ICMBasePlugin.checkForTask(tasks, TASK_ISHUNIT)) {
-                    val checkTask = tasks.maybeCreate(CHECK_TASK_NAME)
+                    project.plugins.withType(LifecycleBasePlugin::class.java) {
 
-                    val ishUnitTask = tasks.register(TASK_ISHUNIT) {
-                        it.description = "Starts all ISHUnit tests"
-                    }
+                        val checkTask = tasks.findByName(CHECK_TASK_NAME)
 
-                    checkTask.dependsOn(ishUnitTask)
-
-                    if (!ICMBasePlugin.checkForTask(tasks, TASK_ISHUNIT_PARALLEL)) {
-                        val ishUnitParallel = tasks.register(TASK_ISHUNIT_PARALLEL) {
-                            it.description = "Starts all ISHUnit tests in different projects parallel"
+                        val ishUnitTask = tasks.register(TASK_ISHUNIT) {
+                            it.description = "Starts all ISHUnit tests"
                         }
-                        ishUnitTask.get().dependsOn(ishUnitParallel.get())
-                    }
-                    if (!ICMBasePlugin.checkForTask(tasks, TASK_ISHUNIT_SERIAL)) {
-                        val ishUnitSerial = tasks.register(TASK_ISHUNIT_SERIAL) {
-                            it.description = "Starts one test for serial execution"
+
+                        checkTask?.dependsOn(ishUnitTask)
+
+                        if (!ICMBasePlugin.checkForTask(tasks, TASK_ISHUNIT_PARALLEL)) {
+                            val ishUnitParallel = tasks.register(TASK_ISHUNIT_PARALLEL) {
+                                it.description = "Starts all ISHUnit tests in different projects parallel"
+                            }
+                            ishUnitTask.get().dependsOn(ishUnitParallel.get())
                         }
-                        ishUnitTask.get().dependsOn(ishUnitSerial.get())
+                        if (!ICMBasePlugin.checkForTask(tasks, TASK_ISHUNIT_SERIAL)) {
+                            val ishUnitSerial = tasks.register(TASK_ISHUNIT_SERIAL) {
+                                it.description = "Starts one test for serial execution"
+                            }
+                            ishUnitTask.get().dependsOn(ishUnitSerial.get())
+                        }
                     }
                 }
 
