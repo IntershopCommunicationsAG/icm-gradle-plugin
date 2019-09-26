@@ -41,7 +41,7 @@ class ICMTestPlugin : Plugin<Project> {
                     val mainTestTask = if(isSerialTest) { TASK_ISHUNIT_SERIAL } else { TASK_ISHUNIT_PARALLEL }
 
                     val parallelTask = rootProject.tasks.getByName(TASK_ISHUNIT_PARALLEL)
-                    val dbinitTask = project.tasks.getByName(DBInit.DEFAULT_NAME)
+                    val dbinitTask = rootProject.tasks.getByName(DBInit.DEFAULT_NAME)
                     val ishUnitMain = rootProject.tasks.getByName(mainTestTask)
 
                     val task = tasks.register(taskName, ISHUnitTest::class.java) {
