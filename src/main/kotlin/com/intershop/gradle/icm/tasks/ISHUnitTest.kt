@@ -34,7 +34,7 @@ open class ISHUnitTest : Test() {
         group = "verification"
         description = "Runs the ISH unit test (package: tests.unit) in ICM"
 
-        val installRuntimeLib = project.tasks.getByName(TASK_INSTALLRUNTIMELIB)
+        val installRuntimeLib = project.rootProject.tasks.getByName(TASK_INSTALLRUNTIMELIB)
         dependsOn(installRuntimeLib)
         systemProperty("java.library.path", "${installRuntimeLib.outputs.files.singleFile.absolutePath}")
 
