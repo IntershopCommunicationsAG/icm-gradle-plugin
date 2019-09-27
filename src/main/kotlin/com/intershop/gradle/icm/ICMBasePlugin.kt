@@ -90,9 +90,10 @@ open class ICMBasePlugin: Plugin<Project> {
 
                 subprojects.forEach { subProject  ->
 
+                    subProject.plugins.apply(MavenPublishPlugin::class.java)
+
                     // apply maven publishing plugin to all real subprojects project
                     if(subProject.subprojects.isEmpty()) {
-                        subProject.plugins.apply(MavenPublishPlugin::class.java)
 
                         subProject.extensions.configure(PublishingExtension::class.java) { publishing ->
                             publishing.publications.maybeCreate(
