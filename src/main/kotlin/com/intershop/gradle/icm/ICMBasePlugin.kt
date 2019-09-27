@@ -152,41 +152,43 @@ open class ICMBasePlugin: Plugin<Project> {
                                 writeCartridgeFiles.dependsOn(tasksWriteFiles)
                             }
 
-                            if (!checkForTask(subProject.tasks, TASK_SOURCEJAR)) {
-                                if(project.convention.findPlugin(JavaPluginConvention::class.java) != null) {
-                                    val javaConvention = project.convention.getPlugin(JavaPluginConvention::class.java)
+                            with(subProject) {
+                                if (!checkForTask(tasks, TASK_SOURCEJAR)) {
+                                    val javaConvention = convention.getPlugin(JavaPluginConvention::class.java)
                                     val mainSourceSet = javaConvention.sourceSets.getByName("main")
 
-                                    subProject.tasks.register(TASK_SOURCEJAR, Jar::class.java) {
+                                    tasks.register(TASK_SOURCEJAR, Jar::class.java) {
+                                        it.dependsOn(subProject.tasks.getByName("classes"))
                                         it.archiveClassifier.set("sources")
                                         it.from(mainSourceSet.allSource)
                                     }
                                 }
-                            }
 
-                            if (!checkForTask(subProject.tasks, TASK_JAVADOCJAR)) {
-                                subProject.tasks.register(TASK_JAVADOCJAR, Jar::class.java) {
-                                    it.archiveClassifier.set("javadoc")
-                                    it.from(tasks.getByName(JAVADOC_TASK_NAME))
+                                if (!checkForTask(tasks, TASK_JAVADOCJAR)) {
+                                    tasks.register(TASK_JAVADOCJAR, Jar::class.java) {
+                                        it.dependsOn(subProject.tasks.getByName(JAVADOC_TASK_NAME))
+                                        it.archiveClassifier.set("javadoc")
+                                        it.from(tasks.getByName(JAVADOC_TASK_NAME))
+                                    }
                                 }
-                            }
 
-                            subProject.extensions.configure(PublishingExtension::class.java) { publishing ->
-                                publishing.publications.maybeCreate(
-                                    extension.mavenPublicationName,
-                                    MavenPublication::class.java
-                                ).apply {
-                                    from( subProject.components.getAt( "java" ) )
-                                    artifact(tasks.getByName(TASK_SOURCEJAR))
-                                    artifact(tasks.getByName(JAVADOC_TASK_NAME))
+                                extensions.configure(PublishingExtension::class.java) { publishing ->
+                                    publishing.publications.maybeCreate(
+                                        extension.mavenPublicationName,
+                                        MavenPublication::class.java
+                                    ).apply {
+                                        //from( subProject.components.getAt( "java" ) )
+                                        artifact(tasks.getByName(TASK_SOURCEJAR))
+                                        artifact(tasks.getByName(TASK_JAVADOCJAR))
+                                    }
                                 }
-                            }
 
-                            if (!checkForTask(subProject.tasks, CopyThirdpartyLibs.DEFAULT_NAME)) {
-                                subProject.tasks.register(
-                                    CopyThirdpartyLibs.DEFAULT_NAME,
-                                    CopyThirdpartyLibs::class.java
-                                )
+                                if (!checkForTask(tasks, CopyThirdpartyLibs.DEFAULT_NAME)) {
+                                    tasks.register(
+                                        CopyThirdpartyLibs.DEFAULT_NAME,
+                                        CopyThirdpartyLibs::class.java
+                                    )
+                                }
                             }
                         }
                     }

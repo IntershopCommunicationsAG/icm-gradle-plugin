@@ -35,23 +35,27 @@ class ICMBuildPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
             }
         """.stripIndent()
 
-        createSubProject(":subprj1",
+        File prjDir1 = createSubProject(":subprj1",
                 """
                 plugins {
                     id 'java'
                 }
                 """.stripIndent())
 
-        createSubProject(":subprj2",
+        writeJavaTestClass("com.intershop.test.Test1", prjDir1)
+
+        File prjDir2 = createSubProject(":subprj2",
                 """
                 plugins {
                     id 'java'
                 }
                 """.stripIndent())
+
+        writeJavaTestClass("com.intershop.test.Test2", prjDir2)
 
         when:
         def result = getPreparedGradleRunner()
-                .withArguments("projects")
+                .withArguments("projects", "-s")
                 .withGradleVersion(gradleVersion)
                 .build()
 

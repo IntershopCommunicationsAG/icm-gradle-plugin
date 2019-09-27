@@ -18,7 +18,6 @@ package com.intershop.gradle.icm.tasks
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.DirectoryProperty
-import org.gradle.api.file.RegularFile
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.MapProperty
@@ -26,6 +25,9 @@ import org.gradle.api.provider.Property
 import org.gradle.api.tasks.TaskAction
 import java.io.File
 
+/**
+ * Starts an ICM from Sources.
+ */
 open class StartServer: DefaultTask() {
 
     private val serverName: Property<String> =
