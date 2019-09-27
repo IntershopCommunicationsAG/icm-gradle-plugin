@@ -27,11 +27,14 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.plugins.JavaPlugin
+import org.gradle.api.plugins.JavaPlugin.JAVADOC_TASK_NAME
+import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.diagnostics.DependencyReportTask
+import org.gradle.jvm.tasks.Jar
 import java.time.Year
 
 /**
@@ -45,6 +48,8 @@ open class ICMBasePlugin: Plugin<Project> {
 
         const val TASK_WRITECARTRIDGEFILES = "writeCartridgeFiles"
         const val TASK_ALLDEPENDENCIESREPORT = "allDependencies"
+        const val TASK_SOURCEJAR = "sourcesJar"
+        const val TASK_JAVADOCJAR = "javadocJar"
 
         /**
          * checks if the specified name is available in the list of tasks.
@@ -78,83 +83,111 @@ open class ICMBasePlugin: Plugin<Project> {
                     tasks.register(TASK_ALLDEPENDENCIESREPORT, DependencyReportTask::class.java)
                 }
 
-                val writeCartridgeFiles = tasks.maybeCreate(TASK_WRITECARTRIDGEFILES)
+                val writeCartridgeFiles = tasks.maybeCreate(TASK_WRITECARTRIDGEFILES).apply {
+                    group = "ICM cartridge build"
+                    description = "Lifecycle task for ICM cartridge build"
+                }
 
                 subprojects.forEach { subProject  ->
-                    // apply maven publishing plugin to all subprojects project
-                    subProject.plugins.apply(MavenPublishPlugin::class.java)
 
-                    subProject.extensions.configure(PublishingExtension::class.java) { publishing ->
-                        publishing.publications.maybeCreate(
-                            extension.mavenPublicationName,
-                            MavenPublication::class.java
-                        ).apply {
-                            versionMapping {
-                                it.usage("java-api") {
-                                    it.fromResolutionResult()
-                                }
-                                it.usage("java-runtime") {
-                                    it.fromResolutionResult()
-                                }
-                            }
-                        }
-                    }
-
-                    subProject.plugins.withType(JavaPlugin::class.java) { javaPlugin ->
-
-                        with(subProject.configurations) {
-                            val implementation = getByName(JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME)
-                            val runtime = getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME)
-
-                            val cartridge = maybeCreate(CONFIGURATION_CARTRIDGE)
-                            cartridge.isTransitive = false
-                            implementation.extendsFrom(cartridge)
-
-                            val cartridgeRuntime = maybeCreate(CONFIGURATION_CARTRIDGERUNTIME)
-                            cartridgeRuntime.extendsFrom(cartridge)
-                            cartridgeRuntime.isTransitive = true
-
-                            val tasksWriteFiles = HashSet<Task>()
-
-                            if (!checkForTask(tasks, WriteCartridgeDescriptor.DEFAULT_NAME)) {
-                                val taskWriteCartridgeDescriptor = subProject.tasks.register(
-                                    WriteCartridgeDescriptor.DEFAULT_NAME,
-                                    WriteCartridgeDescriptor::class.java
-                                ) {
-                                    it.dependsOn(cartridge, cartridgeRuntime)
-                                }
-
-                                tasksWriteFiles.add(taskWriteCartridgeDescriptor.get())
-                            }
-
-                            if (!checkForTask(tasks, WriteCartridgeClasspath.DEFAULT_NAME)) {
-                                val taskWriteCartridgeClasspath = subProject.tasks.register(
-                                    WriteCartridgeClasspath.DEFAULT_NAME,
-                                    WriteCartridgeClasspath::class.java
-                                ) {
-                                    it.dependsOn(cartridgeRuntime, runtime)
-                                }
-
-                                tasksWriteFiles.add(taskWriteCartridgeClasspath.get())
-                            }
-
-                            writeCartridgeFiles.dependsOn(tasksWriteFiles)
-                        }
+                    // apply maven publishing plugin to all real subprojects project
+                    if(subProject.subprojects.isEmpty()) {
+                        subProject.plugins.apply(MavenPublishPlugin::class.java)
 
                         subProject.extensions.configure(PublishingExtension::class.java) { publishing ->
                             publishing.publications.maybeCreate(
                                 extension.mavenPublicationName,
                                 MavenPublication::class.java
                             ).apply {
-                                from( subProject.components.getAt( "java" ) )
+                                versionMapping {
+                                    it.usage("java-api") {
+                                        it.fromResolutionResult()
+                                    }
+                                    it.usage("java-runtime") {
+                                        it.fromResolutionResult()
+                                    }
+                                }
                             }
                         }
 
-                        if (!checkForTask(subProject.tasks, CopyThirdpartyLibs.DEFAULT_NAME)) {
-                            subProject.tasks.register(
-                                CopyThirdpartyLibs.DEFAULT_NAME,
-                                CopyThirdpartyLibs::class.java
-                            )
+
+                        subProject.plugins.withType(JavaPlugin::class.java) { javaPlugin ->
+
+                            with(subProject.configurations) {
+                                val implementation = getByName(JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME)
+                                val runtime = getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME)
+
+                                val cartridge = maybeCreate(CONFIGURATION_CARTRIDGE)
+                                cartridge.isTransitive = false
+                                implementation.extendsFrom(cartridge)
+
+                                val cartridgeRuntime = maybeCreate(CONFIGURATION_CARTRIDGERUNTIME)
+                                cartridgeRuntime.extendsFrom(cartridge)
+                                cartridgeRuntime.isTransitive = true
+
+                                val tasksWriteFiles = HashSet<Task>()
+
+                                if (!checkForTask(tasks, WriteCartridgeDescriptor.DEFAULT_NAME)) {
+                                    val taskWriteCartridgeDescriptor = subProject.tasks.register(
+                                        WriteCartridgeDescriptor.DEFAULT_NAME,
+                                        WriteCartridgeDescriptor::class.java
+                                    ) {
+                                        it.dependsOn(cartridge, cartridgeRuntime)
+                                    }
+
+                                    tasksWriteFiles.add(taskWriteCartridgeDescriptor.get())
+                                }
+
+                                if (!checkForTask(tasks, WriteCartridgeClasspath.DEFAULT_NAME)) {
+                                    val taskWriteCartridgeClasspath = subProject.tasks.register(
+                                        WriteCartridgeClasspath.DEFAULT_NAME,
+                                        WriteCartridgeClasspath::class.java
+                                    ) {
+                                        it.dependsOn(cartridgeRuntime, runtime)
+                                    }
+
+                                    tasksWriteFiles.add(taskWriteCartridgeClasspath.get())
+                                }
+
+                                writeCartridgeFiles.dependsOn(tasksWriteFiles)
+                            }
+
+                            if (!checkForTask(subProject.tasks, TASK_SOURCEJAR)) {
+                                if(project.convention.findPlugin(JavaPluginConvention::class.java) != null) {
+                                    val javaConvention = project.convention.getPlugin(JavaPluginConvention::class.java)
+                                    val mainSourceSet = javaConvention.sourceSets.getByName("main")
+
+                                    subProject.tasks.register(TASK_SOURCEJAR, Jar::class.java) {
+                                        it.archiveClassifier.set("sources")
+                                        it.from(mainSourceSet.allSource)
+                                    }
+                                }
+                            }
+
+                            if (!checkForTask(subProject.tasks, TASK_JAVADOCJAR)) {
+                                subProject.tasks.register(TASK_JAVADOCJAR, Jar::class.java) {
+                                    it.archiveClassifier.set("javadoc")
+                                    it.from(tasks.getByName(JAVADOC_TASK_NAME))
+                                }
+                            }
+
+                            subProject.extensions.configure(PublishingExtension::class.java) { publishing ->
+                                publishing.publications.maybeCreate(
+                                    extension.mavenPublicationName,
+                                    MavenPublication::class.java
+                                ).apply {
+                                    from( subProject.components.getAt( "java" ) )
+                                    artifact(tasks.getByName(TASK_SOURCEJAR))
+                                    artifact(tasks.getByName(JAVADOC_TASK_NAME))
+                                }
+                            }
+
+                            if (!checkForTask(subProject.tasks, CopyThirdpartyLibs.DEFAULT_NAME)) {
+                                subProject.tasks.register(
+                                    CopyThirdpartyLibs.DEFAULT_NAME,
+                                    CopyThirdpartyLibs::class.java
+                                )
+                            }
                         }
                     }
                 }
@@ -223,10 +256,12 @@ open class ICMBasePlugin: Plugin<Project> {
                         }
 
                         project.subprojects.forEach { subproject ->
-                            val dep = dependencies.appendNode("dependency")
-                            dep.appendNode("groupId").setValue( subproject.getGroup() )
-                            dep.appendNode("artifactId").setValue( subproject.getName() )
-                            dep.appendNode("version").setValue( subproject.getVersion() )
+                            if(subproject.subprojects.isEmpty()) {
+                                val dep = dependencies.appendNode("dependency")
+                                dep.appendNode("groupId").setValue(subproject.getGroup())
+                                dep.appendNode("artifactId").setValue(subproject.getName())
+                                dep.appendNode("version").setValue(subproject.getVersion())
+                            }
                         }
                     }
                 }

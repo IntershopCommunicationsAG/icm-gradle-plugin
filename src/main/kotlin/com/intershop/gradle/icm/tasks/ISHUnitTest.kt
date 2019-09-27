@@ -19,7 +19,6 @@ package com.intershop.gradle.icm.tasks
 import com.intershop.gradle.icm.ICMBasePlugin
 import com.intershop.gradle.icm.ICMProductPlugin.Companion.TASK_INSTALLRUNTIMELIB
 import org.gradle.api.plugins.JavaPluginConvention
-import org.gradle.api.plugins.ProjectReportsPluginConvention
 import org.gradle.api.tasks.SourceSet.MAIN_SOURCE_SET_NAME
 import org.gradle.api.tasks.testing.Test
 import java.io.File
