@@ -120,6 +120,7 @@ class ICMProductPlugin : Plugin<Project> {
 
                         val ishUnitTask = tasks.register(TASK_ISHUNITALL) {
                             it.description = "Starts all ISHUnit tests"
+                            it.group = "verification"
                         }
 
                         checkTask?.dependsOn(ishUnitTask)
@@ -127,12 +128,14 @@ class ICMProductPlugin : Plugin<Project> {
                         if (!ICMBasePlugin.checkForTask(tasks, TASK_ISHUNIT_PARALLEL)) {
                             val ishUnitParallel = tasks.register(TASK_ISHUNIT_PARALLEL) {
                                 it.description = "Starts all ISHUnit tests in different projects parallel"
+                                it.group = "verification"
                             }
                             ishUnitTask.get().dependsOn(ishUnitParallel.get())
                         }
                         if (!ICMBasePlugin.checkForTask(tasks, TASK_ISHUNIT_SERIAL)) {
                             val ishUnitSerial = tasks.register(TASK_ISHUNIT_SERIAL) {
                                 it.description = "Starts one test for serial execution"
+                                it.group = "verification"
                             }
                             ishUnitTask.get().dependsOn(ishUnitSerial.get())
                         }

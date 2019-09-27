@@ -51,6 +51,9 @@ open class WriteCartridgeClasspath : DefaultTask() {
     }
 
     init {
+        group = "ICM cartridge build"
+        description = "Writes the classpath of the cartridge to a file."
+
         outputFileProperty.set(File(project.buildDir, "${CARTRIDGE_CLASSPATH_DIR}/${CARTRIDGE_CLASSPATH_FILE}"))
         jarTaskNameProperty.convention("jar")
         useClassesFolderProperty.convention(false)

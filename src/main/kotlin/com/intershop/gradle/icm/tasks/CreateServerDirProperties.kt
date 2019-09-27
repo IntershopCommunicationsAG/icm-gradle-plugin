@@ -57,6 +57,9 @@ open class CreateServerDirProperties : DefaultTask() {
     }
 
     init {
+        group = "ICM product build"
+        description = "Writes the server paths of the project to a file."
+
         outputFileProperty.set(
             File(project.buildDir, "${SERVER_DIRECTORY_PROPERTIES_DIR}/${SERVER_DIRECTORY_PROPERTIES}"))
 

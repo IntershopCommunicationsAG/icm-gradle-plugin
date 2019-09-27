@@ -59,6 +59,9 @@ open class WriteCartridgeDescriptor : WriteProperties() {
     }
 
     init {
+        group = "ICM cartridge build"
+        description = "Writes all necessary information of the cartridge to a file."
+
         outputFile = File(project.buildDir,
             "${CARTRIDGE_DESCRIPTOR_DIR}/${CARTRIDGE_DESCRIPTOR_FILE}")
 

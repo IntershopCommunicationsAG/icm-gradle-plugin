@@ -43,6 +43,9 @@ open class CopyThirdpartyLibs : DefaultTask() {
     }
 
     init {
+        group = "ICM container build"
+        description = "Copy all thirdparty libs to a directory."
+
         outputDirProperty.set(File(project.buildDir, THIRDPARTYLIB_DIR ))
     }
 

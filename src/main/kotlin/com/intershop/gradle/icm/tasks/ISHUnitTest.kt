@@ -64,7 +64,7 @@ open class ISHUnitTest : Test() {
 
         val createServerDirProperties = project.rootProject.tasks.getByName(CreateServerDirProperties.DEFAULT_NAME)
         dependsOn(createServerDirProperties)
-        systemProperty("intershop.ServerConfig=", createServerDirProperties.outputs.files.first().absolutePath)
+        systemProperty("intershop.ServerConfig", createServerDirProperties.outputs.files.first().absolutePath)
 
         var configDirectory : String? = System.getProperty("configDirectory")
         if(configDirectory == null && project.hasProperty("configDirectory")) {

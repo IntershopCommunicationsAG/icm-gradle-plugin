@@ -54,6 +54,9 @@ open class CreateServerInfoProperties: WriteProperties() {
     private val organizationProperty: Property<String> = project.objects.property(String::class.java)
 
     init {
+        group = "ICM server build"
+        description = "Writes the server information to a file."
+
         outputFile = File(project.buildDir, "$PROJECT_INFO_DIR/$PROJECT_INFO_FILE")
     }
 
