@@ -18,6 +18,8 @@
 package com.intershop.gradle.icm.utils
 
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.provider.ListProperty
+import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.SetProperty
 import kotlin.reflect.KProperty
@@ -39,6 +41,15 @@ operator fun <T> SetProperty<T>.setValue(receiver: Any?, property: KProperty<*>,
  * Provides 'get' functional extension for the SetProperty object.
  */
 operator fun <T> SetProperty<T>.getValue(receiver: Any?, property: KProperty<*>): Set<T> = get()
+
+/**
+ * Provides 'set' functional extension for the ListProperty object.
+ */
+operator fun <T> ListProperty<T>.setValue(receiver: Any?, property: KProperty<*>, value: List<T>) = set(value)
+/**
+ * Provides 'get' functional extension for the ListProperty object.
+ */
+operator fun <T> ListProperty<T>.getValue(receiver: Any?, property: KProperty<*>): List<T> = get()
 
 /**
  * Provides functional extension for primitive objects.

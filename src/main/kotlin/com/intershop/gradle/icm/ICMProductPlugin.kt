@@ -20,6 +20,7 @@ import com.intershop.gradle.icm.ICMBasePlugin.Companion.TASK_WRITECARTRIDGEFILES
 import com.intershop.gradle.icm.extension.IntershopExtension
 import com.intershop.gradle.icm.tasks.CreateServerDirProperties
 import com.intershop.gradle.icm.tasks.DBInit
+import com.intershop.gradle.icm.tasks.StartICMServer
 import com.intershop.gradle.icm.utils.OsCheck
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -69,49 +70,14 @@ class ICMProductPlugin : Plugin<Project> {
 
                 val extension = extensions.getByType(IntershopExtension::class.java)
 
-                // create configurations for ICM project
-                configurations.maybeCreate(CONFIGURATION_DBINIT)
-                    .setTransitive(false).description = "Configuration for dbinit execution of the ICM base project"
-
-                configurations.maybeCreate(CONFIGURATION_ICMSERVER)
-                    .setTransitive(false).description = "Configuration for ICM server execution of the ICM base project"
-
+                configureConfigurations(this)
                 addRuntimeDependencies(this, extension)
                 addInstallRuntimeLib(this)
 
-                if (!ICMBasePlugin.checkForTask(tasks, CreateServerDirProperties.DEFAULT_NAME)) {
-                    tasks.register(
-                        CreateServerDirProperties.DEFAULT_NAME,
-                        CreateServerDirProperties::class.java
-                    ) {
+                configureServerDirTask(project, extension)
 
-                        val configFolderTask = tasks.getByPath(extension.baseConfig.configurationFolderTaskPath)
-                        val sitesFolderTask = tasks.getByPath(extension.baseConfig.sitesFolderTaskPath)
-
-                        it.dependsOn(configFolderTask, sitesFolderTask)
-
-                        it.addSource(projectDir.absolutePath)
-                        this.subprojects.forEach { subprj ->
-                            if(subprj.subprojects.size > 0) {
-                                if(! File(subprj.projectDir, ".noCartridges").exists()) {
-                                    it.addSource(subprj.projectDir.absolutePath)
-                                }
-                            }
-                        }
-
-                        it.configDir = configFolderTask.outputs.files.singleFile.absolutePath
-                        it.sitesDir = sitesFolderTask.outputs.files.singleFile.absolutePath
-                    }
-                }
-
-                if (!ICMBasePlugin.checkForTask(tasks, DBInit.DEFAULT_NAME)) {
-                    tasks.register(
-                        DBInit.DEFAULT_NAME,
-                        DBInit::class.java
-                    ) {
-                        it.dependsOn(rootProject.tasks.getByName(TASK_WRITECARTRIDGEFILES))
-                    }
-                }
+                configureDBInitTask(project, rootProject)
+                configureStartICMServerTask(project, rootProject)
 
                 if (!ICMBasePlugin.checkForTask(tasks, TASK_ISHUNITALL)) {
                     project.plugins.withType(LifecycleBasePlugin::class.java) {
@@ -142,6 +108,66 @@ class ICMProductPlugin : Plugin<Project> {
                     }
                 }
 
+            }
+        }
+    }
+
+    private fun configureConfigurations(project: Project) {
+        // create configurations for ICM project
+        project.configurations.maybeCreate(CONFIGURATION_DBINIT)
+            .setTransitive(false).description = "Configuration for dbinit execution of the ICM base project"
+
+        project.configurations.maybeCreate(CONFIGURATION_ICMSERVER)
+            .setTransitive(false).description = "Configuration for ICM server execution of the ICM base project"
+    }
+
+    private fun configureServerDirTask(project: Project, extension: IntershopExtension) {
+        with(project) {
+            if (!ICMBasePlugin.checkForTask(tasks, CreateServerDirProperties.DEFAULT_NAME)) {
+                tasks.register(
+                    CreateServerDirProperties.DEFAULT_NAME,
+                    CreateServerDirProperties::class.java
+                ) {
+
+                    val configFolderTask = tasks.getByPath(extension.baseConfig.configurationFolderTaskPath)
+                    val sitesFolderTask = tasks.getByPath(extension.baseConfig.sitesFolderTaskPath)
+
+                    it.dependsOn(configFolderTask, sitesFolderTask)
+
+                    it.addSource(projectDir.absolutePath)
+                    subprojects.forEach { subprj ->
+                        if (subprj.subprojects.size > 0) {
+                            if (!File(subprj.projectDir, ".noCartridges").exists()) {
+                                it.addSource(subprj.projectDir.absolutePath)
+                            }
+                        }
+                    }
+
+                    it.configDir = configFolderTask.outputs.files.singleFile.absolutePath
+                    it.sitesDir = sitesFolderTask.outputs.files.singleFile.absolutePath
+                }
+            }
+        }
+    }
+
+    private fun configureDBInitTask(project: Project, rootProject: Project) {
+        if (!ICMBasePlugin.checkForTask(project.tasks, DBInit.DEFAULT_NAME)) {
+            project.tasks.register(
+                DBInit.DEFAULT_NAME,
+                DBInit::class.java
+            ) {
+                it.dependsOn(rootProject.tasks.getByName(TASK_WRITECARTRIDGEFILES))
+            }
+        }
+    }
+
+    private fun configureStartICMServerTask(project: Project, rootProject: Project) {
+        if (!ICMBasePlugin.checkForTask(project.tasks, StartICMServer.DEFAULT_NAME)) {
+            project.tasks.register(
+                StartICMServer.DEFAULT_NAME,
+                StartICMServer::class.java
+            ) {
+                it.dependsOn(rootProject.tasks.getByName(TASK_WRITECARTRIDGEFILES))
             }
         }
     }
