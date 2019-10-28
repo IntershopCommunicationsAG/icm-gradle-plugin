@@ -56,7 +56,7 @@ class ICMProductPlugin : Plugin<Project> {
         const val TASK_INSTALLRUNTIMELIB = "installRuntimeLib"
         const val TASK_ISHUNIT_PARALLEL = "ishUnitTestParallel"
         const val TASK_ISHUNIT_SERIAL = "ishUnitTestSerial"
-        const val TASK_ISHUNITALL = "ishUnitTestAll"
+        const val TASK_ISHUNIT = "ishUnitTest"
     }
 
     override fun apply(project: Project) {
@@ -79,32 +79,29 @@ class ICMProductPlugin : Plugin<Project> {
                 configureDBInitTask(project, rootProject)
                 configureStartICMServerTask(project, rootProject)
 
-                if (!ICMBasePlugin.checkForTask(tasks, TASK_ISHUNITALL)) {
+                if (!ICMBasePlugin.checkForTask(tasks, TASK_ISHUNIT)) {
                     project.plugins.withType(LifecycleBasePlugin::class.java) {
 
+                        // add life cycle tasks for ishunit tests
                         val checkTask = tasks.findByName(CHECK_TASK_NAME)
 
-                        val ishUnitTask = tasks.register(TASK_ISHUNITALL) {
-                            it.description = "Starts all ISHUnit tests"
-                            it.group = "verification"
-                        }
+                        val ishUnitTask = tasks.maybeCreate(TASK_ISHUNIT)
+                        ishUnitTask.description = "Starts all ISHUnit tests"
+                        ishUnitTask.group = "verification"
 
                         checkTask?.dependsOn(ishUnitTask)
 
-                        if (!ICMBasePlugin.checkForTask(tasks, TASK_ISHUNIT_PARALLEL)) {
-                            val ishUnitParallel = tasks.register(TASK_ISHUNIT_PARALLEL) {
-                                it.description = "Starts all ISHUnit tests in different projects parallel"
-                                it.group = "verification"
-                            }
-                            ishUnitTask.get().dependsOn(ishUnitParallel.get())
-                        }
-                        if (!ICMBasePlugin.checkForTask(tasks, TASK_ISHUNIT_SERIAL)) {
-                            val ishUnitSerial = tasks.register(TASK_ISHUNIT_SERIAL) {
-                                it.description = "Starts one test for serial execution"
-                                it.group = "verification"
-                            }
-                            ishUnitTask.get().dependsOn(ishUnitSerial.get())
-                        }
+                        val ishUnitParallel = tasks.maybeCreate(TASK_ISHUNIT_PARALLEL)
+                        ishUnitParallel.description = "Starts all ISHUnit tests in different projects parallel"
+                        ishUnitParallel.group = "verification"
+
+                        ishUnitTask.dependsOn(ishUnitParallel)
+
+                        val ishUnitSerial = tasks.maybeCreate(TASK_ISHUNIT_SERIAL)
+                        ishUnitSerial.description = "Starts one test for serial execution"
+                        ishUnitSerial.group = "verification"
+
+                        ishUnitTask.dependsOn(ishUnitSerial)
                     }
                 }
 

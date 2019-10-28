@@ -33,7 +33,7 @@ class ICMTestPlugin : Plugin<Project> {
     override fun apply(project: Project) {
         with(project) {
             plugins.withType(JavaPlugin::class.java) {
-                val taskName = "ishUnitTest"
+                val taskName = "testIshUnit"
                 val isSerialTest = project.hasProperty("serialISHUnitTest")
                         && project.property("serialISHUnitTest").toString().toLowerCase() == "true"
 
@@ -45,7 +45,8 @@ class ICMTestPlugin : Plugin<Project> {
                     val ishUnitMain = rootProject.tasks.getByName(mainTestTask)
 
                     val task = tasks.register(taskName, ISHUnitTest::class.java) {
-                        it.dependsOn(dbinitTask)
+                        it.mustRunAfter(dbinitTask)
+
                         if(isSerialTest) {
                             it.mustRunAfter(parallelTask)
                         }
