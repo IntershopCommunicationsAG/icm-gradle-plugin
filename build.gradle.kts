@@ -39,16 +39,16 @@ plugins {
     `maven-publish`
 
     // intershop version plugin
-    id("com.intershop.gradle.scmversion") version "5.0.0"
+    id("com.intershop.gradle.scmversion") version "6.0.0"
 
     // plugin for documentation
     id("org.asciidoctor.jvm.convert") version "2.3.0"
 
     // documentation
-    id("org.jetbrains.dokka") version "0.9.18"
+    id("org.jetbrains.dokka") version "0.10.0"
 
     // code analysis for kotlin
-    id("io.gitlab.arturbosch.detekt") version "1.0.0-RC16"
+    id("io.gitlab.arturbosch.detekt") version "1.1.1"
 
     // plugin for publishing to Gradle Portal
     id("com.gradle.plugin-publish") version "0.10.1"
@@ -68,7 +68,6 @@ scm {
 
 group = "com.intershop.gradle.icm"
 description = "Intershop Commerce Management Plugins"
-
 version = scm.version.version
 
 repositories {
@@ -199,7 +198,6 @@ tasks {
     }
 
     val dokka by existing(DokkaTask::class) {
-        reportUndocumented = false
         outputFormat = "javadoc"
         outputDirectory = "$buildDir/javadoc"
 
