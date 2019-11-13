@@ -102,7 +102,6 @@ open class ICMBasePlugin: Plugin<Project> {
                         subProject.plugins.withType(JavaPlugin::class.java) { javaPlugin ->
 
                             configureAddFileCreation( subProject, tasks, writeCartridgeFiles)
-
                             configureAddJars(subProject, extension)
 
                             with(subProject) {
@@ -169,7 +168,7 @@ open class ICMBasePlugin: Plugin<Project> {
                     extension.mavenPublicationName,
                     MavenPublication::class.java
                 ).apply {
-                    //from( subProject.components.getAt( "java" ) )
+                    from( project.components.getAt( "java" ) )
                     artifact(tasks.getByName(TASK_SOURCEJAR))
                     artifact(tasks.getByName(TASK_JAVADOCJAR))
                 }
