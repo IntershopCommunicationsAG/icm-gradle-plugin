@@ -17,8 +17,10 @@
 package com.intershop.gradle.icm
 
 import com.intershop.gradle.test.AbstractIntegrationGroovySpec
+import spock.lang.Ignore
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
+
 
 class SpawnJavaProcessSpec extends AbstractIntegrationGroovySpec {
 
@@ -71,25 +73,16 @@ class SpawnJavaProcessSpec extends AbstractIntegrationGroovySpec {
         """.stripIndent()
 
         when:
-        def result = getPreparedGradleRunner()
-                .withArguments("tasks", "-s")
-                //.withGradleVersion(gradleVersion)
-                .build()
-
-        then:
-        result.task(':tasks').outcome == SUCCESS
-
-        when:
         def result2 = getPreparedGradleRunner()
                 .withArguments("startTestServer", "-s")
-        //.withGradleVersion(gradleVersion)
+                .withGradleVersion(gradleVersion)
                 .build()
 
         then:
         result2.task(':startTestServer').outcome == SUCCESS
 
-        //where:
-        //gradleVersion << supportedGradleVersions
+        where:
+        gradleVersion << supportedGradleVersions
     }
 
     protected File writeJavaClass(String packageDotted, String className, File baseDir = testProjectDir) {
@@ -105,8 +98,6 @@ class SpawnJavaProcessSpec extends AbstractIntegrationGroovySpec {
                         ++i;
                         if(i == 50) {
                             System.out.println("time stamp ... process started in 900 sec");
-                        } else {
-                            System.out.println( i + " runtime");
                         }
                         Thread.sleep(1000);
                     }

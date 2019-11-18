@@ -24,14 +24,14 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.RegularFileProperty
-import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.InputDirectory
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
@@ -41,7 +41,6 @@ import org.gradle.process.internal.DefaultJavaDebugOptions
 import java.io.BufferedReader
 import java.io.File
 import java.io.InputStreamReader
-import javax.inject.Inject
 
 /**
  * Generic task for starting a java process in the background.
@@ -145,10 +144,15 @@ open class SpawnJavaProcess: DefaultTask() {
      *
      * @property processDirProperty real directory on file system
      */
-    @get:Optional
-    @get:InputFile
+    @get:InputDirectory
     var workingDir: File
-        get() = workingDirProperty.get().asFile
+        get() {
+            var dir = workingDirProperty.get().asFile
+            if(! dir.exists()) {
+                dir.mkdirs()
+            }
+            return dir
+        }
         set(value) = workingDirProperty.set(value)
 
     /**
@@ -364,7 +368,7 @@ open class SpawnJavaProcess: DefaultTask() {
     /**
      * This get the available debug configuration for the java process.
      */
-    @get:Input
+    @get:Internal
     val debugOptions : JavaDebugOptions
         get() = debugOptionsInternal
 
