@@ -31,6 +31,7 @@ import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
@@ -145,7 +146,7 @@ open class SpawnJavaProcess: DefaultTask() {
      * @property processDirProperty real directory on file system
      */
     @get:Optional
-    @get:Input
+    @get:InputFile
     var workingDir: File
         get() = workingDirProperty.get().asFile
         set(value) = workingDirProperty.set(value)
@@ -357,14 +358,15 @@ open class SpawnJavaProcess: DefaultTask() {
         option = "debug-jvm",
         description = "Enable debugging for the process. The process is started suspended and listening on port 5005."
     )
+    @get:Input
     val debug by debugProperty
 
     /**
      * This get the available debug configuration for the java process.
      */
-    fun getDebugOptions(): JavaDebugOptions {
-        return debugOptionsInternal
-    }
+    @get:Input
+    val debugOptions : JavaDebugOptions
+        get() = debugOptionsInternal
 
     /**
      * Configures the debug options for this java process.

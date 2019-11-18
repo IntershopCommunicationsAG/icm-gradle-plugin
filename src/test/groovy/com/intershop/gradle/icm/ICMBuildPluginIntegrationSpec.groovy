@@ -265,16 +265,9 @@ class ICMBuildPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
             plugins {
                 id 'java'
                 id 'com.intershop.gradle.icm.base'
-                id 'com.gradle.build-scan' version '2.4.2'
             }
             
             version = "1.0.0"
-            
-            buildScan {
-                termsOfServiceUrl = "https://gradle.com/terms-of-service"
-                termsOfServiceAgree = "yes"
-                // publishAlways()
-            }
             
             repositories {
                 jcenter()
@@ -371,16 +364,9 @@ class ICMBuildPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
             plugins {
                 id 'java'
                 id 'com.intershop.gradle.icm.base'
-                id 'com.gradle.build-scan' version '2.4.2'
             }
             
             version = "1.0.0"
-            
-            buildScan {
-                termsOfServiceUrl = "https://gradle.com/terms-of-service"
-                termsOfServiceAgree = "yes"
-                // publishAlways()
-            }
             
             repositories {
                 jcenter()
@@ -462,16 +448,9 @@ class ICMBuildPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
             plugins {
                 id 'java'
                 id 'com.intershop.gradle.icm.base'
-                id 'com.gradle.build-scan' version '2.4.2'
             }
             
             version = "1.0.0"
-            
-            buildScan {
-                termsOfServiceUrl = "https://gradle.com/terms-of-service"
-                termsOfServiceAgree = "yes"
-                // publishAlways()
-            }
 
             repositories {
                 jcenter()
@@ -554,17 +533,10 @@ class ICMBuildPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
             plugins {
                 id 'java'
                 id 'com.intershop.gradle.icm.base'
-                id 'com.gradle.build-scan' version '2.4.2'
             }
             
             version = "1.0.0"
-            
-            buildScan {
-                termsOfServiceUrl = "https://gradle.com/terms-of-service"
-                termsOfServiceAgree = "yes"
-                // publishAlways()
-            }
-            
+
             repositories {
                 jcenter()
             }

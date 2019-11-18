@@ -21,13 +21,11 @@ import java.util.Date
  */
 
 plugins {
-    // build performance
-    id("com.gradle.build-scan") version "2.3"
 
     // project plugins
     `java-gradle-plugin`
     groovy
-    id("nebula.kotlin") version "1.3.41"
+    id("nebula.kotlin") version "1.3.50"
 
     // test coverage
     jacoco
@@ -55,11 +53,6 @@ plugins {
 
     // plugin for publishing to jcenter
     id("com.jfrog.bintray") version "1.8.4"
-}
-
-buildScan {
-    termsOfServiceUrl   = "https://gradle.com/terms-of-service"
-    termsOfServiceAgree = "yes"
 }
 
 scm {
@@ -123,12 +116,11 @@ if (project.version.toString().endsWith("-SNAPSHOT")) {
 detekt {
     input = files("src/main/kotlin")
     config = files("detekt.yml")
-    filters = ".*test.*,.*/resources/.*,.*/tmp/.*"
 }
 
 tasks {
     withType<Test>().configureEach {
-        systemProperty("intershop.gradle.versions", "5.6.2")
+        systemProperty("intershop.gradle.versions", "5.6.4, 6.0")
 
         dependsOn("jar")
     }
@@ -137,9 +129,10 @@ tasks {
         includeEmptyDirs = false
 
         val outputDir = file("$buildDir/tmp/asciidoctorSrc")
-        val inputFiles = fileTree(mapOf("dir" to rootDir,
-            "include" to listOf("**/*.asciidoc"),
-            "exclude" to listOf("build/**")))
+        val inputFiles = fileTree(rootDir) {
+            include("**/*.asciidoc")
+            exclude("build/**")
+        }
 
         inputs.files.plus( inputFiles )
         outputs.dir( outputDir )
@@ -290,7 +283,7 @@ bintray {
 }
 
 dependencies {
-    testImplementation("com.intershop.gradle.test:test-gradle-plugin:3.1.0-dev.2")
+    testImplementation("com.intershop.gradle.test:test-gradle-plugin:3.4.0")
     testImplementation(gradleTestKit())
 }
 
