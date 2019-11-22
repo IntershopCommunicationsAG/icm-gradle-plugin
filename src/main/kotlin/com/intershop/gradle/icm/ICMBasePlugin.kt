@@ -138,6 +138,10 @@ open class ICMBasePlugin: Plugin<Project> {
                         it.fromResolutionResult()
                     }
                 }
+
+                pom.description.set(project.description)
+                pom.inceptionYear.set(Year.now().getValue().toString())
+                pom.properties.set(mapOf("cartridge.name" to project.name))
             }
         }
     }
