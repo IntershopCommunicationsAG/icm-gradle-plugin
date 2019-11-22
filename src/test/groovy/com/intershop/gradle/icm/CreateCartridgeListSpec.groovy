@@ -18,8 +18,6 @@
 package com.intershop.gradle.icm
 
 import com.intershop.gradle.test.AbstractIntegrationGroovySpec
-
-import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 class CreateCartridgeListSpec extends AbstractIntegrationGroovySpec {
@@ -52,7 +50,7 @@ class CreateCartridgeListSpec extends AbstractIntegrationGroovySpec {
         when:
         def result = getPreparedGradleRunner()
                 .withArguments("tasks", "-s")
-        //.withGradleVersion(gradleVersion)
+                .withGradleVersion(gradleVersion)
                 .build()
 
         then:
@@ -62,14 +60,14 @@ class CreateCartridgeListSpec extends AbstractIntegrationGroovySpec {
         when:
         def result2 = getPreparedGradleRunner()
                 .withArguments("createCartridgeList", "-s")
-        //.withGradleVersion(gradleVersion)
+                .withGradleVersion(gradleVersion)
                 .build()
 
         then:
         result2.task(':createCartridgeList').outcome == SUCCESS
 
-        //where:
-        //gradleVersion << supportedGradleVersions
+        where:
+        gradleVersion << supportedGradleVersions
     }
 
 }
