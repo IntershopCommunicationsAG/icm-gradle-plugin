@@ -83,6 +83,9 @@ open class StartICMServer: SpawnJavaProcess() {
         args("start")
     }
 
+    /**
+     * This function represents the logic of this task.
+     */
     @TaskAction
     fun startServer() {
         super.spawnProcess()

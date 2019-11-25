@@ -128,6 +128,9 @@ open class CreateCartridgeList: DefaultTask() {
         }
     }
 
+    /**
+     * This function represents the logic of this task.
+     */
     @TaskAction
     fun createCartridgeList() {
         val baseFile = templateFileProperty.get().asFile
