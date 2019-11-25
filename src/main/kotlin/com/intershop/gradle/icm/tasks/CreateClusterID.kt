@@ -23,6 +23,12 @@ import org.gradle.api.tasks.TaskAction
 import java.io.File
 import java.util.*
 
+/**
+ * Gradle task to create an ID for ICM cluster.
+ *
+ * This taks creates an UID with Java functionality
+ * in the required format.
+ */
 open class CreateClusterID: DefaultTask() {
 
     private val outputFileProperty: RegularFileProperty = project.objects.fileProperty()
@@ -48,6 +54,9 @@ open class CreateClusterID: DefaultTask() {
         get() = outputFileProperty.get().asFile
         set(value) = outputFileProperty.set(value)
 
+    /**
+     * This function represents the logic of this task.
+     */
     @TaskAction
     fun createID() {
         val uuid = UUID.randomUUID()

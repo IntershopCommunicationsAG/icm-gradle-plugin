@@ -23,4 +23,4 @@ import org.gradle.api.tasks.bundling.Tar
  * Helper class for the creation of
  * docker images with different content.
  */
-open class CreateMainServer: Tar() {}
+open class CreateMainServer: Tar()

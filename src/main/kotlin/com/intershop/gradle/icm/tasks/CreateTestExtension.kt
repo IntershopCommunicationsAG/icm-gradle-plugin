@@ -22,4 +22,4 @@ import org.gradle.api.tasks.bundling.Tar
  * Helper class for the creation of
  * docker images with different content.
  */
-class CreateTestExtension: Tar() {}
+class CreateTestExtension: Tar()

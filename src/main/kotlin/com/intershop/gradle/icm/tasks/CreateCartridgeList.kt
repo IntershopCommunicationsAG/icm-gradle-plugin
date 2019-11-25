@@ -29,6 +29,10 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import java.io.File
 
+/**
+ * This task creates a cartridge list properties
+ * file from a template file.
+ */
 open class CreateCartridgeList: DefaultTask() {
 
     private val outputFileProperty: RegularFileProperty = project.objects.fileProperty()
