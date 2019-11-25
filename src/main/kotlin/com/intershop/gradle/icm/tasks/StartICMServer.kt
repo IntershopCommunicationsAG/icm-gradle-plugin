@@ -22,7 +22,7 @@ import org.gradle.api.tasks.TaskAction
 import java.io.File
 
 /**
- * Starts an ICM from Sources.
+ * Starts an ICM server from sources.
  */
 open class StartICMServer: SpawnJavaProcess() {
 

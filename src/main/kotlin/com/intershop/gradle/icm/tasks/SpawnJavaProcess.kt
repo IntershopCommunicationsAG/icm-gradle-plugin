@@ -453,7 +453,7 @@ open class SpawnJavaProcess: DefaultTask() {
         map.put("JAVA_HOME", javaHome.absolutePath)
     }
 
-    fun getValueString(v: Any) : String = when(v) {
+    private fun getValueString(v: Any) : String = when(v) {
         is File -> v.absolutePath
         is Boolean -> if(v) "true" else "false"
         else -> v.toString()
