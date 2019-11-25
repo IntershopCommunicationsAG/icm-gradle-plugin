@@ -24,10 +24,11 @@ import com.intershop.gradle.icm.tasks.StartICMServer
 import com.intershop.gradle.icm.utils.OsCheck
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.UnknownTaskException
 import org.gradle.api.artifacts.Configuration
-import org.gradle.language.base.plugins.LifecycleBasePlugin.CHECK_TASK_NAME
 import org.gradle.api.tasks.Copy
 import org.gradle.language.base.plugins.LifecycleBasePlugin
+import org.gradle.language.base.plugins.LifecycleBasePlugin.CHECK_TASK_NAME
 import java.io.File
 
 /**
@@ -165,6 +166,11 @@ class ICMProductPlugin : Plugin<Project> {
                 StartICMServer::class.java
             ) {
                 it.dependsOn(rootProject.tasks.getByName(TASK_WRITECARTRIDGEFILES))
+                try {
+                    it.dependsOn(rootProject.tasks.getByName("isml"))
+                } catch (ex: UnknownTaskException) {
+                    project.logger.warn("No 'isml' taks found in project '" + project.name + "'.")
+                }
             }
         }
     }

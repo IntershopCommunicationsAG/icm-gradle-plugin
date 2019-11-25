@@ -83,6 +83,7 @@ open class SpawnJavaProcess: DefaultTask() {
         minHeapSizeProperty.set("")
         maxHeapSizeProperty.set("")
         debugProperty.set(false)
+        pidFileProperty.convention { File(project.buildDir, "start/javaprocess") }
     }
 
     /**

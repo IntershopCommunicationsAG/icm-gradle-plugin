@@ -17,11 +17,9 @@
 package com.intershop.gradle.icm.tasks
 
 import com.intershop.gradle.icm.ICMProductPlugin
-import org.gradle.api.file.RegularFileProperty
-import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.TaskAction
-import javax.inject.Inject
+import java.io.File
 
 /**
  * Starts an ICM from Sources.
@@ -40,6 +38,7 @@ open class StartICMServer: SpawnJavaProcess() {
         description = "Start an ICM server from project sources"
 
         serverNameProperty.convention("appserver")
+        pidFile = File(project.buildDir, "start/appserver")
         main = "com.intershop.beehive.startup.ServletEngineStartup"
 
         classLoaderProperty.convention("com.intershop.beehive.runtime.EnfinitySystemClassLoader")
