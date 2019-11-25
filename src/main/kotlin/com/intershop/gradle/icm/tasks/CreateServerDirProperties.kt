@@ -76,6 +76,11 @@ open class CreateServerDirProperties : DefaultTask() {
         if(licenseDirProp != null) {
             licenseDirProperty.convention(licenseDirProp)
         }
+
+        var configDirectory : String? = System.getProperty("configDirectory")
+        if(configDirectory == null && project.hasProperty("configDirectory")) {
+            configDirProperty.convention( project.property("configDirectory").toString() )
+        }
     }
 
     /**
