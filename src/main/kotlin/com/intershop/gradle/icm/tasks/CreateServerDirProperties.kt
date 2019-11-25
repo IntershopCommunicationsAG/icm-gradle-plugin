@@ -247,7 +247,7 @@ open class CreateServerDirProperties : DefaultTask() {
             out.println("IS_DIST = ${createDir(shareDistDir)}")
 
             out.println("# license file directory")
-            out.println("IS_LICENSE = ${createDir(licenseDir)}")
+            out.println("IS_LICENSE = ${licenseDir}")
         }
     }
 

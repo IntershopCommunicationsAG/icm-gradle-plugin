@@ -38,7 +38,7 @@ open class StartICMServer: SpawnJavaProcess() {
         description = "Start an ICM server from project sources"
 
         serverNameProperty.convention("appserver")
-        pidFile = File(project.buildDir, "start/appserver")
+        pidFile = File(project.buildDir, "start/appserver/pid.file")
         main = "com.intershop.beehive.startup.ServletEngineStartup"
 
         classLoaderProperty.convention("com.intershop.beehive.runtime.EnfinitySystemClassLoader")

@@ -21,6 +21,7 @@ import com.intershop.gradle.icm.utils.setValue
 import org.apache.tools.ant.types.Commandline
 import org.gradle.api.Action
 import org.gradle.api.DefaultTask
+import org.gradle.api.GradleException
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.RegularFileProperty
@@ -79,6 +80,7 @@ open class SpawnJavaProcess: DefaultTask() {
     private var processIsReady = false
 
     init {
+        outputs.upToDateWhen { false }
         workingDirProperty.convention(project.layout.buildDirectory.file("activeProcess"))
         minHeapSizeProperty.set("")
         maxHeapSizeProperty.set("")
@@ -385,7 +387,6 @@ open class SpawnJavaProcess: DefaultTask() {
     private fun buildProcess(): Process {
         val javaExecFile = org.gradle.internal.jvm.Jvm.current().getJavaExecutable()
 
-
         val command = mutableListOf<String>()
 
         command.add(javaExecFile.absolutePath)
@@ -488,6 +489,7 @@ open class SpawnJavaProcess: DefaultTask() {
 
         var line: String?
         do {
+            logger.info("Waiting for new line ....")
             line = reader.readLine()
             if (line != null) {
                 println(line)
@@ -502,7 +504,11 @@ open class SpawnJavaProcess: DefaultTask() {
         } while (true)
 
         if (processIsReady) {
-            pidFileProperty.get().asFile.printWriter().use { out -> out.println(extractPidFromProcess(process)) }
+            val pid = extractPidFromProcess(process)
+            logger.info("Server started with pid {}", pid)
+            pidFileProperty.get().asFile.printWriter().use { out -> out.println(pid) }
+        } else {
+            throw GradleException("Server was not startd ...")
         }
     }
 }
