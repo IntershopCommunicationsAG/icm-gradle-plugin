@@ -60,8 +60,11 @@ open class SpawnJavaProcess: DefaultTask() {
     private val minHeapSizeProperty: Property<String> = project.objects.property(String::class.java)
     private val maxHeapSizeProperty: Property<String> = project.objects.property(String::class.java)
 
+    private val timeoutProperty: Property<Int> = project.objects.property(Int::class.java)
+
     private val pidFileProperty: RegularFileProperty = project.objects.fileProperty()
     private val workingDirProperty: RegularFileProperty = project.objects.fileProperty()
+    private val logOutputFileProperty: RegularFileProperty = project.objects.fileProperty()
 
     private val classpathProperty: ConfigurableFileCollection = project.files()
 
@@ -82,10 +85,12 @@ open class SpawnJavaProcess: DefaultTask() {
     init {
         outputs.upToDateWhen { false }
         workingDirProperty.convention(project.layout.buildDirectory.file("activeProcess"))
-        minHeapSizeProperty.set("")
-        maxHeapSizeProperty.set("")
-        debugProperty.set(false)
-        pidFileProperty.convention { File(project.buildDir, "start/javaprocess") }
+        minHeapSizeProperty.convention("")
+        maxHeapSizeProperty.convention("")
+        debugProperty.convention(false)
+        pidFileProperty.convention { File(project.buildDir, "javaprocess/pid/process.pid") }
+        timeoutProperty.convention( 300 )
+        logOutputFileProperty.convention { File(project.buildDir, "javaprocess/log/output.log")  }
     }
 
     /**
@@ -121,11 +126,8 @@ open class SpawnJavaProcess: DefaultTask() {
     fun providerMinHeapSize(minHeapSize: Provider<String>) =
         minHeapSizeProperty.set(minHeapSize)
 
-    @get:Optional
     @get:Input
-    var minHeapSize: String
-        get() = minHeapSizeProperty.getOrElse("")
-        set(value) = minHeapSizeProperty.set(value)
+    var minHeapSize by minHeapSizeProperty
 
     /**
      * Set provider for maxHeapSize string property.
@@ -138,9 +140,19 @@ open class SpawnJavaProcess: DefaultTask() {
 
     @get:Optional
     @get:Input
-    var maxHeapSize: String
-        get() = maxHeapSizeProperty.getOrElse("")
-        set(value) = maxHeapSizeProperty.set(value)
+    var maxHeapSize by maxHeapSizeProperty
+
+    /**
+     * Set provider for timeout property.
+     *
+     * @param timeout maximum time in seconds before the task will be finished with an exception.
+     */
+    @Suppress("unused")
+    fun providerTimeout(timeout: Provider<Int>) =
+        timeoutProperty.set(timeout)
+
+    @get:Input
+    var timeout by timeoutProperty
 
     /**
      * The workingDir is used for the execution of the java process.
@@ -160,7 +172,7 @@ open class SpawnJavaProcess: DefaultTask() {
 
     /**
      * The file will contain the pid of the process. As long this file
-     * exists, it should be not possible to spawn a new prcess.
+     * exists, it should be not possible to spawn a new process.
      *
      * @property pidFile real file on file system with pid
      */
@@ -181,6 +193,17 @@ open class SpawnJavaProcess: DefaultTask() {
         set(value) {
             classpathProperty.from(value)
         }
+
+    /**
+     * The file will contain the log output of the process.
+     *
+     * @property logOutputFile System out of the started process
+     */
+    @get:OutputFile
+    var logOutputFile: File
+        get() = logOutputFileProperty.get().asFile
+        set(value) = logOutputFileProperty.set(value)
+
 
     /**
      * Set provider for JVM arguments.
@@ -482,10 +505,18 @@ open class SpawnJavaProcess: DefaultTask() {
     @TaskAction
     fun spawnProcess() {
 
-        val process = buildProcess()
+        var endTime = System.currentTimeMillis() + (timeoutProperty.get().toLong() * 1000L)
 
-        val stdout = process.getInputStream()
+        if(pidFileProperty.get().asFile.exists()) {
+            throw GradleException("Please check if the process is running! (" + pidFileProperty.get().asFile.absolutePath + " exists)")
+        }
+
+        val process = buildProcess()
+        val stdout = process.inputStream
         val reader = BufferedReader(InputStreamReader(stdout))
+
+        pidFileProperty.get().asFile.parentFile.mkdirs()
+        logOutputFileProperty.get().asFile.parentFile.mkdirs()
 
         var line: String?
         do {
@@ -493,6 +524,8 @@ open class SpawnJavaProcess: DefaultTask() {
             line = reader.readLine()
             if (line != null) {
                 println(line)
+                logOutputFileProperty.get().asFile.printWriter().use { out -> out.println(line) }
+
                 if (line.contains(readyStringProperty.get())) {
                     println("command is ready")
                     processIsReady = true
@@ -501,6 +534,12 @@ open class SpawnJavaProcess: DefaultTask() {
             } else {
                 break
             }
+
+            if(System.currentTimeMillis() > endTime) {
+                project.logger.error("Process was not started in the expected time {}", timeoutProperty.get().toLong())
+                break
+            }
+
         } while (true)
 
         if (processIsReady) {
@@ -508,7 +547,7 @@ open class SpawnJavaProcess: DefaultTask() {
             logger.info("Server started with pid {}", pid)
             pidFileProperty.get().asFile.printWriter().use { out -> out.println(pid) }
         } else {
-            throw GradleException("Server was not startd ...")
+            throw GradleException("Server was not started ...")
         }
     }
 }

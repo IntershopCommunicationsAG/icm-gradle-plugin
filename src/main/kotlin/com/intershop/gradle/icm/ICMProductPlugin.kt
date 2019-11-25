@@ -21,6 +21,7 @@ import com.intershop.gradle.icm.extension.IntershopExtension
 import com.intershop.gradle.icm.tasks.CreateServerDirProperties
 import com.intershop.gradle.icm.tasks.DBInit
 import com.intershop.gradle.icm.tasks.StartICMServer
+import com.intershop.gradle.icm.tasks.StopICMServer
 import com.intershop.gradle.icm.utils.OsCheck
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -79,6 +80,7 @@ class ICMProductPlugin : Plugin<Project> {
 
                 configureDBInitTask(project, rootProject)
                 configureStartICMServerTask(project, rootProject)
+                configureStopICMServerTask(project, rootProject)
 
                 if (!ICMBasePlugin.checkForTask(tasks, TASK_ISHUNIT)) {
                     project.plugins.withType(LifecycleBasePlugin::class.java) {
@@ -172,6 +174,15 @@ class ICMProductPlugin : Plugin<Project> {
                     project.logger.warn("No 'isml' taks found in project '" + project.name + "'.")
                 }
             }
+        }
+    }
+
+    private fun configureStopICMServerTask(project: Project, rootProject: Project) {
+        if (!ICMBasePlugin.checkForTask(project.tasks, StopICMServer.DEFAULT_NAME)) {
+            project.tasks.register(
+                StopICMServer.DEFAULT_NAME,
+                StopICMServer::class.java
+            )
         }
     }
 

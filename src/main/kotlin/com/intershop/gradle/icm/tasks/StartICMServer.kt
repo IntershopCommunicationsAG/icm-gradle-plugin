@@ -45,12 +45,14 @@ open class StartICMServer: SpawnJavaProcess() {
 
         classpath = project.configurations.getByName(ICMProductPlugin.CONFIGURATION_ICMSERVER)
 
-        readyString = "Server started"
+        readyString = "Servlet engine successfully started"
 
         jvmArgs("-server", "-showversion", "-d64", "-XX:NewRatio=8")
 
         minHeapSize = "1024m"
         maxHeapSize = "2048m"
+
+        timeout = 600
 
         val installRuntimeLib = project.tasks.getByName(ICMProductPlugin.TASK_INSTALLRUNTIMELIB)
         dependsOn(installRuntimeLib)
