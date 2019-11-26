@@ -41,6 +41,7 @@ import org.gradle.process.JavaDebugOptions
 import org.gradle.process.internal.DefaultJavaDebugOptions
 import java.io.BufferedReader
 import java.io.File
+import java.io.IOException
 import java.io.InputStreamReader
 
 /**
@@ -457,7 +458,6 @@ open class SpawnJavaProcess: DefaultTask() {
         configureEnvironment(builder.environment())
 
         builder.directory(configureWorkingDir())
-
         return builder.start()
     }
 
@@ -518,13 +518,15 @@ open class SpawnJavaProcess: DefaultTask() {
         pidFileProperty.get().asFile.parentFile.mkdirs()
         logOutputFileProperty.get().asFile.parentFile.mkdirs()
 
+        val writer = logOutputFileProperty.get().asFile.bufferedWriter()
+
         var line: String?
         do {
-            logger.info("Waiting for new line ....")
+            logger.debug("Waiting for new line ....")
             line = reader.readLine()
             if (line != null) {
                 println(line)
-                logOutputFileProperty.get().asFile.printWriter().use { out -> out.println(line) }
+                writer.appendln(line)
 
                 if (line.contains(readyStringProperty.get())) {
                     println("command is ready")
@@ -547,6 +549,9 @@ open class SpawnJavaProcess: DefaultTask() {
             logger.info("Server started with pid {}", pid)
             pidFileProperty.get().asFile.printWriter().use { out -> out.println(pid) }
         } else {
+            try {
+                writer.close()
+            } catch (ioex: IOException) { }
             throw GradleException("Server was not started ...")
         }
     }

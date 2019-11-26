@@ -17,11 +17,18 @@
 package com.intershop.gradle.icm.tasks
 
 import org.gradle.api.tasks.TaskAction
+import java.io.File
 
 open class StopICMServer: KillJavaProcess() {
 
     companion object {
         const val DEFAULT_NAME = "stopServer"
+    }
+
+    init {
+        pidFile = File(project.buildDir, "appserver/pid/process.pid")
+        logOutputFile = File(project.buildDir, "appserver/log/output.log")
+        timeout = 600
     }
 
     /**

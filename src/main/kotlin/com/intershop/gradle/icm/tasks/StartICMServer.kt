@@ -38,7 +38,9 @@ open class StartICMServer: SpawnJavaProcess() {
         description = "Start an ICM server from project sources"
 
         serverNameProperty.convention("appserver")
-        pidFile = File(project.buildDir, "start/appserver/pid.file")
+        pidFile = File(project.buildDir, "appserver/pid/process.pid")
+        logOutputFile = File(project.buildDir, "appserver/log/output.log")
+
         main = "com.intershop.beehive.startup.ServletEngineStartup"
 
         classLoaderProperty.convention("com.intershop.beehive.runtime.EnfinitySystemClassLoader")
@@ -52,7 +54,7 @@ open class StartICMServer: SpawnJavaProcess() {
         minHeapSize = "1024m"
         maxHeapSize = "2048m"
 
-        timeout = 600
+        timeout = 1000
 
         val installRuntimeLib = project.tasks.getByName(ICMProductPlugin.TASK_INSTALLRUNTIMELIB)
         dependsOn(installRuntimeLib)
