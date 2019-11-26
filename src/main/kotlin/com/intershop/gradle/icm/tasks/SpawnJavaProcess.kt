@@ -507,50 +507,55 @@ open class SpawnJavaProcess: DefaultTask() {
 
         if(pidFileProperty.get().asFile.exists()) {
             throw GradleException("Please check if the process is running! (" + pidFileProperty.get().asFile.absolutePath + " exists)")
-        }
+        } else {
+            val process = buildProcess()
+            val stdout = process.inputStream
+            val reader = BufferedReader(InputStreamReader(stdout))
 
-        val process = buildProcess()
-        val stdout = process.inputStream
-        val reader = BufferedReader(InputStreamReader(stdout))
+            pidFileProperty.get().asFile.parentFile.mkdirs()
+            logOutputFileProperty.get().asFile.parentFile.mkdirs()
 
-        pidFileProperty.get().asFile.parentFile.mkdirs()
-        logOutputFileProperty.get().asFile.parentFile.mkdirs()
+            val writer = logOutputFileProperty.get().asFile.bufferedWriter()
 
-        val writer = logOutputFileProperty.get().asFile.bufferedWriter()
+            var line: String?
+            do {
+                logger.debug("Waiting for new line ....")
+                line = reader.readLine()
+                if (line != null) {
+                    println(line)
+                    writer.appendln(line)
 
-        var line: String?
-        do {
-            logger.debug("Waiting for new line ....")
-            line = reader.readLine()
-            if (line != null) {
-                println(line)
-                writer.appendln(line)
-
-                if (line.contains(readyStringProperty.get())) {
-                    println("command is ready")
-                    processIsReady = true
+                    logger.info("check '{}' in '{}'", readyStringProperty.get(), line)
+                    if (line.contains(readyStringProperty.get())) {
+                        println("command is ready")
+                        processIsReady = true
+                        break
+                    }
+                } else {
                     break
                 }
+
+                if (System.currentTimeMillis() > endTime) {
+                    project.logger.error(
+                        "Process was not started in the expected time {}",
+                        timeoutProperty.get().toLong()
+                    )
+                    break
+                }
+
+            } while (true)
+
+            if (processIsReady) {
+                val pid = extractPidFromProcess(process)
+                logger.info("Server started with pid {}", pid)
+                pidFileProperty.get().asFile.printWriter().use { out -> out.println(pid) }
             } else {
-                break
+                try {
+                    writer.close()
+                } catch (ioex: IOException) {
+                }
+                throw GradleException("Server was not started ...")
             }
-
-            if(System.currentTimeMillis() > endTime) {
-                project.logger.error("Process was not started in the expected time {}", timeoutProperty.get().toLong())
-                break
-            }
-
-        } while (true)
-
-        if (processIsReady) {
-            val pid = extractPidFromProcess(process)
-            logger.info("Server started with pid {}", pid)
-            pidFileProperty.get().asFile.printWriter().use { out -> out.println(pid) }
-        } else {
-            try {
-                writer.close()
-            } catch (ioex: IOException) { }
-            throw GradleException("Server was not started ...")
         }
     }
 }

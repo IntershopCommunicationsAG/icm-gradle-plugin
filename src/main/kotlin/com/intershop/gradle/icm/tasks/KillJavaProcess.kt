@@ -94,14 +94,18 @@ open class KillJavaProcess: DefaultTask() {
 
             val pid = pidFile.readText().replace("\\s".toRegex(), "")
 
-            val processBuilder = if (System.getProperty("os.name").toLowerCase().indexOf("windows") > -1) {
-                ProcessBuilder("taskkill " + pid)
+            val cmd = mutableListOf<String>()
+            if (System.getProperty("os.name").toLowerCase().indexOf("windows") > -1) {
+                cmd.add("taskkill")
             } else {
-                ProcessBuilder("kill -9 " + pid)
+                cmd.add("kill")
+                cmd.add("-9")
             }
+            cmd.add(pid)
 
-            processBuilder.redirectErrorStream(true)
-            val process = processBuilder.start()
+            val process = ProcessBuilder(cmd)
+                .redirectErrorStream(true)
+                .start()
 
             val stdout = process.getInputStream()
             val reader = BufferedReader(InputStreamReader(stdout))
