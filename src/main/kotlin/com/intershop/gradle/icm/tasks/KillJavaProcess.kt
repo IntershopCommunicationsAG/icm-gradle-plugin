@@ -32,6 +32,9 @@ import java.io.BufferedReader
 import java.io.File
 import java.io.InputStreamReader
 
+/**
+ * Generic task for killing a process.
+ */
 open class KillJavaProcess: DefaultTask() {
 
     private val pidFileProperty: RegularFileProperty = project.objects.fileProperty()

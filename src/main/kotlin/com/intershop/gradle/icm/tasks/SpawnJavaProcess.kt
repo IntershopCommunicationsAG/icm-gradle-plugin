@@ -46,8 +46,6 @@ import java.io.InputStreamReader
 
 /**
  * Generic task for starting a java process in the background.
- *
- * @constructor initializes object factory.
  */
 open class SpawnJavaProcess: DefaultTask() {
 

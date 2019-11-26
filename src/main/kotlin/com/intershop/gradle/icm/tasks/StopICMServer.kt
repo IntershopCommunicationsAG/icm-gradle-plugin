@@ -19,6 +19,10 @@ package com.intershop.gradle.icm.tasks
 import org.gradle.api.tasks.TaskAction
 import java.io.File
 
+/**
+ * Stops an ICM server from sources by killing the process.
+ * This can be replaced in the future by calling server stop (Java process)
+ */
 open class StopICMServer: KillJavaProcess() {
 
     companion object {
