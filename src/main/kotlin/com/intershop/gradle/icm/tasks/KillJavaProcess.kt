@@ -134,6 +134,9 @@ open class KillJavaProcess: DefaultTask() {
 
             try {
                 process.exitValue()
+                if(! project.delete(pidFile)) {
+                    project.logger.error("It was not possible to delete '{}'", pidFile.absolutePath)
+                }
             } catch (ex: IllegalThreadStateException) {
                 project.logger.debug("Process for pid {} is still active.", pid)
                 process.destroy()
