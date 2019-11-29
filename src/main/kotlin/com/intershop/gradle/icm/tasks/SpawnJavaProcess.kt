@@ -529,6 +529,7 @@ open class SpawnJavaProcess: DefaultTask() {
                         logger.debug("Line '{}' contains '{}'. Process was started!", line, readyStringProperty.get())
                         println("command is ready")
                         processIsReady = true
+                        writer.flush()
                         break
                     }
                 } else {
@@ -537,23 +538,23 @@ open class SpawnJavaProcess: DefaultTask() {
 
                 if (System.currentTimeMillis() > endTime) {
                     project.logger.error(
-                        "Process was not started in the expected time {}",
-                        timeoutProperty.get().toLong()
-                    )
+                        "Process was not started in the expected time {}", timeoutProperty.get().toLong())
+                    writer.flush()
                     break
                 }
 
             } while (true)
+
+            try {
+                writer.flush()
+                writer.close()
+            } catch (ioex: IOException) { }
 
             if (processIsReady) {
                 val pid = extractPidFromProcess(process)
                 logger.info("Server started with pid {}", pid)
                 pidFileProperty.get().asFile.printWriter().use { out -> out.println(pid) }
             } else {
-                try {
-                    writer.close()
-                } catch (ioex: IOException) {
-                }
                 throw GradleException("Server was not started ...")
             }
         }
