@@ -525,8 +525,8 @@ open class SpawnJavaProcess: DefaultTask() {
                     println(line)
                     writer.appendln(line)
 
-                    logger.info("check '{}' in '{}'", readyStringProperty.get(), line)
                     if (line.contains(readyStringProperty.get())) {
+                        logger.debug("Line '{}' contains '{}'. Process was started!", line, readyStringProperty.get())
                         println("command is ready")
                         processIsReady = true
                         break

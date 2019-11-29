@@ -38,6 +38,7 @@ open class StartICMServer: SpawnJavaProcess() {
         description = "Start an ICM server from project sources"
 
         serverNameProperty.convention("appserver")
+        workingDir = File(project.buildDir, "appserver")
         pidFile = File(project.buildDir, "appserver/pid/process.pid")
         logOutputFile = File(project.buildDir, "appserver/log/output.log")
 
