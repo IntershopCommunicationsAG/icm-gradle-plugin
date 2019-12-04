@@ -169,7 +169,7 @@ class ICMProductPlugin : Plugin<Project> {
             ) {
                 it.dependsOn(rootProject.tasks.getByName(TASK_WRITECARTRIDGEFILES))
                 try {
-                    it.dependsOn(rootProject.tasks.getByName("isml"))
+                    it.dependsOn(rootProject.tasks.getByPath(":isml"))
                 } catch (ex: UnknownTaskException) {
                     project.logger.warn("No 'isml' taks found in project '" + project.name + "'.")
                 }
