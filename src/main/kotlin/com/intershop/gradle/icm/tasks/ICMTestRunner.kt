@@ -22,6 +22,7 @@ import com.intershop.gradle.icm.utils.setValue
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputFile
@@ -106,7 +107,7 @@ class ICMTestRunner : JavaExec() {
      *
      * @property testhome directory path
      */
-    @get:Input
+    @get:InputDirectory
     var testhome: File?
         get()  {
             if(testhomeProperty.orNull != null) {
