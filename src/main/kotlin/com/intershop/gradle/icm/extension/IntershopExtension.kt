@@ -35,9 +35,11 @@ open class IntershopExtension(var project: Project)  {
         const val INTERSHOP_GROUP_NAME = "Intershop Commerce Management Plugins"
     }
 
+    private val mavenPublicationNameProperty: Property<String> = project.objects.property(String::class.java)
+
     val projectInfo: ProjectInfo = ProjectInfo(project)
     val baseConfig: BaseConfiguration = BaseConfiguration(project)
-    private val mavenPublicationNameProperty: Property<String> = project.objects.property(String::class.java)
+    val intTestConfig: IntTestConfiguration = IntTestConfiguration(project)
 
     init {
         mavenPublicationNameProperty.convention("mvn")
@@ -70,6 +72,25 @@ open class IntershopExtension(var project: Project)  {
     @Suppress("unused")
     fun baseConfig(closure: Closure<Any>) {
         project.configure(baseConfig, closure)
+    }
+
+    /**
+     * Configures the integration tests of Intershop Commerce Management.
+     *
+     * @param action action with integration tests configuration of Intershop Commerce Management
+     */
+    fun intTestConfig(action: Action<in IntTestConfiguration>) {
+        action.execute(intTestConfig)
+    }
+
+    /**
+     * Configures the integration tests of Intershop Commerce Management.
+     *
+     * @param closure closure with integration tests configuration of Intershop Commerce Management
+     */
+    @Suppress("unused")
+    fun intTestConfig(closure: Closure<Any>) {
+        project.configure(intTestConfig, closure)
     }
 
     /**

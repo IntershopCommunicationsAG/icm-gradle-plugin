@@ -52,6 +52,11 @@ open class StartICMServer: SpawnJavaProcess() {
 
         jvmArgs("-server", "-showversion", "-d64", "-XX:NewRatio=8")
 
+        val runtimejar = project.tasks.findByPath(":platform:runtime:jar")?.outputs?.files?.singleFile
+        if(runtimejar != null) {
+            jvmArgs("-javaagent=${runtimejar}")
+        }
+
         minHeapSize = "1024m"
         maxHeapSize = "2048m"
 
@@ -79,11 +84,6 @@ open class StartICMServer: SpawnJavaProcess() {
             configDirectory = project.property("configDirectory").toString()
         }
         systemProperty("intershop.LocalConfig", "${configDirectory}/cluster.properties")
-
-        val runtimejar = project.tasks.findByPath(":platform:runtime:jar")?.outputs?.files?.singleFile
-        if(runtimejar != null) {
-            systemProperty("javaagent", runtimejar)
-        }
 
         args("start")
     }

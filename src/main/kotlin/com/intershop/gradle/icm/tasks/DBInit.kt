@@ -38,6 +38,11 @@ open class DBInit : JavaExec() {
 
         jvmArgs("-showversion")
 
+        val runtimejar = project.tasks.findByPath(":platform:runtime:jar")?.outputs?.files?.singleFile
+        if(runtimejar != null) {
+            jvmArgs("-javaagent=${runtimejar}")
+        }
+
         val installRuntimeLib = project.tasks.getByName(ICMProductPlugin.TASK_INSTALLRUNTIMELIB)
         dependsOn(installRuntimeLib)
         systemProperty("java.library.path", "${installRuntimeLib.outputs.files.singleFile.absolutePath}")
@@ -75,10 +80,10 @@ open class DBInit : JavaExec() {
 
     @TaskAction
     override fun exec() {
-        println("---Starting dbinit with gradle---")
+        println("--- Starting dbinit with gradle ---")
         println("Commandline:")
         println(commandLine.toString())
-        println("---                           ---")
+        println("---                             ---")
 
         super.exec()
     }

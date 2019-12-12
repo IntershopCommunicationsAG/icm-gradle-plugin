@@ -18,8 +18,10 @@ package com.intershop.gradle.icm
 
 import com.intershop.gradle.icm.ICMBasePlugin.Companion.TASK_WRITECARTRIDGEFILES
 import com.intershop.gradle.icm.extension.IntershopExtension
+import com.intershop.gradle.icm.tasks.CreateClusterID
 import com.intershop.gradle.icm.tasks.CreateServerDirProperties
 import com.intershop.gradle.icm.tasks.DBInit
+import com.intershop.gradle.icm.tasks.ICMTestRunner
 import com.intershop.gradle.icm.tasks.StartICMServer
 import com.intershop.gradle.icm.tasks.StopICMServer
 import com.intershop.gradle.icm.utils.OsCheck
@@ -47,6 +49,7 @@ class ICMProductPlugin : Plugin<Project> {
         // ... configurations
         const val CONFIGURATION_DBINIT = "dbinit"
         const val CONFIGURATION_ICMSERVER = "icmserver"
+        const val CONFIGURATION_TESTRUNNER = "testrunner"
 
         const val CONFIGURATION_RUNTIME_LIB = "runtimeLib"
         const val CONFIGURATION_DOCKER_RUNTIME_LIB = "dockerRuntimeLib"
@@ -76,8 +79,10 @@ class ICMProductPlugin : Plugin<Project> {
                 addRuntimeDependencies(this, extension)
                 addInstallRuntimeLib(this)
 
+                configureClusterIdTask(project)
                 configureServerDirTask(project, extension)
 
+                configureTestrunnerTask(project, rootProject)
                 configureDBInitTask(project, rootProject)
                 configureStartICMServerTask(project, rootProject)
                 configureStopICMServerTask(project, rootProject)
@@ -119,6 +124,20 @@ class ICMProductPlugin : Plugin<Project> {
 
         project.configurations.maybeCreate(CONFIGURATION_ICMSERVER)
             .setTransitive(false).description = "Configuration for ICM server execution of the ICM base project"
+
+        project.configurations.maybeCreate(CONFIGURATION_TESTRUNNER)
+            .setTransitive(false).description = "Configuration for ICM integration test runner execution of the ICM base project"
+    }
+
+    private fun configureClusterIdTask(project: Project) {
+        with(project) {
+            if (!ICMBasePlugin.checkForTask(tasks, CreateClusterID.DEFAULT_NAME)) {
+                tasks.register(
+                    CreateClusterID.DEFAULT_NAME,
+                    CreateClusterID::class.java
+                )
+            }
+        }
     }
 
     private fun configureServerDirTask(project: Project, extension: IntershopExtension) {
@@ -145,6 +164,22 @@ class ICMProductPlugin : Plugin<Project> {
 
                     it.configDir = configFolderTask.outputs.files.singleFile.absolutePath
                     it.sitesDir = sitesFolderTask.outputs.files.singleFile.absolutePath
+                }
+            }
+        }
+    }
+
+    private fun configureTestrunnerTask(project: Project, rootProject: Project) {
+        if (!ICMBasePlugin.checkForTask(project.tasks, ICMTestRunner.DEFAULT_NAME)) {
+            project.tasks.register(
+                ICMTestRunner.DEFAULT_NAME,
+                ICMTestRunner::class.java
+            ) {
+                it.dependsOn(rootProject.tasks.getByName(TASK_WRITECARTRIDGEFILES))
+                try {
+                    it.dependsOn(rootProject.tasks.getByPath(":isml"))
+                } catch (ex: UnknownTaskException) {
+                    project.logger.warn("No 'isml' taks found in project '" + project.name + "'.")
                 }
             }
         }
@@ -214,9 +249,8 @@ class ICMProductPlugin : Plugin<Project> {
             .defaultDependencies {
                 val dependencyBase = "${extension.baseConfig.runtimeModule}:${extension.baseConfig.runtimeVersion}"
 
-
-                it.add( dependencyHandler.create("${dependencyBase}:darwin@dylib") )
-                it.add( dependencyHandler.create("${dependencyBase}:darwin@setpgid") )
+                it.add( dependencyHandler.create("${dependencyBase}:linux@so") )
+                it.add( dependencyHandler.create("${dependencyBase}:linux@setpgid") )
             }
     }
 
