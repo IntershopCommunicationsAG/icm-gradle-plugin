@@ -106,6 +106,7 @@ class ICMTestRunner : JavaExec() {
      *
      * @property testhome directory path
      */
+    @get:Input
     var testhome: File?
         get()  {
             if(testhomeProperty.orNull != null) {
