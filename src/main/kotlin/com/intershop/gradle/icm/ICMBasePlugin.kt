@@ -19,6 +19,7 @@ package com.intershop.gradle.icm
 
 import com.intershop.gradle.icm.extension.IntershopExtension
 import com.intershop.gradle.icm.tasks.CopyThirdpartyLibs
+import com.intershop.gradle.icm.tasks.CreateClusterID
 import com.intershop.gradle.icm.tasks.CreateServerInfoProperties
 import com.intershop.gradle.icm.tasks.WriteCartridgeClasspath
 import com.intershop.gradle.icm.tasks.WriteCartridgeDescriptor
@@ -79,6 +80,7 @@ open class ICMBasePlugin: Plugin<Project> {
                     IntershopExtension.INTERSHOP_EXTENSION_NAME, IntershopExtension::class.java, this
                 )
 
+                configureClusterIdTask(project)
                 configureCreateServerInfoPropertiesTask(project, extension)
 
                 if(! checkForTask(tasks, TASK_ALLDEPENDENCIESREPORT)) {
@@ -99,7 +101,7 @@ open class ICMBasePlugin: Plugin<Project> {
 
                         configurePublishing(subProject, extension)
 
-                        subProject.plugins.withType(JavaPlugin::class.java) { javaPlugin ->
+                        subProject.plugins.withType(JavaPlugin::class.java) {
 
                             configureAddFileCreation( subProject, tasks, writeCartridgeFiles)
                             configureAddJars(subProject, extension)
@@ -140,7 +142,7 @@ open class ICMBasePlugin: Plugin<Project> {
                 }
 
                 pom.description.set(project.description)
-                pom.inceptionYear.set(Year.now().getValue().toString())
+                pom.inceptionYear.set(Year.now().value.toString())
                 pom.properties.set(mapOf("cartridge.name" to project.name))
             }
         }
@@ -236,6 +238,17 @@ open class ICMBasePlugin: Plugin<Project> {
         }
     }
 
+    private fun configureClusterIdTask(project: Project) {
+        with(project) {
+            if (!checkForTask(tasks, CreateClusterID.DEFAULT_NAME)) {
+                tasks.register(
+                    CreateClusterID.DEFAULT_NAME,
+                    CreateClusterID::class.java
+                )
+            }
+        }
+    }
+
     private fun configureMvnPublishing(project: Project, extension: IntershopExtension) {
 
         project.plugins.withType(MavenPublishPlugin::class.java) {
@@ -254,7 +267,7 @@ open class ICMBasePlugin: Plugin<Project> {
                     }
 
                     pom.description.set(project.description)
-                    pom.inceptionYear.set(Year.now().getValue().toString())
+                    pom.inceptionYear.set(Year.now().value.toString())
 
                     pom.withXml { xml ->
                         val root = xml.asNode()
@@ -278,9 +291,9 @@ open class ICMBasePlugin: Plugin<Project> {
                         project.subprojects.forEach { subproject ->
                             if(subproject.subprojects.isEmpty()) {
                                 val dep = dependencies.appendNode("dependency")
-                                dep.appendNode("groupId").setValue(subproject.getGroup())
-                                dep.appendNode("artifactId").setValue(subproject.getName())
-                                dep.appendNode("version").setValue(subproject.getVersion())
+                                dep.appendNode("groupId").setValue(subproject.group)
+                                dep.appendNode("artifactId").setValue(subproject.name)
+                                dep.appendNode("version").setValue(subproject.version)
                             }
                         }
                     }

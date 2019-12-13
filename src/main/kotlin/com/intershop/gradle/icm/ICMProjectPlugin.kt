@@ -42,13 +42,6 @@ class ICMProjectPlugin : Plugin<Project> {
                     plugins.apply(ICMBasePlugin::class.java)
                 }
 
-                val extension = extensions.getByType(IntershopExtension::class.java)
-
-
-                rootProject.subprojects.forEach { prj ->
-
-
-                }
             } else {
                 logger.warn("ICM build plugin will be not applied to the sub project '{}'", project.name)
             }

@@ -63,9 +63,9 @@ open class CreateClusterID: DefaultTask() {
         val uuidStr = uuid.toString().replace("-", "")
         val outputFile = outputFileProperty.get().asFile
 
-        if(! outputFile.getParentFile().exists()) {
-            project.delete(outputFile.getParentFile())
-            outputFile.getParentFile().mkdirs()
+        if(! outputFile.parentFile.exists()) {
+            project.delete(outputFile.parentFile)
+            outputFile.parentFile.mkdirs()
         }
 
         outputFile.writeText(uuidStr)

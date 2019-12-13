@@ -65,7 +65,7 @@ open class CreateCartridgeList: DefaultTask() {
     /**
      * Input template file with all cartridges.
      *
-     * @property tempateFile
+     * @property templateFile
      */
     @get:InputFile
     var templateFile: File
@@ -106,8 +106,8 @@ open class CreateCartridgeList: DefaultTask() {
      * @param excludes list of includes matches.
      */
     @Suppress("unused")
-    fun excludes(includes: Provider<List<String>>) =
-        excludesListProperty.set(includes)
+    fun excludes(excludes: Provider<List<String>>) =
+        excludesListProperty.set(excludes)
 
     /**
      * This list contains excludes for cartridge list.
@@ -120,7 +120,7 @@ open class CreateCartridgeList: DefaultTask() {
     /**
      * Add excludes matches to the list of excludes.
      *
-     * @param includes includes matches
+     * @param excludes includes matches
      */
     fun exclude(vararg excludes: Any) {
         excludes.forEach {
