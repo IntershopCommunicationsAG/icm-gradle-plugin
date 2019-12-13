@@ -33,14 +33,12 @@ class CreateClusterIDSpec extends AbstractIntegrationGroovySpec {
                 id 'com.intershop.gradle.icm.base'
             }
 
-            task createClusterID(type: com.intershop.gradle.icm.tasks.CreateClusterID) { }
-
             """.stripIndent()
 
         when:
         def result = getPreparedGradleRunner()
                 .withArguments("tasks", "-s")
-        //.withGradleVersion(gradleVersion)
+                .withGradleVersion(gradleVersion)
                 .build()
 
         then:
@@ -50,13 +48,13 @@ class CreateClusterIDSpec extends AbstractIntegrationGroovySpec {
         when:
         def result2 = getPreparedGradleRunner()
                 .withArguments("createClusterID", "-s")
-        //.withGradleVersion(gradleVersion)
+                .withGradleVersion(gradleVersion)
                 .build()
 
         then:
         result2.task(':createClusterID').outcome == SUCCESS
 
-        //where:
-        //gradleVersion << supportedGradleVersions
+        where:
+        gradleVersion << supportedGradleVersions
     }
 }
