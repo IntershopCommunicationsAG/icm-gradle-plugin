@@ -75,18 +75,6 @@ gradlePlugin {
             displayName = "icm-base-plugin"
             description = "This ICM plugin contains configuration and some main aspects of all plugins."
         }
-        create("icmTestPlugin") {
-            id = "com.intershop.gradle.icm.ishunittest"
-            implementationClass = "com.intershop.gradle.icm.ICMTestPlugin"
-            displayName = "icm-test-plugin"
-            description = "This ICM plugin should be applied to test projects with ishunit tests"
-        }
-        create("icmProductPlugin") {
-            id = "com.intershop.gradle.icm.product"
-            implementationClass = "com.intershop.gradle.icm.ICMProductPlugin"
-            displayName = "icm-product-plugin"
-            description = "This ICM plugin should be applied to the original Intershop Commerce Management base product project"
-        }
         create("icmProjectPlugin") {
             id = "com.intershop.gradle.icm.project"
             implementationClass = "com.intershop.gradle.icm.ICMProjectPlugin"
@@ -289,6 +277,9 @@ bintray {
 }
 
 dependencies {
+    implementation(gradleApi())
+    implementation(localGroovy())
+
     testImplementation("com.intershop.gradle.test:test-gradle-plugin:3.4.0")
     testImplementation(gradleTestKit())
 }

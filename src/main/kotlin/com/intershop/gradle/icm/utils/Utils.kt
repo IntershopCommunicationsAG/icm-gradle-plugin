@@ -19,7 +19,6 @@ package com.intershop.gradle.icm.utils
 
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ListProperty
-import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.SetProperty
 import kotlin.reflect.KProperty
