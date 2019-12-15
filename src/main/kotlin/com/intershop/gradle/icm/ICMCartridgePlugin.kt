@@ -14,7 +14,6 @@
  * limitations under the License.
  *
  */
-
 package com.intershop.gradle.icm
 
 import com.intershop.gradle.icm.extension.IntershopExtension
@@ -24,11 +23,21 @@ import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.tasks.bundling.Zip
 
+/**
+ * This plugin applies functionality for
+ * external cartridge.
+ */
 class ICMCartridgePlugin : Plugin<Project> {
 
     companion object {
         const val TASK_ZIPSTATICFILES = "zipStaticFiles"
     }
+
+    /**
+     * Main method of the plugin.
+     *
+     * @param project
+     */
     override fun apply(project: Project) {
         with(project) {
             val extension = extensions.findByType(

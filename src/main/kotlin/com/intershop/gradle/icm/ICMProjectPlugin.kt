@@ -16,7 +16,6 @@
  */
 package com.intershop.gradle.icm
 
-import com.intershop.gradle.icm.extension.IntershopExtension
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 
