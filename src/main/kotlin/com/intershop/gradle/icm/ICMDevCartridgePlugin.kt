@@ -14,12 +14,18 @@
  * limitations under the License.
  *
  */
-package com.intershop.gradle.icm.tasks
+package com.intershop.gradle.icm
 
-import org.gradle.api.tasks.bundling.Tar
+import org.gradle.api.Plugin
+import org.gradle.api.Project
 
 /**
- * Helper class for the creation of
- * docker images with different content.
+ * This plugin applies properties for
+ * an integration dev cartridge.
  */
-class CreateTestExtension: Tar()
+class ICMDevCartridgePlugin  : Plugin<Project> {
+
+    override fun apply(project: Project) {
+        project.setProperty("isDevCartridge", "true")
+    }
+}

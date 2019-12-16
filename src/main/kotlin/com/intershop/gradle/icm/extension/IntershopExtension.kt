@@ -32,7 +32,7 @@ open class IntershopExtension(var project: Project)  {
     companion object {
         // names for the plugin
         const val INTERSHOP_EXTENSION_NAME = "intershop"
-        const val INTERSHOP_GROUP_NAME = "Intershop Commerce Management Plugins"
+        const val INTERSHOP_GROUP_NAME = "Intershop Commerce Management"
     }
 
     private val mavenPublicationNameProperty: Property<String> = project.objects.property(String::class.java)

@@ -16,6 +16,7 @@
  */
 package com.intershop.gradle.icm.tasks
 
+import com.intershop.gradle.icm.extension.IntershopExtension.Companion.INTERSHOP_GROUP_NAME
 import com.intershop.gradle.icm.utils.getValue
 import com.intershop.gradle.icm.utils.setValue
 import org.gradle.api.provider.Property
@@ -54,7 +55,7 @@ open class CreateServerInfoProperties: WriteProperties() {
     private val organizationProperty: Property<String> = project.objects.property(String::class.java)
 
     init {
-        group = "ICM server build"
+        group = INTERSHOP_GROUP_NAME
         description = "Writes the server information to a file."
 
         outputFile = File(project.buildDir, "$PROJECT_INFO_DIR/$PROJECT_INFO_FILE")

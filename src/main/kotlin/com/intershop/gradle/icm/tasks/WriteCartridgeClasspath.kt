@@ -16,6 +16,7 @@
  */
 package com.intershop.gradle.icm.tasks
 
+import com.intershop.gradle.icm.extension.IntershopExtension.Companion.INTERSHOP_GROUP_NAME
 import com.intershop.gradle.icm.utils.getValue
 import com.intershop.gradle.icm.utils.setValue
 import org.gradle.api.DefaultTask
@@ -51,7 +52,7 @@ open class WriteCartridgeClasspath : DefaultTask() {
     }
 
     init {
-        group = "ICM cartridge build"
+        group = INTERSHOP_GROUP_NAME
         description = "Writes the classpath of the cartridge to a file."
 
         outputFileProperty.set(File(project.buildDir, "${CARTRIDGE_CLASSPATH_DIR}/${CARTRIDGE_CLASSPATH_FILE}"))

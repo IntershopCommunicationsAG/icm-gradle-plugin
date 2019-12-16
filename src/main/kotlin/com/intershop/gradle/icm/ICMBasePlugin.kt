@@ -93,6 +93,12 @@ open class ICMBasePlugin: Plugin<Project> {
                 }
 
                 subprojects.forEach { subProject  ->
+                    if(subProject.hasProperty("isTestCartridge")) {
+                        extension.baseConfig.addTestCartridge(subProject.name)
+                    }
+                    if(subProject.hasProperty("isDevCartridge")) {
+                        extension.baseConfig.addDevCartridge(subProject.name)
+                    }
 
                     subProject.plugins.apply(MavenPublishPlugin::class.java)
 
@@ -161,11 +167,13 @@ open class ICMBasePlugin: Plugin<Project> {
                 }
             }
 
-            if (!checkForTask(tasks, TASK_JAVADOCJAR)) {
-                tasks.register(TASK_JAVADOCJAR, Jar::class.java) {
-                    it.dependsOn(tasks.getByName(JAVADOC_TASK_NAME))
-                    it.archiveClassifier.set("javadoc")
-                    it.from(tasks.getByName(JAVADOC_TASK_NAME))
+            if(! project.hasProperty("isTestCartridge")) {
+                if (!checkForTask(tasks, TASK_JAVADOCJAR)) {
+                    tasks.register(TASK_JAVADOCJAR, Jar::class.java) {
+                        it.dependsOn(tasks.getByName(JAVADOC_TASK_NAME))
+                        it.archiveClassifier.set("javadoc")
+                        it.from(tasks.getByName(JAVADOC_TASK_NAME))
+                    }
                 }
             }
 
@@ -176,7 +184,9 @@ open class ICMBasePlugin: Plugin<Project> {
                 ).apply {
                     from( project.components.getAt( "java" ) )
                     artifact(tasks.getByName(TASK_SOURCEJAR))
-                    artifact(tasks.getByName(TASK_JAVADOCJAR))
+                    if(! project.hasProperty("isTestCartridge")) {
+                        artifact(tasks.getByName(TASK_JAVADOCJAR))
+                    }
                 }
             }
         }

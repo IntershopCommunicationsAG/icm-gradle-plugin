@@ -16,6 +16,7 @@
  */
 package com.intershop.gradle.icm.tasks
 
+import com.intershop.gradle.icm.extension.IntershopExtension.Companion.INTERSHOP_GROUP_NAME
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.tasks.OutputFile
@@ -38,7 +39,7 @@ open class CreateClusterID: DefaultTask() {
     }
 
     init {
-        group = "intershop"
+        group = INTERSHOP_GROUP_NAME
         description = "Creates a cluster ID to start a server."
 
         outputFileProperty.set(File(project.buildDir, "clusterIDDir/cluster.id" ))

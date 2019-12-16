@@ -19,65 +19,47 @@ package com.intershop.gradle.icm.extension
 import com.intershop.gradle.icm.utils.getValue
 import com.intershop.gradle.icm.utils.setValue
 import org.gradle.api.Project
-import org.gradle.api.provider.Property
-import org.gradle.api.provider.Provider
+import org.gradle.api.provider.ListProperty
 
 /**
  * Extension needed for the configuration of an INTERSHOP base project.
  */
-class BaseConfiguration(project: Project) {
+open class BaseConfiguration(project: Project) {
 
-    private val runtimeModuleProperty: Property<String> = project.objects.property(String::class.java)
-    private val runtimeVersionProperty: Property<String> = project.objects.property(String::class.java)
-    private val configurationFolderTaskPathProperty: Property<String> = project.objects.property(String::class.java)
-    private val sitesFolderTaskPathProperty: Property<String> = project.objects.property(String::class.java)
+    private val devCartridgeListProperty: ListProperty<String> = project.objects.listProperty(String::class.java)
+    private val testCartridgeListProperty: ListProperty<String> = project.objects.listProperty(String::class.java)
 
-    init {
-        runtimeModuleProperty.set("com.intershop.platform.lib:runtime-lib")
-        runtimeVersionProperty.set("1.0.0")
+    /**
+     * List of development cartridges in project
+     *
+     * @property devCartridgeList list of identified development cartridges
+     */
+    val devCartridgeList: List<String>
+        get() = devCartridgeListProperty.get()
+
+    /**
+     * Add an dev cartridge to the list.
+     *
+     * @param projectName name of the dev cartridge
+     */
+    fun addDevCartridge(projectName: String) {
+        devCartridgeListProperty.add(projectName)
     }
 
     /**
-     * Runtime module property provider of ICM base project.
+     * List of test cartridges in project
+     *
+     * @property testCartridgeList list of identified test cartridges
      */
-    val runtimeModuleProvider: Provider<String>
-        get() = runtimeModuleProperty
+    val testCartridgeList: List<String>
+        get() = testCartridgeListProperty.get()
 
     /**
-     * Runtime module of ICM base project.
+     * Add an test cartridge to the list.
+     *
+     * @param projectName name of the test cartridge
      */
-    var runtimeModule by runtimeModuleProperty
-
-    /**
-     * Runtime version property provider of ICM base project.
-     */
-    val runtimeVersionProvider: Provider<String>
-        get() = runtimeVersionProperty
-
-    /**
-     * Runtime version of ICM base project.
-     */
-    var runtimeVersion by runtimeVersionProperty
-
-    /**
-     * Task path property provider of task which creates the ICM configuration folder of the ICM base project.
-     */
-    val configurationFolderTaskPathProvider: Provider<String>
-        get() = configurationFolderTaskPathProperty
-
-    /**
-     * Task path property of task which creates the ICM configuration folder of the ICM base project.
-     */
-    var configurationFolderTaskPath by configurationFolderTaskPathProperty
-
-    /**
-     * Task path property provider of task which creates the ICM sites folder of the ICM base project.
-     */
-    val sitesFolderTaskPathProvider: Provider<String>
-        get() = sitesFolderTaskPathProperty
-
-    /**
-     * Task path property of task which creates the ICM sites folder of the ICM base project.
-     */
-    var sitesFolderTaskPath by sitesFolderTaskPathProperty
+    fun addTestCartridge(projectName: String) {
+        testCartridgeListProperty.add(projectName)
+    }
 }

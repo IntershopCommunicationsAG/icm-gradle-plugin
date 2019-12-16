@@ -16,6 +16,7 @@
  */
 package com.intershop.gradle.icm.tasks
 
+import com.intershop.gradle.icm.extension.IntershopExtension.Companion.INTERSHOP_GROUP_NAME
 import com.intershop.gradle.icm.utils.getValue
 import com.intershop.gradle.icm.utils.setValue
 import org.gradle.api.DefaultTask
@@ -46,7 +47,7 @@ open class CreateCartridgeList: DefaultTask() {
     }
 
     init {
-        group = "intershop"
+        group = INTERSHOP_GROUP_NAME
         description = "Creates a cartridge list properties file from template."
 
         outputFileProperty.set(File(project.buildDir, "cartridgelist/cartridgelist.properties" ))

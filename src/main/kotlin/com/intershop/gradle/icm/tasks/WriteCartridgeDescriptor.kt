@@ -18,6 +18,7 @@ package com.intershop.gradle.icm.tasks
 
 import com.intershop.gradle.icm.ICMBasePlugin.Companion.CONFIGURATION_CARTRIDGE
 import com.intershop.gradle.icm.ICMBasePlugin.Companion.CONFIGURATION_CARTRIDGERUNTIME
+import com.intershop.gradle.icm.extension.IntershopExtension.Companion.INTERSHOP_GROUP_NAME
 import com.intershop.gradle.icm.utils.getValue
 import com.intershop.gradle.icm.utils.setValue
 import groovy.util.XmlSlurper
@@ -59,7 +60,7 @@ open class WriteCartridgeDescriptor : WriteProperties() {
     }
 
     init {
-        group = "ICM cartridge build"
+        group = INTERSHOP_GROUP_NAME
         description = "Writes all necessary information of the cartridge to a file."
 
         outputFile = File(project.buildDir,

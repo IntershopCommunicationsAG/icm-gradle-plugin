@@ -16,6 +16,7 @@
  */
 package com.intershop.gradle.icm.tasks
 
+import com.intershop.gradle.icm.extension.IntershopExtension.Companion.INTERSHOP_GROUP_NAME
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.file.DirectoryProperty
@@ -43,7 +44,7 @@ open class CopyThirdpartyLibs : DefaultTask() {
     }
 
     init {
-        group = "ICM container build"
+        group = INTERSHOP_GROUP_NAME
         description = "Copy all thirdparty libs to a directory."
 
         outputDirProperty.set(File(project.buildDir, THIRDPARTYLIB_DIR ))

@@ -93,6 +93,12 @@ gradlePlugin {
             displayName = "icm-testcartridge-plugin"
             description = "This plugin must be applied to an integration test cartridge for Intershop Commerce Management Project."
         }
+        create("icmDevCartridgePlugin") {
+            id = "com.intershop.gradle.icm.devCartridge"
+            implementationClass = "com.intershop.gradle.icm.ICMDevCartridgePlugin"
+            displayName = "icm-devcartridge-plugin"
+            description = "This plugin must be applied to an development cartridge for Intershop Commerce Management Project."
+        }
     }
 }
 
