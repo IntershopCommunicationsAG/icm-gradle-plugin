@@ -26,6 +26,6 @@ import org.gradle.api.Project
 class ICMDevCartridgePlugin  : Plugin<Project> {
 
     override fun apply(project: Project) {
-        project.setProperty("isDevCartridge", "true")
+        project.extensions.extraProperties.set("isDevCartridge", "true")
     }
 }

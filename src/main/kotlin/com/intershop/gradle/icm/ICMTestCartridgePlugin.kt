@@ -26,7 +26,7 @@ import org.gradle.api.Project
 class ICMTestCartridgePlugin  : Plugin<Project> {
 
     override fun apply(project: Project) {
-        project.setProperty("isTestCartridge", "true")
+        project.extensions.extraProperties.set("isTestCartridge", "true")
     }
 
 }

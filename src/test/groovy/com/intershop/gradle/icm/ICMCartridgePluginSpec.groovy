@@ -90,7 +90,7 @@ class ICMCartridgePluginSpec extends AbstractIntegrationGroovySpec {
         when:
         def result = getPreparedGradleRunner()
                 .withArguments("publish", "-s")
-                //.withGradleVersion(gradleVersion)
+                .withGradleVersion(gradleVersion)
                 .build()
 
         then:
