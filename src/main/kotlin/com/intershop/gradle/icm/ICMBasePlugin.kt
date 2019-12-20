@@ -18,26 +18,16 @@
 package com.intershop.gradle.icm
 
 import com.intershop.gradle.icm.extension.IntershopExtension
-import com.intershop.gradle.icm.tasks.CopyThirdpartyLibs
 import com.intershop.gradle.icm.tasks.CreateClusterID
 import com.intershop.gradle.icm.tasks.CreateServerInfoProperties
-import com.intershop.gradle.icm.tasks.WriteCartridgeClasspath
-import com.intershop.gradle.icm.tasks.WriteCartridgeDescriptor
 import groovy.util.Node
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.Task
-import org.gradle.api.plugins.JavaPlugin
-import org.gradle.api.plugins.JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME
-import org.gradle.api.plugins.JavaPlugin.JAVADOC_TASK_NAME
-import org.gradle.api.plugins.JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME
-import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.diagnostics.DependencyReportTask
-import org.gradle.jvm.tasks.Jar
 import java.time.Year
 
 /**
@@ -46,13 +36,8 @@ import java.time.Year
 open class ICMBasePlugin: Plugin<Project> {
 
     companion object {
-        const val CONFIGURATION_CARTRIDGE = "cartridge"
-        const val CONFIGURATION_CARTRIDGERUNTIME = "cartridgeRuntime"
-
-        const val TASK_WRITECARTRIDGEFILES = "writeCartridgeFiles"
         const val TASK_ALLDEPENDENCIESREPORT = "allDependencies"
-        const val TASK_SOURCEJAR = "sourcesJar"
-        const val TASK_JAVADOCJAR = "javadocJar"
+        const val TASK_WRITECARTRIDGEFILES = "writeCartridgeFiles"
 
         /**
          * checks if the specified name is available in the list of tasks.
@@ -87,41 +72,21 @@ open class ICMBasePlugin: Plugin<Project> {
                     tasks.register(TASK_ALLDEPENDENCIESREPORT, DependencyReportTask::class.java)
                 }
 
-                val writeCartridgeFiles = tasks.maybeCreate(TASK_WRITECARTRIDGEFILES).apply {
+                tasks.maybeCreate(TASK_WRITECARTRIDGEFILES).apply {
                     group = "ICM cartridge build"
                     description = "Lifecycle task for ICM cartridge build"
                 }
 
                 subprojects.forEach { subProject  ->
-                    if(subProject.hasProperty("isTestCartridge")) {
+                    subProject.plugins.withType(TestCartridgePlugin::class.java) {
                         extension.baseConfig.addTestCartridge(subProject.name)
                     }
-                    if(subProject.hasProperty("isDevCartridge")) {
+                    subProject.plugins.withType(DevelopmentCartridgePlugin::class.java) {
                         extension.baseConfig.addDevCartridge(subProject.name)
                     }
 
                     subProject.plugins.apply(MavenPublishPlugin::class.java)
 
-                    // apply maven publishing plugin to all real subprojects project
-                    if(subProject.subprojects.isEmpty()) {
-
-                        configurePublishing(subProject, extension)
-
-                        subProject.plugins.withType(JavaPlugin::class.java) {
-
-                            configureAddFileCreation( subProject, tasks, writeCartridgeFiles)
-                            configureAddJars(subProject, extension)
-
-                            with(subProject) {
-                                if (!checkForTask(tasks, CopyThirdpartyLibs.DEFAULT_NAME)) {
-                                    tasks.register(
-                                        CopyThirdpartyLibs.DEFAULT_NAME,
-                                        CopyThirdpartyLibs::class.java
-                                    )
-                                }
-                            }
-                        }
-                    }
                 }
 
                 configureMvnPublishing(project, extension)
@@ -151,83 +116,6 @@ open class ICMBasePlugin: Plugin<Project> {
                 pom.inceptionYear.set(Year.now().value.toString())
                 pom.properties.set(mapOf("cartridge.name" to project.name))
             }
-        }
-    }
-
-    private fun configureAddJars(project: Project, extension: IntershopExtension) {
-        with(project) {
-            if (!checkForTask(tasks, TASK_SOURCEJAR)) {
-                val javaConvention = convention.getPlugin(JavaPluginConvention::class.java)
-                val mainSourceSet = javaConvention.sourceSets.getByName("main")
-
-                tasks.register(TASK_SOURCEJAR, Jar::class.java) {
-                    it.dependsOn(tasks.getByName("classes"))
-                    it.archiveClassifier.set("sources")
-                    it.from(mainSourceSet.allSource)
-                }
-            }
-
-            if(! project.hasProperty("isTestCartridge")) {
-                if (!checkForTask(tasks, TASK_JAVADOCJAR)) {
-                    tasks.register(TASK_JAVADOCJAR, Jar::class.java) {
-                        it.dependsOn(tasks.getByName(JAVADOC_TASK_NAME))
-                        it.archiveClassifier.set("javadoc")
-                        it.from(tasks.getByName(JAVADOC_TASK_NAME))
-                    }
-                }
-            }
-
-            extensions.configure(PublishingExtension::class.java) { publishing ->
-                publishing.publications.maybeCreate(
-                    extension.mavenPublicationName,
-                    MavenPublication::class.java
-                ).apply {
-                    from( project.components.getAt( "java" ) )
-                    artifact(tasks.getByName(TASK_SOURCEJAR))
-                    if(! project.hasProperty("isTestCartridge")) {
-                        artifact(tasks.getByName(TASK_JAVADOCJAR))
-                    }
-                }
-            }
-        }
-    }
-
-    private fun configureAddFileCreation(project: Project, rootTasks: TaskContainer, mainTask: Task) {
-        with(project.configurations) {
-            val implementation = getByName(IMPLEMENTATION_CONFIGURATION_NAME)
-            val runtime = getByName(RUNTIME_CLASSPATH_CONFIGURATION_NAME)
-
-            val cartridge = maybeCreate(CONFIGURATION_CARTRIDGE)
-            cartridge.isTransitive = false
-            implementation.extendsFrom(cartridge)
-
-            val cartridgeRuntime = maybeCreate(CONFIGURATION_CARTRIDGERUNTIME)
-            cartridgeRuntime.extendsFrom(cartridge)
-            cartridgeRuntime.isTransitive = true
-
-            val tasksWriteFiles = HashSet<Task>()
-
-            if (! checkForTask(rootTasks, WriteCartridgeDescriptor.DEFAULT_NAME)) {
-                val taskWriteCartridgeDescriptor = project.tasks.register(
-                    WriteCartridgeDescriptor.DEFAULT_NAME, WriteCartridgeDescriptor::class.java
-                ) {
-                    it.dependsOn(cartridge, cartridgeRuntime)
-                }
-
-                tasksWriteFiles.add(taskWriteCartridgeDescriptor.get())
-            }
-
-            if (! checkForTask(rootTasks, WriteCartridgeClasspath.DEFAULT_NAME) ) {
-                val taskWriteCartridgeClasspath = project.tasks.register(
-                    WriteCartridgeClasspath.DEFAULT_NAME, WriteCartridgeClasspath::class.java
-                ) {
-                    it.dependsOn(cartridgeRuntime, runtime)
-                }
-
-                tasksWriteFiles.add(taskWriteCartridgeClasspath.get())
-            }
-
-            mainTask.dependsOn(tasksWriteFiles)
         }
     }
 

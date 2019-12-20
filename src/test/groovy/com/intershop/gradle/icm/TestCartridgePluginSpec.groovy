@@ -16,16 +16,14 @@
  */
 package com.intershop.gradle.icm
 
+import com.intershop.gradle.test.AbstractProjectSpec
 import org.gradle.api.Plugin
-import org.gradle.api.Project
 
-/**
- * This plugin applies properties for
- * an integration dev cartridge.
- */
-class ICMDevCartridgePlugin  : Plugin<Project> {
+class TestCartridgePluginSpec extends AbstractProjectSpec {
 
-    override fun apply(project: Project) {
-        project.extensions.extraProperties.set("isDevCartridge", "true")
+    @Override
+    Plugin getPlugin() {
+        return new TestCartridgePlugin()
     }
+
 }

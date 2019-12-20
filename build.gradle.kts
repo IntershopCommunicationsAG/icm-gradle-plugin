@@ -1,8 +1,9 @@
+
 import com.jfrog.bintray.gradle.BintrayExtension
+import org.asciidoctor.gradle.jvm.AsciidoctorTask
 import org.jetbrains.dokka.gradle.DokkaTask
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import org.asciidoctor.gradle.jvm.AsciidoctorTask
-import java.util.Date
+import java.util.*
 /*
  * Copyright 2019 Intershop Communications AG.
  *
@@ -83,21 +84,27 @@ gradlePlugin {
         }
         create("icmCartridgePlugin") {
             id = "com.intershop.gradle.icm.cartridge"
-            implementationClass = "com.intershop.gradle.icm.ICMCartridgePlugin"
+            implementationClass = "com.intershop.gradle.icm.CartridgePlugin"
             displayName = "icm-cartridge-plugin"
-            description = "This plugin must be applied to an optional cartridge for Intershop Commerce Management Project."
+            description = "The cartridge plugin applies all basic configurations and tasks."
         }
         create("icmTestCartridgePlugin") {
-            id = "com.intershop.gradle.icm.testCartridge"
-            implementationClass = "com.intershop.gradle.icm.ICMTestCartridgePlugin"
-            displayName = "icm-testcartridge-plugin"
-            description = "This plugin must be applied to an integration test cartridge for Intershop Commerce Management Project."
+            id = "com.intershop.gradle.icm.cartridge.test"
+            implementationClass = "com.intershop.gradle.icm.TestCartridgePlugin"
+            displayName = "icm-cartridge-test-plugin"
+            description = "The test cartridge plugin applies all basic configurations and tasks of an integration test cartridge."
         }
-        create("icmDevCartridgePlugin") {
-            id = "com.intershop.gradle.icm.devCartridge"
-            implementationClass = "com.intershop.gradle.icm.ICMDevCartridgePlugin"
-            displayName = "icm-devcartridge-plugin"
-            description = "This plugin must be applied to an development cartridge for Intershop Commerce Management Project."
+        create("icmDevelopmentCartridgePlugin") {
+            id = "com.intershop.gradle.icm.cartridge.development"
+            implementationClass = "com.intershop.gradle.icm.DevelopmentCartridgePlugin"
+            displayName = "icm-cartridge-development-plugin"
+            description = "The development cartridge plugin applies all basic configurations and tasks of and development cartridge."
+        }
+        create("icmProjectCartridgePlugin") {
+            id = "com.intershop.gradle.icm.cartridge.project"
+            implementationClass = "com.intershop.gradle.icm.ProjectCartridgePlugin"
+            displayName = "icm-cartridge-project-plugin"
+            description = "The project cartridge plugin applies all basic configurations and tasks of and external project cartridge."
         }
     }
 }

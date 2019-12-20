@@ -16,8 +16,6 @@
  */
 package com.intershop.gradle.icm.extension
 
-import com.intershop.gradle.icm.utils.getValue
-import com.intershop.gradle.icm.utils.setValue
 import org.gradle.api.Project
 import org.gradle.api.provider.ListProperty
 
@@ -30,7 +28,7 @@ open class BaseConfiguration(project: Project) {
     private val testCartridgeListProperty: ListProperty<String> = project.objects.listProperty(String::class.java)
 
     /**
-     * List of development cartridges in project
+     * List of development cartridges in project.
      *
      * @property devCartridgeList list of identified development cartridges
      */
@@ -47,7 +45,7 @@ open class BaseConfiguration(project: Project) {
     }
 
     /**
-     * List of test cartridges in project
+     * List of test cartridges in project.
      *
      * @property testCartridgeList list of identified test cartridges
      */

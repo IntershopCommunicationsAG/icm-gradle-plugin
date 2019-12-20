@@ -192,7 +192,10 @@ class ICMBuildPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
             """.stripIndent()
 
         def prj1dir = createSubProject('testCartridge1', """
-        apply plugin: 'java-library'
+        plugins {
+            id 'java-library'
+            id 'com.intershop.gradle.icm.cartridge'
+        }
         
         dependencies {
             implementation 'com.google.inject:guice:4.0'
@@ -210,7 +213,10 @@ class ICMBuildPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         """.stripIndent())
 
         def prj2dir = createSubProject('testCartridge2', """
-        apply plugin: 'java-library'
+        plugins {
+            id 'java-library'
+            id 'com.intershop.gradle.icm.cartridge'
+        }
         
         dependencies {
             implementation 'org.codehaus.janino:janino:2.5.16'
@@ -275,7 +281,10 @@ class ICMBuildPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
             """.stripIndent()
 
         def prj1dir = createSubProject('testCartridge1', """
-        apply plugin: 'java-library'
+        plugins {
+            id 'java-library'
+            id 'com.intershop.gradle.icm.cartridge'
+        }
         
         dependencies {
             implementation "com.google.inject:guice:\${project.ext.inject_guice_version}"
@@ -293,7 +302,10 @@ class ICMBuildPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         """.stripIndent())
 
         def prj2dir = createSubProject('testCartridge2', """
-        apply plugin: 'java-library'
+        plugins {
+            id 'java-library'
+            id 'com.intershop.gradle.icm.cartridge'
+        }
         
         dependencies {
             implementation "ch.qos.logback:logback-core:\${project.ext.logback_logback_classic_version}"
@@ -375,7 +387,8 @@ class ICMBuildPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
             def prj1dir = createSubProject('testCartridge1', """
             plugins {
-                id 'java'
+                id 'java-library'
+                id 'com.intershop.gradle.icm.cartridge'
             }
             
             dependencies {
@@ -391,7 +404,8 @@ class ICMBuildPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
             def prj2dir = createSubProject('testCartridge2', """
             plugins {
-                id 'java'
+                id 'java-library'
+                id 'com.intershop.gradle.icm.cartridge'
             }
                 
             dependencies {
@@ -408,7 +422,8 @@ class ICMBuildPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
             def prj3dir = createSubProject('testCartridge3', """
             plugins {
-                id 'java'
+                id 'java-library'
+                id 'com.intershop.gradle.icm.cartridge'
             }
 
             dependencies {
@@ -459,7 +474,8 @@ class ICMBuildPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         def prj1dir = createSubProject('testCartridge1', """
             plugins {
-                id 'java'
+                id 'java-library'
+                id 'com.intershop.gradle.icm.cartridge'
             }
             
             dependencies {
@@ -475,7 +491,8 @@ class ICMBuildPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         def prj2dir = createSubProject('testCartridge2', """
             plugins {
-                id 'java'
+                id 'java-library'
+                id 'com.intershop.gradle.icm.cartridge'
             }
             
             dependencies {
@@ -492,7 +509,8 @@ class ICMBuildPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         def prj3dir = createSubProject('testCartridge3', """
             plugins {
-                id 'java'
+                id 'java-library'
+                id 'com.intershop.gradle.icm.cartridge'
             }
              
             dependencies {
@@ -544,7 +562,8 @@ class ICMBuildPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         def prj1dir = createSubProject('testCartridge1', """
             plugins {
-                id 'java'
+                id 'java-library'
+                id 'com.intershop.gradle.icm.cartridge'
             }
             
             group = 'com.intershop'
@@ -562,7 +581,8 @@ class ICMBuildPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         def prj2dir = createSubProject('testCartridge2', """
             plugins {
-                id 'java'
+                id 'java-library'
+                id 'com.intershop.gradle.icm.cartridge'
             }
             
             group = 'com.intershop'
@@ -581,7 +601,8 @@ class ICMBuildPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         def prj3dir = createSubProject('testCartridge3', """
             plugins {
-                id 'java'
+                id 'java-library'
+                id 'com.intershop.gradle.icm.cartridge'
             }
             
             group = 'com.intershop'
@@ -600,7 +621,8 @@ class ICMBuildPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         def prj4dir = createSubProject('testCartridge4', """
             plugins {
-                id 'java'
+                id 'java-library'
+                id 'com.intershop.gradle.icm.cartridge'
             }
                 
             group = 'com.intershop'
@@ -621,7 +643,8 @@ class ICMBuildPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         def prj5dir = createSubProject('testCartridge5', """
             plugins {
-                id 'java'
+                id 'java-library'
+                id 'com.intershop.gradle.icm.cartridge'
             }
              
             group = 'com.intershop'
@@ -646,7 +669,8 @@ class ICMBuildPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         def prj6dir = createSubProject('testCartridge6', """
             plugins {
-                id 'java'
+                id 'java-library'
+                id 'com.intershop.gradle.icm.cartridge'
             }
              
             group = 'com.intershop'
@@ -677,20 +701,5 @@ class ICMBuildPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         where:
         gradleVersion << supportedGradleVersions
 
-    }
-
-    def 'Simple test for gnerate encryption configuration'() {
-        given:
-        settingsFile << """
-        rootProject.name='rootproject'
-        """.stripIndent()
-
-        buildFile << """
-            plugins {
-                id 'java'
-                id 'com.intershop.gradle.icm.base'
-                id 'com.gradle.build-scan' version '2.4.2'
-            }
-        """.stripIndent()
     }
 }

@@ -24,31 +24,26 @@ import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.tasks.bundling.Zip
 
 /**
- * This plugin applies functionality for
- * external cartridge.
+ * The project cartridge plugin applies all basic configurations
+ * and tasks for a cartridge project, that can be provided as
+ * module dependendcy to other projects.
  */
-class ICMCartridgePlugin : Plugin<Project> {
+open class ProjectCartridgePlugin : Plugin<Project> {
 
     companion object {
         const val TASK_ZIPSTATICFILES = "zipStaticFiles"
     }
 
-    /**
-     * Main method of the plugin.
-     *
-     * @param project
-     */
     override fun apply(project: Project) {
         with(project) {
-            val extension = extensions.findByType(
-                IntershopExtension::class.java
-            ) ?: extensions.create(
-                IntershopExtension.INTERSHOP_EXTENSION_NAME, IntershopExtension::class.java, this
-            )
+            plugins.apply(CartridgePlugin::class.java)
+
+            val extension = rootProject.extensions.getByType(IntershopExtension::class.java)
 
             var zipStaticTask = tasks.findByName(TASK_ZIPSTATICFILES)
+
             if( zipStaticTask == null) {
-                zipStaticTask = tasks.create(TASK_ZIPSTATICFILES, Zip::class.java) {zip ->
+                zipStaticTask = tasks.create(TASK_ZIPSTATICFILES, Zip::class.java) { zip ->
                     zip.archiveClassifier.set("staticfiles")
                     zip.from( "staticfiles/cartridge")
                 }
