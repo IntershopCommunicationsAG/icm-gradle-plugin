@@ -17,8 +17,7 @@
 package com.intershop.gradle.icm
 
 import com.intershop.gradle.test.AbstractIntegrationGroovySpec
-
-import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
+import static org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
 
 class ICMCartridgePluginSpec extends AbstractIntegrationGroovySpec {
 
@@ -94,7 +93,7 @@ class ICMCartridgePluginSpec extends AbstractIntegrationGroovySpec {
                 .build()
 
         then:
-        result.task(':publish').outcome == SUCCESS
+        result.task(':publish').outcome == UP_TO_DATE
 
         where:
         gradleVersion << supportedGradleVersions
