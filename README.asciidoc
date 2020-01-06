@@ -1,5 +1,5 @@
 = ICM Build Gradle Plugin
-:latestRevision: 1.0.0
+:latestRevision: RELEASE_1.2.0-dev5
 :icons: font
 
 == Summary
