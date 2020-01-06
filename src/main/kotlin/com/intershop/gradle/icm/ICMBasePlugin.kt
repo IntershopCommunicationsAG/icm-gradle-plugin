@@ -20,7 +20,6 @@ package com.intershop.gradle.icm
 import com.intershop.gradle.icm.extension.IntershopExtension
 import com.intershop.gradle.icm.tasks.CreateClusterID
 import com.intershop.gradle.icm.tasks.CreateServerInfoProperties
-import groovy.util.Node
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.publish.PublishingExtension
@@ -89,8 +88,6 @@ open class ICMBasePlugin: Plugin<Project> {
 
                 }
 
-                configureMvnPublishing(project, extension)
-
             } else {
                 logger.warn("ICM build plugin will be not applied to the sub project '{}'", name)
             }
@@ -143,59 +140,6 @@ open class ICMBasePlugin: Plugin<Project> {
                     CreateClusterID.DEFAULT_NAME,
                     CreateClusterID::class.java
                 )
-            }
-        }
-    }
-
-    private fun configureMvnPublishing(project: Project, extension: IntershopExtension) {
-
-        project.plugins.withType(MavenPublishPlugin::class.java) {
-            project.extensions.configure(PublishingExtension::class.java) { publishing ->
-                publishing.publications.maybeCreate(
-                    extension.mavenPublicationName,
-                    MavenPublication::class.java
-                ).apply {
-                    versionMapping {
-                        it.usage("java-api") {
-                            it.fromResolutionResult()
-                        }
-                        it.usage("java-runtime") {
-                            it.fromResolutionResult()
-                        }
-                    }
-
-                    pom.description.set(project.description)
-                    pom.inceptionYear.set(Year.now().value.toString())
-
-                    pom.withXml { xml ->
-                        val root = xml.asNode()
-                        val findDepMgt = root.children().find { it is Node && it.name() == "dependencyManagement" }
-
-                        // when merging two or more sources of dependencies, we want
-                        // to only create one dependencyManagement section
-                        val dependencyManagement: Node = if(findDepMgt != null) {
-                            findDepMgt as Node
-                        } else {
-                            root.appendNode("dependencyManagement")
-                        }
-
-                        val findDep = dependencyManagement.children().find { it is Node && it.name() == "dependencies" }
-                        val dependencies: Node = if(findDep != null) {
-                            findDep as Node
-                        } else {
-                            dependencyManagement.appendNode("dependencies")
-                        }
-
-                        project.subprojects.forEach { subproject ->
-                            if(subproject.subprojects.isEmpty()) {
-                                val dep = dependencies.appendNode("dependency")
-                                dep.appendNode("groupId").setValue(subproject.group)
-                                dep.appendNode("artifactId").setValue(subproject.name)
-                                dep.appendNode("version").setValue(subproject.version)
-                            }
-                        }
-                    }
-                }
             }
         }
     }
