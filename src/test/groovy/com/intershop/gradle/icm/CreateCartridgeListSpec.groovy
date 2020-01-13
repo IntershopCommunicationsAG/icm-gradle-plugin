@@ -19,6 +19,7 @@ package com.intershop.gradle.icm
 
 import com.intershop.gradle.test.AbstractIntegrationGroovySpec
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
+import static org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
 
 class CreateCartridgeListSpec extends AbstractIntegrationGroovySpec {
 
@@ -66,8 +67,92 @@ class CreateCartridgeListSpec extends AbstractIntegrationGroovySpec {
         then:
         result2.task(':createCartridgeList').outcome == SUCCESS
 
+        when:
+        def result3 = getPreparedGradleRunner()
+                .withArguments("createCartridgeList", "-s")
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        result3.task(':createCartridgeList').outcome == UP_TO_DATE
+
         where:
         gradleVersion << supportedGradleVersions
     }
 
+    def "createCartridgeList will be executed with includes and excludes"() {
+        given:
+        copyResources("cartridgelist", "cartridgelist")
+
+        settingsFile << """
+        rootProject.name='rootproject'
+        """.stripIndent()
+
+        buildFile << """
+            plugins {
+                id 'com.intershop.gradle.icm.base'
+            }
+            
+            task createCartridgeList(type: com.intershop.gradle.icm.tasks.CreateCartridgeList) { 
+                excludes = [ "^dev_.*" ]
+                
+                templateFile = file("cartridgelist/cartridgelist.properties")
+            }
+
+            """.stripIndent()
+
+        def file = new File(testProjectDir, "build/cartridgelist/cartridgelist.properties")
+
+                when:
+        def result = getPreparedGradleRunner()
+                .withArguments("tasks", "-s")
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        result.task(':tasks').outcome == SUCCESS
+
+
+        when:
+        buildFile.delete()
+        buildFile.createNewFile()
+
+        buildFile << """
+            plugins {
+                id 'com.intershop.gradle.icm.base'
+            }
+            
+            task createCartridgeList(type: com.intershop.gradle.icm.tasks.CreateCartridgeList) { 
+                excludes = [ "^dev_.*" ]
+            
+                include("dev_query")
+                
+                templateFile = file("cartridgelist/cartridgelist.properties")
+            }
+
+            """.stripIndent()
+
+        def result2 = getPreparedGradleRunner()
+                .withArguments("createCartridgeList", "-s")
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        result2.task(':createCartridgeList').outcome == SUCCESS
+        file.exists()
+
+        when:
+        def result3 = getPreparedGradleRunner()
+                .withArguments("createCartridgeList", "-s")
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        result3.task(':createCartridgeList').outcome == UP_TO_DATE
+        file.exists()
+        file.getText().contains("dev_query")
+
+        where:
+        gradleVersion << supportedGradleVersions
+    }
 }

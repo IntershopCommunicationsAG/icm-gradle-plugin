@@ -141,17 +141,23 @@ open class CreateCartridgeList: DefaultTask() {
 
         val file = outputFileProperty.get().asFile
 
+        if(file.exists()) {
+            project.delete(file)
+        }
+
         baseFile.forEachLine lineIt@{ tline ->
-            var line = tline.replace("\\", "").trim()
+            var uline = tline.replace("\\", "").trim()
+            var line = uline
             excludesListProperty.get().forEach exIt@{ exRegex ->
-                if(line.matches(exRegex.toRegex())) {
+                if(uline.matches(exRegex.toRegex())) {
                     line = ""
                     return@exIt
                 }
             }
-            if( line != "" && includesListProperty.get().size > 0 ) {
+            if(line == "") {
                 includesListProperty.get().forEach inIt@{ inRegex ->
-                    if(line.matches(inRegex.toRegex())) {
+                    if (uline.matches(inRegex.toRegex())) {
+                        line = uline
                         return@inIt
                     }
                 }
