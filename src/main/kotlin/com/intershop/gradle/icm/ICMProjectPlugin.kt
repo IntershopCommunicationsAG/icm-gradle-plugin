@@ -24,14 +24,6 @@ import org.gradle.api.Project
  */
 class ICMProjectPlugin : Plugin<Project> {
 
-    companion object {
-        const val PROJECT_INFO_FILE = "version.properties"
-        const val PROJECT_INFO_DIR = "serverInfoProps"
-
-        const val CARTRIDGE_CLASSPATH_DIR = "classpath"
-        const val CARTRIDGE_CLASSPATH_FILE = "cartridge.classpath"
-    }
-
     override fun apply(project: Project) {
         with(project) {
             if(project.rootProject == this) {

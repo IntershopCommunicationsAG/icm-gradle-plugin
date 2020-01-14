@@ -17,11 +17,11 @@
 package com.intershop.gradle.icm
 
 import com.intershop.gradle.icm.extension.IntershopExtension
+import com.intershop.gradle.icm.tasks.ZipStaticFiles
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
-import org.gradle.api.tasks.bundling.Zip
 
 /**
  * The project cartridge plugin applies all basic configurations
@@ -36,6 +36,7 @@ open class ProjectCartridgePlugin : Plugin<Project> {
 
     override fun apply(project: Project) {
         with(project) {
+
             plugins.apply(CartridgePlugin::class.java)
 
             val extension = rootProject.extensions.getByType(IntershopExtension::class.java)
@@ -43,10 +44,7 @@ open class ProjectCartridgePlugin : Plugin<Project> {
             var zipStaticTask = tasks.findByName(TASK_ZIPSTATICFILES)
 
             if( zipStaticTask == null) {
-                zipStaticTask = tasks.create(TASK_ZIPSTATICFILES, Zip::class.java) { zip ->
-                    zip.archiveClassifier.set("staticfiles")
-                    zip.from( "staticfiles/cartridge")
-                }
+                zipStaticTask = tasks.create(TASK_ZIPSTATICFILES, ZipStaticFiles::class.java)
             }
 
             extensions.configure(PublishingExtension::class.java) { publishing ->

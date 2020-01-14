@@ -32,12 +32,10 @@ open class DevelopmentCartridgePlugin : Plugin<Project> {
 
     override fun apply(project: Project) {
         with(project) {
-            plugins.apply(AbstractCartridgePlugin::class.java)
+            plugins.apply(ProjectCartridgePlugin::class.java)
             val extension = rootProject.extensions.getByType(IntershopExtension::class.java)
 
             with(extensions) {
-                extraProperties.set("isDevCartridge", "true")
-
                 plugins.withType(MavenPublishPlugin::class.java) {
                     configure(PublishingExtension::class.java) { publishing ->
                         publishing.publications.maybeCreate(
