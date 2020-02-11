@@ -54,15 +54,14 @@ abstract class AbstractCartridgePlugin : Plugin<Project> {
             ) ?: rootProject.extensions.create(
                 IntershopExtension.INTERSHOP_EXTENSION_NAME, IntershopExtension::class.java, this
             )
+            plugins.apply(JavaPlugin::class.java)
 
-            plugins.withType(JavaPlugin::class.java) {
-                configureAddFileCreation( this)
+            configureAddFileCreation( this)
 
-                if (! checkForTask(tasks, CopyThirdpartyLibs.DEFAULT_NAME)) {
-                    tasks.register(
-                        CopyThirdpartyLibs.DEFAULT_NAME,
-                        CopyThirdpartyLibs::class.java)
-                }
+            if (! checkForTask(tasks, CopyThirdpartyLibs.DEFAULT_NAME)) {
+                tasks.register(
+                    CopyThirdpartyLibs.DEFAULT_NAME,
+                    CopyThirdpartyLibs::class.java)
             }
         }
     }
@@ -82,7 +81,7 @@ abstract class AbstractCartridgePlugin : Plugin<Project> {
 
             val tasksWriteFiles = HashSet<Task>()
 
-            if (! checkForTask(project.rootProject.tasks, WriteCartridgeDescriptor.DEFAULT_NAME)) {
+            if (! checkForTask(project.tasks, WriteCartridgeDescriptor.DEFAULT_NAME)) {
                 val taskWriteCartridgeDescriptor = project.tasks.register(
                     WriteCartridgeDescriptor.DEFAULT_NAME, WriteCartridgeDescriptor::class.java
                 ) {
@@ -91,7 +90,7 @@ abstract class AbstractCartridgePlugin : Plugin<Project> {
                 tasksWriteFiles.add(taskWriteCartridgeDescriptor.get())
             }
 
-            if (! checkForTask(project.rootProject.tasks, WriteCartridgeClasspath.DEFAULT_NAME)) {
+            if (! checkForTask(project.tasks, WriteCartridgeClasspath.DEFAULT_NAME)) {
                 val taskWriteCartridgeClasspath = project.tasks.register(
                     WriteCartridgeClasspath.DEFAULT_NAME, WriteCartridgeClasspath::class.java
                 ) {

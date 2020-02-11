@@ -70,27 +70,34 @@ open class CartridgePlugin : Plugin<Project> {
 
                 val extension = rootProject.extensions.getByType(IntershopExtension::class.java)
 
-                extensions.configure(PublishingExtension::class.java) { publishing ->
-                    publishing.publications.maybeCreate(
-                        extension.mavenPublicationName,
-                        MavenPublication::class.java
-                    ).apply {
-                        versionMapping {
-                            it.usage("java-api") {
-                                it.fromResolutionResult()
+                plugins.withType(MavenPublishPlugin::class.java) {
+                    extensions.configure(PublishingExtension::class.java) { publishing ->
+                        publishing.publications.maybeCreate(
+                            extension.mavenPublicationName,
+                            MavenPublication::class.java
+                        ).apply {
+                            versionMapping {
+                                it.usage("java-api") {
+                                    it.fromResolutionResult()
+                                }
+                                it.usage("java-runtime") {
+                                    it.fromResolutionResult()
+                                }
                             }
-                            it.usage("java-runtime") {
-                                it.fromResolutionResult()
+
+                            try {
+                                from(project.components.getAt("java"))
+                            } catch(ex: Exception) {
+                                project.logger.warn("Component Java was added to the publication in an other step.")
                             }
+
+                            artifact(tasks.getByName(TASK_SOURCEJAR))
+                            artifact(tasks.getByName(TASK_JAVADOCJAR))
+
+                            pom.description.set(project.description)
+                            pom.inceptionYear.set(Year.now().value.toString())
+                            pom.properties.set(mapOf("cartridge.name" to project.name))
                         }
-
-                        from(project.components.getAt("java"))
-                        artifact(tasks.getByName(TASK_SOURCEJAR))
-                        artifact(tasks.getByName(TASK_JAVADOCJAR))
-
-                        pom.description.set(project.description)
-                        pom.inceptionYear.set(Year.now().value.toString())
-                        pom.properties.set(mapOf("cartridge.name" to project.name))
                     }
                 }
             }
