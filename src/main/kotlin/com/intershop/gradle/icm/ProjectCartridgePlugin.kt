@@ -17,6 +17,7 @@
 package com.intershop.gradle.icm
 
 import com.intershop.gradle.icm.extension.IntershopExtension
+import com.intershop.gradle.icm.tasks.WriteCartridgeDescriptor
 import com.intershop.gradle.icm.tasks.ZipStaticFiles
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -42,9 +43,12 @@ open class ProjectCartridgePlugin : Plugin<Project> {
             val extension = rootProject.extensions.getByType(IntershopExtension::class.java)
 
             var zipStaticTask = tasks.findByName(TASK_ZIPSTATICFILES)
+            var descriptorTask = tasks.getByName(WriteCartridgeDescriptor.DEFAULT_NAME)
 
             if( zipStaticTask == null) {
-                zipStaticTask = tasks.create(TASK_ZIPSTATICFILES, ZipStaticFiles::class.java)
+                zipStaticTask = tasks.create(TASK_ZIPSTATICFILES, ZipStaticFiles::class.java) {
+                    it.from(descriptorTask.outputs.files)
+                }
             }
 
             extensions.configure(PublishingExtension::class.java) { publishing ->
