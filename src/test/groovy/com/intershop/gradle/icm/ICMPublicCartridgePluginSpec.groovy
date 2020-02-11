@@ -17,9 +17,9 @@
 package com.intershop.gradle.icm
 
 import com.intershop.gradle.test.AbstractIntegrationGroovySpec
-import static org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
+import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
-class ICMCartridgePluginSpec extends AbstractIntegrationGroovySpec {
+class ICMPublicCartridgePluginSpec extends AbstractIntegrationGroovySpec {
 
     def 'ZipFile will be created and published'() {
 
@@ -31,7 +31,7 @@ class ICMCartridgePluginSpec extends AbstractIntegrationGroovySpec {
         buildFile << """
             plugins {
                 id 'maven-publish'
-                id 'com.intershop.gradle.icm.base'
+                id 'com.intershop.icm.cartridge.adapter'
             }
 
             def publishDir = "\$buildDir/repo"  
@@ -67,7 +67,7 @@ class ICMCartridgePluginSpec extends AbstractIntegrationGroovySpec {
         File prjDir1 = createSubProject(":subprj1",
                 """
                 plugins {
-                    id 'com.intershop.gradle.icm.cartridge'
+                    id 'com.intershop.icm.cartridge.adapter'
                     id 'java'
                 }
                 """.stripIndent())
@@ -78,7 +78,7 @@ class ICMCartridgePluginSpec extends AbstractIntegrationGroovySpec {
         File prjDir2 = createSubProject(":subprj2",
                 """
                 plugins {
-                    id 'com.intershop.gradle.icm.cartridge'
+                    id 'com.intershop.icm.cartridge.adapter'
                     id 'java'
                 }
                 """.stripIndent())
@@ -93,7 +93,7 @@ class ICMCartridgePluginSpec extends AbstractIntegrationGroovySpec {
                 .build()
 
         then:
-        result.task(':publish').outcome == UP_TO_DATE
+        result.task(':subprj1:publish').outcome == SUCCESS
 
         where:
         gradleVersion << supportedGradleVersions

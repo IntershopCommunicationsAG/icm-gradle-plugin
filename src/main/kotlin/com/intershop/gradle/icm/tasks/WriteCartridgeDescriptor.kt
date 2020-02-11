@@ -16,8 +16,8 @@
  */
 package com.intershop.gradle.icm.tasks
 
-import com.intershop.gradle.icm.AbstractCartridgePlugin.Companion.CONFIGURATION_CARTRIDGE
-import com.intershop.gradle.icm.AbstractCartridgePlugin.Companion.CONFIGURATION_CARTRIDGERUNTIME
+import com.intershop.gradle.icm.CartridgePlugin.Companion.CONFIGURATION_CARTRIDGE
+import com.intershop.gradle.icm.CartridgePlugin.Companion.CONFIGURATION_CARTRIDGERUNTIME
 import com.intershop.gradle.icm.extension.IntershopExtension.Companion.INTERSHOP_GROUP_NAME
 import com.intershop.gradle.icm.utils.getValue
 import com.intershop.gradle.icm.utils.setValue

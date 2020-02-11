@@ -23,13 +23,14 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
+import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
 
 /**
- * The project cartridge plugin applies all basic configurations
+ * The external cartridge plugin applies all basic configurations
  * and tasks for a cartridge project, that can be provided as
  * module dependendcy to other projects.
  */
-open class ProjectCartridgePlugin : Plugin<Project> {
+open class ExternalCartridgePlugin : Plugin<Project> {
 
     companion object {
         const val TASK_ZIPSTATICFILES = "zipStaticFiles"
@@ -37,7 +38,7 @@ open class ProjectCartridgePlugin : Plugin<Project> {
 
     override fun apply(project: Project) {
         with(project) {
-            plugins.apply(CartridgePlugin::class.java)
+            plugins.apply(PublicCartridgePlugin::class.java)
 
             val extension = rootProject.extensions.getByType(IntershopExtension::class.java)
 
@@ -50,17 +51,20 @@ open class ProjectCartridgePlugin : Plugin<Project> {
                 }
             }
 
-            extensions.configure(PublishingExtension::class.java) { publishing ->
-                publishing.publications.maybeCreate(
-                    extension.mavenPublicationName,
-                    MavenPublication::class.java
-                ).apply {
-                    artifact(zipStaticTask)
+            with(extensions) {
+                plugins.withType(MavenPublishPlugin::class.java) {
+                    configure(PublishingExtension::class.java) { publishing ->
+                        publishing.publications.maybeCreate(
+                            extension.mavenPublicationName,
+                            MavenPublication::class.java
+                        ).apply {
+                            artifact(zipStaticTask)
 
-                    pom.properties.put("cartridge.type", "optional")
+                            pom.properties.put("cartridge.type", "external")
+                        }
+                    }
                 }
             }
-
             tasks.getByName("publish").dependsOn(zipStaticTask)
         }
     }

@@ -24,11 +24,10 @@ import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
 
 /**
- * The project cartridge plugin applies all basic configurations
- * and tasks for a cartridge project, that can be provided as
- * module dependendcy to other projects.
+ * The adapter cartridge plugin applies all basic
+ * configuration and tasks to a adapter cartridge project.
  */
-open class DevelopmentCartridgePlugin : Plugin<Project> {
+open class AdapterCartridgePlugin : Plugin<Project> {
 
     override fun apply(project: Project) {
         with(project) {
@@ -42,7 +41,7 @@ open class DevelopmentCartridgePlugin : Plugin<Project> {
                             extension.mavenPublicationName,
                             MavenPublication::class.java
                         ).apply {
-                            pom.properties.put("cartridge.style", "development")
+                            pom.properties.put("cartridge.style", "adapter")
                         }
                     }
                 }

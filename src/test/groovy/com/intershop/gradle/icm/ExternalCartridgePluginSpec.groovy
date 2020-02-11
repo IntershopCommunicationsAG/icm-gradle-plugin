@@ -16,18 +16,14 @@
  */
 package com.intershop.gradle.icm
 
+import com.intershop.gradle.test.AbstractProjectSpec
 import org.gradle.api.Plugin
-import org.gradle.api.Project
 
-/**
- * The test cartridge plugin applies all basic configurations
- * and tasks for a integration test cartridge project.
- */
-class TestCartridgePlugin : Plugin<Project> {
+class ExternalCartridgePluginSpec extends AbstractProjectSpec {
 
-    override fun apply(project: Project) {
-        with(project) {
-            plugins.apply(CartridgePlugin::class.java)
-        }
+    @Override
+    Plugin getPlugin() {
+        return new ExternalCartridgePlugin()
     }
+
 }

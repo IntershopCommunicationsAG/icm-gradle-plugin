@@ -21,6 +21,10 @@ import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.tasks.bundling.Zip
 import java.io.File
 
+/**
+ * Task to create a package of static
+ * content of a cartridge.
+ */
 open class ZipStaticFiles: Zip() {
 
     init {

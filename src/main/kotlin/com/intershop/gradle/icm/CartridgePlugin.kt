@@ -17,89 +17,91 @@
 package com.intershop.gradle.icm
 
 import com.intershop.gradle.icm.extension.IntershopExtension
+import com.intershop.gradle.icm.tasks.CopyThirdpartyLibs
+import com.intershop.gradle.icm.tasks.WriteCartridgeClasspath
+import com.intershop.gradle.icm.tasks.WriteCartridgeDescriptor
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.Task
 import org.gradle.api.plugins.JavaPlugin
-import org.gradle.api.plugins.JavaPluginConvention
-import org.gradle.api.publish.PublishingExtension
-import org.gradle.api.publish.maven.MavenPublication
-import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
-import org.gradle.jvm.tasks.Jar
-import java.time.Year
+import org.gradle.api.tasks.TaskContainer
 
 /**
- * The cartridge plugin applies all basic configurations
- * and tasks for a standard cartridge project.
+ * The base cartridge plugin applies all basic
+ * configuration and tasks to a cartridge project.
  */
 open class CartridgePlugin : Plugin<Project> {
 
     companion object {
-        const val TASK_SOURCEJAR = "sourcesJar"
-        const val TASK_JAVADOCJAR = "javadocJar"
+        const val CONFIGURATION_CARTRIDGE = "cartridge"
+        const val CONFIGURATION_CARTRIDGERUNTIME = "cartridgeRuntime"
+
+        /**
+         * checks if the specified name is available in the list of tasks.
+         *
+         * @param taskname  the name of the new task
+         * @param tasks     the task container self
+         */
+        fun checkForTask(tasks: TaskContainer, taskname: String): Boolean {
+            return tasks.names.contains(taskname)
+        }
     }
 
     override fun apply(project: Project) {
         with(project) {
-            plugins.apply(AbstractCartridgePlugin::class.java)
-            configureAddJars(this)
-            plugins.apply(MavenPublishPlugin::class.java)
+            rootProject.extensions.findByType(
+                IntershopExtension::class.java
+            ) ?: rootProject.extensions.create(
+                IntershopExtension.INTERSHOP_EXTENSION_NAME, IntershopExtension::class.java, this
+            )
+            plugins.apply(JavaPlugin::class.java)
+
+            configureAddFileCreation( this)
+
+            if (! checkForTask(tasks, CopyThirdpartyLibs.DEFAULT_NAME)) {
+                tasks.register(
+                    CopyThirdpartyLibs.DEFAULT_NAME,
+                    CopyThirdpartyLibs::class.java)
+            }
         }
     }
 
-    private fun configureAddJars(project: Project) {
-        with(project) {
-            plugins.withType(JavaPlugin::class.java) {
-                if (!ICMBasePlugin.checkForTask(tasks, TASK_SOURCEJAR)) {
-                    val javaConvention = convention.getPlugin(JavaPluginConvention::class.java)
-                    val mainSourceSet = javaConvention.sourceSets.getByName("main")
+    private fun configureAddFileCreation(project: Project) {
+        with(project.configurations) {
+            val implementation = getByName(JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME)
+            val runtime = getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME)
 
-                    tasks.register(TASK_SOURCEJAR, Jar::class.java) {
-                        it.dependsOn(tasks.getByName("classes"))
-                        it.archiveClassifier.set("sources")
-                        it.from(mainSourceSet.allSource)
-                    }
+            val cartridge = maybeCreate(CONFIGURATION_CARTRIDGE)
+            cartridge.isTransitive = false
+            implementation.extendsFrom(cartridge)
+
+            val cartridgeRuntime = maybeCreate(CONFIGURATION_CARTRIDGERUNTIME)
+            cartridgeRuntime.extendsFrom(cartridge)
+            cartridgeRuntime.isTransitive = true
+
+            val tasksWriteFiles = HashSet<Task>()
+
+            if (! checkForTask(project.tasks, WriteCartridgeDescriptor.DEFAULT_NAME)) {
+                val taskWriteCartridgeDescriptor = project.tasks.register(
+                    WriteCartridgeDescriptor.DEFAULT_NAME, WriteCartridgeDescriptor::class.java
+                ) {
+                    it.dependsOn(cartridge, cartridgeRuntime)
                 }
+                tasksWriteFiles.add(taskWriteCartridgeDescriptor.get())
+            }
 
-                if (!ICMBasePlugin.checkForTask(tasks, TASK_JAVADOCJAR)) {
-                    tasks.register(TASK_JAVADOCJAR, Jar::class.java) {
-                        it.dependsOn(tasks.getByName(JavaPlugin.JAVADOC_TASK_NAME))
-                        it.archiveClassifier.set("javadoc")
-                        it.from(tasks.getByName(JavaPlugin.JAVADOC_TASK_NAME))
-                    }
+            if (! checkForTask(project.tasks, WriteCartridgeClasspath.DEFAULT_NAME)) {
+                val taskWriteCartridgeClasspath = project.tasks.register(
+                    WriteCartridgeClasspath.DEFAULT_NAME, WriteCartridgeClasspath::class.java
+                ) {
+                    it.dependsOn(cartridgeRuntime, runtime)
                 }
+                tasksWriteFiles.add(taskWriteCartridgeClasspath.get())
+            }
 
-                val extension = rootProject.extensions.getByType(IntershopExtension::class.java)
-
-                plugins.withType(MavenPublishPlugin::class.java) {
-                    extensions.configure(PublishingExtension::class.java) { publishing ->
-                        publishing.publications.maybeCreate(
-                            extension.mavenPublicationName,
-                            MavenPublication::class.java
-                        ).apply {
-                            versionMapping {
-                                it.usage("java-api") {
-                                    it.fromResolutionResult()
-                                }
-                                it.usage("java-runtime") {
-                                    it.fromResolutionResult()
-                                }
-                            }
-
-                            try {
-                                from(project.components.getAt("java"))
-                            } catch(ex: Exception) {
-                                project.logger.warn("Component Java was added to the publication in an other step.")
-                            }
-
-                            artifact(tasks.getByName(TASK_SOURCEJAR))
-                            artifact(tasks.getByName(TASK_JAVADOCJAR))
-
-                            pom.description.set(project.description)
-                            pom.inceptionYear.set(Year.now().value.toString())
-                            pom.properties.set(mapOf("cartridge.name" to project.name))
-                        }
-                    }
-                }
+            val mainTask = project.rootProject.tasks.findByName(ICMBasePlugin.TASK_WRITECARTRIDGEFILES)
+            if(mainTask != null) {
+                mainTask.dependsOn(tasksWriteFiles)
             }
         }
     }

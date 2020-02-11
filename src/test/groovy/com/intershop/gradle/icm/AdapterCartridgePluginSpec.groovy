@@ -18,17 +18,12 @@ package com.intershop.gradle.icm
 
 import com.intershop.gradle.test.AbstractProjectSpec
 import org.gradle.api.Plugin
-import org.gradle.api.plugins.JavaPlugin
 
-class ProjectCartridgePluginSpec extends AbstractProjectSpec {
-
-    def setup() {
-        project.pluginManager.apply(JavaPlugin.class)
-    }
+class AdapterCartridgePluginSpec extends AbstractProjectSpec {
 
     @Override
     Plugin getPlugin() {
-        return new ProjectCartridgePlugin()
+        return new AdapterCartridgePlugin()
     }
 
 }
