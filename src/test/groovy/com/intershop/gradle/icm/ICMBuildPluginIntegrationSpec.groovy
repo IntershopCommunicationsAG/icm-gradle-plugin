@@ -18,6 +18,7 @@ package com.intershop.gradle.icm
 
 import com.intershop.gradle.test.AbstractIntegrationGroovySpec
 import org.gradle.testkit.runner.TaskOutcome
+import spock.lang.Ignore
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
@@ -701,5 +702,81 @@ class ICMBuildPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         where:
         gradleVersion << supportedGradleVersions
 
+    }
+
+    @Ignore
+    def 'Extended test of WriteCartridgeDescriptor with platform dependencies'() {
+        given:
+        settingsFile << """
+        rootProject.name='rootproject'
+        """.stripIndent()
+
+        buildFile << """
+            plugins {
+                id 'java'
+                id 'com.intershop.icm.cartridge'
+            }
+            
+            group = 'com.intershop.test'
+            
+            dependencies {
+                cartridge enforcedPlatform("com.intershop.icm:versions:7.11.0.0-IS-29326_add_test_components_for_publishing-SNAPSHOT")
+            
+                cartridge "com.intershop.business:bc_mvc"
+                cartridge "com.intershop.content:bc_pmc"
+                cartridge "com.intershop.business:bc_product_rating_orm"
+                cartridge "com.intershop.business:bc_search"
+                cartridge "com.intershop.business:bc_catalog"
+                cartridge "com.intershop.platform:bc_service"
+             
+                cartridge "com.intershop.platform:app"
+                cartridge "com.intershop.business:bc_image"
+                cartridge "com.intershop.platform:core"
+                cartridge "com.intershop.platform:configuration"
+                cartridge "com.intershop.platform:jmx"
+                cartridge "com.intershop.platform:cache"
+                cartridge "com.intershop.platform:orm"
+                cartridge "com.intershop.business:xcs"
+                cartridge "com.intershop.platform:pf_objectgraph_guice"
+                cartridge "com.intershop.platform:bc_application"
+                cartridge "com.intershop.platform:businessobject"
+                cartridge "com.intershop.platform:bc_repository"
+                cartridge "com.intershop.platform:bc_foundation"
+                cartridge "com.intershop.platform:pf_objectgraph"
+                
+                implementation "com.google.guava:guava"
+                implementation "com.google.inject.extensions:guice-assistedinject"
+            }
+            
+            repositories {
+                maven {
+                    url = uri("https://repo.rnd.intershop.de/local-mvn-snapshots/")
+                }
+                maven {
+                    url = uri("https://repo.rnd.intershop.de/mvn-internal/")
+                }
+            }
+        """.stripIndent()
+
+        when:
+        def result1 = getPreparedGradleRunner()
+                .withArguments("writeCartridgeClasspath", "-s")
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        result1.task(':writeCartridgeClasspath').outcome == SUCCESS
+
+        when:
+        def result2 = getPreparedGradleRunner()
+                .withArguments("writeCartridgeDescriptor", "writeCartridgeClasspath", "-s")
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        result2.task(':writeCartridgeDescriptor').outcome == SUCCESS
+
+        where:
+        gradleVersion << supportedGradleVersions
     }
 }

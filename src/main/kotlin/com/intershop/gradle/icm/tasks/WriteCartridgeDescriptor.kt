@@ -21,7 +21,6 @@ import com.intershop.gradle.icm.CartridgePlugin.Companion.CONFIGURATION_CARTRIDG
 import com.intershop.gradle.icm.extension.IntershopExtension.Companion.INTERSHOP_GROUP_NAME
 import com.intershop.gradle.icm.utils.getValue
 import com.intershop.gradle.icm.utils.setValue
-import groovy.util.XmlSlurper
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier
@@ -29,16 +28,21 @@ import org.gradle.api.artifacts.query.ArtifactResolutionQuery
 import org.gradle.api.artifacts.result.ArtifactResolutionResult
 import org.gradle.api.artifacts.result.ArtifactResult
 import org.gradle.api.artifacts.result.ResolvedArtifactResult
-import org.gradle.api.file.FileCollection
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
-import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.WriteProperties
 import org.gradle.maven.MavenModule
 import org.gradle.maven.MavenPomArtifact
+import org.w3c.dom.Document
+import org.w3c.dom.NodeList
+import org.xml.sax.InputSource
 import java.io.File
+import java.io.StringReader
+import javax.xml.parsers.DocumentBuilderFactory
+import javax.xml.xpath.XPathConstants
+import javax.xml.xpath.XPathFactory
 
 /**
  * WriteCartridgeDescriptor Gradle task 'writeCartridgeDescriptor'
@@ -68,11 +72,13 @@ open class WriteCartridgeDescriptor : WriteProperties() {
 
         versionProperty.convention(project.version.toString())
         nameProperty.convention(project.name)
-        descriptionProperty.convention(
-            if (project.description != null && project.description.toString().isNotEmpty())
-                project.description
-            else
-                project.name)
+
+        val description = if (! project.description.isNullOrEmpty())
+                                    project.description
+                                else
+                                    project.name
+
+        descriptionProperty.convention(description ?: "")
         displayNameProperty.convention(project.name)
     }
 
@@ -121,18 +127,23 @@ open class WriteCartridgeDescriptor : WriteProperties() {
     @get:Input
     var displayName by displayNameProperty
 
-    @get:Classpath
-    val cartridgelist: FileCollection by lazy {
-        val returnFiles = project.files()
-        returnFiles.from(project.configurations.getByName(CONFIGURATION_CARTRIDGE).files)
-        returnFiles
+
+    @get:Input
+    val cartridgeDependencies: List<String> by lazy {
+        val returnDeps = mutableListOf<String>()
+        project.configurations.getByName(CONFIGURATION_CARTRIDGE).dependencies.forEach {
+            returnDeps.add(it.toString())
+        }
+        returnDeps
     }
 
-    @get:Classpath
-    val cartridgeRuntimelist: FileCollection by lazy {
-        val returnFiles = project.files()
-        returnFiles.from(project.configurations.getByName(CONFIGURATION_CARTRIDGERUNTIME).files)
-        returnFiles
+    @get:Input
+    val cartridgeRuntimeDependencies: List<String> by lazy {
+        val returnDeps = mutableListOf<String>()
+        project.configurations.getByName(CONFIGURATION_CARTRIDGERUNTIME).dependencies.forEach {
+            returnDeps.add(it.toString())
+        }
+        returnDeps
     }
 
     /**
@@ -204,12 +215,27 @@ open class WriteCartridgeDescriptor : WriteProperties() {
                             it.file.name == "${moduleID.module}-${moduleID.version}.pom"} as ResolvedArtifactResult
 
             try {
-                val xml = XmlSlurper(false, false).parse(modulePomArtifact.file)
-                // println("found .... " + modulePomArtifact.file.name + " ... " + xml.getProperty("name"))
+                var doc = readXML(modulePomArtifact.file)
+                val xpFactory = XPathFactory.newInstance()
+                val xPath = xpFactory.newXPath()
+
+                val xpath = "/project/properties/cartridge.name"
+                val itemsTypeT1 = xPath.evaluate(xpath, doc, XPathConstants.NODESET) as NodeList
+
+                return itemsTypeT1.length > 0
             }catch (ex: Exception) {
                 project.logger.info("Pom file is not readable - " + moduleID.moduleIdentifier)
             }
         }
         return false
+    }
+
+    private fun readXML(xmlFile: File): Document {
+        val dbFactory = DocumentBuilderFactory.newInstance()
+        val dBuilder = dbFactory.newDocumentBuilder()
+        val xmlInput = InputSource(StringReader(xmlFile.readText()))
+        val doc = dBuilder.parse(xmlInput)
+
+        return doc
     }
 }
