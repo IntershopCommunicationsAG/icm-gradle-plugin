@@ -116,7 +116,13 @@ gradlePlugin {
             id = "com.intershop.icm.cartridge.external"
             implementationClass = "com.intershop.gradle.icm.ExternalCartridgePlugin"
             displayName = "icm-external-cartridge"
-            description = "The cartridge plugin applies all basic configurations and tasks of an external cartridge."
+            description = "The cartridge plugin applies all basic configurations and tasks of an external cartridge (with static folder)."
+        }
+        create("icmPublicCartridgePlugin") {
+            id = "com.intershop.icm.cartridge.public"
+            implementationClass = "com.intershop.gradle.icm.PublicCartridgePlugin"
+            displayName = "icm-external-cartridge"
+            description = "The cartridge plugin applies all basic configurations and tasks of an public cartridge (published to Maven)."
         }
     }
 }
