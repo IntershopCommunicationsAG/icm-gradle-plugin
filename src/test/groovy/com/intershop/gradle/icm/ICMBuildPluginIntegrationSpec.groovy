@@ -18,6 +18,7 @@ package com.intershop.gradle.icm
 
 import com.intershop.gradle.test.AbstractIntegrationGroovySpec
 import org.gradle.testkit.runner.TaskOutcome
+import spock.lang.Ignore
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
@@ -703,6 +704,7 @@ class ICMBuildPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
     }
 
+    @Ignore
     def 'Extended test of WriteCartridgeDescriptor with platform dependencies'() {
         given:
         settingsFile << """
