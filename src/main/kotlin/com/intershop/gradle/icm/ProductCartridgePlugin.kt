@@ -32,11 +32,8 @@ open class ProductCartridgePlugin  : Plugin<Project> {
 
     override fun apply(project: Project) {
         with(project) {
-            val extension = rootProject.extensions.findByType(
-                IntershopExtension::class.java
-            ) ?: rootProject.extensions.create(
-                IntershopExtension.INTERSHOP_EXTENSION_NAME, IntershopExtension::class.java, this
-            )
+            plugins.apply(PublicCartridgePlugin::class.java)
+            val extension = rootProject.extensions.getByType(IntershopExtension::class.java)
 
             with(extensions) {
                 plugins.withType(MavenPublishPlugin::class.java) {
