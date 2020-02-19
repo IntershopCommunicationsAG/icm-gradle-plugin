@@ -209,22 +209,24 @@ open class WriteCartridgeDescriptor : WriteProperties() {
 
         result.resolvedComponents.forEach { component ->
             val mavenPomArtifacts: Set<ArtifactResult> = component.getArtifacts(MavenPomArtifact::class.java)
-            val modulePomArtifact =
-                mavenPomArtifacts
-                    .find { it is ResolvedArtifactResult &&
-                            it.file.name == "${moduleID.module}-${moduleID.version}.pom"} as ResolvedArtifactResult
+            val pomArtifact = mavenPomArtifacts.find {
+                it is ResolvedArtifactResult &&it.file.name == "${moduleID.module}-${moduleID.version}.pom"}
 
-            try {
-                var doc = readXML(modulePomArtifact.file)
-                val xpFactory = XPathFactory.newInstance()
-                val xPath = xpFactory.newXPath()
+            if(pomArtifact != null) {
+                val modulePomArtifact = pomArtifact as ResolvedArtifactResult
 
-                val xpath = "/project/properties/cartridge.name"
-                val itemsTypeT1 = xPath.evaluate(xpath, doc, XPathConstants.NODESET) as NodeList
+                try {
+                    var doc = readXML(modulePomArtifact.file)
+                    val xpFactory = XPathFactory.newInstance()
+                    val xPath = xpFactory.newXPath()
 
-                return itemsTypeT1.length > 0
-            }catch (ex: Exception) {
-                project.logger.info("Pom file is not readable - " + moduleID.moduleIdentifier)
+                    val xpath = "/project/properties/cartridge.name"
+                    val itemsTypeT1 = xPath.evaluate(xpath, doc, XPathConstants.NODESET) as NodeList
+
+                    return itemsTypeT1.length > 0
+                } catch (ex: Exception) {
+                    project.logger.info("Pom file is not readable - " + moduleID.moduleIdentifier)
+                }
             }
         }
         return false
