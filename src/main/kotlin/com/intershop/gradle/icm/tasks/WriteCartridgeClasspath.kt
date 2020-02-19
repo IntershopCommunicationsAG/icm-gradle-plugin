@@ -146,7 +146,7 @@ open class WriteCartridgeClasspath : DefaultTask() {
         }
 
         val runtimeFiles = if (project.convention.findPlugin(JavaPluginConvention::class.java) != null) {
-            project.configurations.getByName(CONFIGURATION_CARTRIDGERUNTIME).files
+            project.configurations.getByName(CONFIGURATION_CARTRIDGERUNTIME).resolvedConfiguration.files
         } else {
             project.files()
         }
