@@ -32,7 +32,6 @@ open class ProductCartridgePlugin  : Plugin<Project> {
 
     override fun apply(project: Project) {
         with(project) {
-            plugins.apply(ExternalCartridgePlugin::class.java)
             val extension = rootProject.extensions.getByType(IntershopExtension::class.java)
 
             with(extensions) {
