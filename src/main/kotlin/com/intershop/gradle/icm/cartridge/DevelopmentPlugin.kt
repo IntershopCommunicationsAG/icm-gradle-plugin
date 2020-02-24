@@ -14,16 +14,19 @@
  * limitations under the License.
  *
  */
-package com.intershop.gradle.icm
+package com.intershop.gradle.icm.cartridge
 
-import com.intershop.gradle.test.AbstractProjectSpec
-import org.gradle.api.Plugin
+import org.gradle.api.Project
 
-class CartridgePluginSpec extends AbstractProjectSpec {
+/**
+ * The project cartridge plugin applies all basic configurations
+ * and tasks for a cartridge project, that can be provided as
+ * module dependendcy to other projects.
+ */
+open class DevelopmentPlugin : AbstractCartridge() {
 
-    @Override
-    Plugin getPlugin() {
-        return new CartridgePlugin()
+    override fun apply(project: Project) {
+        project.plugins.apply(ExternalPlugin::class.java)
+        publishCartridge(project, "adapter")
     }
-
 }

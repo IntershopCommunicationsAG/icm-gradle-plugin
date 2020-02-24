@@ -18,20 +18,27 @@ package com.intershop.gradle.icm.extension
 
 import com.intershop.gradle.icm.utils.getValue
 import com.intershop.gradle.icm.utils.setValue
-import org.gradle.api.Project
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
+import javax.inject.Inject
 
 /**
  * Extension for server info properties.
  */
-open class ProjectInfo(project: Project) {
+abstract class ProjectInfo() {
 
-    private val productIDProperty: Property<String> = project.objects.property(String::class.java)
-    private val productNameProperty: Property<String> = project.objects.property(String::class.java)
-    private val copyrightOwnerProperty: Property<String> = project.objects.property(String::class.java)
-    private val copyrightFromProperty: Property<String> = project.objects.property(String::class.java)
-    private val organizationProperty: Property<String> = project.objects.property(String::class.java)
+    /**
+     * Inject service of ObjectFactory (See "Service injection" in Gradle documentation.
+     */
+    @get:Inject
+    abstract val objectFactory: ObjectFactory
+
+    private val productIDProperty: Property<String> = objectFactory.property(String::class.java)
+    private val productNameProperty: Property<String> = objectFactory.property(String::class.java)
+    private val copyrightOwnerProperty: Property<String> = objectFactory.property(String::class.java)
+    private val copyrightFromProperty: Property<String> = objectFactory.property(String::class.java)
+    private val organizationProperty: Property<String> = objectFactory.property(String::class.java)
 
     init {
         productIDProperty.set("ICM")

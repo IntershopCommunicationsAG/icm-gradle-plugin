@@ -14,8 +14,9 @@
  * limitations under the License.
  *
  */
-package com.intershop.gradle.icm
+package com.intershop.gradle.icm.cartridge
 
+import com.intershop.gradle.icm.ICMBasePlugin
 import com.intershop.gradle.icm.extension.IntershopExtension
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Plugin
@@ -32,7 +33,7 @@ import java.time.Year
  * The cartridge plugin applies all basic configurations
  * for publishing of cartridges.
  */
-open class PublicCartridgePlugin : Plugin<Project> {
+open class PublicPlugin : Plugin<Project> {
 
     companion object {
         /**
@@ -56,7 +57,11 @@ open class PublicCartridgePlugin : Plugin<Project> {
     private fun configureAddJars(project: Project) {
         with(project) {
             plugins.withType(JavaPlugin::class.java) {
-                if (!ICMBasePlugin.checkForTask(tasks, TASK_SOURCEJAR)) {
+                if (!ICMBasePlugin.checkForTask(
+                        tasks,
+                        TASK_SOURCEJAR
+                    )
+                ) {
                     val javaConvention = convention.getPlugin(JavaPluginConvention::class.java)
                     val mainSourceSet = javaConvention.sourceSets.getByName("main")
 
@@ -67,7 +72,11 @@ open class PublicCartridgePlugin : Plugin<Project> {
                     }
                 }
 
-                if (!ICMBasePlugin.checkForTask(tasks, TASK_JAVADOCJAR)) {
+                if (!ICMBasePlugin.checkForTask(
+                        tasks,
+                        TASK_JAVADOCJAR
+                    )
+                ) {
                     tasks.register(TASK_JAVADOCJAR, Jar::class.java) {
                         it.dependsOn(tasks.getByName(JavaPlugin.JAVADOC_TASK_NAME))
                         it.archiveClassifier.set("javadoc")

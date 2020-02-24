@@ -60,9 +60,7 @@ open class ICMBasePlugin: Plugin<Project> {
 
                 val extension = extensions.findByType(
                     IntershopExtension::class.java
-                ) ?: extensions.create(
-                    IntershopExtension.INTERSHOP_EXTENSION_NAME, IntershopExtension::class.java, this
-                )
+                ) ?: extensions.create(IntershopExtension.INTERSHOP_EXTENSION_NAME, IntershopExtension::class.java)
 
                 configureClusterIdTask(project)
                 configureCreateServerInfoPropertiesTask(project, extension)
@@ -74,18 +72,6 @@ open class ICMBasePlugin: Plugin<Project> {
                 tasks.maybeCreate(TASK_WRITECARTRIDGEFILES).apply {
                     group = "ICM cartridge build"
                     description = "Lifecycle task for ICM cartridge build"
-                }
-
-                subprojects.forEach { subProject  ->
-                    subProject.plugins.withType(TestCartridgePlugin::class.java) {
-                        extension.baseConfig.addTestCartridge(subProject.name)
-                    }
-                    subProject.plugins.withType(DevelopmentCartridgePlugin::class.java) {
-                        extension.baseConfig.addDevCartridge(subProject.name)
-                    }
-
-                    subProject.plugins.apply(MavenPublishPlugin::class.java)
-
                 }
 
             } else {

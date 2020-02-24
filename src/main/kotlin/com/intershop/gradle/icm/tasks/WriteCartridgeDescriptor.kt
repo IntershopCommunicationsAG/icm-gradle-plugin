@@ -16,33 +16,20 @@
  */
 package com.intershop.gradle.icm.tasks
 
-import com.intershop.gradle.icm.CartridgePlugin.Companion.CONFIGURATION_CARTRIDGE
-import com.intershop.gradle.icm.CartridgePlugin.Companion.CONFIGURATION_CARTRIDGERUNTIME
+import com.intershop.gradle.icm.cartridge.CartridgePlugin.Companion.CONFIGURATION_CARTRIDGE
+import com.intershop.gradle.icm.cartridge.CartridgePlugin.Companion.CONFIGURATION_CARTRIDGERUNTIME
 import com.intershop.gradle.icm.extension.IntershopExtension.Companion.INTERSHOP_GROUP_NAME
 import com.intershop.gradle.icm.utils.getValue
 import com.intershop.gradle.icm.utils.setValue
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier
-import org.gradle.api.artifacts.query.ArtifactResolutionQuery
-import org.gradle.api.artifacts.result.ArtifactResolutionResult
-import org.gradle.api.artifacts.result.ArtifactResult
-import org.gradle.api.artifacts.result.ResolvedArtifactResult
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.WriteProperties
-import org.gradle.maven.MavenModule
-import org.gradle.maven.MavenPomArtifact
-import org.w3c.dom.Document
-import org.w3c.dom.NodeList
-import org.xml.sax.InputSource
 import java.io.File
-import java.io.StringReader
-import javax.xml.parsers.DocumentBuilderFactory
-import javax.xml.xpath.XPathConstants
-import javax.xml.xpath.XPathFactory
 
 /**
  * WriteCartridgeDescriptor Gradle task 'writeCartridgeDescriptor'
@@ -182,7 +169,7 @@ open class WriteCartridgeDescriptor : WriteProperties() {
                     }
 
                     if(identifier is ModuleComponentIdentifier) {
-                        if(isCartridge(identifier)) {
+                        if(CartridgeUtil.isCartridge(project, identifier)) {
                             cartridgesTransitive.add(identifier.module)
                         }
                     }
@@ -200,44 +187,5 @@ open class WriteCartridgeDescriptor : WriteProperties() {
         super.writeProperties()
     }
 
-    private fun isCartridge(moduleID : ModuleComponentIdentifier) : Boolean {
-        val query: ArtifactResolutionQuery = project.dependencies.createArtifactResolutionQuery()
-            .forModule(moduleID.group, moduleID.module, moduleID.version)
-            .withArtifacts(MavenModule::class.java, MavenPomArtifact::class.java)
 
-        val result: ArtifactResolutionResult = query.execute()
-
-        result.resolvedComponents.forEach { component ->
-            val mavenPomArtifacts: Set<ArtifactResult> = component.getArtifacts(MavenPomArtifact::class.java)
-            val pomArtifact = mavenPomArtifacts.find {
-                it is ResolvedArtifactResult &&it.file.name == "${moduleID.module}-${moduleID.version}.pom"}
-
-            if(pomArtifact != null) {
-                val modulePomArtifact = pomArtifact as ResolvedArtifactResult
-
-                try {
-                    var doc = readXML(modulePomArtifact.file)
-                    val xpFactory = XPathFactory.newInstance()
-                    val xPath = xpFactory.newXPath()
-
-                    val xpath = "/project/properties/cartridge.name"
-                    val itemsTypeT1 = xPath.evaluate(xpath, doc, XPathConstants.NODESET) as NodeList
-
-                    return itemsTypeT1.length > 0
-                } catch (ex: Exception) {
-                    project.logger.info("Pom file is not readable - " + moduleID.moduleIdentifier)
-                }
-            }
-        }
-        return false
-    }
-
-    private fun readXML(xmlFile: File): Document {
-        val dbFactory = DocumentBuilderFactory.newInstance()
-        val dBuilder = dbFactory.newDocumentBuilder()
-        val xmlInput = InputSource(StringReader(xmlFile.readText()))
-        val doc = dBuilder.parse(xmlInput)
-
-        return doc
-    }
 }

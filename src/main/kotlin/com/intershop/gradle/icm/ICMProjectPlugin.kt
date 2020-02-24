@@ -16,25 +16,53 @@
  */
 package com.intershop.gradle.icm
 
+import com.intershop.gradle.icm.extension.IntershopExtension
+import com.intershop.gradle.icm.tasks.SetupExternalCartridges
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.tasks.TaskContainer
 
 /**
  * The main plugin class of this plugin.
  */
 class ICMProjectPlugin : Plugin<Project> {
 
+    companion object {
+        const val CONFIGURATION_EXTERNALCARTRIDGES = "extCartridge"
+
+        /**
+         * checks if the specified name is available in the list of tasks.
+         *
+         * @param taskname  the name of the new task
+         * @param tasks     the task container self
+         */
+        fun checkForTask(tasks: TaskContainer, taskname: String): Boolean {
+            return tasks.names.contains(taskname)
+        }
+    }
+
     override fun apply(project: Project) {
+        with(project.rootProject) {
+            val extension = extensions.findByType(
+                IntershopExtension::class.java
+            ) ?: extensions.create(IntershopExtension.INTERSHOP_EXTENSION_NAME, IntershopExtension::class.java)
+
+            val cartridge = configurations.maybeCreate(CONFIGURATION_EXTERNALCARTRIDGES)
+            cartridge.isTransitive = false
+
+            configureExtCartridgeTask(this, extension)
+        }
+    }
+
+    private fun configureExtCartridgeTask(project: Project, extension: IntershopExtension) {
         with(project) {
-            if(project.rootProject == this) {
-
-                // base plugin must be applied
-                if(plugins.findPlugin(ICMBasePlugin::class.java) == null) {
-                    plugins.apply(ICMBasePlugin::class.java)
+            if(! checkForTask(tasks, SetupExternalCartridges.DEFAULT_NAME)) {
+                tasks.register(
+                    SetupExternalCartridges.DEFAULT_NAME,
+                    SetupExternalCartridges::class.java
+                ) { task ->
+                    task.provideCartridgeDir(extension.projectConfig.cartridgeDirProvider)
                 }
-
-            } else {
-                logger.warn("ICM build plugin will be not applied to the sub project '{}'", project.name)
             }
         }
     }

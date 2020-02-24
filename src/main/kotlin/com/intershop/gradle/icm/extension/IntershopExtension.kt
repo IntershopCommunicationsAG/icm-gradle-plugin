@@ -20,14 +20,16 @@ import com.intershop.gradle.icm.utils.getValue
 import com.intershop.gradle.icm.utils.setValue
 import groovy.lang.Closure
 import org.gradle.api.Action
-import org.gradle.api.Project
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
+import org.gradle.util.ConfigureUtil
+import javax.inject.Inject
 
 /**
  * Extension for ICM properties.
  */
-open class IntershopExtension(var project: Project)  {
+abstract class IntershopExtension()  {
 
     companion object {
         // names for the plugin
@@ -35,10 +37,16 @@ open class IntershopExtension(var project: Project)  {
         const val INTERSHOP_GROUP_NAME = "Intershop Commerce Management"
     }
 
-    private val mavenPublicationNameProperty: Property<String> = project.objects.property(String::class.java)
+    /**
+     * Inject service of ObjectFactory (See "Service injection" in Gradle documentation.
+     */
+    @get:Inject
+    abstract val objectFactory: ObjectFactory
 
-    val projectInfo: ProjectInfo = ProjectInfo(project)
-    val baseConfig: BaseConfiguration = BaseConfiguration(project)
+    private val mavenPublicationNameProperty: Property<String> = objectFactory.property(String::class.java)
+
+    val projectInfo: ProjectInfo = objectFactory.newInstance(ProjectInfo::class.java)
+    val projectConfig: ProjectConfiguration = objectFactory.newInstance(ProjectConfiguration::class.java)
 
     init {
         mavenPublicationNameProperty.convention("mvn")
@@ -51,7 +59,7 @@ open class IntershopExtension(var project: Project)  {
      */
     @Suppress("unused")
     fun projectInfo(closure: Closure<Any>) {
-        project.configure(projectInfo, closure)
+        ConfigureUtil.configure(closure, projectInfo)
     }
 
     /**
@@ -69,8 +77,8 @@ open class IntershopExtension(var project: Project)  {
      * @param closure closure with base project configuration of Intershop Commerce Management
      */
     @Suppress("unused")
-    fun baseConfig(closure: Closure<Any>) {
-        project.configure(baseConfig, closure)
+    fun projectConfig(closure: Closure<ProjectConfiguration>) {
+        ConfigureUtil.configure(closure, projectConfig)
     }
 
     /**
@@ -78,8 +86,8 @@ open class IntershopExtension(var project: Project)  {
      *
      * @param action action with base project configuration of Intershop Commerce Management
      */
-    fun baseConfig(action: Action<in BaseConfiguration>) {
-        action.execute(baseConfig)
+    fun projectConfig(action: Action<in ProjectConfiguration>) {
+        action.execute(projectConfig)
     }
 
     /**

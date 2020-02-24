@@ -14,8 +14,9 @@
  * limitations under the License.
  *
  */
-package com.intershop.gradle.icm
+package com.intershop.gradle.icm.cartridge
 
+import com.intershop.gradle.icm.ICMBasePlugin
 import com.intershop.gradle.icm.extension.IntershopExtension
 import com.intershop.gradle.icm.tasks.CopyThirdpartyLibs
 import com.intershop.gradle.icm.tasks.WriteCartridgeClasspath
@@ -49,16 +50,23 @@ open class CartridgePlugin : Plugin<Project> {
 
     override fun apply(project: Project) {
         with(project) {
-            rootProject.extensions.findByType(
-                IntershopExtension::class.java
-            ) ?: rootProject.extensions.create(
-                IntershopExtension.INTERSHOP_EXTENSION_NAME, IntershopExtension::class.java, this
-            )
+            with(rootProject) {
+                extensions.findByType(
+                    IntershopExtension::class.java
+                ) ?: extensions.create(
+                    IntershopExtension.INTERSHOP_EXTENSION_NAME,
+                    IntershopExtension::class.java
+                )
+            }
             plugins.apply(JavaPlugin::class.java)
 
             configureAddFileCreation( this)
 
-            if (! checkForTask(tasks, CopyThirdpartyLibs.DEFAULT_NAME)) {
+            if (!checkForTask(
+                    tasks,
+                    CopyThirdpartyLibs.DEFAULT_NAME
+                )
+            ) {
                 tasks.register(
                     CopyThirdpartyLibs.DEFAULT_NAME,
                     CopyThirdpartyLibs::class.java)
@@ -81,7 +89,11 @@ open class CartridgePlugin : Plugin<Project> {
 
             val tasksWriteFiles = HashSet<Task>()
 
-            if (! checkForTask(project.tasks, WriteCartridgeDescriptor.DEFAULT_NAME)) {
+            if (!checkForTask(
+                    project.tasks,
+                    WriteCartridgeDescriptor.DEFAULT_NAME
+                )
+            ) {
                 val taskWriteCartridgeDescriptor = project.tasks.register(
                     WriteCartridgeDescriptor.DEFAULT_NAME, WriteCartridgeDescriptor::class.java
                 ) {
@@ -90,7 +102,11 @@ open class CartridgePlugin : Plugin<Project> {
                 tasksWriteFiles.add(taskWriteCartridgeDescriptor.get())
             }
 
-            if (! checkForTask(project.tasks, WriteCartridgeClasspath.DEFAULT_NAME)) {
+            if (!checkForTask(
+                    project.tasks,
+                    WriteCartridgeClasspath.DEFAULT_NAME
+                )
+            ) {
                 val taskWriteCartridgeClasspath = project.tasks.register(
                     WriteCartridgeClasspath.DEFAULT_NAME, WriteCartridgeClasspath::class.java
                 ) {
