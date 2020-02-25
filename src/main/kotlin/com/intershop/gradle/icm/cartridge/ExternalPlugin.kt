@@ -43,7 +43,7 @@ open class ExternalPlugin : Plugin<Project> {
             val extension = rootProject.extensions.getByType(IntershopExtension::class.java)
 
             var zipStaticTask = tasks.findByName(TASK_ZIPSTATICFILES)
-            var descriptorTask = tasks.getByName(WriteCartridgeDescriptor.DEFAULT_NAME)
+            val descriptorTask = tasks.getByName(WriteCartridgeDescriptor.DEFAULT_NAME)
 
             if( zipStaticTask == null) {
                 zipStaticTask = tasks.create(TASK_ZIPSTATICFILES, ZipStaticFiles::class.java) {

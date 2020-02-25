@@ -23,6 +23,9 @@ import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
 
+/**
+ * Base class of a group of ICM cartridge plugins.
+ */
 abstract class AbstractCartridge : Plugin<Project> {
 
     protected fun publishCartridge(project: Project, catridgeStyle: String ) {

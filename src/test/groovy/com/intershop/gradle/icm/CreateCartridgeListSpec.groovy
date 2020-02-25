@@ -155,4 +155,42 @@ class CreateCartridgeListSpec extends AbstractIntegrationGroovySpec {
         where:
         gradleVersion << supportedGradleVersions
     }
+
+    def "createCartridgeList will be executed with complex configuration"() {
+        given:
+        copyResources("cartridgelist", "cartridgelist")
+
+        settingsFile << """
+        rootProject.name='rootproject'
+        """.stripIndent()
+
+        buildFile << """
+            plugins {
+                id 'com.intershop.gradle.icm.base'
+            }
+            
+            task createCartridgeList(type: com.intershop.gradle.icm.tasks.CreateCartridgeList) { 
+                excludes = [ ".*_test\\\$", "^dev_.*", "^etest.*", "^tool_webtest.*", "^pmc_unit_testing.*", "^test_.*"]
+                
+                templateFile = file("cartridgelist/cartridgelist.properties")
+            }
+
+            """.stripIndent()
+
+        def file = new File(testProjectDir, "build/cartridgelist/cartridgelist.properties")
+
+        when:
+        def result = getPreparedGradleRunner()
+                .withArguments("createCartridgeList", "-s")
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        result.task(':createCartridgeList').outcome == SUCCESS
+        file.text.contains("init_contactcenter")
+        ! file.text.contains("init_contactcenter \\")
+
+        where:
+        gradleVersion << supportedGradleVersions
+    }
 }

@@ -111,7 +111,7 @@ open class WriteCartridgeClasspath : DefaultTask() {
     @get:Input
     val cartridgeRuntimeDependencies: List<String> by lazy {
         val returnDeps = mutableListOf<String>()
-        project.configurations.getByName(CartridgePlugin.CONFIGURATION_CARTRIDGERUNTIME).dependencies.forEach {
+        project.configurations.getByName(CONFIGURATION_CARTRIDGERUNTIME).dependencies.forEach {
             returnDeps.add(it.toString())
         }
         returnDeps

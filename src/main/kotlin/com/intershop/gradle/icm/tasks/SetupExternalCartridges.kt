@@ -24,7 +24,6 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
-import org.gradle.api.file.CopySpec
 import org.gradle.api.file.Directory
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileSystemOperations
@@ -43,6 +42,10 @@ import org.gradle.maven.MavenPomArtifact
 import java.io.File
 import javax.inject.Inject
 
+/**
+ * Task for setup of an external cartridge in
+ * an ICM project.
+ */
 abstract class SetupExternalCartridges: DefaultTask() {
 
     companion object {
@@ -67,6 +70,11 @@ abstract class SetupExternalCartridges: DefaultTask() {
         cartridgeDirProperty.convention(projectLayout.buildDirectory.dir(ProjectConfiguration.EXTERNAL_CARTRIDGE_PATH))
     }
 
+    /**
+     * Configuration of external dependencies.
+     *
+     * @property externalCartridgeDependencies
+     */
     @get:Input
     val externalCartridgeDependencies: List<String> by lazy {
         val returnDeps = mutableListOf<String>()
@@ -76,8 +84,18 @@ abstract class SetupExternalCartridges: DefaultTask() {
         returnDeps
     }
 
+    /**
+     * Provider configuration for target directory.
+     *
+     * @param provideCartridgeDir
+     */
     fun provideCartridgeDir(cartridgeDir: Provider<Directory>) = cartridgeDirProperty.set(cartridgeDir)
 
+    /**
+     * Output directory of this task.
+     *
+     * @property cartridgeDir
+     */
     @get:OutputDirectory
     var cartridgeDir: File
         get() = cartridgeDirProperty.get().asFile
@@ -89,30 +107,30 @@ abstract class SetupExternalCartridges: DefaultTask() {
         cfg.allDependencies.forEach { dependency ->
             if( dependency is ExternalModuleDependency) {
                 project.logger.info("Process external cartridge '{}'.", dependency.name)
-                var staticFile = getStaticFileFor(dependency)
+                val staticFile = getStaticFileFor(dependency)
                 fsOps.run {
-                    copy { it: CopySpec ->
+                    copy {
                         it.from(project.zipTree(staticFile))
                         it.into(File(target, "${dependency.name}/release"))
                     }
                 }
                 project.logger.info("{}: Process static file {}.", dependency.name, staticFile)
-                var jarFile = getJarFileFor(dependency)
+                val jarFile = getJarFileFor(dependency)
                 fsOps.run {
-                    copy { it: CopySpec ->
+                    copy {
                         it.from(jarFile)
                         it.into(File(target, "${dependency.name}/release/lib/"))
                     }
                 }
                 project.logger.info("{}: Process jar file {}.", dependency.name, jarFile)
-                var pomFile = getPomFileFor(dependency)
+                val pomFile = getPomFileFor(dependency)
 
                 project.logger.info("{}: Process jar dependencies {}.", dependency.name, pomFile)
-                var libFiles = getLibsFor(dependency)
+                val libFiles = getLibsFor(dependency)
                 libFiles.forEach { lib ->
                     project.logger.info("{}: Copy {} to {}.", dependency.name, lib.key, lib.value)
                     fsOps.run {
-                        copy { it: CopySpec ->
+                        copy {
                             it.from(lib.key)
                             it.into(File(target, "libs"))
                             it.rename(lib.key.name, lib.value)
@@ -125,25 +143,25 @@ abstract class SetupExternalCartridges: DefaultTask() {
     }
 
     private fun getStaticFileFor(dependency: ExternalModuleDependency): File {
-        var dep = dependency.copy()
+        val dep = dependency.copy()
         dep.artifact {
             it.name = dep.name
             it.classifier = "staticfiles"
             it.extension = "zip"
             it.type = "zip"
         }
-        var dcfg = project.configurations.detachedConfiguration(dep)
-        dcfg.setTransitive(false)
-        var files = dcfg.resolve()
+        val dcfg = project.configurations.detachedConfiguration(dep)
+        dcfg.isTransitive = false
+        val files = dcfg.resolve()
 
         return files.first()
     }
 
     private fun getJarFileFor(dependency: ExternalModuleDependency): File {
-        var dep = dependency.copy()
-        var dcfg = project.configurations.detachedConfiguration(dep)
-        dcfg.setTransitive(false)
-        var files = dcfg.resolve()
+        val dep = dependency.copy()
+        val dcfg = project.configurations.detachedConfiguration(dep)
+        dcfg.isTransitive = false
+        val files = dcfg.resolve()
 
         return files.first()
     }
@@ -171,9 +189,9 @@ abstract class SetupExternalCartridges: DefaultTask() {
     private fun getLibsFor(dependency: ExternalModuleDependency): Map<File, String> {
         val files  = mutableMapOf<File, String>()
 
-        var dep = dependency.copy()
-        var dcfg = project.configurations.detachedConfiguration(dep)
-        dcfg.setTransitive(true)
+        val dep = dependency.copy()
+        val dcfg = project.configurations.detachedConfiguration(dep)
+        dcfg.isTransitive = true
 
         dcfg.resolvedConfiguration.resolvedArtifacts.forEach { artifact ->
             if (artifact.id is DefaultModuleComponentArtifactIdentifier) {
@@ -184,7 +202,7 @@ abstract class SetupExternalCartridges: DefaultTask() {
                             "${identifier.componentIdentifier.version}.${artifact.type}"
 
                     if(! CartridgeUtil.isCartridge(project, identifier.componentIdentifier)) {
-                        files.put(artifact.file, name)
+                        files[artifact.file] = name
                     }
                 } else {
                     throw GradleException("Artifact ID is not a module identifier.")
@@ -195,9 +213,11 @@ abstract class SetupExternalCartridges: DefaultTask() {
         return files
     }
 
+    /**
+     * Main task function.
+     */
     @TaskAction
     fun processDependencies() {
         createStructure(cartridgeDirProperty.get().asFile)
     }
-
 }

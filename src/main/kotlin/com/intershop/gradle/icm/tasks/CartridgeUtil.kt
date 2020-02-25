@@ -34,8 +34,17 @@ import javax.xml.parsers.DocumentBuilderFactory
 import javax.xml.xpath.XPathConstants
 import javax.xml.xpath.XPathFactory
 
+/**
+ * Object class for handling of remote cartridge artifacts.
+ */
 object CartridgeUtil {
 
+    /**
+     * Returns true, if dependency is a external cartridges.
+     *
+     * @param project   the root project
+     * @param moduleID  module ID of the external cartridge
+     */
     fun isCartridge(project: Project, moduleID : ModuleComponentIdentifier) : Boolean {
         val query: ArtifactResolutionQuery = project.dependencies.createArtifactResolutionQuery()
             .forModule(moduleID.group, moduleID.module, moduleID.version)
@@ -52,7 +61,7 @@ object CartridgeUtil {
                 val modulePomArtifact = pomArtifact as ResolvedArtifactResult
 
                 try {
-                    var doc = readXML(modulePomArtifact.file)
+                    val doc = readXML(modulePomArtifact.file)
                     val xpFactory = XPathFactory.newInstance()
                     val xPath = xpFactory.newXPath()
 
@@ -72,8 +81,7 @@ object CartridgeUtil {
         val dbFactory = DocumentBuilderFactory.newInstance()
         val dBuilder = dbFactory.newDocumentBuilder()
         val xmlInput = InputSource(StringReader(xmlFile.readText()))
-        val doc = dBuilder.parse(xmlInput)
 
-        return doc
+        return dBuilder.parse(xmlInput)
     }
 }

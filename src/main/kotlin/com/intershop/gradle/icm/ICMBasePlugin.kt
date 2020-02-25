@@ -22,12 +22,9 @@ import com.intershop.gradle.icm.tasks.CreateClusterID
 import com.intershop.gradle.icm.tasks.CreateServerInfoProperties
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.publish.PublishingExtension
-import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.diagnostics.DependencyReportTask
-import java.time.Year
 
 /**
  * The base plugin for the configuration of the ICM project.
@@ -79,28 +76,6 @@ open class ICMBasePlugin: Plugin<Project> {
 
             } else {
                 logger.warn("ICM build plugin will be not applied to the sub project '{}'", name)
-            }
-        }
-    }
-
-    private fun configurePublishing(project: Project, extension: IntershopExtension) {
-        project.extensions.configure(PublishingExtension::class.java) { publishing ->
-            publishing.publications.maybeCreate(
-                extension.mavenPublicationName,
-                MavenPublication::class.java
-            ).apply {
-                versionMapping {
-                    it.usage("java-api") {
-                        it.fromResolutionResult()
-                    }
-                    it.usage("java-runtime") {
-                        it.fromResolutionResult()
-                    }
-                }
-
-                pom.description.set(project.description)
-                pom.inceptionYear.set(Year.now().value.toString())
-                pom.properties.set(mapOf("cartridge.name" to project.name))
             }
         }
     }

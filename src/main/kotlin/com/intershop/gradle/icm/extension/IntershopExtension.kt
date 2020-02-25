@@ -29,7 +29,7 @@ import javax.inject.Inject
 /**
  * Extension for ICM properties.
  */
-abstract class IntershopExtension()  {
+abstract class IntershopExtension  {
 
     companion object {
         // names for the plugin
