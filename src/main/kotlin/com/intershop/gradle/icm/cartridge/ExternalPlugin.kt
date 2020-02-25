@@ -63,9 +63,9 @@ open class ExternalPlugin : Plugin<Project> {
                             pom.properties.put("cartridge.type", "external")
                         }
                     }
+                    tasks.getByName("publish").dependsOn(zipStaticTask)
                 }
             }
-            tasks.getByName("publish").dependsOn(zipStaticTask)
         }
     }
 }

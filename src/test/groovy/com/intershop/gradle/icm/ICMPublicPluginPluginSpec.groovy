@@ -40,7 +40,7 @@ class ICMPublicPluginPluginSpec extends AbstractIntegrationGroovySpec {
             version = "1.0.0"
 
             subprojects {
-
+                apply plugin: 'maven-publish'
                 group = "com.intershop"
                 version = "1.0.0"
 
