@@ -84,43 +84,43 @@ gradlePlugin {
         }
         create("icmCartridgePlugin") {
             id = "com.intershop.icm.cartridge"
-            implementationClass = "com.intershop.gradle.icm.CartridgePlugin"
+            implementationClass = "com.intershop.gradle.icm.cartridge.CartridgePlugin"
             displayName = "icm-cartridge"
             description = "The cartridge plugin applies all basic configurations and tasks."
         }
         create("icmProductCartridgePlugin") {
             id = "com.intershop.icm.cartridge.product"
-            implementationClass = "com.intershop.gradle.icm.ProductCartridgePlugin"
+            implementationClass = "com.intershop.gradle.icm.cartridge.ProductPlugin"
             displayName = "icm-product-cartridge"
             description = "The product cartridge plugin applies all basic configurations and tasks for product cartridges."
         }
         create("icmTestCartridgePlugin") {
             id = "com.intershop.icm.cartridge.test"
-            implementationClass = "com.intershop.gradle.icm.TestCartridgePlugin"
+            implementationClass = "com.intershop.gradle.icm.cartridge.TestPlugin"
             displayName = "icm-test-cartridge"
             description = "The test cartridge plugin applies all basic configurations and tasks of an integration test cartridge."
         }
         create("icmDevelopmentCartridgePlugin") {
             id = "com.intershop.icm.cartridge.development"
-            implementationClass = "com.intershop.gradle.icm.DevelopmentCartridgePlugin"
+            implementationClass = "com.intershop.gradle.icm.cartridge.DevelopmentPlugin"
             displayName = "icm-development-cartridge"
             description = "The development cartridge plugin applies all basic configurations and tasks of and development cartridge."
         }
         create("icmAdapterCartridgePlugin") {
             id = "com.intershop.icm.cartridge.adapter"
-            implementationClass = "com.intershop.gradle.icm.AdapterCartridgePlugin"
+            implementationClass = "com.intershop.gradle.icm.cartridge.AdapterPlugin"
             displayName = "icm-adpater-cartridge"
             description = "The adpater cartridge plugin applies all basic configurations and tasks of an external adpater cartridge."
         }
         create("icmExternalCartridgePlugin") {
             id = "com.intershop.icm.cartridge.external"
-            implementationClass = "com.intershop.gradle.icm.ExternalCartridgePlugin"
+            implementationClass = "com.intershop.gradle.icm.cartridge.ExternalPlugin"
             displayName = "icm-external-cartridge"
             description = "The cartridge plugin applies all basic configurations and tasks of an external cartridge (with static folder)."
         }
         create("icmPublicCartridgePlugin") {
             id = "com.intershop.icm.cartridge.public"
-            implementationClass = "com.intershop.gradle.icm.PublicCartridgePlugin"
+            implementationClass = "com.intershop.gradle.icm.cartridge.PublicPlugin"
             displayName = "icm-external-cartridge"
             description = "The cartridge plugin applies all basic configurations and tasks of an public cartridge (published to Maven)."
         }
@@ -317,7 +317,7 @@ dependencies {
     implementation(gradleApi())
     implementation(localGroovy())
 
-    testImplementation("com.intershop.gradle.test:test-gradle-plugin:3.4.0")
+    testImplementation("com.intershop.gradle.test:test-gradle-plugin:3.5.0")
     testImplementation(gradleTestKit())
 }
 

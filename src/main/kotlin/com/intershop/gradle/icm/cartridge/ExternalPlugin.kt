@@ -14,9 +14,11 @@
  * limitations under the License.
  *
  */
-package com.intershop.gradle.icm
+package com.intershop.gradle.icm.cartridge
 
 import com.intershop.gradle.icm.extension.IntershopExtension
+import com.intershop.gradle.icm.tasks.WriteCartridgeDescriptor
+import com.intershop.gradle.icm.tasks.ZipStaticFiles
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.publish.PublishingExtension
@@ -24,16 +26,30 @@ import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
 
 /**
- * The project cartridge plugin applies all basic configurations
+ * The external cartridge plugin applies all basic configurations
  * and tasks for a cartridge project, that can be provided as
  * module dependendcy to other projects.
  */
-open class DevelopmentCartridgePlugin : Plugin<Project> {
+open class ExternalPlugin : Plugin<Project> {
+
+    companion object {
+        const val TASK_ZIPSTATICFILES = "zipStaticFiles"
+    }
 
     override fun apply(project: Project) {
         with(project) {
-            plugins.apply(ExternalCartridgePlugin::class.java)
+            plugins.apply(PublicPlugin::class.java)
+
             val extension = rootProject.extensions.getByType(IntershopExtension::class.java)
+
+            var zipStaticTask = tasks.findByName(TASK_ZIPSTATICFILES)
+            val descriptorTask = tasks.getByName(WriteCartridgeDescriptor.DEFAULT_NAME)
+
+            if( zipStaticTask == null) {
+                zipStaticTask = tasks.create(TASK_ZIPSTATICFILES, ZipStaticFiles::class.java) {
+                    it.from(descriptorTask.outputs.files)
+                }
+            }
 
             with(extensions) {
                 plugins.withType(MavenPublishPlugin::class.java) {
@@ -42,11 +58,14 @@ open class DevelopmentCartridgePlugin : Plugin<Project> {
                             extension.mavenPublicationName,
                             MavenPublication::class.java
                         ).apply {
-                            pom.properties.put("cartridge.style", "development")
+                            artifact(zipStaticTask)
+
+                            pom.properties.put("cartridge.type", "external")
                         }
                     }
                 }
             }
+            tasks.getByName("publish").dependsOn(zipStaticTask)
         }
     }
 }

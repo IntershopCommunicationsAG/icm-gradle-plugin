@@ -16,23 +16,86 @@
  */
 package com.intershop.gradle.icm
 
+import com.intershop.gradle.icm.util.TestRepo
 import com.intershop.gradle.test.AbstractIntegrationGroovySpec
-import com.intershop.gradle.test.builder.TestMavenRepoBuilder
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
-    def setup() {
-        new TestMavenRepoBuilder().repository {
-            project(groupId: 'com.intershop.platform.lib', artifactId: 'runtime-lib', version: '1.0.0-dev2') {
-                artifact(ext: 'dylib', classifier: 'darwin', content: 'testfile1')
-                artifact(ext: 'setpgid', classifier: 'darwin', content: 'testfile2')
-                artifact(ext: 'so', classifier: 'linux', content: 'testfile3')
-                artifact(ext: 'setpgid', classifier: 'linux', content: 'testfile4')
-                artifact(ext: 'dll', classifier: 'win32', content: 'testfile5')
+    def 'check configuration and dependencies'() {
+        given:
+        TestRepo repo = new TestRepo(new File(testProjectDir, "/repo"))
+        String repoConf = repo.getRepoConfig()
+
+        settingsFile << """
+        rootProject.name='rootproject'
+        """.stripIndent()
+
+        buildFile << """
+            plugins {
+                id 'java'
+                id 'com.intershop.gradle.icm.project'
             }
-        }.writeTo(new File(testProjectDir, "/repo"))
+            
+            group = 'com.intershop.test'
+
+            dependencies {
+                ${ICMProjectPlugin.CONFIGURATION_EXTERNALCARTRIDGES} 'com.intershop.cartridge:cartridge2:1.0.0'
+            }
+            
+            task copyConf(type: Copy) {
+                from configurations.${ICMProjectPlugin.CONFIGURATION_EXTERNALCARTRIDGES}
+                into "\$buildDir/result"
+            }
+
+            ${repoConf}
+        """.stripIndent()
+
+        when:
+        def result = getPreparedGradleRunner()
+                .withArguments("copyConf", "-s")
+                //.withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        result.task(':copyConf').outcome == SUCCESS
+        new File(testProjectDir, "build/result/cartridge2-1.0.0.jar").exists()
     }
+
+    def 'check setup task'() {
+        given:
+        TestRepo repo = new TestRepo(new File(testProjectDir, "/repo"))
+        String repoConf = repo.getRepoConfig()
+
+        settingsFile << """
+        rootProject.name='rootproject'
+        """.stripIndent()
+
+        buildFile << """
+            plugins {
+                id 'java'
+                id 'com.intershop.gradle.icm.project'
+            }
+            
+            group = 'com.intershop.test'
+
+            dependencies {
+                ${ICMProjectPlugin.CONFIGURATION_EXTERNALCARTRIDGES} 'com.intershop.cartridge:cartridge2:1.0.0'
+            }
+
+            ${repoConf}
+        """.stripIndent()
+
+        when:
+        def result = getPreparedGradleRunner()
+                .withArguments("setupExtCartridges", "-s")
+        //.withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        result.task(':setupExternalCartridges').outcome == SUCCESS
+    }
+
 
 }

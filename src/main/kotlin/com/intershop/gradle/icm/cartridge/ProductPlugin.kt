@@ -14,16 +14,19 @@
  * limitations under the License.
  *
  */
-package com.intershop.gradle.icm
 
-import com.intershop.gradle.test.AbstractProjectSpec
-import org.gradle.api.Plugin
+package com.intershop.gradle.icm.cartridge
 
-class DevelopmentCartridgePluginSpec extends AbstractProjectSpec {
+import org.gradle.api.Project
 
-    @Override
-    Plugin getPlugin() {
-        return new DevelopmentCartridgePlugin()
+/**
+ * The product cartridge plugin applies all basic
+ * configuration and tasks to a product cartridge project.
+ */
+open class ProductPlugin  : AbstractCartridge() {
+
+    override fun apply(project: Project) {
+        project.plugins.apply(PublicPlugin::class.java)
+        publishCartridge(project, "cartridge")
     }
-
 }

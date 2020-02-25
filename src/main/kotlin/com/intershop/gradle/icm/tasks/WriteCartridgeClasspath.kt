@@ -16,8 +16,8 @@
  */
 package com.intershop.gradle.icm.tasks
 
-import com.intershop.gradle.icm.CartridgePlugin
-import com.intershop.gradle.icm.CartridgePlugin.Companion.CONFIGURATION_CARTRIDGERUNTIME
+import com.intershop.gradle.icm.cartridge.CartridgePlugin
+import com.intershop.gradle.icm.cartridge.CartridgePlugin.Companion.CONFIGURATION_CARTRIDGERUNTIME
 import com.intershop.gradle.icm.extension.IntershopExtension.Companion.INTERSHOP_GROUP_NAME
 import com.intershop.gradle.icm.utils.getValue
 import com.intershop.gradle.icm.utils.setValue
@@ -111,7 +111,7 @@ open class WriteCartridgeClasspath : DefaultTask() {
     @get:Input
     val cartridgeRuntimeDependencies: List<String> by lazy {
         val returnDeps = mutableListOf<String>()
-        project.configurations.getByName(CartridgePlugin.CONFIGURATION_CARTRIDGERUNTIME).dependencies.forEach {
+        project.configurations.getByName(CONFIGURATION_CARTRIDGERUNTIME).dependencies.forEach {
             returnDeps.add(it.toString())
         }
         returnDeps

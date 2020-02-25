@@ -14,16 +14,17 @@
  * limitations under the License.
  *
  */
-package com.intershop.gradle.icm
+package com.intershop.gradle.icm.cartridge
+
 
 import com.intershop.gradle.test.AbstractProjectSpec
 import org.gradle.api.Plugin
 
-class AdapterCartridgePluginSpec extends AbstractProjectSpec {
+class TestPluginSpec extends AbstractProjectSpec {
 
     @Override
     Plugin getPlugin() {
-        return new AdapterCartridgePlugin()
+        return new TestPlugin()
     }
 
 }

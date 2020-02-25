@@ -14,7 +14,7 @@
  * limitations under the License.
  *
  */
-package com.intershop.gradle.icm
+package com.intershop.gradle.icm.cartridge
 
 import com.intershop.gradle.icm.extension.IntershopExtension
 import org.gradle.api.Plugin
@@ -24,14 +24,12 @@ import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
 
 /**
- * The adapter cartridge plugin applies all basic
- * configuration and tasks to a adapter cartridge project.
+ * Base class of a group of ICM cartridge plugins.
  */
-open class AdapterCartridgePlugin : Plugin<Project> {
+abstract class AbstractCartridge : Plugin<Project> {
 
-    override fun apply(project: Project) {
+    protected fun publishCartridge(project: Project, catridgeStyle: String ) {
         with(project) {
-            plugins.apply(ExternalCartridgePlugin::class.java)
             val extension = rootProject.extensions.getByType(IntershopExtension::class.java)
 
             with(extensions) {
@@ -41,7 +39,7 @@ open class AdapterCartridgePlugin : Plugin<Project> {
                             extension.mavenPublicationName,
                             MavenPublication::class.java
                         ).apply {
-                            pom.properties.put("cartridge.style", "adapter")
+                            pom.properties.put("cartridge.style", catridgeStyle)
                         }
                     }
                 }

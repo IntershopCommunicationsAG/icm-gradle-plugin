@@ -19,7 +19,7 @@ package com.intershop.gradle.icm
 import com.intershop.gradle.test.AbstractIntegrationGroovySpec
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
-class ICMPublicCartridgePluginSpec extends AbstractIntegrationGroovySpec {
+class ICMPublicPluginPluginSpec extends AbstractIntegrationGroovySpec {
 
     def 'ZipFile will be created and published'() {
 
