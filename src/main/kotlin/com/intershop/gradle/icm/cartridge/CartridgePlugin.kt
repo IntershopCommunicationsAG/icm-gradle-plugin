@@ -115,10 +115,7 @@ open class CartridgePlugin : Plugin<Project> {
                 tasksWriteFiles.add(taskWriteCartridgeClasspath.get())
             }
 
-            val mainTask = project.rootProject.tasks.findByName(ICMBasePlugin.TASK_WRITECARTRIDGEFILES)
-            if(mainTask != null) {
-                mainTask.dependsOn(tasksWriteFiles)
-            }
+            project.rootProject.tasks.findByName(ICMBasePlugin.TASK_WRITECARTRIDGEFILES)?.dependsOn(tasksWriteFiles)
         }
     }
 }

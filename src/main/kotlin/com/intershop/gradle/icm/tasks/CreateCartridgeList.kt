@@ -145,8 +145,10 @@ open class CreateCartridgeList: DefaultTask() {
             project.delete(file)
         }
 
+        val entries = mutableListOf<String>()
+
         baseFile.forEachLine lineIt@{ tline ->
-            var uline = tline.replace("\\", "").trim()
+            val uline = tline.replace("\\", "").trim()
             var line = uline
             excludesListProperty.get().forEach exIt@{ exRegex ->
                 if(uline.matches(exRegex.toRegex())) {
@@ -163,9 +165,18 @@ open class CreateCartridgeList: DefaultTask() {
                 }
             }
 
-            if(line != "") {
-                file.appendText(tline + "\n")
+            if(line != "" || uline == "") {
+                if(tline == "" || tline.trim().startsWith("#")) {
+                    val newLast = entries.last().replace("\\", "").trimEnd()
+                    entries.removeAt(entries.lastIndex)
+                    entries.add("$newLast\n")
+                }
+                entries.add( "$tline\n")
             }
+        }
+
+        entries.forEach {
+            file.appendText(it)
         }
     }
 }

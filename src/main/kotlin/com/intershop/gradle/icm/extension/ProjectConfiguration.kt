@@ -25,6 +25,9 @@ import org.gradle.api.provider.Provider
 import java.io.File
 import javax.inject.Inject
 
+/**
+ * Extension of an Intershop ICM project.
+ */
 abstract class ProjectConfiguration {
 
     companion object {
@@ -37,7 +40,9 @@ abstract class ProjectConfiguration {
      */
     @get:Inject
     abstract val objectFactory: ObjectFactory
-
+    /**
+     * Inject service of ProjectLayout (See "Service injection" in Gradle documentation.
+     */
     @get:Inject
     abstract val projectLayout: ProjectLayout
 
@@ -47,13 +52,27 @@ abstract class ProjectConfiguration {
         cartridgeDirProperty.convention(projectLayout.buildDirectory.dir(EXTERNAL_CARTRIDGE_PATH))
     }
 
+    /**
+     * Provider of cartridge directory for external cartridges.
+     *
+     * @property cartridgeDirProvider
+     */
     val cartridgeDirProvider: Provider<Directory>
         get() = cartridgeDirProperty
 
+    /**
+     * Cartridge directory for external cartridges.
+     *
+     * @property cartridgeDir
+     */
     var cartridgeDir: File
         get() = cartridgeDirProperty.get().asFile
         set(value) = cartridgeDirProperty.set(value)
 
+    /**
+     * Set only a short path for cartridge dir.
+     * @param buildPath
+     */
     fun setCartridgeBuildPath(buildPath: String) {
         cartridgeDirProperty.set(projectLayout.buildDirectory.dir(buildPath))
     }

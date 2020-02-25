@@ -26,7 +26,7 @@ import javax.inject.Inject
 /**
  * Extension for server info properties.
  */
-abstract class ProjectInfo() {
+abstract class ProjectInfo {
 
     /**
      * Inject service of ObjectFactory (See "Service injection" in Gradle documentation.
