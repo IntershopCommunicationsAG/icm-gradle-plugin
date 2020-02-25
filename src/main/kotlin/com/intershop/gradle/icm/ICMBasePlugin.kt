@@ -52,8 +52,11 @@ open class ICMBasePlugin: Plugin<Project> {
 
                 logger.info("ICM build plugin will be initialized")
 
-                // apply maven publishing plugin to root project
+                // apply maven publishing plugin to root and subprojects
                 plugins.apply(MavenPublishPlugin::class.java)
+                subprojects {
+                    plugins.apply(MavenPublishPlugin::class.java)
+                }
 
                 val extension = extensions.findByType(
                     IntershopExtension::class.java

@@ -50,7 +50,6 @@ open class PublicPlugin : Plugin<Project> {
         with(project) {
             plugins.apply(CartridgePlugin::class.java)
             configureAddJars(this)
-            plugins.apply(MavenPublishPlugin::class.java)
         }
     }
 
