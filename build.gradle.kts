@@ -151,7 +151,7 @@ detekt {
 
 tasks {
     withType<Test>().configureEach {
-        systemProperty("intershop.gradle.versions", "5.6.4, 6.0")
+        systemProperty("intershop.gradle.versions", "6.2.1")
 
         dependsOn("jar")
     }
