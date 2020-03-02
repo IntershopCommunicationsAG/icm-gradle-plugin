@@ -146,6 +146,7 @@ open class WriteCartridgeDescriptor : WriteProperties() {
         comment = "Intershop descriptor file"
 
         val cartridges = HashSet<String>()
+        val noCartridges = HashSet<String>()
         val cartridgesTransitive = HashSet<String>()
 
         project.configurations.getByName(CONFIGURATION_CARTRIDGE).allDependencies.forEach { dependency ->
@@ -163,6 +164,7 @@ open class WriteCartridgeDescriptor : WriteProperties() {
             getByName(CONFIGURATION_CARTRIDGERUNTIME).
             resolvedConfiguration.lenientConfiguration.allModuleDependencies.forEach { dependency ->
                 dependency.moduleArtifacts.forEach { artifact ->
+
                     val identifier = artifact.id.componentIdentifier
                     if(identifier is ProjectComponentIdentifier) {
                         cartridgesTransitive.add(project.project( identifier.projectPath ).name)
@@ -175,6 +177,15 @@ open class WriteCartridgeDescriptor : WriteProperties() {
                     }
                 }
             }
+
+
+        cartridges.forEach {
+            if(! cartridgesTransitive.contains(it)) {
+                noCartridges.add(it)
+            }
+        }
+
+        cartridges.removeAll(noCartridges)
 
         property("cartridge.dependsOn", cartridges.toSortedSet().joinToString( separator = ";" ))
         property("cartridge.dependsOn.transitive", cartridgesTransitive.toSortedSet().joinToString( separator = ";" ))
