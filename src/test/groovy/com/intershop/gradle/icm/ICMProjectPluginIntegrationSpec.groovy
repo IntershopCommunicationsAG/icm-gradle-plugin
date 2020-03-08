@@ -55,12 +55,15 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         when:
         def result = getPreparedGradleRunner()
                 .withArguments("copyConf", "-s")
-                //.withGradleVersion(gradleVersion)
+                .withGradleVersion(gradleVersion)
                 .build()
 
         then:
         result.task(':copyConf').outcome == SUCCESS
         new File(testProjectDir, "build/result/cartridge2-1.0.0.jar").exists()
+
+        where:
+        gradleVersion << supportedGradleVersions
     }
 
     def 'check setup task'() {
@@ -90,11 +93,14 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         when:
         def result = getPreparedGradleRunner()
                 .withArguments("setupExtCartridges", "-s")
-        //.withGradleVersion(gradleVersion)
+                .withGradleVersion(gradleVersion)
                 .build()
 
         then:
         result.task(':setupExternalCartridges').outcome == SUCCESS
+
+        where:
+        gradleVersion << supportedGradleVersions
     }
 
 

@@ -17,7 +17,9 @@
 
 package com.intershop.gradle.icm
 
+import com.intershop.gradle.icm.util.TestRepo
 import com.intershop.gradle.test.AbstractIntegrationGroovySpec
+
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 import static org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
 
@@ -33,6 +35,7 @@ class CreateCartridgeListSpec extends AbstractIntegrationGroovySpec {
 
         buildFile << """
             plugins {
+                id 'java'
                 id 'com.intershop.gradle.icm.base'
             }
             
@@ -90,6 +93,7 @@ class CreateCartridgeListSpec extends AbstractIntegrationGroovySpec {
 
         buildFile << """
             plugins {
+                id 'java'
                 id 'com.intershop.gradle.icm.base'
             }
             
@@ -119,6 +123,7 @@ class CreateCartridgeListSpec extends AbstractIntegrationGroovySpec {
 
         buildFile << """
             plugins {
+             id 'java'
                 id 'com.intershop.gradle.icm.base'
             }
             
@@ -166,6 +171,7 @@ class CreateCartridgeListSpec extends AbstractIntegrationGroovySpec {
 
         buildFile << """
             plugins {
+                id 'java'
                 id 'com.intershop.gradle.icm.base'
             }
             
@@ -189,6 +195,115 @@ class CreateCartridgeListSpec extends AbstractIntegrationGroovySpec {
         result.task(':createCartridgeList').outcome == SUCCESS
         file.text.contains("init_contactcenter")
         ! file.text.contains("init_contactcenter \\")
+
+        where:
+        gradleVersion << supportedGradleVersions
+    }
+
+    def "extended cartridge list properties"() {
+        given:
+        TestRepo repo = new TestRepo(new File(testProjectDir, "/repo"))
+        String repoConf = repo.getRepoConfig()
+
+        copyResources("cartridgelist", "build/input")
+
+        settingsFile << """
+        rootProject.name='rootproject'
+        """.stripIndent()
+
+        buildFile << """
+            plugins {
+                id 'com.intershop.gradle.icm.project'
+            }
+            
+            intershop {
+                projectConfig {
+                    cartridges = ['cartridge1', 'cartridge2', 'test_artridge1', 'test_cartridge2' ]
+                    dbprepareCartridges = ['cartridge1', 'cartridge2', 'test_artridge1', 'test_cartridge2', "dbprep_cartr1" ]
+                    productionCartridges = ['cartridge1', 'cartridge2', "dbprep_cartr1" ]
+
+                    configurationPackage = "com.intershop.icm:icm-as:1.0.0"
+
+                    sitesPackage = "com.intershop.icm:icm-as:1.0.0"
+                }
+            }
+
+            ${repoConf}
+        """.stripIndent()
+
+        when:
+        def result = getPreparedGradleRunner()
+                .withArguments("extendCartrideListTest", "-s")
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        def testFile = new File(testProjectDir, "build/test/cartridgelist.properties")
+        def testProps = new Properties()
+
+        then:
+        result.task(':extendCartrideListTest').outcome == SUCCESS
+        testFile.exists()
+        testProps.load(testFile.newReader())
+        testProps.getProperty("cartridges").contains("cartridge1 cartridge2 test_artridge1 test_cartridge2")
+        testProps.getProperty("cartridges.dbinit").contains("cartridge1 cartridge2 test_artridge1 test_cartridge2 dbprep_cartr1")
+
+        when:
+        def result1 = getPreparedGradleRunner()
+                .withArguments("extendCartrideListProd", "-s")
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        def prodFile = new File(testProjectDir, "build/production/cartridgelist.properties")
+        def prodProps = new Properties()
+
+        then:
+        result1.task(':extendCartrideListProd').outcome == SUCCESS
+        prodFile.exists()
+        prodProps.load(prodFile.newReader())
+        prodProps.getProperty("cartridges").contains("cartridge1 cartridge2")
+        prodProps.getProperty("cartridges.dbinit").contains("cartridge1 cartridge2 dbprep_cartr1")
+
+        where:
+        gradleVersion << supportedGradleVersions
+            
+    }
+
+    def "prepare folder from release"() {
+        TestRepo repo = new TestRepo(new File(testProjectDir, "/repo"))
+        String repoConf = repo.getRepoConfig()
+
+        settingsFile << """
+        rootProject.name='rootproject'
+        """.stripIndent()
+
+        buildFile << """
+            plugins {
+                id 'com.intershop.gradle.icm.project'
+            }
+            
+            intershop {
+                projectConfig {
+                    cartridges = ['cartridge1', 'cartridge2', 'test_artridge1', 'test_cartridge2' ]
+                    dbprepareCartridges = ['cartridge1', 'cartridge2', 'test_artridge1', 'test_cartridge2', "dbprep_cartr1" ]
+                    productionCartridges = ['cartridge1', 'cartridge2', "dbprep_cartr1" ]
+
+                    configurationPackage = "com.intershop.icm:icm-as:1.0.0"
+
+                    sitesPackage = "com.intershop.icm:icm-as:1.0.0"
+                }
+            }
+
+            ${repoConf}
+        """.stripIndent()
+
+        when:
+        def result = getPreparedGradleRunner()
+                .withArguments("prepareFolders", "-s")
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        result.task(':prepareFolders').outcome == SUCCESS
 
         where:
         gradleVersion << supportedGradleVersions

@@ -17,11 +17,17 @@
 
 package com.intershop.gradle.icm.extension
 
+import com.intershop.gradle.icm.utils.getValue
+import com.intershop.gradle.icm.utils.setValue
 import org.gradle.api.file.Directory
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.ProjectLayout
+import org.gradle.api.file.RegularFile
+import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
+import org.gradle.api.provider.SetProperty
 import java.io.File
 import javax.inject.Inject
 
@@ -31,8 +37,15 @@ import javax.inject.Inject
 abstract class ProjectConfiguration {
 
     companion object {
-        // names for the plugin
+        /**
+         * Path in build directory for external cartridges.
+         */
         const val EXTERNAL_CARTRIDGE_PATH = "ext_cartridges"
+
+        /**
+         * Path for original cartridge list properties in build directory.
+         */
+        const val CARTRIDGELISTFILE_PATH = "org_cartridgelist/cartridgelist.properties"
     }
 
     /**
@@ -40,6 +53,7 @@ abstract class ProjectConfiguration {
      */
     @get:Inject
     abstract val objectFactory: ObjectFactory
+
     /**
      * Inject service of ProjectLayout (See "Service injection" in Gradle documentation.
      */
@@ -47,6 +61,13 @@ abstract class ProjectConfiguration {
     abstract val projectLayout: ProjectLayout
 
     private val cartridgeDirProperty: DirectoryProperty = objectFactory.directoryProperty()
+
+    private val cartridgesProperty: SetProperty<String> = objectFactory.setProperty(String::class.java)
+    private val dbprepareCartridgesProperty: SetProperty<String> = objectFactory.setProperty(String::class.java)
+    private val productionCartridgesProperty: SetProperty<String> = objectFactory.setProperty(String::class.java)
+
+    private val configurationPackageProperty: Property<String> = objectFactory.property(String::class.java)
+    private val sitesPackageProperty: Property<String> = objectFactory.property(String::class.java)
 
     init {
         cartridgeDirProperty.convention(projectLayout.buildDirectory.dir(EXTERNAL_CARTRIDGE_PATH))
@@ -76,4 +97,107 @@ abstract class ProjectConfiguration {
     fun setCartridgeBuildPath(buildPath: String) {
         cartridgeDirProperty.set(projectLayout.buildDirectory.dir(buildPath))
     }
+
+    /**
+     * Provider of cartridge list extension of a project.
+     *
+     * @property cartridgesProperty
+     */
+    val cartridgesProvider: Provider<Set<String>>
+        get() = cartridgesProperty
+
+    /**
+     * Cartridges of this project.
+     *
+     * @property cartridges
+     */
+    var cartridges by cartridgesProperty
+
+    /**
+     * Add a single cartridge to the list.
+     *
+     * @param cartrige name of an ICM cartridge
+     */
+    fun cartridge(cartridge: String) {
+        cartridgesProperty.add(cartridge)
+    }
+
+    /**
+     * Provider of dbinit/dbprepare cartridge list extension of a project.
+     *
+     * @property dbprepareCartridgesProperty
+     */
+    val dbprepareCartridgesProvider: Provider<Set<String>>
+        get() = dbprepareCartridgesProperty
+
+    /**
+     * Cartridges of this project.
+     *
+     * @property dbprepareCartridges
+     */
+    var dbprepareCartridges by dbprepareCartridgesProperty
+
+    /**
+     * Add a single cartridge to the list of dbprepare cartridges.
+     *
+     * @param cartrige name of an ICM cartridge
+     */
+    fun dbprepareCartridge(cartridge: String) {
+        cartridgesProperty.add(cartridge)
+    }
+
+    /**
+     * Provider of all production cartridges in the extended list.
+     *
+     * @property productionCartridgesProvider
+     */
+    val productionCartridgesProvider: Provider<Set<String>>
+        get() = productionCartridgesProperty
+
+    /**
+     * Cartridges of this project.
+     *
+     * @property productionCartridges
+     */
+    var productionCartridges by productionCartridgesProperty
+
+    /**
+     * Add a single cartridge to the list of dbprepare cartridges.
+     *
+     * @param cartrige name of an ICM cartridge
+     */
+    fun productionCartridge(cartridge: String) {
+        productionCartridgesProperty.add(cartridge)
+    }
+
+    /**
+     * Provider of configurationPackage property.
+     *
+     * @property configurationPackageProvider
+     */
+    val configurationPackageProvider: Provider<String>
+        get() = configurationPackageProperty
+
+    /**
+     * Base of the sites configuration of an ICM server.
+     *
+     * @property configurationPackage
+     */
+    var configurationPackage by configurationPackageProperty
+
+    /**
+     * Provider of configurationPackage property.
+     *
+     * @property configurationPackageProvider
+     */
+    val sitesPackageProvider: Provider<String>
+        get() = sitesPackageProperty
+
+    /**
+     * Base of the server configuration of an ICM server.
+     *
+     * @property sitesPackage
+     */
+    var sitesPackage by sitesPackageProperty
+
 }
