@@ -16,8 +16,8 @@
  */
 package com.intershop.gradle.icm.tasks
 
-import com.intershop.gradle.icm.cartridge.CartridgePlugin.Companion.CONFIGURATION_CARTRIDGE
-import com.intershop.gradle.icm.cartridge.CartridgePlugin.Companion.CONFIGURATION_CARTRIDGERUNTIME
+import com.intershop.gradle.icm.ICMBasePlugin.Companion.CONFIGURATION_CARTRIDGE
+import com.intershop.gradle.icm.ICMBasePlugin.Companion.CONFIGURATION_CARTRIDGERUNTIME
 import com.intershop.gradle.icm.extension.IntershopExtension.Companion.INTERSHOP_GROUP_NAME
 import com.intershop.gradle.icm.utils.getValue
 import com.intershop.gradle.icm.utils.setValue
@@ -57,7 +57,6 @@ open class WriteCartridgeDescriptor : WriteProperties() {
         outputFile = File(project.buildDir,
             "${CARTRIDGE_DESCRIPTOR_DIR}/${CARTRIDGE_DESCRIPTOR_FILE}")
 
-        versionProperty.convention(project.version.toString())
         nameProperty.convention(project.name)
 
         val description = if (! project.description.isNullOrEmpty())
@@ -78,7 +77,9 @@ open class WriteCartridgeDescriptor : WriteProperties() {
     fun provideCartridgeVersion(cartridgeVersion: Provider<String>) = versionProperty.set(cartridgeVersion)
 
     @get:Input
-    var cartridgeVersion by versionProperty
+    var cartridgeVersion
+        get() = versionProperty.getOrElse(project.version.toString())
+        set(value) = versionProperty.set(value)
 
     /**
      * Set provider for descriptor cartridge name property.

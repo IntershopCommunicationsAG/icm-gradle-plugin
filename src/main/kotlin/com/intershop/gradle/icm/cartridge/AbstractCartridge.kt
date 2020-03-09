@@ -16,6 +16,7 @@
  */
 package com.intershop.gradle.icm.cartridge
 
+import com.intershop.gradle.icm.ICMBasePlugin
 import com.intershop.gradle.icm.extension.IntershopExtension
 import org.gradle.api.Plugin
 import org.gradle.api.Project

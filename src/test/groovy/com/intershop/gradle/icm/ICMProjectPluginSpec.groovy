@@ -24,7 +24,7 @@ class ICMProjectPluginSpec extends AbstractProjectSpec {
 
     @Override
     Plugin getPlugin() {
-        return new ICMProjectPlugin()
+        return new ICMProjectPlugin(project.layout)
     }
 
     def 'should add extension named intershop'() {

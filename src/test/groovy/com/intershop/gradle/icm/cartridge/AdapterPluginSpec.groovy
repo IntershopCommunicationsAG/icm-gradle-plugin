@@ -26,5 +26,4 @@ class AdapterPluginSpec extends AbstractProjectSpec {
     Plugin getPlugin() {
         return new AdapterPlugin()
     }
-
 }

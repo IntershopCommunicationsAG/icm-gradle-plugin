@@ -35,6 +35,9 @@ open class ICMBasePlugin: Plugin<Project> {
         const val TASK_ALLDEPENDENCIESREPORT = "allDependencies"
         const val TASK_WRITECARTRIDGEFILES = "writeCartridgeFiles"
 
+        const val CONFIGURATION_CARTRIDGE = "cartridge"
+        const val CONFIGURATION_CARTRIDGERUNTIME = "cartridgeRuntime"
+
         /**
          * checks if the specified name is available in the list of tasks.
          *
@@ -64,6 +67,11 @@ open class ICMBasePlugin: Plugin<Project> {
 
                 configureClusterIdTask(project)
                 configureCreateServerInfoPropertiesTask(project, extension)
+                configureBaseConfigurations(project)
+
+                project.subprojects.forEach {
+                    configureBaseConfigurations(it)
+                }
 
                 if(! checkForTask(tasks, TASK_ALLDEPENDENCIESREPORT)) {
                     tasks.register(TASK_ALLDEPENDENCIESREPORT, DependencyReportTask::class.java)
@@ -77,6 +85,22 @@ open class ICMBasePlugin: Plugin<Project> {
             } else {
                 logger.warn("ICM build plugin will be not applied to the sub project '{}'", name)
             }
+        }
+    }
+
+    private fun configureBaseConfigurations(project: Project) {
+        with(project.configurations) {
+            val implementation = findByName(org.gradle.api.plugins.JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME)
+
+            val cartridge = maybeCreate(CONFIGURATION_CARTRIDGE)
+            cartridge.isTransitive = false
+            if(implementation != null) {
+                implementation.extendsFrom(cartridge)
+            }
+
+            val cartridgeRuntime = maybeCreate(CONFIGURATION_CARTRIDGERUNTIME)
+            cartridgeRuntime.extendsFrom(cartridge)
+            cartridgeRuntime.isTransitive = true
         }
     }
 

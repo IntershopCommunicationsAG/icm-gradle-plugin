@@ -86,6 +86,8 @@ class TestRepo {
 
         addCartridge('cartridge2', '1.0.0', 'development')
 
+        addBaseProject("icm-as", "1.0.0")
+
         String repostr = """
             repositories {
                 jcenter()
@@ -156,5 +158,40 @@ class TestRepo {
                 dependency groupId: 'com.other', artifactId: 'library3', version: '1.5.0'
             }
         }.writeTo(repoDir)
+    }
+
+    private void addBaseProject(String projectName, String version) {
+
+        new TestMavenRepoBuilder().repository {
+            project(groupId: 'com.intershop.icm', artifactId: projectName, version: version) {
+                artifact (
+                        classifier: "configuration",
+                        ext: "zip",
+                        entries: [
+                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'system-conf/apps/file.txt', content: 'apps = test1.component'),
+                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'system-conf/cluster/cartridgelist.properties', content: getTextResources('cartridgelist/cartridgelist.properties'))
+                        ]
+                )
+                artifact (
+                        classifier: "sites",
+                        ext: "zip",
+                        entries: [
+                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'sites/SLDSystem/file.txt', content: 'SLDSystem = test1.component'),
+                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'sites/SMC/file.txt', content: 'smc = test1.component')
+                        ]
+                )
+            }
+        }.writeTo(repoDir)
+    }
+
+    protected String getTextResources(String srcDir) {
+        ClassLoader classLoader = getClass().getClassLoader();
+        URL resource = classLoader.getResource(srcDir);
+        if (resource == null) {
+            throw new RuntimeException("Could not find classpath resource: $srcDir")
+        }
+
+        File resourceFile = new File(resource.toURI())
+        return resourceFile.text
     }
 }
