@@ -68,6 +68,7 @@ open class ICMBasePlugin: Plugin<Project> {
                 configureClusterIdTask(project)
                 configureCreateServerInfoPropertiesTask(project, extension)
                 configureBaseConfigurations(project)
+
                 project.subprojects.forEach {
                     configureBaseConfigurations(it)
                 }
@@ -89,11 +90,13 @@ open class ICMBasePlugin: Plugin<Project> {
 
     private fun configureBaseConfigurations(project: Project) {
         with(project.configurations) {
-            val implementation = getByName(org.gradle.api.plugins.JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME)
+            val implementation = findByName(org.gradle.api.plugins.JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME)
 
             val cartridge = maybeCreate(CONFIGURATION_CARTRIDGE)
             cartridge.isTransitive = false
-            implementation.extendsFrom(cartridge)
+            if(implementation != null) {
+                implementation.extendsFrom(cartridge)
+            }
 
             val cartridgeRuntime = maybeCreate(CONFIGURATION_CARTRIDGERUNTIME)
             cartridgeRuntime.extendsFrom(cartridge)

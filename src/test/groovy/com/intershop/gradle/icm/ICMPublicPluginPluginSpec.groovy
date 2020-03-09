@@ -31,6 +31,7 @@ class ICMPublicPluginPluginSpec extends AbstractIntegrationGroovySpec {
         buildFile << """
             plugins {
                 id 'maven-publish'
+                id 'com.intershop.gradle.icm.base'
                 id 'com.intershop.icm.cartridge.adapter'
             }
 

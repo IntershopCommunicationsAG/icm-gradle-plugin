@@ -49,12 +49,12 @@ abstract class ExtendCartridgeList : DefaultTask() {
         const val CARTRIDGELISTFILE_NAME = "cartridgelist.properties"
 
         /**
-         * Property name for cartridges
+         * Property name for cartridges.
          */
         const val CARTRIDGES_PROPERTY = "cartridges"
 
         /**
-         * Property name for cartridges
+         * Property name for dbinit/dbprepare cartridges.
          */
         const val CARTRIDGES_DBINIT_PROPERTY = "cartridges.dbinit"
     }
@@ -83,8 +83,12 @@ abstract class ExtendCartridgeList : DefaultTask() {
         group = IntershopExtension.INTERSHOP_GROUP_NAME
         description = "Creates a cluster ID to start a server."
 
-        outputFileProperty.set(projectLayout.buildDirectory.file("${this.name.toLowerCase()}/${CARTRIDGELISTFILE_NAME}"))
-        cartridgePropertiesFileProperty.convention(projectLayout.buildDirectory.file(ProjectConfiguration.CARTRIDGELISTFILE_PATH))
+        outputFileProperty.set(
+            projectLayout.buildDirectory.file(
+                "${this.name.toLowerCase()}/${CARTRIDGELISTFILE_NAME}"))
+        cartridgePropertiesFileProperty.convention(
+            projectLayout.buildDirectory.file(
+                ProjectConfiguration.CARTRIDGELISTFILE_PATH))
         writeAllCartridgeListProperty.set(false)
     }
 
@@ -196,25 +200,29 @@ abstract class ExtendCartridgeList : DefaultTask() {
     @TaskAction
     fun extendCartridgeList() {
         if(! cartridgePropertiesFile.exists()) {
-            throw GradleException("Orignal cartridge properties does not exists (" + cartridgePropertiesFile.absolutePath +")")
+            throw GradleException(
+                "Orignal cartridge properties does not exists (" + cartridgePropertiesFile.absolutePath +")")
         }
-        val org_props = Properties()
+        val orgProps = Properties()
         try {
-            org_props.load(cartridgePropertiesFile.bufferedReader())
+            orgProps.load(cartridgePropertiesFile.bufferedReader())
         } catch(ioex: IOException) {
-            throw GradleException("Can not read orignal cartridge properies (" + cartridgePropertiesFile.absolutePath +")")
+            throw GradleException(
+                "Can not read orignal cartridge properies (" + cartridgePropertiesFile.absolutePath +")")
         }
 
-        val cartridgeProp = org_props.get(CARTRIDGES_PROPERTY)
+        val cartridgeProp = orgProps.get(CARTRIDGES_PROPERTY)
 
         if(cartridgeProp == null) {
-            throw GradleException("There is no list of cartridges in (" + cartridgePropertiesFile.absolutePath +")")
+            throw GradleException(
+                "There is no list of cartridges in (" + cartridgePropertiesFile.absolutePath +")")
         }
 
-        val dbinitCartridgeProp = org_props.get(CARTRIDGES_DBINIT_PROPERTY)
+        val dbinitCartridgeProp = orgProps.get(CARTRIDGES_DBINIT_PROPERTY)
 
         if(dbinitCartridgeProp == null) {
-            throw GradleException("There is no list of dbinit cartridges in (" + cartridgePropertiesFile.absolutePath +")")
+            throw GradleException(
+                "There is no list of dbinit cartridges in (" + cartridgePropertiesFile.absolutePath +")")
         }
 
         project.logger.info("Data of original cartridgelist.properties read from {}", cartridgePropertiesFile)

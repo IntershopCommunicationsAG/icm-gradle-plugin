@@ -22,8 +22,6 @@ import com.intershop.gradle.icm.utils.setValue
 import org.gradle.api.file.Directory
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.ProjectLayout
-import org.gradle.api.file.RegularFile
-import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
@@ -69,8 +67,13 @@ abstract class ProjectConfiguration {
     private val configurationPackageProperty: Property<String> = objectFactory.property(String::class.java)
     private val sitesPackageProperty: Property<String> = objectFactory.property(String::class.java)
 
+    private val configDirProperty: DirectoryProperty = objectFactory.directoryProperty()
+    private val sitesDirProperty: DirectoryProperty = objectFactory.directoryProperty()
+
     init {
         cartridgeDirProperty.convention(projectLayout.buildDirectory.dir(EXTERNAL_CARTRIDGE_PATH))
+        configDirProperty.convention(projectLayout.projectDirectory.dir("config/base"))
+        sitesDirProperty.convention(projectLayout.projectDirectory.dir("sites/base"))
     }
 
     /**
@@ -200,4 +203,53 @@ abstract class ProjectConfiguration {
      */
     var sitesPackage by sitesPackageProperty
 
+    /**
+     * Provider of project configuration directory.
+     *
+     * @property configDirProvider
+     */
+    val configDirProvider: Provider<Directory>
+        get() = configDirProperty
+
+    /**
+     * Additional project configuration directory.
+     *
+     * @property configDir
+     */
+    var configDir: File
+        get() = configDirProperty.get().asFile
+        set(value) = configDirProperty.set(value)
+
+    /**
+     * Set only a short path for project configuration dir.
+     * @param configPath
+     */
+    fun setConfigPath(configPath: String) {
+        configDirProperty.set(projectLayout.projectDirectory.dir(configPath))
+    }
+
+    /**
+     * Provider of project sites directory.
+     *
+     * @property sitesDirProvider
+     */
+    val sitesDirProvider: Provider<Directory>
+        get() = sitesDirProperty
+
+    /**
+     * Project sites directory.
+     *
+     * @property sitesDir
+     */
+    var sitesDir: File
+        get() = sitesDirProperty.get().asFile
+        set(value) = sitesDirProperty.set(value)
+
+    /**
+     * Set only a short path for project configuration dir.
+     * @param configPath
+     */
+    fun setSitesPath(sitesPath: String) {
+        sitesDirProperty.set(projectLayout.projectDirectory.dir(sitesPath))
+    }
 }

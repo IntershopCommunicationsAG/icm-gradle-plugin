@@ -60,6 +60,10 @@ open class CartridgePlugin : Plugin<Project> {
             }
             plugins.apply(JavaPlugin::class.java)
 
+            if(! plugins.hasPlugin(ICMBasePlugin::class.java)) {
+                rootProject.plugins.apply(ICMBasePlugin::class.java)
+            }
+
             configureAddFileCreation( this)
 
             if (!checkForTask(

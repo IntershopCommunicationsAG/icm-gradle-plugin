@@ -23,8 +23,12 @@ import com.intershop.gradle.icm.tasks.ExtendCartridgeList.Companion.CARTRIDGELIS
 import com.intershop.gradle.icm.tasks.SetupExternalCartridges
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.file.ProjectLayout
+import org.gradle.api.tasks.Copy
+import org.gradle.api.tasks.Sync
 import org.gradle.api.tasks.TaskContainer
+import java.io.File
 import javax.inject.Inject
 
 /**
@@ -41,6 +45,9 @@ open class ICMProjectPlugin @Inject constructor(var projectLayout: ProjectLayout
         const val PREPARE_PROJECT_CONF = "prepareConfig"
         const val PREPARE_SITES_CONF = "prepareSites"
 
+        const val SYNC_SITES_FOLDER = "syncSites"
+        const val SYNC_CONF_FOLDER = "syncConfig"
+
         /**
          * checks if the specified name is available in the list of tasks.
          *
@@ -54,9 +61,6 @@ open class ICMProjectPlugin @Inject constructor(var projectLayout: ProjectLayout
 
     override fun apply(project: Project) {
         with(project.rootProject) {
-            // add docker plugin to project
-            plugins.apply(com.bmuschko.gradle.docker.DockerRemoteApiPlugin::class.java)
-
             val extension = extensions.findByType(
                 IntershopExtension::class.java
             ) ?: extensions.create(IntershopExtension.INTERSHOP_EXTENSION_NAME, IntershopExtension::class.java)
@@ -64,50 +68,52 @@ open class ICMProjectPlugin @Inject constructor(var projectLayout: ProjectLayout
             val cartridge = configurations.maybeCreate(CONFIGURATION_EXTERNALCARTRIDGES)
             cartridge.isTransitive = false
 
-            configureExtCartridgeTask(this, extension)
             configureProjectPackages(this, extension)
             configureCartridgeListTasks(this, extension)
+            configureExtCartridgeTask(this, extension)
+            configureSyncTasks(this, extension)
+
         }
     }
 
     private fun configureCartridgeListTasks(project: Project, extension: IntershopExtension) {
         with(project) {
             // create task for test cartridge list properties
-            if(! checkForTask(tasks, EXT_CARTRIDGELIST_TEST)) {
-                tasks.register(
-                    EXT_CARTRIDGELIST_TEST,
-                    ExtendCartridgeList::class.java
-                ) { task ->
-                    task.provideCartridges(extension.projectConfig.cartridgesProvider)
-                    task.provideDBprepareCartridges(extension.projectConfig.dbprepareCartridgesProvider)
-                    task.provideProductionCartridges(extension.projectConfig.productionCartridgesProvider)
+            tasks.maybeCreate(EXT_CARTRIDGELIST_TEST, ExtendCartridgeList::class.java).apply {
+                    provideCartridges(extension.projectConfig.cartridgesProvider)
+                    provideDBprepareCartridges(extension.projectConfig.dbprepareCartridgesProvider)
+                    provideProductionCartridges(extension.projectConfig.productionCartridgesProvider)
 
-                    task.writeAllCartridgeList = true
+                    writeAllCartridgeList = true
 
-                    task.provideOutputfile(projectLayout.buildDirectory.file("test/${CARTRIDGELISTFILE_NAME}"))
-                    task.provideCartridgePropertiesFile(projectLayout.buildDirectory.file("input/${CARTRIDGELISTFILE_NAME}"))
+                    provideOutputfile(projectLayout.buildDirectory.file("test/${CARTRIDGELISTFILE_NAME}"))
+
+                    val inputProp = project.objects.fileProperty()
+                    inputProp.set(
+                        File(tasks.getByName(PREPARE_PROJECT_CONF).outputs.files.single(),
+                            "system-conf/cluster/${CARTRIDGELISTFILE_NAME}"))
+                    provideCartridgePropertiesFile(inputProp)
+
+                    dependsOn(tasks.getByName(PREPARE_PROJECT_CONF))
                 }
-            }
             // create task for production cartridge list properties
-            if(! checkForTask(tasks, EXT_CARTRIDGELIST_PROD)) {
-                tasks.register(
-                    EXT_CARTRIDGELIST_PROD,
-                    ExtendCartridgeList::class.java
-                ) { task ->
-                    task.provideCartridges(extension.projectConfig.cartridgesProvider)
-                    task.provideDBprepareCartridges(extension.projectConfig.dbprepareCartridgesProvider)
-                    task.provideProductionCartridges(extension.projectConfig.productionCartridgesProvider)
+            tasks.maybeCreate(EXT_CARTRIDGELIST_PROD, ExtendCartridgeList::class.java).apply {
+                    provideCartridges(extension.projectConfig.cartridgesProvider)
+                    provideDBprepareCartridges(extension.projectConfig.dbprepareCartridgesProvider)
+                    provideProductionCartridges(extension.projectConfig.productionCartridgesProvider)
 
-                    task.writeAllCartridgeList = false
+                    writeAllCartridgeList = false
 
-                    task.provideOutputfile(projectLayout.buildDirectory.file("production/${CARTRIDGELISTFILE_NAME}"))
-                    task.provideCartridgePropertiesFile(projectLayout.buildDirectory.file("input/${CARTRIDGELISTFILE_NAME}"))
+                    provideOutputfile(projectLayout.buildDirectory.file("production/${CARTRIDGELISTFILE_NAME}"))
+
+                    val inputProp = project.objects.fileProperty()
+                    inputProp.set(
+                        File(tasks.getByName(PREPARE_PROJECT_CONF).outputs.files.single(),
+                            "system-conf/cluster/${CARTRIDGELISTFILE_NAME}"))
+                    provideCartridgePropertiesFile(inputProp)
+
+                    dependsOn(tasks.getByName(PREPARE_PROJECT_CONF))
                 }
-            }
-
-            // task for syncing configuration - developer configuration
-
-            // task for syncing configuration - production configuration
         }
     }
 
@@ -129,6 +135,47 @@ open class ICMProjectPlugin @Inject constructor(var projectLayout: ProjectLayout
                 provideDependency(extension.projectConfig.sitesPackageProvider)
                 provideOutputDir(projectLayout.buildDirectory.dir("org_release/sites"))
                 prepareFolders.dependsOn(this)
+            }
+        }
+    }
+
+    private fun configureSyncTasks(project: Project, extension: IntershopExtension) {
+        with(project) {
+            val syncFolders = tasks. maybeCreate("syncFolders")
+
+            tasks.maybeCreate(SYNC_SITES_FOLDER, Copy::class.java).apply {
+                from(extension.projectConfig.sitesDir) {
+                    it.into("sites")
+                }
+
+                from(tasks.getByName(PREPARE_SITES_CONF)) {
+                    it.duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+                }
+
+                into(projectLayout.buildDirectory.dir("server/sites"))
+
+                syncFolders.dependsOn(this)
+            }
+
+            tasks.maybeCreate(SYNC_CONF_FOLDER, Copy::class.java).apply {
+                from(extension.projectConfig.configDir) {
+                    exclude("**/**/cartridgelst.properties")
+                    it.into("system-conf")
+                }
+
+                from(tasks.getByName(PREPARE_PROJECT_CONF)) {
+                    exclude("**/**/cartridgelst.properties")
+
+                    it.duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+                }
+
+                from(tasks.getByName(EXT_CARTRIDGELIST_TEST)) {
+                    it.into("system-conf/cluster")
+                }
+
+                into(projectLayout.buildDirectory.dir("server/conf"))
+
+                syncFolders.dependsOn(this)
             }
         }
     }

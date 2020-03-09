@@ -276,6 +276,18 @@ class CreateCartridgeListSpec extends AbstractIntegrationGroovySpec {
         rootProject.name='rootproject'
         """.stripIndent()
 
+        def testFile = new File(testProjectDir, "config/base/cluster/test.properties")
+        testFile.parentFile.mkdirs()
+        testFile << "test = 1"
+
+        def testFile1 = new File(testProjectDir, "config/base/cluster/cartridgelist.properties")
+        testFile1.parentFile.mkdirs()
+        testFile1 << "test = 2"
+
+        def sitesFile = new File(testProjectDir, "sites/base/test/site.properties")
+        sitesFile.parentFile.mkdirs()
+        sitesFile << "test = 1"
+
         buildFile << """
             plugins {
                 id 'com.intershop.gradle.icm.project'
@@ -288,8 +300,10 @@ class CreateCartridgeListSpec extends AbstractIntegrationGroovySpec {
                     productionCartridges = ['cartridge1', 'cartridge2', "dbprep_cartr1" ]
 
                     configurationPackage = "com.intershop.icm:icm-as:1.0.0"
-
                     sitesPackage = "com.intershop.icm:icm-as:1.0.0"
+
+                    sitesDir = file("sites/")
+                    configDir = file("config/")
                 }
             }
 
@@ -304,6 +318,15 @@ class CreateCartridgeListSpec extends AbstractIntegrationGroovySpec {
 
         then:
         result.task(':prepareFolders').outcome == SUCCESS
+
+        when:
+        def result1 = getPreparedGradleRunner()
+                .withArguments("syncFolders", "-s")
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        result1.task(':syncFolders').outcome == SUCCESS
 
         where:
         gradleVersion << supportedGradleVersions
