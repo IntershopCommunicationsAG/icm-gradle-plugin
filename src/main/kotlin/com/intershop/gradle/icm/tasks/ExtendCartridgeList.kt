@@ -237,7 +237,6 @@ abstract class ExtendCartridgeList : DefaultTask() {
         }
         dbprepareCartridges.forEach {
             if (productionCartridges.isEmpty() || productionCartridges.contains(it) || writeAllCartridgeList) {
-                println("... add ... " + it)
                 initCartridgesSet.add(it)
             }
         }

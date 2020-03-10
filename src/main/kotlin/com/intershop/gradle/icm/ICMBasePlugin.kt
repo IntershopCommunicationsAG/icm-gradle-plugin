@@ -22,6 +22,7 @@ import com.intershop.gradle.icm.tasks.CreateClusterID
 import com.intershop.gradle.icm.tasks.CreateServerInfoProperties
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.diagnostics.DependencyReportTask
@@ -57,8 +58,17 @@ open class ICMBasePlugin: Plugin<Project> {
 
                 // apply maven publishing plugin to root and subprojects
                 plugins.apply(MavenPublishPlugin::class.java)
-                subprojects {
-                    plugins.apply(MavenPublishPlugin::class.java)
+
+                plugins.withType(JavaPlugin::class.java) {
+                    configureBaseConfigurations(project)
+                }
+
+                project.subprojects.forEach { prj ->
+                    prj.plugins.apply(MavenPublishPlugin::class.java)
+
+                    prj.plugins.withType(JavaPlugin::class.java) {
+                        configureBaseConfigurations(prj)
+                    }
                 }
 
                 val extension = extensions.findByType(
@@ -67,11 +77,6 @@ open class ICMBasePlugin: Plugin<Project> {
 
                 configureClusterIdTask(project)
                 configureCreateServerInfoPropertiesTask(project, extension)
-                configureBaseConfigurations(project)
-
-                project.subprojects.forEach {
-                    configureBaseConfigurations(it)
-                }
 
                 if(! checkForTask(tasks, TASK_ALLDEPENDENCIESREPORT)) {
                     tasks.register(TASK_ALLDEPENDENCIESREPORT, DependencyReportTask::class.java)
@@ -94,9 +99,7 @@ open class ICMBasePlugin: Plugin<Project> {
 
             val cartridge = maybeCreate(CONFIGURATION_CARTRIDGE)
             cartridge.isTransitive = false
-            if(implementation != null) {
-                implementation.extendsFrom(cartridge)
-            }
+            implementation?.extendsFrom(cartridge)
 
             val cartridgeRuntime = maybeCreate(CONFIGURATION_CARTRIDGERUNTIME)
             cartridgeRuntime.extendsFrom(cartridge)

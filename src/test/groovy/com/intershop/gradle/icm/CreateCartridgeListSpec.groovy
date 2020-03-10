@@ -312,21 +312,39 @@ class CreateCartridgeListSpec extends AbstractIntegrationGroovySpec {
 
         when:
         def result = getPreparedGradleRunner()
-                .withArguments("prepareFolders", "-s")
+                .withArguments("prepareConfig", "-s")
                 .withGradleVersion(gradleVersion)
                 .build()
 
         then:
-        result.task(':prepareFolders').outcome == SUCCESS
+        result.task(':prepareConfig').outcome == SUCCESS
 
         when:
         def result1 = getPreparedGradleRunner()
-                .withArguments("syncFolders", "-s")
+                .withArguments("prepareSites", "-s")
                 .withGradleVersion(gradleVersion)
                 .build()
 
         then:
-        result1.task(':syncFolders').outcome == SUCCESS
+        result1.task(':prepareSites').outcome == SUCCESS
+
+        when:
+        def result2 = getPreparedGradleRunner()
+                .withArguments("createSites", "-s")
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        result2.task(':createSites').outcome == SUCCESS
+
+        when:
+        def result3 = getPreparedGradleRunner()
+                .withArguments("createConfig", "-s")
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        result3.task(':createConfig').outcome == SUCCESS
 
         where:
         gradleVersion << supportedGradleVersions
