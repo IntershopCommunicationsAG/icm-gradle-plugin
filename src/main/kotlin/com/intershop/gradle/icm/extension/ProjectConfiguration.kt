@@ -38,7 +38,7 @@ abstract class ProjectConfiguration {
         /**
          * Path in build directory for external cartridges.
          */
-        const val EXTERNAL_CARTRIDGE_PATH = "ext_cartridges"
+        const val EXTERNAL_CARTRIDGE_PATH = "server/cartridges"
 
         /**
          * Path for original cartridge list properties in build directory.

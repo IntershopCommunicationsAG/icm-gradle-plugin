@@ -17,8 +17,6 @@
 package com.intershop.gradle.icm.cartridge
 
 import com.intershop.gradle.icm.ICMBasePlugin
-import com.intershop.gradle.icm.ICMBasePlugin.Companion.CONFIGURATION_CARTRIDGE
-import com.intershop.gradle.icm.ICMBasePlugin.Companion.CONFIGURATION_CARTRIDGERUNTIME
 import com.intershop.gradle.icm.extension.IntershopExtension
 import com.intershop.gradle.icm.tasks.CopyThirdpartyLibs
 import com.intershop.gradle.icm.tasks.WriteCartridgeClasspath
@@ -36,6 +34,9 @@ import org.gradle.api.tasks.TaskContainer
 open class CartridgePlugin : Plugin<Project> {
 
     companion object {
+
+        const val CONFIGURATION_CARTRIDGE = "cartridge"
+        const val CONFIGURATION_CARTRIDGERUNTIME = "cartridgeRuntime"
 
         /**
          * checks if the specified name is available in the list of tasks.
@@ -60,10 +61,6 @@ open class CartridgePlugin : Plugin<Project> {
             }
             plugins.apply(JavaPlugin::class.java)
 
-            if(! plugins.hasPlugin(ICMBasePlugin::class.java)) {
-                rootProject.plugins.apply(ICMBasePlugin::class.java)
-            }
-
             configureAddFileCreation( this)
 
             if (!checkForTask(
@@ -80,10 +77,16 @@ open class CartridgePlugin : Plugin<Project> {
 
     private fun configureAddFileCreation(project: Project) {
         with(project.configurations) {
-
+            val implementation = getByName(JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME)
             val runtime = getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME)
-            val cartridge = getByName(CONFIGURATION_CARTRIDGE)
-            val cartridgeRuntime = getByName(CONFIGURATION_CARTRIDGERUNTIME)
+
+            val cartridge = maybeCreate(CONFIGURATION_CARTRIDGE)
+            cartridge.isTransitive = false
+            implementation.extendsFrom(cartridge)
+
+            val cartridgeRuntime = maybeCreate(CONFIGURATION_CARTRIDGERUNTIME)
+            cartridgeRuntime.extendsFrom(cartridge)
+            cartridgeRuntime.isTransitive = true
 
             val tasksWriteFiles = HashSet<Task>()
 
