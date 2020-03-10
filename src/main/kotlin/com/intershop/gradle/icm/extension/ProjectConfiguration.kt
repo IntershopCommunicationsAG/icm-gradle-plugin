@@ -119,7 +119,7 @@ abstract class ProjectConfiguration {
     /**
      * Add a single cartridge to the list.
      *
-     * @param cartrige name of an ICM cartridge
+     * @param cartridge name of an ICM cartridge
      */
     fun cartridge(cartridge: String) {
         cartridgesProperty.add(cartridge)
@@ -143,7 +143,7 @@ abstract class ProjectConfiguration {
     /**
      * Add a single cartridge to the list of dbprepare cartridges.
      *
-     * @param cartrige name of an ICM cartridge
+     * @param cartridge name of an ICM cartridge
      */
     fun dbprepareCartridge(cartridge: String) {
         cartridgesProperty.add(cartridge)
@@ -167,7 +167,7 @@ abstract class ProjectConfiguration {
     /**
      * Add a single cartridge to the list of dbprepare cartridges.
      *
-     * @param cartrige name of an ICM cartridge
+     * @param cartridge name of an ICM cartridge
      */
     fun productionCartridge(cartridge: String) {
         productionCartridgesProperty.add(cartridge)
@@ -247,7 +247,7 @@ abstract class ProjectConfiguration {
 
     /**
      * Set only a short path for project configuration dir.
-     * @param configPath
+     * @param sitesPath
      */
     fun setSitesPath(sitesPath: String) {
         sitesDirProperty.set(projectLayout.projectDirectory.dir(sitesPath))

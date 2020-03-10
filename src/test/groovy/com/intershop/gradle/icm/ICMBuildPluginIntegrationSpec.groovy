@@ -379,6 +379,8 @@ class ICMBuildPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                 id 'com.intershop.gradle.icm.base'
             }
             
+            buildDir = new File(projectDir, 'target')
+            
             version = "1.0.0"
             
             repositories {
@@ -391,6 +393,8 @@ class ICMBuildPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                 id 'java-library'
                 id 'com.intershop.icm.cartridge'
             }
+            
+            buildDir = new File(projectDir, 'target')
             
             dependencies {
                 implementation "com.google.inject:guice:4.0"
@@ -409,6 +413,8 @@ class ICMBuildPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                 id 'com.intershop.icm.cartridge'
             }
                 
+            buildDir = new File(projectDir, 'target')
+            
             dependencies {
                 cartridge project(':testCartridge1')
                 implementation "com.google.inject:guice:4.0"
@@ -426,6 +432,8 @@ class ICMBuildPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                 id 'java-library'
                 id 'com.intershop.icm.cartridge'
             }
+
+            buildDir = new File(projectDir, 'target')
 
             dependencies {
                 cartridge project(':testCartridge2')
@@ -466,6 +474,8 @@ class ICMBuildPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                 id 'com.intershop.gradle.icm.base'
             }
             
+            buildDir = new File(projectDir, 'target')
+            
             version = "1.0.0"
 
             repositories {
@@ -478,6 +488,8 @@ class ICMBuildPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                 id 'java-library'
                 id 'com.intershop.icm.cartridge'
             }
+            
+            buildDir = new File(projectDir, 'target')
             
             dependencies {
                 implementation "com.google.inject:guice:4.0"
@@ -496,6 +508,8 @@ class ICMBuildPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                 id 'com.intershop.icm.cartridge'
             }
             
+            buildDir = new File(projectDir, 'target')
+            
             dependencies {
                 cartridge project(':testCartridge1')
                 implementation "com.google.inject:guice:4.0"
@@ -513,6 +527,8 @@ class ICMBuildPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                 id 'java-library'
                 id 'com.intershop.icm.cartridge'
             }
+            
+            buildDir = new File(projectDir, 'target')
              
             dependencies {
                 cartridge project(':testCartridge2')

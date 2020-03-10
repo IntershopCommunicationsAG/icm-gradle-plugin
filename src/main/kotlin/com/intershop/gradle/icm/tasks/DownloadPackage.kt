@@ -35,19 +35,9 @@ import org.gradle.api.tasks.TaskAction
 import java.io.File
 import javax.inject.Inject
 
-abstract class DownloadPackage: DefaultTask() {
-
-    /**
-     * Inject service of ObjectFactory (See "Service injection" in Gradle documentation.
-     */
-    @get:Inject
-    abstract val objectFactory: ObjectFactory
-
-    @get:Inject
-    abstract val fsOps: FileSystemOperations
-
-    @get:Inject
-    abstract val projectLayout: ProjectLayout
+abstract class DownloadPackage @Inject constructor(
+    private var objectFactory: ObjectFactory,
+    private var fsOps: FileSystemOperations) : DefaultTask() {
 
     private val dependencyProperty: Property<String> = objectFactory.property(String::class.java)
     private val classifierProperty: Property<String> = objectFactory.property(String::class.java)
@@ -94,7 +84,7 @@ abstract class DownloadPackage: DefaultTask() {
     /**
      * Provider configuration for target directory.
      *
-     * @param provideCartridgeDir
+     * @param provideOutputDir
      */
     fun provideOutputDir(outputDir: Provider<Directory>) = outputDirProperty.set(outputDir)
 

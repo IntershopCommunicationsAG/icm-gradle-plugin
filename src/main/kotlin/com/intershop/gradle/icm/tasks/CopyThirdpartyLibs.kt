@@ -21,12 +21,15 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileCollection
+import org.gradle.api.file.ProjectLayout
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactIdentifier
 import java.io.File
+import javax.inject.Inject
 
 /**
  * CopyThirdpartyLibs Gradle task 'copyThirdpartyLibs'
@@ -34,9 +37,11 @@ import java.io.File
  * This task copy all dependend thirdparty dependencies to
  * a lib folder. This is used for the build of containerimages.
  */
-open class CopyThirdpartyLibs : DefaultTask() {
+open class CopyThirdpartyLibs @Inject constructor(
+    private var projectLayout: ProjectLayout,
+    private var objectFactory: ObjectFactory) : DefaultTask() {
 
-    private val outputDirProperty: DirectoryProperty = project.objects.directoryProperty()
+    private val outputDirProperty: DirectoryProperty = objectFactory.directoryProperty()
 
     companion object {
         const val DEFAULT_NAME = "copyThirdpartyLibs"
@@ -47,7 +52,7 @@ open class CopyThirdpartyLibs : DefaultTask() {
         group = INTERSHOP_GROUP_NAME
         description = "Copy all thirdparty libs to a directory."
 
-        outputDirProperty.set(File(project.buildDir, THIRDPARTYLIB_DIR ))
+        outputDirProperty.convention(projectLayout.buildDirectory.dir(THIRDPARTYLIB_DIR))
     }
 
     /**

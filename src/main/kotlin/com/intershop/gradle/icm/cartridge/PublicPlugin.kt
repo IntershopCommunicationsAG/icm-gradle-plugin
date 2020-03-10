@@ -91,12 +91,12 @@ open class PublicPlugin : Plugin<Project> {
                             extension.mavenPublicationName,
                             MavenPublication::class.java
                         ).apply {
-                            versionMapping {
-                                it.usage("java-api") {
-                                    it.fromResolutionResult()
+                            versionMapping { vm ->
+                                vm.usage("java-api") { ms ->
+                                    ms.fromResolutionResult()
                                 }
-                                it.usage("java-runtime") {
-                                    it.fromResolutionResult()
+                                vm.usage("java-runtime") { ms ->
+                                    ms.fromResolutionResult()
                                 }
                             }
 

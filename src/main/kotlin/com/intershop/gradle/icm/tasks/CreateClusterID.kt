@@ -18,11 +18,14 @@ package com.intershop.gradle.icm.tasks
 
 import com.intershop.gradle.icm.extension.IntershopExtension.Companion.INTERSHOP_GROUP_NAME
 import org.gradle.api.DefaultTask
+import org.gradle.api.file.ProjectLayout
 import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import java.io.File
 import java.util.*
+import javax.inject.Inject
 
 /**
  * Gradle task to create an ID for ICM cluster.
@@ -30,19 +33,22 @@ import java.util.*
  * This taks creates an UID with Java functionality
  * in the required format.
  */
-open class CreateClusterID: DefaultTask() {
+open class CreateClusterID@Inject constructor(
+    private var projectLayout: ProjectLayout,
+    private var objectFactory: ObjectFactory ) : DefaultTask() {
 
-    private val outputFileProperty: RegularFileProperty = project.objects.fileProperty()
+    private val outputFileProperty: RegularFileProperty = objectFactory.fileProperty()
 
     companion object {
         const val DEFAULT_NAME = "createClusterID"
+        const val CLUSTER_ID = "clusterIDDir/cluster.id"
     }
 
     init {
         group = INTERSHOP_GROUP_NAME
         description = "Creates a cluster ID to start a server."
 
-        outputFileProperty.set(File(project.buildDir, "clusterIDDir/cluster.id" ))
+        outputFileProperty.convention(projectLayout.buildDirectory.file(CLUSTER_ID))
     }
 
     /**

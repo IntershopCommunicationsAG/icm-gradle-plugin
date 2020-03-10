@@ -22,6 +22,7 @@ import com.intershop.gradle.icm.utils.getValue
 import com.intershop.gradle.icm.utils.setValue
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
+import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.file.RegularFile
 import org.gradle.api.file.RegularFileProperty
@@ -38,7 +39,9 @@ import java.io.IOException
 import java.util.*
 import javax.inject.Inject
 
-abstract class ExtendCartridgeList : DefaultTask() {
+abstract class ExtendCartridgeList @Inject constructor(
+    private var projectLayout: ProjectLayout,
+    private var objectFactory: ObjectFactory) : DefaultTask() {
 
     companion object {
 
@@ -58,18 +61,6 @@ abstract class ExtendCartridgeList : DefaultTask() {
          */
         const val CARTRIDGES_DBINIT_PROPERTY = "cartridges.dbinit"
     }
-
-    /**
-     * Inject service of ObjectFactory (See "Service injection" in Gradle documentation.
-     */
-    @get:Inject
-    abstract val objectFactory: ObjectFactory
-
-    /**
-     * Inject service of ProjectLayout (See "Service injection" in Gradle documentation.
-     */
-    @get:Inject
-    abstract val projectLayout: ProjectLayout
 
     private val outputFileProperty: RegularFileProperty = objectFactory.fileProperty()
     private val cartridgesProperty: SetProperty<String> = objectFactory.setProperty(String::class.java)
@@ -186,7 +177,7 @@ abstract class ExtendCartridgeList : DefaultTask() {
     /**
      * Input template file with all cartridges.
      *
-     * @property templateFile
+     * @property cartridgePropertiesFile
      */
     @get:InputFile
     var cartridgePropertiesFile: File
@@ -211,19 +202,13 @@ abstract class ExtendCartridgeList : DefaultTask() {
                 "Can not read orignal cartridge properies (" + cartridgePropertiesFile.absolutePath +")")
         }
 
-        val cartridgeProp = orgProps.get(CARTRIDGES_PROPERTY)
-
-        if(cartridgeProp == null) {
-            throw GradleException(
+        val cartridgeProp = orgProps[CARTRIDGES_PROPERTY]
+            ?: throw GradleException(
                 "There is no list of cartridges in (" + cartridgePropertiesFile.absolutePath +")")
-        }
 
-        val dbinitCartridgeProp = orgProps.get(CARTRIDGES_DBINIT_PROPERTY)
-
-        if(dbinitCartridgeProp == null) {
-            throw GradleException(
+        val dbinitCartridgeProp = orgProps[CARTRIDGES_DBINIT_PROPERTY]
+            ?: throw GradleException(
                 "There is no list of dbinit cartridges in (" + cartridgePropertiesFile.absolutePath +")")
-        }
 
         project.logger.info("Data of original cartridgelist.properties read from {}", cartridgePropertiesFile)
 

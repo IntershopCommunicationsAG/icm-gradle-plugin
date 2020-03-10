@@ -21,7 +21,9 @@ import com.intershop.gradle.icm.utils.getValue
 import com.intershop.gradle.icm.utils.setValue
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
+import org.gradle.api.file.ProjectLayout
 import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Input
@@ -29,28 +31,32 @@ import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import java.io.File
+import javax.inject.Inject
 
 /**
  * This task creates a cartridge list properties
  * file from a template file.
  */
-open class CreateCartridgeList: DefaultTask() {
+open class CreateCartridgeList @Inject constructor(
+    private var projectLayout: ProjectLayout,
+    private var objectFactory: ObjectFactory) : DefaultTask() {
 
-    private val outputFileProperty: RegularFileProperty = project.objects.fileProperty()
-    private val templateFileProperty: RegularFileProperty = project.objects.fileProperty()
+    private val outputFileProperty: RegularFileProperty = objectFactory.fileProperty()
+    private val templateFileProperty: RegularFileProperty = objectFactory.fileProperty()
 
-    private val includesListProperty: ListProperty<String> = project.objects.listProperty(String::class.java)
-    private val excludesListProperty: ListProperty<String> = project.objects.listProperty(String::class.java)
+    private val includesListProperty: ListProperty<String> = objectFactory.listProperty(String::class.java)
+    private val excludesListProperty: ListProperty<String> = objectFactory.listProperty(String::class.java)
 
     companion object {
         const val DEFAULT_NAME = "createCartridgeList"
+        const val CARTRIDGE_LIST = "cartridgelist/cartridgelist.properties"
     }
 
     init {
         group = INTERSHOP_GROUP_NAME
         description = "Creates a cartridge list properties file from template."
 
-        outputFileProperty.set(File(project.buildDir, "cartridgelist/cartridgelist.properties" ))
+        outputFileProperty.convention(projectLayout.buildDirectory.file(CARTRIDGE_LIST))
     }
 
     /**

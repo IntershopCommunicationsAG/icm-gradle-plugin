@@ -46,20 +46,14 @@ import javax.inject.Inject
  * Task for setup of an external cartridge in
  * an ICM project.
  */
-abstract class SetupExternalCartridges: DefaultTask() {
+open class SetupExternalCartridges @Inject constructor(
+    private var projectLayout: ProjectLayout,
+    private var objectFactory: ObjectFactory,
+    private var fsOps: FileSystemOperations) : DefaultTask() {
 
     companion object {
         const val DEFAULT_NAME = "setupExternalCartridges"
     }
-
-    @get:Inject
-    abstract val fsOps: FileSystemOperations
-
-    @get:Inject
-    abstract val objectFactory: ObjectFactory
-
-    @get:Inject
-    abstract val projectLayout: ProjectLayout
 
     private val cartridgeDirProperty: DirectoryProperty = objectFactory.directoryProperty()
 
@@ -87,7 +81,7 @@ abstract class SetupExternalCartridges: DefaultTask() {
     /**
      * Provider configuration for target directory.
      *
-     * @param provideCartridgeDir
+     * @param cartridgeDir
      */
     fun provideCartridgeDir(cartridgeDir: Provider<Directory>) = cartridgeDirProperty.set(cartridgeDir)
 
@@ -176,10 +170,10 @@ abstract class SetupExternalCartridges: DefaultTask() {
             .execute()
 
         var rv: File? = null
-        mavenArtifacts.resolvedComponents.forEach {
-            if(it.id is ModuleComponentIdentifier) {
-                it.getArtifacts(MavenPomArtifact::class.java).forEach {
-                    rv = (it as DefaultResolvedArtifactResult).file
+        mavenArtifacts.resolvedComponents.forEach { car ->
+            if(car.id is ModuleComponentIdentifier) {
+                car.getArtifacts(MavenPomArtifact::class.java).forEach { ar ->
+                    rv = (ar as DefaultResolvedArtifactResult).file
                 }
             }
         }

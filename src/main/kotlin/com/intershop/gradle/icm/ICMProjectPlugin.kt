@@ -27,7 +27,6 @@ import org.gradle.api.Task
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.tasks.Copy
-import org.gradle.api.tasks.Sync
 import org.gradle.api.tasks.TaskContainer
 import java.io.File
 import javax.inject.Inject
@@ -35,7 +34,7 @@ import javax.inject.Inject
 /**
  * The main plugin class of this plugin.
  */
-open class ICMProjectPlugin @Inject constructor(var projectLayout: ProjectLayout) : Plugin<Project> {
+open class ICMProjectPlugin @Inject constructor(private var projectLayout: ProjectLayout) : Plugin<Project> {
 
     companion object {
         const val CONFIGURATION_EXTERNALCARTRIDGES = "extCartridge"
