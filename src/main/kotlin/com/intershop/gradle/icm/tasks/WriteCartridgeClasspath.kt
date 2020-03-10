@@ -43,8 +43,8 @@ import javax.inject.Inject
  * to an file. This file is used by some tools and tests.
  */
 open class WriteCartridgeClasspath @Inject constructor(
-    private var projectLayout: ProjectLayout,
-    private var objectFactory: ObjectFactory) : DefaultTask() {
+        projectLayout: ProjectLayout,
+        objectFactory: ObjectFactory) : DefaultTask() {
 
     private val outputFileProperty: RegularFileProperty = objectFactory.fileProperty()
     private val jarTaskNameProperty: Property<String> = objectFactory.property(String::class.java)

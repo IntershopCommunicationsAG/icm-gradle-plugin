@@ -47,9 +47,9 @@ import javax.inject.Inject
  * an ICM project.
  */
 open class SetupExternalCartridges @Inject constructor(
-    private var projectLayout: ProjectLayout,
-    private var objectFactory: ObjectFactory,
-    private var fsOps: FileSystemOperations) : DefaultTask() {
+        projectLayout: ProjectLayout,
+        objectFactory: ObjectFactory,
+        private var fsOps: FileSystemOperations) : DefaultTask() {
 
     companion object {
         const val DEFAULT_NAME = "setupExternalCartridges"

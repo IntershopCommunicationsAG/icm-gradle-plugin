@@ -47,8 +47,8 @@ import javax.inject.Inject
  * information. This property is used by the server.
  */
 open class CreateServerInfoProperties @Inject constructor(
-    private var projectLayout: ProjectLayout,
-    private var objectFactory: ObjectFactory) : DefaultTask() {
+        projectLayout: ProjectLayout,
+        objectFactory: ObjectFactory) : DefaultTask() {
 
     companion object {
         const val DEFAULT_NAME = "createServerInfoProperties"

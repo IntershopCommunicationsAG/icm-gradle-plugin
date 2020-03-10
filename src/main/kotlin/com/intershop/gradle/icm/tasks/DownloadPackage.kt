@@ -36,8 +36,8 @@ import java.io.File
 import javax.inject.Inject
 
 abstract class DownloadPackage @Inject constructor(
-    private var objectFactory: ObjectFactory,
-    private var fsOps: FileSystemOperations) : DefaultTask() {
+        objectFactory: ObjectFactory,
+        private var fsOps: FileSystemOperations) : DefaultTask() {
 
     private val dependencyProperty: Property<String> = objectFactory.property(String::class.java)
     private val classifierProperty: Property<String> = objectFactory.property(String::class.java)

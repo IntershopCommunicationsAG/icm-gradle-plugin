@@ -34,8 +34,8 @@ import javax.inject.Inject
  * in the required format.
  */
 open class CreateClusterID@Inject constructor(
-    private var projectLayout: ProjectLayout,
-    private var objectFactory: ObjectFactory ) : DefaultTask() {
+        projectLayout: ProjectLayout,
+        objectFactory: ObjectFactory) : DefaultTask() {
 
     private val outputFileProperty: RegularFileProperty = objectFactory.fileProperty()
 

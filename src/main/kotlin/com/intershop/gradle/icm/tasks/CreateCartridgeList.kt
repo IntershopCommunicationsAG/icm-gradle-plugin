@@ -38,8 +38,8 @@ import javax.inject.Inject
  * file from a template file.
  */
 open class CreateCartridgeList @Inject constructor(
-    private var projectLayout: ProjectLayout,
-    private var objectFactory: ObjectFactory) : DefaultTask() {
+        projectLayout: ProjectLayout,
+        objectFactory: ObjectFactory) : DefaultTask() {
 
     private val outputFileProperty: RegularFileProperty = objectFactory.fileProperty()
     private val templateFileProperty: RegularFileProperty = objectFactory.fileProperty()

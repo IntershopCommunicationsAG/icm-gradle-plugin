@@ -38,8 +38,8 @@ import javax.inject.Inject
  * a lib folder. This is used for the build of containerimages.
  */
 open class CopyThirdpartyLibs @Inject constructor(
-    private var projectLayout: ProjectLayout,
-    private var objectFactory: ObjectFactory) : DefaultTask() {
+        projectLayout: ProjectLayout,
+        objectFactory: ObjectFactory) : DefaultTask() {
 
     private val outputDirProperty: DirectoryProperty = objectFactory.directoryProperty()
 

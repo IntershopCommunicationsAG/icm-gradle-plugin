@@ -48,8 +48,8 @@ import kotlin.collections.HashSet
  * is used by the server startup and special tests.
  */
 open class WriteCartridgeDescriptor @Inject constructor(
-        private var projectLayout: ProjectLayout,
-        private var objectFactory: ObjectFactory) : DefaultTask() {
+        projectLayout: ProjectLayout,
+        objectFactory: ObjectFactory) : DefaultTask() {
 
     private val outputFileProperty: RegularFileProperty = objectFactory.fileProperty()
     private val versionProperty: Property<String> = objectFactory.property(String::class.java)

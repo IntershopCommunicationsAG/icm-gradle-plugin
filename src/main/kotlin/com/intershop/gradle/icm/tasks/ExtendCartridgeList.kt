@@ -40,8 +40,8 @@ import java.util.*
 import javax.inject.Inject
 
 abstract class ExtendCartridgeList @Inject constructor(
-    private var projectLayout: ProjectLayout,
-    private var objectFactory: ObjectFactory) : DefaultTask() {
+        projectLayout: ProjectLayout,
+        objectFactory: ObjectFactory) : DefaultTask() {
 
     companion object {
 
