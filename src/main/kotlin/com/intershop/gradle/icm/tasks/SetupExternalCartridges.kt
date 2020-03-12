@@ -20,6 +20,7 @@ package com.intershop.gradle.icm.tasks
 import com.intershop.gradle.icm.ICMProjectPlugin.Companion.CONFIGURATION_EXTERNALCARTRIDGES
 import com.intershop.gradle.icm.extension.IntershopExtension
 import com.intershop.gradle.icm.extension.ProjectConfiguration
+import com.intershop.gradle.icm.utils.getValue
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.artifacts.ExternalModuleDependency
@@ -31,8 +32,10 @@ import org.gradle.api.file.ProjectLayout
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.result.DefaultResolvedArtifactResult
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactIdentifier
@@ -56,12 +59,14 @@ open class SetupExternalCartridges @Inject constructor(
     }
 
     private val cartridgeDirProperty: DirectoryProperty = objectFactory.directoryProperty()
+    private val libListDependencyProperty: Property<String> = objectFactory.property(String::class.java)
 
     init {
         group = IntershopExtension.INTERSHOP_GROUP_NAME
         description = "Create a directory with external cartridges."
 
         cartridgeDirProperty.convention(projectLayout.buildDirectory.dir(ProjectConfiguration.EXTERNAL_CARTRIDGE_PATH))
+        libListDependencyProperty.convention("")
     }
 
     /**
@@ -77,6 +82,23 @@ open class SetupExternalCartridges @Inject constructor(
         }
         returnDeps
     }
+
+    /**
+     * Provider for libListDependency.
+     *
+     * @param libListDependency
+     */
+    fun provideLibListDependency(libListDependency: Provider<String>) = libListDependencyProperty.set(libListDependency)
+
+    /**
+     * List of dependency in a specified form.
+     * List entry is <group>-<module>-<version>.
+     *
+     * @property libListDependency
+     */
+    @get:Optional
+    @get:Input
+    val libListDependency by libListDependencyProperty
 
     /**
      * Provider configuration for target directory.
@@ -212,6 +234,9 @@ open class SetupExternalCartridges @Inject constructor(
      */
     @TaskAction
     fun processDependencies() {
+        if(libListDependencyProperty.get().isEmpty()) {
+            println(".... list is not present")
+        }
         createStructure(cartridgeDirProperty.get().asFile)
     }
 }

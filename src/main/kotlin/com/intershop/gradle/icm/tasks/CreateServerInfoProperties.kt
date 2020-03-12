@@ -59,7 +59,7 @@ open class CreateServerInfoProperties @Inject constructor(
         val year: String = now.format(DateTimeFormatter.ofPattern("yyyy"))
     }
 
-    private val outputFileProperty: RegularFileProperty = objectFactory.fileProperty()
+    val outputFileProperty: RegularFileProperty = objectFactory.fileProperty()
     private val productIdProperty: Property<String> = objectFactory.property(String::class.java)
     private val productNameProperty: Property<String> = objectFactory.property(String::class.java)
     private val copyrightOwnerProperty: Property<String> = objectFactory.property(String::class.java)

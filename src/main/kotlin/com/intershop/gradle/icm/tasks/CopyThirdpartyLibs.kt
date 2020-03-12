@@ -19,11 +19,13 @@ package com.intershop.gradle.icm.tasks
 import com.intershop.gradle.icm.extension.IntershopExtension.Companion.INTERSHOP_GROUP_NAME
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
+import org.gradle.api.file.Directory
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
@@ -54,6 +56,13 @@ open class CopyThirdpartyLibs @Inject constructor(
 
         outputDirProperty.convention(projectLayout.buildDirectory.dir(THIRDPARTYLIB_DIR))
     }
+
+    /**
+     * Provider configuration for target directory.
+     *
+     * @param provideOutputDir
+     */
+    fun provideOutputDir(outputDir: Provider<Directory>) = outputDirProperty.set(outputDir)
 
     /**
      * Output directory for generated files.

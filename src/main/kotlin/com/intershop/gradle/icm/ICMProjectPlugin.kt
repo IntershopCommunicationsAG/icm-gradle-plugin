@@ -17,16 +17,15 @@
 package com.intershop.gradle.icm
 
 import com.intershop.gradle.icm.extension.IntershopExtension
-import com.intershop.gradle.icm.tasks.DownloadPackage
-import com.intershop.gradle.icm.tasks.ExtendCartridgeList
-import com.intershop.gradle.icm.tasks.ExtendCartridgeList.Companion.CARTRIDGELISTFILE_NAME
+import com.intershop.gradle.icm.tasks.CreateConfFolder
+import com.intershop.gradle.icm.tasks.CreateServerInfoProperties
+import com.intershop.gradle.icm.tasks.CreateSitesFolder
 import com.intershop.gradle.icm.tasks.SetupExternalCartridges
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.gradle.api.file.DuplicatesStrategy
+import org.gradle.api.file.CopySpec
 import org.gradle.api.file.ProjectLayout
-import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.TaskContainer
 import java.io.File
 import javax.inject.Inject
@@ -39,14 +38,11 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
     companion object {
         const val CONFIGURATION_EXTERNALCARTRIDGES = "extCartridge"
 
-        const val EXT_CARTRIDGELIST_TEST = "extendCartrideListTest"
-        const val EXT_CARTRIDGELIST_PROD = "extendCartrideListProd"
-
-        const val PREPARE_PROJECT_CONF = "prepareConfig"
-        const val PREPARE_SITES_CONF = "prepareSites"
-
         const val CREATE_SITES_FOLDER = "createSites"
         const val CREATE_CONF_FOLDER = "createConfig"
+
+        const val CREATE_DEVSITES_FOLDER = "createDevSites"
+        const val CREATE_DEVCONF_FOLDER = "createDevConfig"
 
         /**
          * checks if the specified name is available in the list of tasks.
@@ -70,115 +66,90 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
 
             val prepareTask = tasks.maybeCreate("prepareServer").apply {
                 group = IntershopExtension.INTERSHOP_GROUP_NAME
-                description = "starts all tasks for the preparation of an local server"
+                description = "starts all tasks for the preparation of a local server"
             }
 
+            val confCS: CopySpec = project.copySpec()
+            confCS.from(project.layout.projectDirectory.dir("config/base"))
+            confCS.from(project.layout.projectDirectory.dir("config/dev"))
+
+            val sitesCS: CopySpec = project.copySpec()
+            sitesCS.from(project.layout.projectDirectory.dir("sites/base"))
+            sitesCS.from(project.layout.projectDirectory.dir("sites/dev"))
+
+            extension.projectConfig.confCopySpecProperty.convention(confCS)
+            extension.projectConfig.sitesCopySpecProperty.convention(sitesCS)
+
             configureProjectPackages(this, extension, prepareTask)
-            configureCartridgeListTasks(this, extension, prepareTask)
             configureExtCartridgeTask(this, extension, prepareTask)
-            configureSyncTasks(this, extension, prepareTask)
 
-        }
-    }
-
-    private fun configureCartridgeListTasks(project: Project, extension: IntershopExtension, prepareTask: Task) {
-        with(project) {
-            // create task for test cartridge list properties
-            tasks.maybeCreate(EXT_CARTRIDGELIST_TEST, ExtendCartridgeList::class.java).apply {
-                    provideCartridges(extension.projectConfig.cartridgesProvider)
-                    provideDBprepareCartridges(extension.projectConfig.dbprepareCartridgesProvider)
-                    provideProductionCartridges(extension.projectConfig.productionCartridgesProvider)
-
-                    writeAllCartridgeList = true
-
-                    provideOutputfile(projectLayout.buildDirectory.file("test/${CARTRIDGELISTFILE_NAME}"))
-
-                    val inputProp = project.objects.fileProperty()
-                    inputProp.set(
-                        File(tasks.getByName(PREPARE_PROJECT_CONF).outputs.files.single(),
-                            "system-conf/cluster/${CARTRIDGELISTFILE_NAME}"))
-                    provideCartridgePropertiesFile(inputProp)
-
-                    dependsOn(tasks.getByName(PREPARE_PROJECT_CONF))
-                    prepareTask.dependsOn(this)
-                }
-
-            // create task for production cartridge list properties
-            tasks.maybeCreate(EXT_CARTRIDGELIST_PROD, ExtendCartridgeList::class.java).apply {
-                    provideCartridges(extension.projectConfig.cartridgesProvider)
-                    provideDBprepareCartridges(extension.projectConfig.dbprepareCartridgesProvider)
-                    provideProductionCartridges(extension.projectConfig.productionCartridgesProvider)
-
-                    writeAllCartridgeList = false
-
-                    provideOutputfile(projectLayout.buildDirectory.file("production/${CARTRIDGELISTFILE_NAME}"))
-
-                    val inputProp = project.objects.fileProperty()
-                    inputProp.set(
-                        File(tasks.getByName(PREPARE_PROJECT_CONF).outputs.files.single(),
-                            "system-conf/cluster/${CARTRIDGELISTFILE_NAME}"))
-                    provideCartridgePropertiesFile(inputProp)
-
-                    dependsOn(tasks.getByName(PREPARE_PROJECT_CONF))
-                }
         }
     }
 
     private fun configureProjectPackages(project: Project, extension: IntershopExtension, prepareTask: Task) {
         with(project) {
-            tasks.maybeCreate(PREPARE_PROJECT_CONF,
-                DownloadPackage::class.java).apply {
-                classifier = "configuration"
-                provideDependency(extension.projectConfig.configurationPackageProvider)
-                provideOutputDir(projectLayout.buildDirectory.dir("org_release/configuration"))
+            val infoTask = tasks.maybeCreate(
+                CreateServerInfoProperties.DEFAULT_NAME,
+                CreateServerInfoProperties::class.java
+            ).apply {
+                this.provideProductId(extension.projectInfo.productIDProvider)
+                this.provideProductName(extension.projectInfo.productNameProvider)
+                this.provideCopyrightOwner(extension.projectInfo.copyrightOwnerProvider)
+                this.provideCopyrightFrom(extension.projectInfo.copyrightFromProvider)
+                this.provideOrganization(extension.projectInfo.organizationProvider)
+            }
+
+            tasks.maybeCreate(CREATE_DEVCONF_FOLDER, CreateConfFolder::class.java).apply {
+                this.baseProjects = extension.projectConfig.baseProjects.asMap
+                this.provideBaseCopySpec(extension.projectConfig.confCopySpecProvider)
+                this.provideDevCopySpec(extension.projectConfig.confCopySpecProvider)
+                this.outputDirProperty.set(projectLayout.buildDirectory.dir("server/configuration"))
+
+                this.provideCartridges(extension.projectConfig.cartridgesProvider)
+                this.provideDBprepareCartridges(extension.projectConfig.dbprepareCartridgesProvider)
+                this.provideProductionCartridges(extension.projectConfig.productionCartridgesProvider)
+
+                this.writeDevConf = true
+                this.provideVersionInfoFile(infoTask.outputFileProperty)
+                prepareTask.dependsOn(this)
+                this.dependsOn(infoTask)
+            }
+
+            tasks.maybeCreate(CREATE_DEVSITES_FOLDER, CreateSitesFolder::class.java).apply {
+                this.baseProjects = extension.projectConfig.baseProjects.asMap
+                this.provideBaseCopySpec(extension.projectConfig.sitesCopySpecProvider)
+                this.provideDevCopySpec(extension.projectConfig.confCopySpecProvider)
+                this.outputDirProperty.set(projectLayout.buildDirectory.dir("server/sites"))
+
                 prepareTask.dependsOn(this)
             }
 
-            tasks.maybeCreate(PREPARE_SITES_CONF,
-                DownloadPackage::class.java).apply {
-                classifier = "sites"
-                provideDependency(extension.projectConfig.sitesPackageProvider)
-                provideOutputDir(projectLayout.buildDirectory.dir("org_release/sites"))
-                prepareTask.dependsOn(this)
-            }
-        }
-    }
-
-    private fun configureSyncTasks(project: Project, extension: IntershopExtension, prepareTask: Task) {
-        with(project) {
-            tasks.maybeCreate(CREATE_SITES_FOLDER, Copy::class.java).apply {
-                from(extension.projectConfig.sitesDir) {
-                    it.into("sites")
-                }
-
-                from(tasks.getByName(PREPARE_SITES_CONF)) {
-                    it.duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-                }
-
-                into(projectLayout.buildDirectory.dir("server/sites"))
-
-                prepareTask.dependsOn(this)
+            val prepareContainerTask = tasks.maybeCreate("prepareContainer").apply {
+                group = IntershopExtension.INTERSHOP_GROUP_NAME
+                description = "starts all tasks for the preparation of a container build"
             }
 
-            tasks.maybeCreate(CREATE_CONF_FOLDER, Copy::class.java).apply {
-                from(extension.projectConfig.configDir) {
-                    exclude("**/**/cartridgelst.properties")
-                    it.into("system-conf")
-                }
+            tasks.maybeCreate(CREATE_CONF_FOLDER, CreateConfFolder::class.java).apply {
+                this.baseProjects = extension.projectConfig.baseProjects.asMap
+                this.provideBaseCopySpec(extension.projectConfig.confCopySpecProvider)
+                this.outputDirProperty.set(projectLayout.buildDirectory.dir("container/configuration"))
 
-                from(tasks.getByName(PREPARE_PROJECT_CONF)) {
-                    exclude("**/**/cartridgelst.properties")
+                this.provideCartridges(extension.projectConfig.cartridgesProvider)
+                this.provideDBprepareCartridges(extension.projectConfig.dbprepareCartridgesProvider)
+                this.provideProductionCartridges(extension.projectConfig.productionCartridgesProvider)
 
-                    it.duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-                }
+                this.writeDevConf = false
+                this.provideVersionInfoFile(infoTask.outputFileProperty)
+                prepareContainerTask.dependsOn(this)
+                this.dependsOn(infoTask)
+            }
 
-                from(tasks.getByName(EXT_CARTRIDGELIST_TEST)) {
-                    it.into("system-conf/cluster")
-                }
+            tasks.maybeCreate(CREATE_SITES_FOLDER, CreateSitesFolder::class.java).apply {
+                this.baseProjects = extension.projectConfig.baseProjects.asMap
+                this.provideBaseCopySpec(extension.projectConfig.sitesCopySpecProvider)
+                this.outputDirProperty.set(projectLayout.buildDirectory.dir("container/sites"))
 
-                into(projectLayout.buildDirectory.dir("server/conf"))
-
-                prepareTask.dependsOn(this)
+                prepareContainerTask.dependsOn(this)
             }
         }
     }
@@ -192,3 +163,4 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
         }
     }
 }
+

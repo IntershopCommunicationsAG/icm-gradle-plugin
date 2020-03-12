@@ -19,6 +19,8 @@ package com.intershop.gradle.icm.extension
 
 import com.intershop.gradle.icm.utils.getValue
 import com.intershop.gradle.icm.utils.setValue
+import org.gradle.api.NamedDomainObjectContainer
+import org.gradle.api.file.CopySpec
 import org.gradle.api.file.Directory
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.ProjectLayout
@@ -64,17 +66,23 @@ abstract class ProjectConfiguration {
     private val dbprepareCartridgesProperty: SetProperty<String> = objectFactory.setProperty(String::class.java)
     private val productionCartridgesProperty: SetProperty<String> = objectFactory.setProperty(String::class.java)
 
-    private val configurationPackageProperty: Property<String> = objectFactory.property(String::class.java)
-    private val sitesPackageProperty: Property<String> = objectFactory.property(String::class.java)
+    val confCopySpecProperty: Property<CopySpec> = objectFactory.property(CopySpec::class.java)
+    val sitesCopySpecProperty: Property<CopySpec> = objectFactory.property(CopySpec::class.java)
 
-    private val configDirProperty: DirectoryProperty = objectFactory.directoryProperty()
-    private val sitesDirProperty: DirectoryProperty = objectFactory.directoryProperty()
+    val devConfCopySpecProperty: Property<CopySpec> = objectFactory.property(CopySpec::class.java)
+    val devSitesCopySpecProperty: Property<CopySpec> = objectFactory.property(CopySpec::class.java)
 
     init {
         cartridgeDirProperty.convention(projectLayout.buildDirectory.dir(EXTERNAL_CARTRIDGE_PATH))
-        configDirProperty.convention(projectLayout.projectDirectory.dir("config/base"))
-        sitesDirProperty.convention(projectLayout.projectDirectory.dir("sites/base"))
     }
+
+    /**
+     * Base project configuration for final project
+     *
+     * @property baseProjects
+     */
+    val baseProjects: NamedDomainObjectContainer<BaseProjectConfiguration>
+            = objectFactory.domainObjectContainer(BaseProjectConfiguration::class.java)
 
     /**
      * Provider of cartridge directory for external cartridges.
@@ -174,82 +182,70 @@ abstract class ProjectConfiguration {
     }
 
     /**
-     * Provider of configurationPackage property.
-     *
-     * @property configurationPackageProvider
-     */
-    val configurationPackageProvider: Provider<String>
-        get() = configurationPackageProperty
-
-    /**
-     * Base of the sites configuration of an ICM server.
-     *
-     * @property configurationPackage
-     */
-    var configurationPackage by configurationPackageProperty
-
-    /**
-     * Provider of configurationPackage property.
-     *
-     * @property configurationPackageProvider
-     */
-    val sitesPackageProvider: Provider<String>
-        get() = sitesPackageProperty
-
-    /**
-     * Base of the server configuration of an ICM server.
-     *
-     * @property sitesPackage
-     */
-    var sitesPackage by sitesPackageProperty
-
-    /**
      * Provider of project configuration directory.
      *
-     * @property configDirProvider
+     * @property confCopySpecProvider
      */
-    val configDirProvider: Provider<Directory>
-        get() = configDirProperty
+    val confCopySpecProvider: Provider<CopySpec>
+        get() = confCopySpecProperty
 
     /**
      * Additional project configuration directory.
      *
-     * @property configDir
+     * @property confCopySpec
      */
-    var configDir: File
-        get() = configDirProperty.get().asFile
-        set(value) = configDirProperty.set(value)
-
-    /**
-     * Set only a short path for project configuration dir.
-     * @param configPath
-     */
-    fun setConfigPath(configPath: String) {
-        configDirProperty.set(projectLayout.projectDirectory.dir(configPath))
-    }
+    var confCopySpec: CopySpec
+        get() = confCopySpecProperty.get()
+        set(value) = confCopySpecProperty.set(value)
 
     /**
      * Provider of project sites directory.
      *
-     * @property sitesDirProvider
+     * @property sitesCopySpecProperty
      */
-    val sitesDirProvider: Provider<Directory>
-        get() = sitesDirProperty
+    val sitesCopySpecProvider: Provider<CopySpec>
+        get() = sitesCopySpecProperty
 
     /**
      * Project sites directory.
      *
-     * @property sitesDir
+     * @property sitesCopySpec
      */
-    var sitesDir: File
-        get() = sitesDirProperty.get().asFile
-        set(value) = sitesDirProperty.set(value)
+    var sitesCopySpec: CopySpec
+        get() = sitesCopySpecProperty.get()
+        set(value) = sitesCopySpecProperty.set(value)
+
+    /* Provider of project configuration directory.
+    *
+    * @property devConfCopySpecProvider
+    */
+    val devConfCopySpecProvider: Provider<CopySpec>
+        get() = devConfCopySpecProperty
 
     /**
-     * Set only a short path for project configuration dir.
-     * @param sitesPath
+     * Additional project configuration directory.
+     *
+     * @property confCopySpec
      */
-    fun setSitesPath(sitesPath: String) {
-        sitesDirProperty.set(projectLayout.projectDirectory.dir(sitesPath))
-    }
+    var devConfCopySpec: CopySpec
+        get() = devConfCopySpecProperty.get()
+        set(value) = devConfCopySpecProperty.set(value)
+
+    /**
+     * Provider of project sites directory.
+     *
+     * @property sitesCopySpecProperty
+     */
+    val devSitesCopySpecProvider: Provider<CopySpec>
+        get() = devSitesCopySpecProperty
+
+    /**
+     * Project sites directory.
+     *
+     * @property sitesCopySpec
+     */
+    var devSitesCopySpec: CopySpec
+        get() = devSitesCopySpecProperty.get()
+        set(value) = devSitesCopySpecProperty.set(value)
+
 }

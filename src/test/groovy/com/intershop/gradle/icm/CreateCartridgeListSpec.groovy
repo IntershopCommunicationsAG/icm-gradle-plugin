@@ -205,8 +205,6 @@ class CreateCartridgeListSpec extends AbstractIntegrationGroovySpec {
         TestRepo repo = new TestRepo(new File(testProjectDir, "/repo"))
         String repoConf = repo.getRepoConfig()
 
-        copyResources("cartridgelist", "build/input")
-
         settingsFile << """
         rootProject.name='rootproject'
         """.stripIndent()
@@ -222,9 +220,12 @@ class CreateCartridgeListSpec extends AbstractIntegrationGroovySpec {
                     dbprepareCartridges = ['cartridge1', 'cartridge2', 'test_artridge1', 'test_cartridge2', "dbprep_cartr1" ]
                     productionCartridges = ['cartridge1', 'cartridge2', "dbprep_cartr1" ]
 
-                    configurationPackage = "com.intershop.icm:icm-as:1.0.0"
-
-                    sitesPackage = "com.intershop.icm:icm-as:1.0.0"
+                    baseProjects {
+                        icm {
+                            dependency = "com.intershop.icm:icm-as:1.0.0"
+                            withCartridgeList = true
+                        }
+                    }
                 }
             }
 
@@ -233,15 +234,15 @@ class CreateCartridgeListSpec extends AbstractIntegrationGroovySpec {
 
         when:
         def result = getPreparedGradleRunner()
-                .withArguments("extendCartrideListTest", "-s")
+                .withArguments("prepareServer", "-s")
                 .withGradleVersion(gradleVersion)
                 .build()
 
-        def testFile = new File(testProjectDir, "build/test/cartridgelist.properties")
+        def testFile = new File(testProjectDir, "build/server/configuration/system-conf/cluster/cartridgelist.properties")
         def testProps = new Properties()
 
         then:
-        result.task(':extendCartrideListTest').outcome == SUCCESS
+        result.task(':prepareServer').outcome == SUCCESS
         testFile.exists()
         testProps.load(testFile.newReader())
         testProps.getProperty("cartridges").contains("cartridge1 cartridge2 test_artridge1 test_cartridge2")
@@ -249,15 +250,15 @@ class CreateCartridgeListSpec extends AbstractIntegrationGroovySpec {
 
         when:
         def result1 = getPreparedGradleRunner()
-                .withArguments("extendCartrideListProd", "-s")
+                .withArguments("prepareContainer", "-s")
                 .withGradleVersion(gradleVersion)
                 .build()
 
-        def prodFile = new File(testProjectDir, "build/production/cartridgelist.properties")
+        def prodFile = new File(testProjectDir, "build/container/configuration/system-conf/cluster/cartridgelist.properties")
         def prodProps = new Properties()
 
         then:
-        result1.task(':extendCartrideListProd').outcome == SUCCESS
+        result1.task(':prepareContainer').outcome == SUCCESS
         prodFile.exists()
         prodProps.load(prodFile.newReader())
         prodProps.getProperty("cartridges").contains("cartridge1 cartridge2")
@@ -284,26 +285,34 @@ class CreateCartridgeListSpec extends AbstractIntegrationGroovySpec {
         testFile1.parentFile.mkdirs()
         testFile1 << "test = 2"
 
-        def sitesFile = new File(testProjectDir, "sites/base/test/site.properties")
-        sitesFile.parentFile.mkdirs()
-        sitesFile << "test = 1"
-
         buildFile << """
             plugins {
                 id 'com.intershop.gradle.icm.project'
             }
             
+            buildDir = new File(projectDir, 'target')
+
             intershop {
                 projectConfig {
                     cartridges = ['cartridge1', 'cartridge2', 'test_artridge1', 'test_cartridge2' ]
                     dbprepareCartridges = ['cartridge1', 'cartridge2', 'test_artridge1', 'test_cartridge2', "dbprep_cartr1" ]
                     productionCartridges = ['cartridge1', 'cartridge2', "dbprep_cartr1" ]
 
-                    configurationPackage = "com.intershop.icm:icm-as:1.0.0"
-                    sitesPackage = "com.intershop.icm:icm-as:1.0.0"
+                    baseProjects {
+                        icm {
+                            dependency = "com.intershop.icm:icm-as:1.0.0"
+                            confCopySpec = project.copySpec {
+                                exclude("**/**/cartridgelst.properties")
+                            }
+                            withCartridgeList = true
+                        }
+                    }
 
-                    sitesDir = file("sites/")
-                    configDir = file("config/")
+                    confCopySpec = project.copySpec {
+                        from("config/base") {
+                            into("system-conf")
+                        }
+                    }
                 }
             }
 
@@ -312,39 +321,13 @@ class CreateCartridgeListSpec extends AbstractIntegrationGroovySpec {
 
         when:
         def result = getPreparedGradleRunner()
-                .withArguments("prepareConfig", "-s")
+                .withArguments("prepareContainer", "-s")
                 .withGradleVersion(gradleVersion)
                 .build()
 
         then:
-        result.task(':prepareConfig').outcome == SUCCESS
+        result.task(':prepareContainer').outcome == SUCCESS
 
-        when:
-        def result1 = getPreparedGradleRunner()
-                .withArguments("prepareSites", "-s")
-                .withGradleVersion(gradleVersion)
-                .build()
-
-        then:
-        result1.task(':prepareSites').outcome == SUCCESS
-
-        when:
-        def result2 = getPreparedGradleRunner()
-                .withArguments("createSites", "-s")
-                .withGradleVersion(gradleVersion)
-                .build()
-
-        then:
-        result2.task(':createSites').outcome == SUCCESS
-
-        when:
-        def result3 = getPreparedGradleRunner()
-                .withArguments("createConfig", "-s")
-                .withGradleVersion(gradleVersion)
-                .build()
-
-        then:
-        result3.task(':createConfig').outcome == SUCCESS
 
         where:
         gradleVersion << supportedGradleVersions
