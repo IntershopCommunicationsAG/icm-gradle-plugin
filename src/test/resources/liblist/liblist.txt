@@ -37,6 +37,7 @@ org.glassfish.jersey.bundles.repackaged-jersey-guava-2.25.1
 args4j-args4j-2.0.26
 org.apache.geronimo.specs-geronimo-j2ee-management_1.1_spec-1.0.1
 jsr94-jsr94-1.1
+com.other-library2-1.5.0
 commons-logging-commons-logging-1.2
 org.apache.tomcat-tomcat-jasper-9.0.19
 org.antlr-antlr-runtime-3.5.2

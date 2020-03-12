@@ -158,6 +158,7 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
         with(project) {
             tasks.maybeCreate(SetupExternalCartridges.DEFAULT_NAME, SetupExternalCartridges::class.java).apply {
                 provideCartridgeDir(extension.projectConfig.cartridgeDirProvider)
+                this.baseProjects = extension.projectConfig.baseProjects.asMap
                 prepareTask.dependsOn(this)
             }
         }

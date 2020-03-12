@@ -83,6 +83,20 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
             
             group = 'com.intershop.test'
 
+            intershop {
+                projectConfig {
+                    baseProjects {
+                        icm {
+                            dependency = "com.intershop.icm:icm-as:1.0.0"
+                            confCopySpec = project.copySpec {
+                                exclude("**/**/cartridgelst.properties")
+                            }
+                            withCartridgeList = true
+                        }
+                    }
+                }
+            }
+
             dependencies {
                 ${ICMProjectPlugin.CONFIGURATION_EXTERNALCARTRIDGES} 'com.intershop.cartridge:cartridge2:1.0.0'
             }
