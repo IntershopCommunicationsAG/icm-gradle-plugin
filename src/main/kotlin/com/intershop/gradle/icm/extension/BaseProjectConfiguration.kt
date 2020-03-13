@@ -75,7 +75,7 @@ abstract class BaseProjectConfiguration(val name: String) {
 
     /**
      * If the configuration contains a cartridge
-     * list properties this variable is true
+     * list properties this variable is true.
      *
      * @property withCartridgeList
      */

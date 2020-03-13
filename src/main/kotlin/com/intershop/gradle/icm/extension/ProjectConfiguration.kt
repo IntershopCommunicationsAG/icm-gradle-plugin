@@ -77,7 +77,7 @@ abstract class ProjectConfiguration {
     }
 
     /**
-     * Base project configuration for final project
+     * Base project configuration for final project.
      *
      * @property baseProjects
      */

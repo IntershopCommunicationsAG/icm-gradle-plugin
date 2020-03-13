@@ -20,14 +20,13 @@ import com.intershop.gradle.icm.extension.IntershopExtension
 import com.intershop.gradle.icm.tasks.CreateConfFolder
 import com.intershop.gradle.icm.tasks.CreateServerInfoProperties
 import com.intershop.gradle.icm.tasks.CreateSitesFolder
-import com.intershop.gradle.icm.tasks.SetupExternalCartridges
+import com.intershop.gradle.icm.tasks.SetupCartridges
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.tasks.TaskContainer
-import java.io.File
 import javax.inject.Inject
 
 /**
@@ -43,6 +42,9 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
 
         const val CREATE_DEVSITES_FOLDER = "createDevSites"
         const val CREATE_DEVCONF_FOLDER = "createDevConfig"
+
+        const val SETUP_CARTRIDGES = "setupCartridges"
+        const val SETUP_DEVCARTRIDGES = "setupDevCartridges"
 
         /**
          * checks if the specified name is available in the list of tasks.
@@ -69,6 +71,11 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
                 description = "starts all tasks for the preparation of a local server"
             }
 
+            val prepareContainerTask = tasks.maybeCreate("prepareContainer").apply {
+                group = IntershopExtension.INTERSHOP_GROUP_NAME
+                description = "starts all tasks for the preparation of a container build"
+            }
+
             val confCS: CopySpec = project.copySpec()
             confCS.from(project.layout.projectDirectory.dir("config/base"))
             confCS.from(project.layout.projectDirectory.dir("config/dev"))
@@ -80,13 +87,16 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
             extension.projectConfig.confCopySpecProperty.convention(confCS)
             extension.projectConfig.sitesCopySpecProperty.convention(sitesCS)
 
-            configureProjectPackages(this, extension, prepareTask)
-            configureExtCartridgeTask(this, extension, prepareTask)
+            configureProjectPackages(this, extension, prepareTask, prepareContainerTask)
+            configureExtCartridgeTask(this, extension, prepareTask, prepareContainerTask)
 
         }
     }
 
-    private fun configureProjectPackages(project: Project, extension: IntershopExtension, prepareTask: Task) {
+    private fun configureProjectPackages(project: Project,
+                                         extension: IntershopExtension,
+                                         prepareTask: Task,
+                                         prepareContainerTask: Task) {
         with(project) {
             val infoTask = tasks.maybeCreate(
                 CreateServerInfoProperties.DEFAULT_NAME,
@@ -118,15 +128,10 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
             tasks.maybeCreate(CREATE_DEVSITES_FOLDER, CreateSitesFolder::class.java).apply {
                 this.baseProjects = extension.projectConfig.baseProjects.asMap
                 this.provideBaseCopySpec(extension.projectConfig.sitesCopySpecProvider)
-                this.provideDevCopySpec(extension.projectConfig.confCopySpecProvider)
+                this.provideDevCopySpec(extension.projectConfig.sitesCopySpecProvider)
                 this.outputDirProperty.set(projectLayout.buildDirectory.dir("server/sites"))
 
                 prepareTask.dependsOn(this)
-            }
-
-            val prepareContainerTask = tasks.maybeCreate("prepareContainer").apply {
-                group = IntershopExtension.INTERSHOP_GROUP_NAME
-                description = "starts all tasks for the preparation of a container build"
             }
 
             tasks.maybeCreate(CREATE_CONF_FOLDER, CreateConfFolder::class.java).apply {
@@ -154,12 +159,25 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
         }
     }
 
-    private fun configureExtCartridgeTask(project: Project, extension: IntershopExtension, prepareTask: Task) {
+    private fun configureExtCartridgeTask(project: Project,
+                                          extension: IntershopExtension,
+                                          prepareTask: Task,
+                                          prepareContainerTask: Task) {
         with(project) {
-            tasks.maybeCreate(SetupExternalCartridges.DEFAULT_NAME, SetupExternalCartridges::class.java).apply {
+            tasks.maybeCreate(SETUP_DEVCARTRIDGES, SetupCartridges::class.java).apply {
                 provideCartridgeDir(extension.projectConfig.cartridgeDirProvider)
                 this.baseProjects = extension.projectConfig.baseProjects.asMap
+                this.outputDirProperty.set(projectLayout.buildDirectory.dir("server/cartridges"))
                 prepareTask.dependsOn(this)
+            }
+
+            tasks.maybeCreate(SETUP_CARTRIDGES, SetupCartridges::class.java).apply {
+                provideCartridgeDir(extension.projectConfig.cartridgeDirProvider)
+                this.baseProjects = extension.projectConfig.baseProjects.asMap
+                this.provideProductionCartridges(extension.projectConfig.productionCartridgesProvider)
+                this.outputDirProperty.set(projectLayout.buildDirectory.dir("container/cartridges"))
+
+                prepareContainerTask.dependsOn(this)
             }
         }
     }

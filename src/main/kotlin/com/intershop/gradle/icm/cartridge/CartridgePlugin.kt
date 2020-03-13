@@ -59,6 +59,7 @@ open class CartridgePlugin : Plugin<Project> {
                     IntershopExtension::class.java
                 )
             }
+            val extension = rootProject.extensions.getByType(IntershopExtension::class.java)
             plugins.apply(JavaPlugin::class.java)
 
             configureAddFileCreation( this)
@@ -70,7 +71,9 @@ open class CartridgePlugin : Plugin<Project> {
             ) {
                 tasks.register(
                     CopyThirdpartyLibs.DEFAULT_NAME,
-                    CopyThirdpartyLibs::class.java)
+                    CopyThirdpartyLibs::class.java) {
+                        it.baseProjects = extension.projectConfig.baseProjects.asMap
+                }
             }
         }
     }

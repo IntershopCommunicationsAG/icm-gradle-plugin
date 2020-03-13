@@ -106,12 +106,12 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         when:
         def result = getPreparedGradleRunner()
-                .withArguments("setupExtCartridges", "-s")
+                .withArguments("setupCartridges", "-s")
                 .withGradleVersion(gradleVersion)
                 .build()
 
         then:
-        result.task(':setupExternalCartridges').outcome == SUCCESS
+        result.task(':setupCartridges').outcome == SUCCESS
 
         where:
         gradleVersion << supportedGradleVersions

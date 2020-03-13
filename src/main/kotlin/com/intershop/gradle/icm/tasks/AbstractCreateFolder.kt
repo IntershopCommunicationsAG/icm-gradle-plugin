@@ -14,7 +14,6 @@
  * limitations under the License.
  *
  */
-
 package com.intershop.gradle.icm.tasks
 
 import com.intershop.gradle.icm.extension.BaseProjectConfiguration
@@ -44,6 +43,10 @@ import org.gradle.api.tasks.options.Option
 import java.io.File
 import javax.inject.Inject
 
+/**
+ * Abstract task class to create folders for
+ * project or adapter cartridges.
+ */
 abstract class AbstractCreateFolder @Inject constructor(
     objectFactory: ObjectFactory,
     private var fsOps: FileSystemOperations): DefaultTask() {

@@ -16,7 +16,9 @@
  */
 package com.intershop.gradle.icm.tasks
 
+import com.intershop.gradle.icm.extension.BaseProjectConfiguration
 import com.intershop.gradle.icm.extension.IntershopExtension.Companion.INTERSHOP_GROUP_NAME
+import com.intershop.gradle.icm.tasks.CartridgeUtil.downloadLibFilter
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.file.Directory
@@ -25,8 +27,11 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME
+import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Classpath
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactIdentifier
@@ -44,6 +49,8 @@ open class CopyThirdpartyLibs @Inject constructor(
         objectFactory: ObjectFactory) : DefaultTask() {
 
     private val outputDirProperty: DirectoryProperty = objectFactory.directoryProperty()
+    private val baseProjectsProperty: MapProperty<String, BaseProjectConfiguration> =
+        objectFactory.mapProperty(String::class.java, BaseProjectConfiguration::class.java)
 
     companion object {
         const val DEFAULT_NAME = "copyThirdpartyLibs"
@@ -56,6 +63,12 @@ open class CopyThirdpartyLibs @Inject constructor(
 
         outputDirProperty.convention(projectLayout.buildDirectory.dir(THIRDPARTYLIB_DIR))
     }
+
+    @set:Input
+    @set:Nested
+    var baseProjects: Map<String, BaseProjectConfiguration>
+        get() = baseProjectsProperty.get()
+        set(value) = baseProjectsProperty.putAll(value)
 
     /**
      * Provider configuration for target directory.
@@ -94,20 +107,32 @@ open class CopyThirdpartyLibs @Inject constructor(
             outputDir.mkdirs()
         }
 
+        val libs = mutableListOf<String>()
+        baseProjects.forEach {
+            var file = downloadLibFilter(project, it.value.dependency, it.key)
+            libs.addAll(file.readLines())
+        }
+        if(libs.isEmpty()) {
+            project.logger.info("No lib filter entries available.")
+        }
+
         project.configurations.getByName(RUNTIME_CLASSPATH_CONFIGURATION_NAME)
             .resolvedConfiguration.resolvedArtifacts.forEach { artifact ->
             if (artifact.id is DefaultModuleComponentArtifactIdentifier) {
 
                 val identifier = artifact.id
                 if(identifier is DefaultModuleComponentArtifactIdentifier) {
-                    val name = "${identifier.componentIdentifier.group}-" +
-                            "${identifier.componentIdentifier.module}-" +
-                            "${identifier.componentIdentifier.version}.${artifact.type}"
+                    val id = "${identifier.componentIdentifier.group}-" +
+                             "${identifier.componentIdentifier.module}-" +
+                             "${identifier.componentIdentifier.version}"
+                    val name = "${id}.${artifact.type}"
 
-                    artifact.file.copyTo(
-                        File(outputDir, name),
-                        overwrite = true
-                    )
+                    if(libs.isEmpty() || ! libs.contains(id)) {
+                        artifact.file.copyTo(
+                            File(outputDir, name),
+                            overwrite = true
+                        )
+                    }
                 } else {
                     throw GradleException("Artifact ID is not a module identifier.")
                 }
