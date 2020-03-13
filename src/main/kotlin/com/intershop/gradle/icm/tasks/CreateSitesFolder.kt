@@ -46,7 +46,7 @@ import javax.inject.Inject
  */
 open class CreateSitesFolder @Inject constructor(
     objectFactory: ObjectFactory,
-    private var fsOps: FileSystemOperations): AbstractCreateFolder(objectFactory, fsOps) {
+    fsOps: FileSystemOperations): AbstractCreateFolder(objectFactory, fsOps) {
 
     init {
         group = IntershopExtension.INTERSHOP_GROUP_NAME

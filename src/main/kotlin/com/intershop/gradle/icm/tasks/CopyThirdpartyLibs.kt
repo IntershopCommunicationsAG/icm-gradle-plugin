@@ -30,7 +30,6 @@ import org.gradle.api.plugins.JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME
 import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Classpath
-import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
@@ -64,8 +63,7 @@ open class CopyThirdpartyLibs @Inject constructor(
         outputDirProperty.convention(projectLayout.buildDirectory.dir(THIRDPARTYLIB_DIR))
     }
 
-    @set:Input
-    @set:Nested
+    @get:Nested
     var baseProjects: Map<String, BaseProjectConfiguration>
         get() = baseProjectsProperty.get()
         set(value) = baseProjectsProperty.putAll(value)
@@ -73,7 +71,7 @@ open class CopyThirdpartyLibs @Inject constructor(
     /**
      * Provider configuration for target directory.
      *
-     * @param provideOutputDir
+     * @param outputDir
      */
     fun provideOutputDir(outputDir: Provider<Directory>) = outputDirProperty.set(outputDir)
 
@@ -109,7 +107,7 @@ open class CopyThirdpartyLibs @Inject constructor(
 
         val libs = mutableListOf<String>()
         baseProjects.forEach {
-            var file = downloadLibFilter(project, it.value.dependency, it.key)
+            val file = downloadLibFilter(project, it.value.dependency, it.key)
             libs.addAll(file.readLines())
         }
         if(libs.isEmpty()) {
@@ -124,7 +122,7 @@ open class CopyThirdpartyLibs @Inject constructor(
                 if(identifier is DefaultModuleComponentArtifactIdentifier) {
                     val id = "${identifier.componentIdentifier.group}-" +
                              "${identifier.componentIdentifier.module}-" +
-                             "${identifier.componentIdentifier.version}"
+                             identifier.componentIdentifier.version
                     val name = "${id}.${artifact.type}"
 
                     if(libs.isEmpty() || ! libs.contains(id)) {

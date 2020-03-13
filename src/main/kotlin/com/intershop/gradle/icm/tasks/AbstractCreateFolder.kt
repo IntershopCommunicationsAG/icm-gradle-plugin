@@ -17,29 +17,20 @@
 package com.intershop.gradle.icm.tasks
 
 import com.intershop.gradle.icm.extension.BaseProjectConfiguration
-import com.intershop.gradle.icm.extension.IntershopExtension
 import com.intershop.gradle.icm.tasks.CreateConfFolder.Companion.CLUSTER_CONF
-import com.intershop.gradle.icm.utils.getValue
-import com.intershop.gradle.icm.utils.setValue
 import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.Directory
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileSystemOperations
-import org.gradle.api.file.ProjectLayout
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
-import org.gradle.api.provider.SetProperty
-import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
-import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
-import org.gradle.api.tasks.TaskAction
-import org.gradle.api.tasks.options.Option
 import java.io.File
 import javax.inject.Inject
 
@@ -51,19 +42,22 @@ abstract class AbstractCreateFolder @Inject constructor(
     objectFactory: ObjectFactory,
     private var fsOps: FileSystemOperations): DefaultTask() {
 
+    @get:Internal
     val outputDirProperty: DirectoryProperty = objectFactory.directoryProperty()
 
+    @get:Internal
     protected val baseProjectsProperty: MapProperty<String, BaseProjectConfiguration> =
         objectFactory.mapProperty(String::class.java, BaseProjectConfiguration::class.java)
 
+    @get:Internal
     protected val baseCopySpecProperty: Property<CopySpec> = objectFactory.property(CopySpec::class.java)
+    @get:Internal
     protected val devCopySpecProperty: Property<CopySpec> = objectFactory.property(CopySpec::class.java)
 
     fun provideBaseCopySpec(confCopySpec: Provider<CopySpec>) = baseCopySpecProperty.set(confCopySpec)
     fun provideDevCopySpec(confCopySpec: Provider<CopySpec>) = devCopySpecProperty.set(confCopySpec)
 
-    @set:Input
-    @set:Nested
+    @get:Nested
     var baseProjects: Map<String, BaseProjectConfiguration>
         get() = baseProjectsProperty.get()
         set(value) = baseProjectsProperty.putAll(value)
@@ -71,7 +65,7 @@ abstract class AbstractCreateFolder @Inject constructor(
     /**
      * Provider configuration for target directory.
      *
-     * @param provideOutputDir
+     * @param outputDir
      */
     fun provideOutputDir(outputDir: Provider<Directory>) = outputDirProperty.set(outputDir)
 
@@ -88,10 +82,9 @@ abstract class AbstractCreateFolder @Inject constructor(
     /**
      * Additional project configuration directory.
      *
-     * @property confCopySpec
+     * @property baseCopySpec
      */
-    @get:Nested
-    @get:Input
+    @get:Internal
     var baseCopySpec: CopySpec
         get() = baseCopySpecProperty.get()
         set(value) = baseCopySpecProperty.set(value)
@@ -99,11 +92,9 @@ abstract class AbstractCreateFolder @Inject constructor(
     /**
      * Additional project configuration directory.
      *
-     * @property confCopySpec
+     * @property devCopySpec
      */
-    @get:Optional
-    @get:Nested
-    @get:Input
+    @get:Internal
     var devCopySpec: CopySpec?
         get() = devCopySpecProperty.orNull
         set(value) = devCopySpecProperty.set(value)
@@ -124,7 +115,7 @@ abstract class AbstractCreateFolder @Inject constructor(
         baseProjects.forEach {
             val file = downloadPackage(it.value.dependency, classifier)
 
-            if(it.value.withCartridgeList == true) {
+            if(it.value.withCartridgeList) {
                 val propsFile = getCartridgeListProps(file)
                 if(propsFile != null) {
                     cs.from(propsFile) { cs ->
@@ -160,7 +151,7 @@ abstract class AbstractCreateFolder @Inject constructor(
         val configuration = project.configurations.maybeCreate(configurationName)
         configuration.setVisible(false)
             .setTransitive(false)
-            .setDescription("${classifier} for package download: ${this.name}")
+            .setDescription("$classifier for package download: ${this.name}")
             .defaultDependencies { ds ->
                 ds.add(dep)
             }

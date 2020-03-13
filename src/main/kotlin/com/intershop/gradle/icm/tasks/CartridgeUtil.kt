@@ -99,7 +99,7 @@ object CartridgeUtil {
         val configuration = project.configurations.maybeCreate(getConfigurationName(name))
         configuration.setVisible(false)
             .setTransitive(false)
-            .setDescription("Libs for download: ${name}")
+            .setDescription("Libs for download: $name")
             .defaultDependencies { ds ->
                 ds.add(dep)
             }

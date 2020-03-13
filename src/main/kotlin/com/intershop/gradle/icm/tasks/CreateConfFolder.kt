@@ -30,6 +30,7 @@ import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.SetProperty
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.TaskAction
@@ -43,7 +44,7 @@ import javax.inject.Inject
  */
 open class CreateConfFolder @Inject constructor(
     objectFactory: ObjectFactory,
-    private var fsOps: FileSystemOperations): AbstractCreateFolder(objectFactory, fsOps) {
+    fsOps: FileSystemOperations): AbstractCreateFolder(objectFactory, fsOps) {
 
     companion object {
         /**
@@ -130,7 +131,7 @@ open class CreateConfFolder @Inject constructor(
     fun provideVersionInfoFile(file: Provider<RegularFile>) = versionInfoFileProperty.set(file)
 
     @get:Optional
-    @get:Input
+    @get:InputFile
     var versionInfoFile: File?
         get() = if (versionInfoFileProperty.orNull != null) versionInfoFileProperty.get().asFile else null
         set(value) = versionInfoFileProperty.set(value)
@@ -215,7 +216,7 @@ open class CreateConfFolder @Inject constructor(
 
         outputFile.printWriter().use { out ->
                 out.println("# generated cartridge list properties for '${project.name}'")
-                out.println("${CARTRIDGES_PROPERTY} = \\")
+                out.println("$CARTRIDGES_PROPERTY = \\")
                 cartridgesSet.forEach {
                     if(it == cartridgesSet.last()) {
                         out.println("\t${it}")
@@ -224,7 +225,7 @@ open class CreateConfFolder @Inject constructor(
                     }
                 }
                 out.println("")
-                out.println("${CARTRIDGES_DBINIT_PROPERTY} = \\")
+                out.println("$CARTRIDGES_DBINIT_PROPERTY = \\")
                 initCartridgesSet.forEach {
                     if(it == initCartridgesSet.last()) {
                         out.println("\t${it}")

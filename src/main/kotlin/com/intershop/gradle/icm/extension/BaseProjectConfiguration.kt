@@ -24,15 +24,14 @@ import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.Nested
-import org.gradle.api.tasks.Optional
+import org.gradle.api.tasks.Internal
 import javax.inject.Inject
 
 /**
  * Extension to configure sub projects, like connectors,
  * payment provider etc.
  */
-abstract class BaseProjectConfiguration(val name: String) {
+abstract class BaseProjectConfiguration( @get:Internal val name: String ) {
 
     /**
      * Inject service of ObjectFactory (See "Service injection" in Gradle documentation.
@@ -54,6 +53,7 @@ abstract class BaseProjectConfiguration(val name: String) {
      *
      * @property dependencyProvider
      */
+    @get:Internal
     val dependencyProvider: Provider<String>
         get() = dependencyProperty
 
@@ -70,6 +70,7 @@ abstract class BaseProjectConfiguration(val name: String) {
      *
      * @property withCartridgeListProvider
      */
+    @get:Internal
     val withCartridgeListProvider: Provider<Boolean>
         get() = withCartridgeListProperty
 
@@ -87,6 +88,7 @@ abstract class BaseProjectConfiguration(val name: String) {
      *
      * @property confCopySpecProvider
      */
+    @get:Internal
     val confCopySpecProvider: Provider<CopySpec>
         get() = confCopySpecProperty
 
@@ -95,9 +97,7 @@ abstract class BaseProjectConfiguration(val name: String) {
      *
      * @property confCopySpec
      */
-    @get:Optional
-    @get:Input
-    @get:Nested
+    @get:Internal
     var confCopySpec: CopySpec?
         get() = confCopySpecProperty.orNull
         set(value) = confCopySpecProperty.set(value)
@@ -108,6 +108,7 @@ abstract class BaseProjectConfiguration(val name: String) {
      *
      * @property sitesCopySpecProvider
      */
+    @get:Internal
     val sitesCopySpecProvider: Provider<CopySpec>
         get() = sitesCopySpecProperty
 
@@ -116,9 +117,7 @@ abstract class BaseProjectConfiguration(val name: String) {
      *
      * @property sitesCopySpec
      */
-    @get:Optional
-    @get:Input
-    @get:Nested
+    @get:Internal
     var sitesCopySpec: CopySpec?
         get() = sitesCopySpecProperty.orNull
         set(value) = sitesCopySpecProperty.set(value)

@@ -37,6 +37,7 @@ import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.SetProperty
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
@@ -57,6 +58,7 @@ open class SetupCartridges @Inject constructor(
         objectFactory: ObjectFactory,
         private var fsOps: FileSystemOperations) : DefaultTask() {
 
+    @get:Internal
     val outputDirProperty: DirectoryProperty = objectFactory.directoryProperty()
     private val baseProjectsProperty: MapProperty<String, BaseProjectConfiguration> =
         objectFactory.mapProperty(String::class.java, BaseProjectConfiguration::class.java)
@@ -69,8 +71,7 @@ open class SetupCartridges @Inject constructor(
         outputDirProperty.convention(projectLayout.buildDirectory.dir("server/cartridges"))
     }
 
-    @set:Input
-    @set:Nested
+    @get:Nested
     var baseProjects: Map<String, BaseProjectConfiguration>
         get() = baseProjectsProperty.get()
         set(value) = baseProjectsProperty.putAll(value)
@@ -224,7 +225,7 @@ open class SetupCartridges @Inject constructor(
                 if(identifier is DefaultModuleComponentArtifactIdentifier) {
                     val id = "${identifier.componentIdentifier.group}-" +
                             "${identifier.componentIdentifier.module}-" +
-                            "${identifier.componentIdentifier.version}"
+                            identifier.componentIdentifier.version
                     val name = "${id}.${artifact.type}"
 
                     if(! CartridgeUtil.isCartridge(project, identifier.componentIdentifier) && ! filter.contains(id)) {
@@ -249,7 +250,7 @@ open class SetupCartridges @Inject constructor(
 
         val libs = mutableListOf<String>()
         baseProjects.forEach {
-            var file = downloadLibFilter(project, it.value.dependency, it.key)
+            val file = downloadLibFilter(project, it.value.dependency, it.key)
              libs.addAll(file.readLines())
         }
         createStructure(outputDirProperty.get().asFile, libs, productionCartridges)
