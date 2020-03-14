@@ -23,7 +23,6 @@ import com.intershop.gradle.icm.extension.IntershopExtension
 import com.intershop.gradle.icm.tasks.CartridgeUtil.downloadLibFilter
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
-import org.gradle.api.artifacts.DependencySet
 import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.file.Directory

@@ -136,9 +136,9 @@ abstract class PackageConf {
     var duplicateStrategy by duplicateStrategyProperty
 
     /**
-     * Set provider for includes matches.
+     * Set provider for target path configuration.
      *
-     * @param includes list of includes matches.
+     * @param targetPath list of includes matches.
      */
     @Suppress("unused")
     fun provideTargetPath(targetPath: Provider<String>) = targetPathProperty.set(targetPath)

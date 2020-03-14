@@ -21,14 +21,12 @@ import com.intershop.gradle.icm.extension.DirConf
 import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.file.CopySpec
-import org.gradle.api.file.Directory
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
-import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.Optional
@@ -59,13 +57,6 @@ abstract class AbstractCreateFolder @Inject constructor(
         set(value) = baseProjectsProperty.putAll(value)
 
     /**
-     * Provider configuration for project folder.
-     *
-     * @param dirConf
-     */
-    fun provideDirConf(dirConf: Provider<DirConf>) = dirConfProperty.set(dirConf)
-
-    /**
      * Configuration for project folder.
      *
      * @property dirConf
@@ -77,16 +68,9 @@ abstract class AbstractCreateFolder @Inject constructor(
         set(value) = dirConfProperty.set(value)
 
     /**
-     * Provider configuration for project developer folder.
-     *
-     * @param devConf
-     */
-    fun provideDevDirConf(devDirConf: Provider<DirConf>) = devDirConfProperty.set(devDirConf)
-
-    /**
      * Configuration for project developer configuration folder.
      *
-     * @property devConf
+     * @property devDirConf
      */
     @get:Optional
     @get:Nested
@@ -96,13 +80,6 @@ abstract class AbstractCreateFolder @Inject constructor(
                 else
                     null
         set(value) = devDirConfProperty.set(value)
-
-    /**
-     * Provider configuration for target directory.
-     *
-     * @param outputDir
-     */
-    fun provideOutputDir(outputDir: Provider<Directory>) = outputDirProperty.set(outputDir)
 
     /**
      * Output directory for generated files.
@@ -157,8 +134,8 @@ abstract class AbstractCreateFolder @Inject constructor(
         }
 
         baseProjects.forEach {
-            var file = downloadPackage(it.value.dependency, classifier)
-            var pkgCS = project.copySpec()
+            val file = downloadPackage(it.value.dependency, classifier)
+            val pkgCS = project.copySpec()
 
             pkgCS.from(project.zipTree(file))
             addCopyConfSpec(cs, pkgCS, it.value, file)

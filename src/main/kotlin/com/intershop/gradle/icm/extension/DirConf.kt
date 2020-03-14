@@ -39,7 +39,7 @@ abstract class DirConf: PackageConf() {
     /**
      * Directory with configuration or sites..
      *
-     * @property cartridgeDir
+     * @property dir
      */
     @get:Optional
     @get:InputDirectory
