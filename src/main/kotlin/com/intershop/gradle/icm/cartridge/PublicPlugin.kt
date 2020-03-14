@@ -16,17 +16,15 @@
  */
 package com.intershop.gradle.icm.cartridge
 
-import com.intershop.gradle.icm.ICMBasePlugin
 import com.intershop.gradle.icm.extension.IntershopExtension
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaPlugin
-import org.gradle.api.plugins.JavaPluginConvention
+import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
-import org.gradle.jvm.tasks.Jar
 import java.time.Year
 
 /**
@@ -56,32 +54,10 @@ open class PublicPlugin : Plugin<Project> {
     private fun configureAddJars(project: Project) {
         with(project) {
             plugins.withType(JavaPlugin::class.java) {
-                if (!ICMBasePlugin.checkForTask(
-                        tasks,
-                        TASK_SOURCEJAR
-                    )
-                ) {
-                    val javaConvention = convention.getPlugin(JavaPluginConvention::class.java)
-                    val mainSourceSet = javaConvention.sourceSets.getByName("main")
 
-                    tasks.register(TASK_SOURCEJAR, Jar::class.java) {
-                        it.dependsOn(tasks.getByName("classes"))
-                        it.archiveClassifier.set("sources")
-                        it.from(mainSourceSet.allSource)
-                    }
-                }
-
-                if (!ICMBasePlugin.checkForTask(
-                        tasks,
-                        TASK_JAVADOCJAR
-                    )
-                ) {
-                    tasks.register(TASK_JAVADOCJAR, Jar::class.java) {
-                        it.dependsOn(tasks.getByName(JavaPlugin.JAVADOC_TASK_NAME))
-                        it.archiveClassifier.set("javadoc")
-                        it.from(tasks.getByName(JavaPlugin.JAVADOC_TASK_NAME))
-                    }
-                }
+                val java = extensions.getByType(JavaPluginExtension::class.java)
+                java.withJavadocJar()
+                java.withSourcesJar()
 
                 val extension = rootProject.extensions.getByType(IntershopExtension::class.java)
 
@@ -105,9 +81,6 @@ open class PublicPlugin : Plugin<Project> {
                             } catch(ex: InvalidUserDataException) {
                                 project.logger.warn("Component Java was added to the publication in an other step.")
                             }
-
-                            artifact(tasks.getByName(TASK_SOURCEJAR))
-                            artifact(tasks.getByName(TASK_JAVADOCJAR))
 
                             pom.description.set(project.description)
                             pom.inceptionYear.set(Year.now().value.toString())

@@ -179,35 +179,10 @@ open class WriteCartridgeDescriptor @Inject constructor(
         val noCartridges = HashSet<String>()
         val cartridgesTransitive = HashSet<String>()
 
-        project.configurations.getByName(CONFIGURATION_CARTRIDGE).allDependencies.forEach { dependency ->
-            if(dependency is ModuleDependency) {
-                cartridges.add(dependency.name)
-            }
-        }
-        project.configurations.getByName(CONFIGURATION_CARTRIDGERUNTIME).allDependencies.forEach { dependency ->
-            if(dependency is ModuleDependency) {
-                cartridges.add(dependency.name)
-            }
-        }
+        addCartridges(CONFIGURATION_CARTRIDGE, cartridges)
+        addCartridges(CONFIGURATION_CARTRIDGERUNTIME, cartridges)
 
-        project.configurations.
-            getByName(CONFIGURATION_CARTRIDGERUNTIME).
-            resolvedConfiguration.lenientConfiguration.allModuleDependencies.forEach { dependency ->
-                dependency.moduleArtifacts.forEach { artifact ->
-
-                    val identifier = artifact.id.componentIdentifier
-                    if(identifier is ProjectComponentIdentifier) {
-                        cartridgesTransitive.add(project.project( identifier.projectPath ).name)
-                    }
-
-                    if(identifier is ModuleComponentIdentifier) {
-                        if(CartridgeUtil.isCartridge(project, identifier)) {
-                            cartridgesTransitive.add(identifier.module)
-                        }
-                    }
-                }
-            }
-
+        addTransitiveCartridges(CONFIGURATION_CARTRIDGERUNTIME, cartridgesTransitive)
 
         cartridges.forEach {
             if(! cartridgesTransitive.contains(it)) {
@@ -235,8 +210,36 @@ open class WriteCartridgeDescriptor @Inject constructor(
                 Charset.forName("ISO_8859_1"),
                 "\n"
             )
-        } finally {}
+        } finally {
+            project.logger.debug("Write properties finished not correct.")
+        }
     }
 
+    private fun addCartridges(confName: String, cartridges: HashSet<String>) {
+        project.configurations.getByName(confName).allDependencies.forEach { dependency ->
+            if(dependency is ModuleDependency) {
+                cartridges.add(dependency.name)
+            }
+        }
+    }
+
+    private fun addTransitiveCartridges(confName: String, cartridges: HashSet<String>) {
+        project.configurations.getByName(confName).
+        resolvedConfiguration.lenientConfiguration.allModuleDependencies.forEach { dependency ->
+            dependency.moduleArtifacts.forEach { artifact ->
+
+                val identifier = artifact.id.componentIdentifier
+                if(identifier is ProjectComponentIdentifier) {
+                    cartridges.add(project.project( identifier.projectPath ).name)
+                }
+
+                if(identifier is ModuleComponentIdentifier) {
+                    if(CartridgeUtil.isCartridge(project, identifier)) {
+                        cartridges.add(identifier.module)
+                    }
+                }
+            }
+        }
+    }
 
 }

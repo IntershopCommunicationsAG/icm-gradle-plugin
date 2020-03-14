@@ -20,7 +20,6 @@ import com.intershop.gradle.icm.extension.IntershopExtension.Companion.INTERSHOP
 import com.intershop.gradle.icm.utils.getValue
 import com.intershop.gradle.icm.utils.setValue
 import org.gradle.api.DefaultTask
-import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.file.RegularFile
 import org.gradle.api.file.RegularFileProperty
@@ -31,7 +30,6 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
-import org.gradle.api.tasks.WriteProperties
 import org.gradle.internal.util.PropertiesUtils
 import java.io.File
 import java.io.IOException
@@ -143,6 +141,9 @@ open class CreateServerInfoProperties @Inject constructor(
         get() = outputFileProperty.get().asFile
         set(value) = outputFileProperty.set(value)
 
+    /**
+     * Main function to run the task functionality.
+     */
     @Throws(IOException::class)
     @TaskAction
     fun writeProperties(){
@@ -175,6 +176,8 @@ open class CreateServerInfoProperties @Inject constructor(
                 Charset.forName("ISO_8859_1"),
                 "\n"
             )
-        } finally {}
+        } finally {
+            project.logger.debug("Write properties finished.")
+        }
     }
 }

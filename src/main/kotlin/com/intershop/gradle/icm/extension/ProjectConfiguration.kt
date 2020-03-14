@@ -19,15 +19,16 @@ package com.intershop.gradle.icm.extension
 
 import com.intershop.gradle.icm.utils.getValue
 import com.intershop.gradle.icm.utils.setValue
+import groovy.lang.Closure
+import org.gradle.api.Action
 import org.gradle.api.NamedDomainObjectContainer
-import org.gradle.api.file.CopySpec
 import org.gradle.api.file.Directory
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.model.ObjectFactory
-import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.SetProperty
+import org.gradle.util.ConfigureUtil
 import java.io.File
 import javax.inject.Inject
 
@@ -65,12 +66,6 @@ abstract class ProjectConfiguration {
     private val cartridgesProperty: SetProperty<String> = objectFactory.setProperty(String::class.java)
     private val dbprepareCartridgesProperty: SetProperty<String> = objectFactory.setProperty(String::class.java)
     private val productionCartridgesProperty: SetProperty<String> = objectFactory.setProperty(String::class.java)
-
-    val confCopySpecProperty: Property<CopySpec> = objectFactory.property(CopySpec::class.java)
-    val sitesCopySpecProperty: Property<CopySpec> = objectFactory.property(CopySpec::class.java)
-
-    val devConfCopySpecProperty: Property<CopySpec> = objectFactory.property(CopySpec::class.java)
-    val devSitesCopySpecProperty: Property<CopySpec> = objectFactory.property(CopySpec::class.java)
 
     init {
         cartridgeDirProperty.convention(projectLayout.buildDirectory.dir(EXTERNAL_CARTRIDGE_PATH))
@@ -182,70 +177,103 @@ abstract class ProjectConfiguration {
     }
 
     /**
-     * Provider of project configuration directory.
+     * Configuration for configuration folder.
      *
-     * @property confCopySpecProvider
+     * @property conf
      */
-    val confCopySpecProvider: Provider<CopySpec>
-        get() = confCopySpecProperty
+    val conf : DirConf = objectFactory.newInstance(DirConf::class.java)
 
     /**
-     * Additional project configuration directory.
+     * Configures conf with an action.
      *
-     * @property confCopySpec
+     * @param action
      */
-    var confCopySpec: CopySpec
-        get() = confCopySpecProperty.get()
-        set(value) = confCopySpecProperty.set(value)
+    fun conf(action: Action<in DirConf>) {
+        action.execute(conf)
+    }
 
     /**
-     * Provider of project sites directory.
+     * Configures conf with a closure.
      *
-     * @property sitesCopySpecProperty
+     * @param c
      */
-    val sitesCopySpecProvider: Provider<CopySpec>
-        get() = sitesCopySpecProperty
+    fun conf(c: Closure<DirConf>) {
+        ConfigureUtil.configure(c, conf)
+    }
 
     /**
-     * Project sites directory.
+     * Configuration for sites folder.
      *
-     * @property sitesCopySpec
+     * @property sites
      */
-    var sitesCopySpec: CopySpec
-        get() = sitesCopySpecProperty.get()
-        set(value) = sitesCopySpecProperty.set(value)
-
-    /* Provider of project configuration directory.
-    *
-    * @property devConfCopySpecProvider
-    */
-    val devConfCopySpecProvider: Provider<CopySpec>
-        get() = devConfCopySpecProperty
+    val sites: DirConf = objectFactory.newInstance(DirConf::class.java)
 
     /**
-     * Additional project configuration directory.
+     * Configures sitesPackage with an action.
      *
-     * @property confCopySpec
+     * @param action
      */
-    var devConfCopySpec: CopySpec
-        get() = devConfCopySpecProperty.get()
-        set(value) = devConfCopySpecProperty.set(value)
+    fun sites(action: Action<in DirConf>) {
+        action.execute(sites)
+    }
 
     /**
-     * Provider of project sites directory.
+     * Configures sites with a closure.
      *
-     * @property sitesCopySpecProperty
+     * @param c
      */
-    val devSitesCopySpecProvider: Provider<CopySpec>
-        get() = devSitesCopySpecProperty
+    fun sites(c: Closure<DirConf>) {
+        ConfigureUtil.configure(c, sites)
+    }
 
     /**
-     * Project sites directory.
+     * Configuration for developer / test configuration folder.
      *
-     * @property sitesCopySpec
+     * @property devConf
      */
-    var devSitesCopySpec: CopySpec
-        get() = devSitesCopySpecProperty.get()
-        set(value) = devSitesCopySpecProperty.set(value)
+    val devConf : DirConf = objectFactory.newInstance(DirConf::class.java)
+
+    /**
+     * Configures conf with an action.
+     *
+     * @param action
+     */
+    fun devConf(action: Action<in DirConf>) {
+        action.execute(conf)
+    }
+
+    /**
+     * Configures conf with a closure.
+     *
+     * @param c
+     */
+    fun devConf(c: Closure<DirConf>) {
+        ConfigureUtil.configure(c, devConf)
+    }
+
+    /**
+     * Configuration for developer / test sites folder.
+     *
+     * @property devSites
+     */
+    val devSites: DirConf = objectFactory.newInstance(DirConf::class.java)
+
+    /**
+     * Configures sitesPackage with an action.
+     *
+     * @param action
+     */
+    fun devSites(action: Action<in DirConf>) {
+        action.execute(devSites)
+    }
+
+    /**
+     * Configures sites with a closure.
+     *
+     * @param c
+     */
+    fun devSites(c: Closure<DirConf>) {
+        ConfigureUtil.configure(c, devSites)
+    }
 
 }

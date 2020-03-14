@@ -14,17 +14,19 @@
  * limitations under the License.
  *
  */
-
 package com.intershop.gradle.icm.extension
 
 import com.intershop.gradle.icm.utils.getValue
 import com.intershop.gradle.icm.utils.setValue
-import org.gradle.api.file.CopySpec
+import groovy.lang.Closure
+import org.gradle.api.Action
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
-import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.Nested
+import org.gradle.api.tasks.Optional
+import org.gradle.util.ConfigureUtil
 import javax.inject.Inject
 
 /**
@@ -41,21 +43,10 @@ abstract class BaseProjectConfiguration( @get:Internal val name: String ) {
 
     private val dependencyProperty: Property<String> = objectFactory.property(String::class.java)
     private val withCartridgeListProperty: Property<Boolean> = objectFactory.property(Boolean::class.java)
-    private val confCopySpecProperty: Property<CopySpec> = objectFactory.property(CopySpec::class.java)
-    private val sitesCopySpecProperty: Property<CopySpec> = objectFactory.property(CopySpec::class.java)
 
     init {
         withCartridgeListProperty.set(false)
     }
-
-    /**
-     * Provider for dependency property.
-     *
-     * @property dependencyProvider
-     */
-    @get:Internal
-    val dependencyProvider: Provider<String>
-        get() = dependencyProperty
 
     /**
      * Dependency of the base project.
@@ -64,15 +55,6 @@ abstract class BaseProjectConfiguration( @get:Internal val name: String ) {
      */
     @get:Input
     var dependency by dependencyProperty
-
-    /**
-     * CopySpec for the sites package.
-     *
-     * @property withCartridgeListProvider
-     */
-    @get:Internal
-    val withCartridgeListProvider: Provider<Boolean>
-        get() = withCartridgeListProperty
 
     /**
      * If the configuration contains a cartridge
@@ -84,42 +66,56 @@ abstract class BaseProjectConfiguration( @get:Internal val name: String ) {
     var withCartridgeList by withCartridgeListProperty
 
     /**
-     * CopySpec for the configuration package.
+     * Configuration for configuration package.
      *
-     * @property confCopySpecProvider
+     * @property confPackage
      */
-    @get:Internal
-    val confCopySpecProvider: Provider<CopySpec>
-        get() = confCopySpecProperty
+    @get:Optional
+    @get:Nested
+    val confPackage : PackageConf = objectFactory.newInstance(PackageConf::class.java)
 
     /**
-     * CopaSpec of configuration package of the base project.
+     * Configures confPackage with an action.
      *
-     * @property confCopySpec
+     * @param action
      */
-    @get:Internal
-    var confCopySpec: CopySpec?
-        get() = confCopySpecProperty.orNull
-        set(value) = confCopySpecProperty.set(value)
-
+    fun confPackage(action: Action<in PackageConf>) {
+        action.execute(confPackage)
+    }
 
     /**
-     * CopySpec for the sites package.
+     * Configures confPackage with a closure.
      *
-     * @property sitesCopySpecProvider
+     * @param c
      */
-    @get:Internal
-    val sitesCopySpecProvider: Provider<CopySpec>
-        get() = sitesCopySpecProperty
+    fun confPackage(c: Closure<PackageConf>) {
+        ConfigureUtil.configure(c, confPackage)
+    }
 
     /**
-     * CopaSpec of sites package of the base project.
+     * Configuration for sites package.
      *
-     * @property sitesCopySpec
+     * @property sitesPackage
      */
-    @get:Internal
-    var sitesCopySpec: CopySpec?
-        get() = sitesCopySpecProperty.orNull
-        set(value) = sitesCopySpecProperty.set(value)
+    @get:Optional
+    @get:Nested
+    val sitesPackage : PackageConf = objectFactory.newInstance(PackageConf::class.java)
 
+    /**
+     * Configures sitesPackage with an action.
+     *
+     * @param action
+     */
+    fun sitesPackage(action: Action<in PackageConf>) {
+        action.execute(sitesPackage)
+    }
+
+    /**
+     * Configures sitesPackage with a closure.
+     *
+     * @param c
+     */
+    fun sitesPackage(c: Closure<PackageConf>) {
+        ConfigureUtil.configure(c, sitesPackage)
+    }
 }

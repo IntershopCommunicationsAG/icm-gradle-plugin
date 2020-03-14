@@ -19,24 +19,11 @@ package com.intershop.gradle.icm.tasks
 
 import com.intershop.gradle.icm.extension.BaseProjectConfiguration
 import com.intershop.gradle.icm.extension.IntershopExtension
-import com.intershop.gradle.icm.utils.getValue
-import com.intershop.gradle.icm.utils.setValue
-import org.gradle.api.DefaultTask
-import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.file.CopySpec
-import org.gradle.api.file.Directory
-import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.file.FileSystemOperations
-import org.gradle.api.file.ProjectLayout
 import org.gradle.api.model.ObjectFactory
-import org.gradle.api.provider.MapProperty
-import org.gradle.api.provider.Property
-import org.gradle.api.provider.Provider
-import org.gradle.api.provider.SetProperty
-import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
-import org.gradle.api.tasks.Nested
-import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import java.io.File
 import javax.inject.Inject
@@ -55,21 +42,36 @@ open class CreateSitesFolder @Inject constructor(
     @get:Internal
     override val classifier = "sites"
 
+    /**
+     * Main function to run the task functionality.
+     */
     @TaskAction
     fun runFolderCreation() {
         super.startFolderCreation()
     }
 
     /**
+     * Add copy spec for an package file.
      *
+     * @param cs        base copy spec
+     * @param pkgCS     package copy spec
+     * @param prjConf   configuration of a base project
+     * @param file      package file it self
      */
-    override fun addConfySpec(cs: CopySpec, prjConf: BaseProjectConfiguration) {
-        if(prjConf.sitesCopySpec != null) {
-            cs.with(prjConf.sitesCopySpec)
+    override fun addCopyConfSpec(cs: CopySpec, pkgCS: CopySpec, prjConf: BaseProjectConfiguration, file: File) {
+        with(prjConf) {
+            sitesPackage.excludes.forEach {
+                pkgCS.exclude(it)
+            }
+            sitesPackage.includes.forEach {
+                pkgCS.include(it)
+            }
+            if (! sitesPackage.targetPath.isNullOrEmpty()) {
+                pkgCS.into(sitesPackage.targetPath!!)
+            }
+            if (sitesPackage.duplicateStrategy != DuplicatesStrategy.INHERIT) {
+                pkgCS.duplicatesStrategy = sitesPackage.duplicateStrategy
+            }
         }
-    }
-
-    override fun getCartridgeListProps(zipFile: File): File? {
-        return null
     }
 }

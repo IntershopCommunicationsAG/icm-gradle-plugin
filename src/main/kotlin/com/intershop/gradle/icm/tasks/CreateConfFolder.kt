@@ -23,6 +23,7 @@ import com.intershop.gradle.icm.utils.getValue
 import com.intershop.gradle.icm.utils.setValue
 import org.gradle.api.GradleException
 import org.gradle.api.file.CopySpec
+import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.file.RegularFile
 import org.gradle.api.file.RegularFileProperty
@@ -140,6 +141,9 @@ open class CreateConfFolder @Inject constructor(
     override val classifier: String
         get() = "configuration"
 
+    /**
+     * Main function to run the task functionality.
+     */
     @TaskAction
     fun runFolderCreation() {
         super.startFolderCreation()
@@ -148,15 +152,36 @@ open class CreateConfFolder @Inject constructor(
     @get:Internal
     var writeDevConf = true
 
-    override fun addConfySpec(cs: CopySpec, prjConf: BaseProjectConfiguration) {
-        if(prjConf.confCopySpec != null) {
-            val prjCS = prjConf.confCopySpec
-            if (prjConf.withCartridgeList) {
-                prjCS!!.exclude("**/**/${CARTRIDGELISTFILE_NAME}")
+    /**
+     * Add copy spec for an package file.
+     *
+     * @param cs        base copy spec
+     * @param pkgCS     package copy spec
+     * @param prjConf   configuration of a base project
+     * @param file      package file it self
+     */
+    override fun addCopyConfSpec(cs: CopySpec, pkgCS: CopySpec, prjConf: BaseProjectConfiguration, file: File) {
+
+        with(prjConf) {
+
+            confPackage.excludes.forEach {
+                pkgCS.exclude(it)
+            }
+            confPackage.includes.forEach {
+                pkgCS.include(it)
+            }
+            if(! confPackage.targetPath.isNullOrEmpty()) {
+                pkgCS.into(confPackage.targetPath!!)
+            }
+            if(confPackage.duplicateStrategy != DuplicatesStrategy.INHERIT) {
+                pkgCS.duplicatesStrategy = confPackage.duplicateStrategy
+            }
+            if(withCartridgeList) {
+                pkgCS.exclude("**/**/${CARTRIDGELISTFILE_NAME}")
             }
 
-            if(versionInfoFile != null ) {
-                prjCS!!.exclude("**/**/version.properties")
+            if(versionInfoFile != null) {
+                pkgCS.exclude("**/**/version.properties")
 
                 cs.from(versionInfoFile!!.parent) { fcs ->
                     fcs.include("**/**/version.properties")
@@ -164,11 +189,18 @@ open class CreateConfFolder @Inject constructor(
                 }
             }
 
-            cs.with(prjCS)
+            if(withCartridgeList) {
+                val propsFile = getCartridgeListProps(file)
+                if(propsFile != null) {
+                    cs.from(propsFile) { cs ->
+                        cs.into(CLUSTER_CONF)
+                    }
+                }
+            }
         }
     }
 
-    override fun getCartridgeListProps(zipFile: File): File? {
+    private fun getCartridgeListProps(zipFile: File): File? {
         val pfiles = project.zipTree(zipFile).matching { pf ->
             pf.include("**/**/${CARTRIDGELISTFILE_NAME}")
         }

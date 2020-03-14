@@ -24,7 +24,6 @@ import com.intershop.gradle.icm.tasks.SetupCartridges
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.gradle.api.file.CopySpec
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.tasks.TaskContainer
 import javax.inject.Inject
@@ -76,29 +75,20 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
                 description = "starts all tasks for the preparation of a container build"
             }
 
-            val confCS: CopySpec = project.copySpec()
-            confCS.from(project.layout.projectDirectory.dir("config/base"))
-            confCS.from(project.layout.projectDirectory.dir("config/dev"))
+            val infoTask = configureInfoTask(this, extension)
 
-            val sitesCS: CopySpec = project.copySpec()
-            sitesCS.from(project.layout.projectDirectory.dir("sites/base"))
-            sitesCS.from(project.layout.projectDirectory.dir("sites/dev"))
+            configureDevTasks(this, extension, prepareTask, infoTask)
+            configureContainerTasks(this, extension, prepareTask, infoTask)
 
-            extension.projectConfig.confCopySpecProperty.convention(confCS)
-            extension.projectConfig.sitesCopySpecProperty.convention(sitesCS)
-
-            configureProjectPackages(this, extension, prepareTask, prepareContainerTask)
             configureExtCartridgeTask(this, extension, prepareTask, prepareContainerTask)
 
         }
     }
 
-    private fun configureProjectPackages(project: Project,
-                                         extension: IntershopExtension,
-                                         prepareTask: Task,
-                                         prepareContainerTask: Task) {
+    private fun configureInfoTask(project: Project,
+                                  extension: IntershopExtension) : CreateServerInfoProperties {
         with(project) {
-            val infoTask = tasks.maybeCreate(
+            return tasks.maybeCreate(
                 CreateServerInfoProperties.DEFAULT_NAME,
                 CreateServerInfoProperties::class.java
             ).apply {
@@ -108,11 +98,18 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
                 this.provideCopyrightFrom(extension.projectInfo.copyrightFromProvider)
                 this.provideOrganization(extension.projectInfo.organizationProvider)
             }
+        }
+    }
 
+    private fun configureDevTasks(project: Project,
+                                  extension: IntershopExtension,
+                                  prepareTask: Task,
+                                  infoTask: CreateServerInfoProperties) {
+        with(project) {
             tasks.maybeCreate(CREATE_DEVCONF_FOLDER, CreateConfFolder::class.java).apply {
                 this.baseProjects = extension.projectConfig.baseProjects.asMap
-                this.provideBaseCopySpec(extension.projectConfig.confCopySpecProvider)
-                this.provideDevCopySpec(extension.projectConfig.confCopySpecProvider)
+                this.dirConf = extension.projectConfig.conf
+                this.devDirConf = extension.projectConfig.devConf
                 this.outputDirProperty.set(projectLayout.buildDirectory.dir("server/configuration"))
 
                 this.provideCartridges(extension.projectConfig.cartridgesProvider)
@@ -127,16 +124,23 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
 
             tasks.maybeCreate(CREATE_DEVSITES_FOLDER, CreateSitesFolder::class.java).apply {
                 this.baseProjects = extension.projectConfig.baseProjects.asMap
-                this.provideBaseCopySpec(extension.projectConfig.sitesCopySpecProvider)
-                this.provideDevCopySpec(extension.projectConfig.sitesCopySpecProvider)
+                this.dirConf = extension.projectConfig.sites
+                this.devDirConf = extension.projectConfig.devSites
                 this.outputDirProperty.set(projectLayout.buildDirectory.dir("server/sites"))
 
                 prepareTask.dependsOn(this)
             }
+        }
+    }
 
+    private fun configureContainerTasks(project: Project,
+                                         extension: IntershopExtension,
+                                         prepareContainerTask: Task,
+                                        infoTask: CreateServerInfoProperties) {
+        with(project) {
             tasks.maybeCreate(CREATE_CONF_FOLDER, CreateConfFolder::class.java).apply {
                 this.baseProjects = extension.projectConfig.baseProjects.asMap
-                this.provideBaseCopySpec(extension.projectConfig.confCopySpecProvider)
+                this.dirConf = extension.projectConfig.conf
                 this.outputDirProperty.set(projectLayout.buildDirectory.dir("container/configuration"))
 
                 this.provideCartridges(extension.projectConfig.cartridgesProvider)
@@ -151,7 +155,7 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
 
             tasks.maybeCreate(CREATE_SITES_FOLDER, CreateSitesFolder::class.java).apply {
                 this.baseProjects = extension.projectConfig.baseProjects.asMap
-                this.provideBaseCopySpec(extension.projectConfig.sitesCopySpecProvider)
+                this.dirConf = extension.projectConfig.sites
                 this.outputDirProperty.set(projectLayout.buildDirectory.dir("container/sites"))
 
                 prepareContainerTask.dependsOn(this)

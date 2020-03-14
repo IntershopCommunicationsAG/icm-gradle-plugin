@@ -17,12 +17,13 @@
 package com.intershop.gradle.icm.tasks
 
 import com.intershop.gradle.icm.extension.BaseProjectConfiguration
-import com.intershop.gradle.icm.tasks.CreateConfFolder.Companion.CLUSTER_CONF
+import com.intershop.gradle.icm.extension.DirConf
 import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.Directory
 import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.MapProperty
@@ -30,6 +31,7 @@ import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
+import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
 import java.io.File
 import javax.inject.Inject
@@ -45,22 +47,55 @@ abstract class AbstractCreateFolder @Inject constructor(
     @get:Internal
     val outputDirProperty: DirectoryProperty = objectFactory.directoryProperty()
 
-    @get:Internal
-    protected val baseProjectsProperty: MapProperty<String, BaseProjectConfiguration> =
+    private val baseProjectsProperty: MapProperty<String, BaseProjectConfiguration> =
         objectFactory.mapProperty(String::class.java, BaseProjectConfiguration::class.java)
 
-    @get:Internal
-    protected val baseCopySpecProperty: Property<CopySpec> = objectFactory.property(CopySpec::class.java)
-    @get:Internal
-    protected val devCopySpecProperty: Property<CopySpec> = objectFactory.property(CopySpec::class.java)
-
-    fun provideBaseCopySpec(confCopySpec: Provider<CopySpec>) = baseCopySpecProperty.set(confCopySpec)
-    fun provideDevCopySpec(confCopySpec: Provider<CopySpec>) = devCopySpecProperty.set(confCopySpec)
+    private val dirConfProperty: Property<DirConf> = objectFactory.property(DirConf::class.java)
+    private val devDirConfProperty: Property<DirConf> = objectFactory.property(DirConf::class.java)
 
     @get:Nested
     var baseProjects: Map<String, BaseProjectConfiguration>
         get() = baseProjectsProperty.get()
         set(value) = baseProjectsProperty.putAll(value)
+
+    /**
+     * Provider configuration for project folder.
+     *
+     * @param dirConf
+     */
+    fun provideDirConf(dirConf: Provider<DirConf>) = dirConfProperty.set(dirConf)
+
+    /**
+     * Configuration for project folder.
+     *
+     * @property dirConf
+     */
+    @get:Optional
+    @get:Nested
+    var dirConf: DirConf?
+        get() = if(dirConfProperty.get().dir != null) dirConfProperty.get() else null
+        set(value) = dirConfProperty.set(value)
+
+    /**
+     * Provider configuration for project developer folder.
+     *
+     * @param devConf
+     */
+    fun provideDevDirConf(devDirConf: Provider<DirConf>) = devDirConfProperty.set(devDirConf)
+
+    /**
+     * Configuration for project developer configuration folder.
+     *
+     * @property devConf
+     */
+    @get:Optional
+    @get:Nested
+    var devDirConf: DirConf?
+        get() = if(devDirConfProperty.isPresent && devDirConfProperty.get().dir != null)
+                    devDirConfProperty.get()
+                else
+                    null
+        set(value) = devDirConfProperty.set(value)
 
     /**
      * Provider configuration for target directory.
@@ -79,53 +114,55 @@ abstract class AbstractCreateFolder @Inject constructor(
         get() = outputDirProperty.get().asFile
         set(value) = outputDirProperty.set(value)
 
-    /**
-     * Additional project configuration directory.
-     *
-     * @property baseCopySpec
-     */
-    @get:Internal
-    var baseCopySpec: CopySpec
-        get() = baseCopySpecProperty.get()
-        set(value) = baseCopySpecProperty.set(value)
-
-    /**
-     * Additional project configuration directory.
-     *
-     * @property devCopySpec
-     */
-    @get:Internal
-    var devCopySpec: CopySpec?
-        get() = devCopySpecProperty.orNull
-        set(value) = devCopySpecProperty.set(value)
-
     @get:Internal
     abstract val classifier: String
 
     protected fun startFolderCreation() {
         val cs = project.copySpec()
 
-        if(baseCopySpecProperty.isPresent) {
-            cs.with(baseCopySpec)
+        if(dirConf != null) {
+            val dirCS = project.copySpec()
+            dirCS.from(dirConf?.dir)
+
+            dirConf?.excludes?.forEach {
+                dirCS.exclude(it)
+            }
+            dirConf?.includes?.forEach {
+                dirCS.include(it)
+            }
+            if(! dirConf?.targetPath.isNullOrEmpty()) {
+                dirCS.into(dirConf?.targetPath!!)
+            }
+            if(dirConf != null && dirConf?.duplicateStrategy != DuplicatesStrategy.INHERIT) {
+                dirCS.duplicatesStrategy = dirConf!!.duplicateStrategy
+            }
         }
-        if(devCopySpecProperty.isPresent) {
-            cs.with(devCopySpec)
+
+        if(devDirConf != null) {
+            val devDirCS = project.copySpec()
+            devDirCS.from(devDirConf?.dir)
+
+            devDirConf?.excludes?.forEach {
+                devDirCS.exclude(it)
+            }
+            devDirConf?.includes?.forEach {
+                devDirCS.include(it)
+            }
+            if(! devDirConf?.targetPath.isNullOrEmpty()) {
+                devDirCS.into(devDirConf?.targetPath!!)
+            }
+            if(dirConf != null && devDirConf?.duplicateStrategy != DuplicatesStrategy.INHERIT) {
+                devDirCS.duplicatesStrategy = devDirConf!!.duplicateStrategy
+            }
         }
 
         baseProjects.forEach {
-            val file = downloadPackage(it.value.dependency, classifier)
+            var file = downloadPackage(it.value.dependency, classifier)
+            var pkgCS = project.copySpec()
 
-            if(it.value.withCartridgeList) {
-                val propsFile = getCartridgeListProps(file)
-                if(propsFile != null) {
-                    cs.from(propsFile) { cs ->
-                        cs.into(CLUSTER_CONF)
-                    }
-                }
-            }
-
-            cs.from(project.zipTree(file))
-            addConfySpec(cs, it.value)
+            pkgCS.from(project.zipTree(file))
+            addCopyConfSpec(cs, pkgCS, it.value, file)
+            cs.with(pkgCS)
         }
 
         fsOps.copy {
@@ -134,11 +171,17 @@ abstract class AbstractCreateFolder @Inject constructor(
         }
     }
 
-    abstract fun addConfySpec(cs: CopySpec, prjConf: BaseProjectConfiguration)
+    /**
+     * Add copy spec for an package file.
+     *
+     * @param cs        base copy spec
+     * @param pkgCS     package copy spec
+     * @param prjConf   configuration of a base project
+     * @param file      package file it self
+     */
+    abstract fun addCopyConfSpec(cs: CopySpec, pkgCS: CopySpec, prjConf: BaseProjectConfiguration, file: File)
 
-    abstract fun getCartridgeListProps(zipFile: File): File?
-
-    protected fun downloadPackage(dependency: String, classifier: String): File {
+    private fun downloadPackage(dependency: String, classifier: String): File {
         val dependencyHandler = project.dependencies
         val dep = dependencyHandler.create(dependency) as ExternalModuleDependency
         dep.artifact {

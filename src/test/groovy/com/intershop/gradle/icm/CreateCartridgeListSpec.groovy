@@ -301,17 +301,16 @@ class CreateCartridgeListSpec extends AbstractIntegrationGroovySpec {
                     baseProjects {
                         icm {
                             dependency = "com.intershop.icm:icm-as:1.0.0"
-                            confCopySpec = project.copySpec {
+                            confPackage {
                                 exclude("**/**/cartridgelst.properties")
                             }
                             withCartridgeList = true
                         }
                     }
 
-                    confCopySpec = project.copySpec {
-                        from("config/base") {
-                            into("system-conf")
-                        }
+                    conf {
+                        dir("config/base")
+                        targetPath = "system-conf"
                     }
                 }
             }
