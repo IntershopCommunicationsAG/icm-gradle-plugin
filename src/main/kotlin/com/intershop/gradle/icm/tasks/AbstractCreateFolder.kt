@@ -119,12 +119,13 @@ abstract class AbstractCreateFolder @Inject constructor(
             val devDirCS = project.copySpec()
             devDirCS.from(devDirConf?.dir)
 
-            devDirConf?.excludes?.forEach {
-                devDirCS.exclude(it)
-            }
             devDirConf?.includes?.forEach {
                 devDirCS.include(it)
             }
+            devDirConf?.excludes?.forEach {
+                devDirCS.exclude(it)
+            }
+
             if(! devDirConf?.targetPath.isNullOrEmpty()) {
                 devDirCS.into(devDirConf?.targetPath!!)
             }

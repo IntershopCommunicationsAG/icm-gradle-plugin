@@ -68,7 +68,6 @@ open class CreateConfFolder @Inject constructor(
 
     init {
         group = IntershopExtension.INTERSHOP_GROUP_NAME
-
     }
 
     private val cartridgesProperty: SetProperty<String> = objectFactory.setProperty(String::class.java)
