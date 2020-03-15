@@ -21,15 +21,25 @@ import com.intershop.gradle.icm.ICMBasePlugin.Companion.CONFIGURATION_CARTRIDGER
 import com.intershop.gradle.icm.extension.IntershopExtension.Companion.INTERSHOP_GROUP_NAME
 import com.intershop.gradle.icm.utils.getValue
 import com.intershop.gradle.icm.utils.setValue
+import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier
+import org.gradle.api.file.ProjectLayout
+import org.gradle.api.file.RegularFile
+import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
-import org.gradle.api.tasks.WriteProperties
+import org.gradle.internal.util.PropertiesUtils
 import java.io.File
+import java.nio.charset.Charset
+import java.util.*
+import javax.inject.Inject
+import kotlin.collections.HashSet
 
 /**
  * WriteCartridgeDescriptor Gradle task 'writeCartridgeDescriptor'
@@ -37,25 +47,24 @@ import java.io.File
  * This task writes a cartridge descriptor file. This file
  * is used by the server startup and special tests.
  */
-open class WriteCartridgeDescriptor : WriteProperties() {
+open class WriteCartridgeDescriptor @Inject constructor(
+        projectLayout: ProjectLayout,
+        objectFactory: ObjectFactory) : DefaultTask() {
 
-    private val versionProperty: Property<String> = project.objects.property(String::class.java)
-    private val nameProperty: Property<String> = project.objects.property(String::class.java)
-    private val descriptionProperty: Property<String> = project.objects.property(String::class.java)
-    private val displayNameProperty: Property<String> = project.objects.property(String::class.java)
+    private val outputFileProperty: RegularFileProperty = objectFactory.fileProperty()
+    private val versionProperty: Property<String> = objectFactory.property(String::class.java)
+    private val nameProperty: Property<String> = objectFactory.property(String::class.java)
+    private val descriptionProperty: Property<String> = objectFactory.property(String::class.java)
+    private val displayNameProperty: Property<String> = objectFactory.property(String::class.java)
 
     companion object {
         const val DEFAULT_NAME = "writeCartridgeDescriptor"
-        const val CARTRIDGE_DESCRIPTOR_DIR = "descriptor"
-        const val CARTRIDGE_DESCRIPTOR_FILE = "cartridge.descriptor"
+        const val CARTRIDGE_DESCRIPTOR = "descriptor/cartridge.descriptor"
     }
 
     init {
         group = INTERSHOP_GROUP_NAME
         description = "Writes all necessary information of the cartridge to a file."
-
-        outputFile = File(project.buildDir,
-            "${CARTRIDGE_DESCRIPTOR_DIR}/${CARTRIDGE_DESCRIPTOR_FILE}")
 
         nameProperty.convention(project.name)
 
@@ -64,6 +73,7 @@ open class WriteCartridgeDescriptor : WriteProperties() {
                                 else
                                     project.name
 
+        outputFileProperty.convention(projectLayout.buildDirectory.file(CARTRIDGE_DESCRIPTOR))
         descriptionProperty.convention(description ?: "")
         displayNameProperty.convention(project.name)
     }
@@ -77,7 +87,7 @@ open class WriteCartridgeDescriptor : WriteProperties() {
     fun provideCartridgeVersion(cartridgeVersion: Provider<String>) = versionProperty.set(cartridgeVersion)
 
     @get:Input
-    var cartridgeVersion
+    var cartridgeVersion: String
         get() = versionProperty.getOrElse(project.version.toString())
         set(value) = versionProperty.set(value)
 
@@ -135,6 +145,24 @@ open class WriteCartridgeDescriptor : WriteProperties() {
     }
 
     /**
+     * Provides an output file for this task.
+     *
+     * @param outputfile
+     */
+    fun provideOutputfile(outputfile: Provider<RegularFile>)
+            = outputFileProperty.set(outputfile)
+
+    /**
+     * Output file for generated cluster id.
+     *
+     * @property outputFile
+     */
+    @get:OutputFile
+    var outputFile: File
+        get() = outputFileProperty.get().asFile
+        set(value) = outputFileProperty.set(value)
+
+    /**
      * Task method for the creation of a descriptor file.
      */
     @Suppress("unused")
@@ -144,41 +172,17 @@ open class WriteCartridgeDescriptor : WriteProperties() {
             outputFile.parentFile.mkdirs()
         }
 
-        comment = "Intershop descriptor file"
+        val props = linkedMapOf<String,String>()
+        val comment = "Intershop descriptor file"
 
         val cartridges = HashSet<String>()
         val noCartridges = HashSet<String>()
         val cartridgesTransitive = HashSet<String>()
 
-        project.configurations.getByName(CONFIGURATION_CARTRIDGE).allDependencies.forEach { dependency ->
-            if(dependency is ModuleDependency) {
-                cartridges.add(dependency.name)
-            }
-        }
-        project.configurations.getByName(CONFIGURATION_CARTRIDGERUNTIME).allDependencies.forEach { dependency ->
-            if(dependency is ModuleDependency) {
-                cartridges.add(dependency.name)
-            }
-        }
+        addCartridges(CONFIGURATION_CARTRIDGE, cartridges)
+        addCartridges(CONFIGURATION_CARTRIDGERUNTIME, cartridges)
 
-        project.configurations.
-            getByName(CONFIGURATION_CARTRIDGERUNTIME).
-            resolvedConfiguration.lenientConfiguration.allModuleDependencies.forEach { dependency ->
-                dependency.moduleArtifacts.forEach { artifact ->
-
-                    val identifier = artifact.id.componentIdentifier
-                    if(identifier is ProjectComponentIdentifier) {
-                        cartridgesTransitive.add(project.project( identifier.projectPath ).name)
-                    }
-
-                    if(identifier is ModuleComponentIdentifier) {
-                        if(CartridgeUtil.isCartridge(project, identifier)) {
-                            cartridgesTransitive.add(identifier.module)
-                        }
-                    }
-                }
-            }
-
+        addTransitiveCartridges(CONFIGURATION_CARTRIDGERUNTIME, cartridgesTransitive)
 
         cartridges.forEach {
             if(! cartridgesTransitive.contains(it)) {
@@ -188,16 +192,54 @@ open class WriteCartridgeDescriptor : WriteProperties() {
 
         cartridges.removeAll(noCartridges)
 
-        property("cartridge.dependsOn", cartridges.toSortedSet().joinToString( separator = ";" ))
-        property("cartridge.dependsOn.transitive", cartridgesTransitive.toSortedSet().joinToString( separator = ";" ))
+        props["cartridge.dependsOn"] = cartridges.toSortedSet().joinToString( separator = ";" )
+        props["cartridge.dependsOn.transitive"] = cartridgesTransitive.toSortedSet().joinToString( separator = ";" )
 
-        property("cartridge.name", cartridgeName)
-        property("cartridge.version", cartridgeVersion)
-        property("cartridge.displayName", displayName)
-        property("cartridge.description", cartridgeDescription)
+        props["cartridge.name"] = cartridgeName
+        props["cartridge.version"] = cartridgeVersion
+        props["cartridge.displayName"] = displayName
+        props["cartridge.description"] = cartridgeDescription
 
-        super.writeProperties()
+        val propsObject = Properties()
+        propsObject.putAll(props)
+        try {
+            PropertiesUtils.store(
+                propsObject,
+                outputFile,
+                comment,
+                Charset.forName("ISO_8859_1"),
+                "\n"
+            )
+        } finally {
+            project.logger.debug("Write properties finished not correct.")
+        }
     }
 
+    private fun addCartridges(confName: String, cartridges: HashSet<String>) {
+        project.configurations.getByName(confName).allDependencies.forEach { dependency ->
+            if(dependency is ModuleDependency) {
+                cartridges.add(dependency.name)
+            }
+        }
+    }
+
+    private fun addTransitiveCartridges(confName: String, cartridges: HashSet<String>) {
+        project.configurations.getByName(confName).
+        resolvedConfiguration.lenientConfiguration.allModuleDependencies.forEach { dependency ->
+            dependency.moduleArtifacts.forEach { artifact ->
+
+                val identifier = artifact.id.componentIdentifier
+                if(identifier is ProjectComponentIdentifier) {
+                    cartridges.add(project.project( identifier.projectPath ).name)
+                }
+
+                if(identifier is ModuleComponentIdentifier) {
+                    if(CartridgeUtil.isCartridge(project, identifier)) {
+                        cartridges.add(identifier.module)
+                    }
+                }
+            }
+        }
+    }
 
 }

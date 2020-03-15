@@ -22,7 +22,7 @@ import spock.lang.Ignore
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
-class ICMBuildPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
+class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
     def 'Plugin is applied to the root project'() {
         given:
@@ -379,6 +379,8 @@ class ICMBuildPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                 id 'com.intershop.gradle.icm.base'
             }
             
+            buildDir = new File(projectDir, 'target')
+            
             version = "1.0.0"
             
             repositories {
@@ -391,6 +393,8 @@ class ICMBuildPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                 id 'java-library'
                 id 'com.intershop.icm.cartridge'
             }
+            
+            buildDir = new File(projectDir, 'target')
             
             dependencies {
                 implementation "com.google.inject:guice:4.0"
@@ -409,6 +413,8 @@ class ICMBuildPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                 id 'com.intershop.icm.cartridge'
             }
                 
+            buildDir = new File(projectDir, 'target')
+            
             dependencies {
                 cartridge project(':testCartridge1')
                 implementation "com.google.inject:guice:4.0"
@@ -426,6 +432,8 @@ class ICMBuildPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                 id 'java-library'
                 id 'com.intershop.icm.cartridge'
             }
+
+            buildDir = new File(projectDir, 'target')
 
             dependencies {
                 cartridge project(':testCartridge2')
@@ -466,6 +474,8 @@ class ICMBuildPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                 id 'com.intershop.gradle.icm.base'
             }
             
+            buildDir = new File(projectDir, 'target')
+            
             version = "1.0.0"
 
             repositories {
@@ -478,6 +488,8 @@ class ICMBuildPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                 id 'java-library'
                 id 'com.intershop.icm.cartridge'
             }
+            
+            buildDir = new File(projectDir, 'target')
             
             dependencies {
                 implementation "com.google.inject:guice:4.0"
@@ -496,6 +508,8 @@ class ICMBuildPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                 id 'com.intershop.icm.cartridge'
             }
             
+            buildDir = new File(projectDir, 'target')
+            
             dependencies {
                 cartridge project(':testCartridge1')
                 implementation "com.google.inject:guice:4.0"
@@ -513,6 +527,8 @@ class ICMBuildPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                 id 'java-library'
                 id 'com.intershop.icm.cartridge'
             }
+            
+            buildDir = new File(projectDir, 'target')
              
             dependencies {
                 cartridge project(':testCartridge2')
@@ -775,6 +791,85 @@ class ICMBuildPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         then:
         result2.task(':writeCartridgeDescriptor').outcome == SUCCESS
+
+        where:
+        gradleVersion << supportedGradleVersions
+    }
+
+    def 'ZipFile will be created and published'() {
+
+        given:
+        settingsFile << """
+        rootProject.name='rootproject'
+        """.stripIndent()
+
+        buildFile << """
+            plugins {
+                id 'maven-publish'
+                id 'com.intershop.gradle.icm.base'
+                id 'com.intershop.icm.cartridge.adapter'
+            }
+
+            def publishDir = "\$buildDir/repo"  
+
+            group = "com.intershop"
+            version = "1.0.0"
+
+            subprojects {
+                apply plugin: 'maven-publish'
+                group = "com.intershop"
+                version = "1.0.0"
+
+                publishing {
+                    repositories {
+                        maven {
+                            // change to point to your repo, e.g. http://my.org/repo
+                            url = publishDir
+                        }
+                    }
+                }
+            }
+            
+            publishing {
+                repositories {
+                    maven {
+                        // change to point to your repo, e.g. http://my.org/repo
+                        url = publishDir
+                    }
+                }
+            }
+        """.stripIndent()
+
+        File prjDir1 = createSubProject(":subprj1",
+                """
+                plugins {
+                    id 'com.intershop.icm.cartridge.adapter'
+                    id 'java'
+                }
+                """.stripIndent())
+
+        writeJavaTestClass("com.intershop.test.Test1", prjDir1)
+        file("staticfiles/cartridge/logback/logback-test.xml", prjDir1)
+
+        File prjDir2 = createSubProject(":subprj2",
+                """
+                plugins {
+                    id 'com.intershop.icm.cartridge.adapter'
+                    id 'java'
+                }
+                """.stripIndent())
+
+        writeJavaTestClass("com.intershop.test.Test2", prjDir2)
+        file("staticfiles/cartridge/test/test.properties", prjDir2)
+
+        when:
+        def result = getPreparedGradleRunner()
+                .withArguments("publish", "-s")
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        result.task(':subprj1:publish').outcome == SUCCESS
 
         where:
         gradleVersion << supportedGradleVersions

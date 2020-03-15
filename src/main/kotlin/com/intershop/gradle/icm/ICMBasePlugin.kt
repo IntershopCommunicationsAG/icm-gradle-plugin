@@ -95,7 +95,7 @@ open class ICMBasePlugin: Plugin<Project> {
 
     private fun configureBaseConfigurations(project: Project) {
         with(project.configurations) {
-            val implementation = findByName(org.gradle.api.plugins.JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME)
+            val implementation = findByName(JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME)
 
             val cartridge = maybeCreate(CONFIGURATION_CARTRIDGE)
             cartridge.isTransitive = false

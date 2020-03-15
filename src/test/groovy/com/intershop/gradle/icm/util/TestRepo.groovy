@@ -169,7 +169,8 @@ class TestRepo {
                         ext: "zip",
                         entries: [
                                 TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'system-conf/apps/file.txt', content: 'apps = test1.component'),
-                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'system-conf/cluster/cartridgelist.properties', content: getTextResources('cartridgelist/cartridgelist.properties'))
+                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'system-conf/cluster/cartridgelist.properties', content: getTextResources('cartridgelist/cartridgelist.properties')),
+                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'system-conf/cluster/version.properties', content: "testprop = 5")
                         ]
                 )
                 artifact (
@@ -179,6 +180,11 @@ class TestRepo {
                                 TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'sites/SLDSystem/file.txt', content: 'SLDSystem = test1.component'),
                                 TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'sites/SMC/file.txt', content: 'smc = test1.component')
                         ]
+                )
+                artifact (
+                        classifier: "libs",
+                        ext: "txt",
+                        content: getTextResources('liblist/liblist.txt')
                 )
             }
         }.writeTo(repoDir)

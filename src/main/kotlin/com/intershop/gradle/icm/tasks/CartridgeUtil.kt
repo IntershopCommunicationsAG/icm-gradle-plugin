@@ -18,6 +18,7 @@
 package com.intershop.gradle.icm.tasks
 
 import org.gradle.api.Project
+import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.query.ArtifactResolutionQuery
 import org.gradle.api.artifacts.result.ArtifactResolutionResult
@@ -83,5 +84,31 @@ object CartridgeUtil {
         val xmlInput = InputSource(StringReader(xmlFile.readText()))
 
         return dBuilder.parse(xmlInput)
+    }
+
+    fun downloadLibFilter(project: Project, dependency: String, name: String): File {
+        val dependencyHandler = project.dependencies
+        val dep = dependencyHandler.create(dependency) as ExternalModuleDependency
+        dep.artifact {
+            it.name = dep.name
+            it.classifier = "libs"
+            it.extension = "txt"
+            it.type = "txt"
+        }
+
+        val configuration = project.configurations.maybeCreate(getConfigurationName(name))
+        configuration.setVisible(false)
+            .setTransitive(false)
+            .setDescription("Libs for download: $name")
+            .defaultDependencies { ds ->
+                ds.add(dep)
+            }
+
+        val files = configuration.resolve()
+        return files.first()
+    }
+
+    fun getConfigurationName(name: String): String {
+        return "${name.toLowerCase()}_config"
     }
 }

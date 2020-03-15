@@ -19,13 +19,16 @@ package com.intershop.gradle.icm.extension
 
 import com.intershop.gradle.icm.utils.getValue
 import com.intershop.gradle.icm.utils.setValue
+import groovy.lang.Closure
+import org.gradle.api.Action
+import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.file.Directory
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.model.ObjectFactory
-import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.SetProperty
+import org.gradle.util.ConfigureUtil
 import java.io.File
 import javax.inject.Inject
 
@@ -64,17 +67,17 @@ abstract class ProjectConfiguration {
     private val dbprepareCartridgesProperty: SetProperty<String> = objectFactory.setProperty(String::class.java)
     private val productionCartridgesProperty: SetProperty<String> = objectFactory.setProperty(String::class.java)
 
-    private val configurationPackageProperty: Property<String> = objectFactory.property(String::class.java)
-    private val sitesPackageProperty: Property<String> = objectFactory.property(String::class.java)
-
-    private val configDirProperty: DirectoryProperty = objectFactory.directoryProperty()
-    private val sitesDirProperty: DirectoryProperty = objectFactory.directoryProperty()
-
     init {
         cartridgeDirProperty.convention(projectLayout.buildDirectory.dir(EXTERNAL_CARTRIDGE_PATH))
-        configDirProperty.convention(projectLayout.projectDirectory.dir("config/base"))
-        sitesDirProperty.convention(projectLayout.projectDirectory.dir("sites/base"))
     }
+
+    /**
+     * Base project configuration for final project.
+     *
+     * @property baseProjects
+     */
+    val baseProjects: NamedDomainObjectContainer<BaseProjectConfiguration>
+            = objectFactory.domainObjectContainer(BaseProjectConfiguration::class.java)
 
     /**
      * Provider of cartridge directory for external cartridges.
@@ -119,7 +122,7 @@ abstract class ProjectConfiguration {
     /**
      * Add a single cartridge to the list.
      *
-     * @param cartrige name of an ICM cartridge
+     * @param cartridge name of an ICM cartridge
      */
     fun cartridge(cartridge: String) {
         cartridgesProperty.add(cartridge)
@@ -143,7 +146,7 @@ abstract class ProjectConfiguration {
     /**
      * Add a single cartridge to the list of dbprepare cartridges.
      *
-     * @param cartrige name of an ICM cartridge
+     * @param cartridge name of an ICM cartridge
      */
     fun dbprepareCartridge(cartridge: String) {
         cartridgesProperty.add(cartridge)
@@ -167,89 +170,110 @@ abstract class ProjectConfiguration {
     /**
      * Add a single cartridge to the list of dbprepare cartridges.
      *
-     * @param cartrige name of an ICM cartridge
+     * @param cartridge name of an ICM cartridge
      */
     fun productionCartridge(cartridge: String) {
         productionCartridgesProperty.add(cartridge)
     }
 
     /**
-     * Provider of configurationPackage property.
+     * Configuration for configuration folder.
      *
-     * @property configurationPackageProvider
+     * @property conf
      */
-    val configurationPackageProvider: Provider<String>
-        get() = configurationPackageProperty
+    val conf : DirConf = objectFactory.newInstance(DirConf::class.java)
 
     /**
-     * Base of the sites configuration of an ICM server.
+     * Configures conf with an action.
      *
-     * @property configurationPackage
+     * @param action
      */
-    var configurationPackage by configurationPackageProperty
-
-    /**
-     * Provider of configurationPackage property.
-     *
-     * @property configurationPackageProvider
-     */
-    val sitesPackageProvider: Provider<String>
-        get() = sitesPackageProperty
-
-    /**
-     * Base of the server configuration of an ICM server.
-     *
-     * @property sitesPackage
-     */
-    var sitesPackage by sitesPackageProperty
-
-    /**
-     * Provider of project configuration directory.
-     *
-     * @property configDirProvider
-     */
-    val configDirProvider: Provider<Directory>
-        get() = configDirProperty
-
-    /**
-     * Additional project configuration directory.
-     *
-     * @property configDir
-     */
-    var configDir: File
-        get() = configDirProperty.get().asFile
-        set(value) = configDirProperty.set(value)
-
-    /**
-     * Set only a short path for project configuration dir.
-     * @param configPath
-     */
-    fun setConfigPath(configPath: String) {
-        configDirProperty.set(projectLayout.projectDirectory.dir(configPath))
+    fun conf(action: Action<in DirConf>) {
+        action.execute(conf)
     }
 
     /**
-     * Provider of project sites directory.
+     * Configures conf with a closure.
      *
-     * @property sitesDirProvider
+     * @param c
      */
-    val sitesDirProvider: Provider<Directory>
-        get() = sitesDirProperty
-
-    /**
-     * Project sites directory.
-     *
-     * @property sitesDir
-     */
-    var sitesDir: File
-        get() = sitesDirProperty.get().asFile
-        set(value) = sitesDirProperty.set(value)
-
-    /**
-     * Set only a short path for project configuration dir.
-     * @param configPath
-     */
-    fun setSitesPath(sitesPath: String) {
-        sitesDirProperty.set(projectLayout.projectDirectory.dir(sitesPath))
+    fun conf(c: Closure<DirConf>) {
+        ConfigureUtil.configure(c, conf)
     }
+
+    /**
+     * Configuration for sites folder.
+     *
+     * @property sites
+     */
+    val sites: DirConf = objectFactory.newInstance(DirConf::class.java)
+
+    /**
+     * Configures sitesPackage with an action.
+     *
+     * @param action
+     */
+    fun sites(action: Action<in DirConf>) {
+        action.execute(sites)
+    }
+
+    /**
+     * Configures sites with a closure.
+     *
+     * @param c
+     */
+    fun sites(c: Closure<DirConf>) {
+        ConfigureUtil.configure(c, sites)
+    }
+
+    /**
+     * Configuration for developer / test configuration folder.
+     *
+     * @property devConf
+     */
+    val devConf : DirConf = objectFactory.newInstance(DirConf::class.java)
+
+    /**
+     * Configures conf with an action.
+     *
+     * @param action
+     */
+    fun devConf(action: Action<in DirConf>) {
+        action.execute(conf)
+    }
+
+    /**
+     * Configures conf with a closure.
+     *
+     * @param c
+     */
+    fun devConf(c: Closure<DirConf>) {
+        ConfigureUtil.configure(c, devConf)
+    }
+
+    /**
+     * Configuration for developer / test sites folder.
+     *
+     * @property devSites
+     */
+    val devSites: DirConf = objectFactory.newInstance(DirConf::class.java)
+
+    /**
+     * Configures sitesPackage with an action.
+     *
+     * @param action
+     */
+    fun devSites(action: Action<in DirConf>) {
+        action.execute(devSites)
+    }
+
+    /**
+     * Configures sites with a closure.
+     *
+     * @param c
+     */
+    fun devSites(c: Closure<DirConf>) {
+        ConfigureUtil.configure(c, devSites)
+    }
+
 }

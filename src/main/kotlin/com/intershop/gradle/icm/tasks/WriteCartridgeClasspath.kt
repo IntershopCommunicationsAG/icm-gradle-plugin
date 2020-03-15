@@ -22,7 +22,9 @@ import com.intershop.gradle.icm.utils.getValue
 import com.intershop.gradle.icm.utils.setValue
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.FileCollection
+import org.gradle.api.file.ProjectLayout
 import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
@@ -32,6 +34,7 @@ import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import java.io.File
+import javax.inject.Inject
 
 /**
  * WriteCartridgeClasspath Gradle task 'writeCartridgeClasspath'
@@ -39,24 +42,25 @@ import java.io.File
  * This task writes all classpath entries of runtime classpath
  * to an file. This file is used by some tools and tests.
  */
-open class WriteCartridgeClasspath : DefaultTask() {
+open class WriteCartridgeClasspath @Inject constructor(
+        projectLayout: ProjectLayout,
+        objectFactory: ObjectFactory) : DefaultTask() {
 
-    private val outputFileProperty: RegularFileProperty = project.objects.fileProperty()
-    private val jarTaskNameProperty: Property<String> = project.objects.property(String::class.java)
-    private val useClassesFolderProperty: Property<Boolean> = project.objects.property(Boolean::class.java)
+    private val outputFileProperty: RegularFileProperty = objectFactory.fileProperty()
+    private val jarTaskNameProperty: Property<String> = objectFactory.property(String::class.java)
+    private val useClassesFolderProperty: Property<Boolean> = objectFactory.property(Boolean::class.java)
 
     companion object {
         const val DEFAULT_NAME = "writeCartridgeClasspath"
-
-        const val CARTRIDGE_CLASSPATH_DIR = "classpath"
-        const val CARTRIDGE_CLASSPATH_FILE = "cartridge.classpath"
+        const val CARTRIDGE_CLASSPATH = "classpath/cartridge.classpath"
     }
 
     init {
         group = INTERSHOP_GROUP_NAME
         description = "Writes the classpath of the cartridge to a file."
 
-        outputFileProperty.set(File(project.buildDir, "${CARTRIDGE_CLASSPATH_DIR}/${CARTRIDGE_CLASSPATH_FILE}"))
+        outputFileProperty.convention(projectLayout.buildDirectory.file(CARTRIDGE_CLASSPATH))
+
         jarTaskNameProperty.convention("jar")
         useClassesFolderProperty.convention(false)
     }
