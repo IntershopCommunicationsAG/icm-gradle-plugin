@@ -113,6 +113,8 @@ abstract class AbstractCreateFolder @Inject constructor(
             if(dirConf != null && dirConf?.duplicateStrategy != DuplicatesStrategy.INHERIT) {
                 dirCS.duplicatesStrategy = dirConf!!.duplicateStrategy
             }
+
+            cs.with(dirCS)
         }
 
         if(devDirConf != null) {
@@ -132,6 +134,8 @@ abstract class AbstractCreateFolder @Inject constructor(
             if(dirConf != null && devDirConf?.duplicateStrategy != DuplicatesStrategy.INHERIT) {
                 devDirCS.duplicatesStrategy = devDirConf!!.duplicateStrategy
             }
+
+            cs.with(devDirCS)
         }
 
         baseProjects.forEach {
