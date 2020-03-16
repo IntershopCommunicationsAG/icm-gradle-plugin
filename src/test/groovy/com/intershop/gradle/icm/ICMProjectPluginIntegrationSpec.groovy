@@ -391,4 +391,193 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         where:
         gradleVersion << supportedGradleVersions
     }
+
+    def "prepare folder for publishing without libs.txt"() {
+        TestRepo repo = new TestRepo(new File(testProjectDir, "/repo"))
+        String repoConf = repo.getRepoConfig()
+
+        settingsFile << """
+        rootProject.name='rootproject'
+        """.stripIndent()
+
+        def testFile = new File(testProjectDir, "config/base/cluster/test.properties")
+        testFile.parentFile.mkdirs()
+        testFile << "test = 1"
+
+        def testFile1 = new File(testProjectDir, "config/base/cluster/cartridgelist.properties")
+        testFile1.parentFile.mkdirs()
+        testFile1 << "test = 2"
+
+        buildFile << """
+            plugins {
+                id 'com.intershop.gradle.icm.project'
+            }
+            
+            buildDir = new File(projectDir, 'target')
+
+            intershop {
+                projectConfig {
+                    cartridges = ['cartridge1', 'cartridge2', 'test_artridge1', 'test_cartridge2' ]
+                    dbprepareCartridges = ['cartridge1', 'cartridge2', 'test_artridge1', 'test_cartridge2', "dbprep_cartr1" ]
+                    productionCartridges = ['cartridge1', 'cartridge2', "dbprep_cartr1" ]
+
+                    baseProjects {
+                        icm {
+                            dependency = "com.intershop.icm:icm-as:2.0.0"
+                            confPackage {
+                                exclude("**/**/cartridgelst.properties")
+                            }
+                            withCartridgeList = true
+                        }
+                    }
+
+                    conf {
+                        dir("config/base")
+                        targetPath = "system-conf"
+                    }
+                }
+            }
+
+            ${repoConf}
+        """.stripIndent()
+
+        when:
+        def result = getPreparedGradleRunner()
+                .withArguments("prepareContainer", "-s")
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        result.task(':prepareContainer').outcome == SUCCESS
+
+
+        where:
+        gradleVersion << supportedGradleVersions
+    }
+
+    def "prepare folder for publishing without sites"() {
+        TestRepo repo = new TestRepo(new File(testProjectDir, "/repo"))
+        String repoConf = repo.getRepoConfig()
+
+        settingsFile << """
+        rootProject.name='rootproject'
+        """.stripIndent()
+
+        def testFile = new File(testProjectDir, "config/base/cluster/test.properties")
+        testFile.parentFile.mkdirs()
+        testFile << "test = 1"
+
+        def testFile1 = new File(testProjectDir, "config/base/cluster/cartridgelist.properties")
+        testFile1.parentFile.mkdirs()
+        testFile1 << "test = 2"
+
+        buildFile << """
+            plugins {
+                id 'com.intershop.gradle.icm.project'
+            }
+            
+            buildDir = new File(projectDir, 'target')
+
+            intershop {
+                projectConfig {
+                    cartridges = ['cartridge1', 'cartridge2', 'test_artridge1', 'test_cartridge2' ]
+                    dbprepareCartridges = ['cartridge1', 'cartridge2', 'test_artridge1', 'test_cartridge2', "dbprep_cartr1" ]
+                    productionCartridges = ['cartridge1', 'cartridge2', "dbprep_cartr1" ]
+
+                    baseProjects {
+                        icm {
+                            dependency = "com.intershop.icm:icm-as:3.0.0"
+                            confPackage {
+                                exclude("**/**/cartridgelst.properties")
+                            }
+                            withCartridgeList = true
+                        }
+                    }
+
+                    conf {
+                        dir("config/base")
+                        targetPath = "system-conf"
+                    }
+                }
+            }
+
+            ${repoConf}
+        """.stripIndent()
+
+        when:
+        def result = getPreparedGradleRunner()
+                .withArguments("prepareContainer", "-s")
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        result.task(':prepareContainer').outcome == SUCCESS
+
+
+        where:
+        gradleVersion << supportedGradleVersions
+    }
+
+    def "prepare folder for publishing without anything"() {
+        TestRepo repo = new TestRepo(new File(testProjectDir, "/repo"))
+        String repoConf = repo.getRepoConfig()
+
+        settingsFile << """
+        rootProject.name='rootproject'
+        """.stripIndent()
+
+        def testFile = new File(testProjectDir, "config/base/cluster/test.properties")
+        testFile.parentFile.mkdirs()
+        testFile << "test = 1"
+
+        def testFile1 = new File(testProjectDir, "config/base/cluster/cartridgelist.properties")
+        testFile1.parentFile.mkdirs()
+        testFile1 << "test = 2"
+
+        buildFile << """
+            plugins {
+                id 'com.intershop.gradle.icm.project'
+            }
+            
+            buildDir = new File(projectDir, 'target')
+
+            intershop {
+                projectConfig {
+                    cartridges = ['cartridge1', 'cartridge2', 'test_artridge1', 'test_cartridge2' ]
+                    dbprepareCartridges = ['cartridge1', 'cartridge2', 'test_artridge1', 'test_cartridge2', "dbprep_cartr1" ]
+                    productionCartridges = ['cartridge1', 'cartridge2', "dbprep_cartr1" ]
+
+                    baseProjects {
+                        icm {
+                            dependency = "com.intershop.icm:icm-as:4.0.0"
+                            confPackage {
+                                exclude("**/**/cartridgelst.properties")
+                            }
+                            withCartridgeList = true
+                        }
+                    }
+
+                    conf {
+                        dir("config/base")
+                        targetPath = "system-conf"
+                    }
+                }
+            }
+
+            ${repoConf}
+        """.stripIndent()
+
+        when:
+        def result = getPreparedGradleRunner()
+                .withArguments("prepareContainer", "-s")
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        result.task(':prepareContainer').outcome == SUCCESS
+
+
+        where:
+        gradleVersion << supportedGradleVersions
+    }
 }

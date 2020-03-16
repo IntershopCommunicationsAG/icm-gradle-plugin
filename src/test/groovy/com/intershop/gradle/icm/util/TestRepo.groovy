@@ -87,6 +87,8 @@ class TestRepo {
         addCartridge('cartridge2', '1.0.0', 'development')
 
         addBaseProject("icm-as", "1.0.0")
+        addBaseProjectWithoutLibsTxt("icm-as", "2.0.0")
+        addBaseProjectWithoutSites("icm-as", "3.0.0")
 
         String repostr = """
             repositories {
@@ -185,6 +187,48 @@ class TestRepo {
                         classifier: "libs",
                         ext: "txt",
                         content: getTextResources('liblist/liblist.txt')
+                )
+            }
+        }.writeTo(repoDir)
+    }
+
+    private void addBaseProjectWithoutLibsTxt(String projectName, String version) {
+
+        new TestMavenRepoBuilder().repository {
+            project(groupId: 'com.intershop.icm', artifactId: projectName, version: version) {
+                artifact (
+                        classifier: "configuration",
+                        ext: "zip",
+                        entries: [
+                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'system-conf/apps/file.txt', content: 'apps = test1.component'),
+                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'system-conf/cluster/cartridgelist.properties', content: getTextResources('cartridgelist/cartridgelist.properties')),
+                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'system-conf/cluster/version.properties', content: "testprop = 5")
+                        ]
+                )
+                artifact (
+                        classifier: "sites",
+                        ext: "zip",
+                        entries: [
+                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'sites/SLDSystem/file.txt', content: 'SLDSystem = test1.component'),
+                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'sites/SMC/file.txt', content: 'smc = test1.component')
+                        ]
+                )
+            }
+        }.writeTo(repoDir)
+    }
+
+    private void addBaseProjectWithoutSites(String projectName, String version) {
+
+        new TestMavenRepoBuilder().repository {
+            project(groupId: 'com.intershop.icm', artifactId: projectName, version: version) {
+                artifact (
+                        classifier: "configuration",
+                        ext: "zip",
+                        entries: [
+                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'system-conf/apps/file.txt', content: 'apps = test1.component'),
+                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'system-conf/cluster/cartridgelist.properties', content: getTextResources('cartridgelist/cartridgelist.properties')),
+                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'system-conf/cluster/version.properties', content: "testprop = 5")
+                        ]
                 )
             }
         }.writeTo(repoDir)

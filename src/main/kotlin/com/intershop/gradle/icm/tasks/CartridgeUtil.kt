@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.query.ArtifactResolutionQuery
 import org.gradle.api.artifacts.result.ArtifactResolutionResult
 import org.gradle.api.artifacts.result.ArtifactResult
 import org.gradle.api.artifacts.result.ResolvedArtifactResult
+import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration
 import org.gradle.maven.MavenModule
 import org.gradle.maven.MavenPomArtifact
 import org.w3c.dom.Document
@@ -86,7 +87,7 @@ object CartridgeUtil {
         return dBuilder.parse(xmlInput)
     }
 
-    fun downloadLibFilter(project: Project, dependency: String, name: String): File {
+    fun downloadLibFilter(project: Project, dependency: String, name: String): File? {
         val dependencyHandler = project.dependencies
         val dep = dependencyHandler.create(dependency) as ExternalModuleDependency
         dep.artifact {
@@ -104,8 +105,13 @@ object CartridgeUtil {
                 ds.add(dep)
             }
 
-        val files = configuration.resolve()
-        return files.first()
+        try {
+            val files = configuration.resolve()
+            return files.first()
+        } catch (anfe: DefaultLenientConfiguration.ArtifactResolveException) {
+            project.logger.warn("No library filter is available!")
+        }
+        return null
     }
 
     fun getConfigurationName(name: String): String {

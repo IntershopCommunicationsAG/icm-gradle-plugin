@@ -108,7 +108,9 @@ open class CopyThirdpartyLibs @Inject constructor(
         val libs = mutableListOf<String>()
         baseProjects.forEach {
             val file = downloadLibFilter(project, it.value.dependency, it.key)
-            libs.addAll(file.readLines())
+            if(file != null) {
+                libs.addAll(file.readLines())
+            }
         }
         if(libs.isEmpty()) {
             project.logger.info("No lib filter entries available.")
