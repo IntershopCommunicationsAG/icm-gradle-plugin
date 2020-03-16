@@ -250,7 +250,9 @@ open class SetupCartridges @Inject constructor(
         val libs = mutableListOf<String>()
         baseProjects.forEach {
             val file = downloadLibFilter(project, it.value.dependency, it.key)
-             libs.addAll(file.readLines())
+            if(file != null) {
+                libs.addAll(file.readLines())
+            }
         }
         createStructure(outputDirProperty.get().asFile, libs, productionCartridges)
     }
