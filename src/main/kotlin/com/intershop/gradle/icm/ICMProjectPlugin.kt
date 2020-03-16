@@ -73,7 +73,7 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
             val infoTask = configureInfoTask(this, extension)
 
             configureDevTasks(this, extension, prepareTask, infoTask)
-            configureContainerTasks(this, extension, prepareTask, infoTask)
+            configureContainerTasks(this, extension, prepareContainerTask, infoTask)
 
             configureExtCartridgeTask(this, extension, prepareTask, prepareContainerTask)
             configureCopyThirpartyLibs(this, extension, prepareTask, prepareContainerTask)

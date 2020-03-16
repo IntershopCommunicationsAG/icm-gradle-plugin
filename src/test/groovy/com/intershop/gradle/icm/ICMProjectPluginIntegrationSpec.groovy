@@ -580,4 +580,81 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         where:
         gradleVersion << supportedGradleVersions
     }
+
+    def "prepare folder with sites"() {
+        TestRepo repo = new TestRepo(new File(testProjectDir, "/repo"))
+        String repoConf = repo.getRepoConfig()
+
+        settingsFile << """
+        rootProject.name='rootproject'
+        """.stripIndent()
+
+        def testFile = new File(testProjectDir, "config/base/cluster/test.properties")
+        testFile.parentFile.mkdirs()
+        testFile << "test = 1"
+
+        def testFile1 = new File(testProjectDir, "config/base/cluster/cartridgelist.properties")
+        testFile1.parentFile.mkdirs()
+        testFile1 << "test = 2"
+
+        def testFile2 = new File(testProjectDir, "sites/base/test-site1/units/test.properties")
+        testFile2.parentFile.mkdirs()
+        testFile2 << "sites = 1"
+
+        def testFile3 = new File(testProjectDir, "sites/base/test-site2/units/test.properties")
+        testFile3.parentFile.mkdirs()
+        testFile3 << "sites = 2"
+
+        buildFile << """
+            plugins {
+                id 'com.intershop.gradle.icm.project'
+            }
+            
+            buildDir = new File(projectDir, 'target')
+
+            intershop {
+                projectConfig {
+                    cartridges = ['cartridge1', 'cartridge2', 'test_artridge1', 'test_cartridge2' ]
+                    dbprepareCartridges = ['cartridge1', 'cartridge2', 'test_artridge1', 'test_cartridge2', "dbprep_cartr1" ]
+                    productionCartridges = ['cartridge1', 'cartridge2', "dbprep_cartr1" ]
+
+                    baseProjects {
+                        icm {
+                            dependency = "com.intershop.icm:icm-as:1.0.0"
+                            confPackage {
+                                exclude("**/**/cartridgelst.properties")
+                            }
+                            withCartridgeList = true
+                        }
+                    }
+
+                    conf {
+                        dir("config/base")
+                        targetPath = "system-conf"
+                    }
+
+                    sites {
+                        dir("sites/base")
+                        targetPath = "sites"
+                    }
+                }
+            }
+
+            ${repoConf}
+        """.stripIndent()
+
+        when:
+        def result = getPreparedGradleRunner()
+                .withArguments("prepareServer", "-s")
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        result.task(':prepareServer').outcome == SUCCESS
+        (new File(testProjectDir, "target/server/sites/sites/test-site1/units/test.properties")).exists()
+        (new File(testProjectDir, "target/server/sites/sites/test-site2/units/test.properties")).exists()
+
+        where:
+        gradleVersion << supportedGradleVersions
+    }
 }

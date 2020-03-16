@@ -24,6 +24,7 @@ import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.file.FileSystemOperations
+import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
@@ -113,6 +114,8 @@ abstract class AbstractCreateFolder @Inject constructor(
             if(dirConf != null && dirConf?.duplicateStrategy != DuplicatesStrategy.INHERIT) {
                 dirCS.duplicatesStrategy = dirConf!!.duplicateStrategy
             }
+
+            cs.with(dirCS)
         }
 
         if(devDirConf != null) {
@@ -132,15 +135,18 @@ abstract class AbstractCreateFolder @Inject constructor(
             if(dirConf != null && devDirConf?.duplicateStrategy != DuplicatesStrategy.INHERIT) {
                 devDirCS.duplicatesStrategy = devDirConf!!.duplicateStrategy
             }
+
+            cs.with(devDirCS)
         }
 
         baseProjects.forEach {
             val file = downloadPackage(it.value.dependency, classifier)
-            val pkgCS = project.copySpec()
-
-            pkgCS.from(project.zipTree(file))
-            addCopyConfSpec(cs, pkgCS, it.value, file)
-            cs.with(pkgCS)
+            if(file != null) {
+                val pkgCS = project.copySpec()
+                pkgCS.from(project.zipTree(file))
+                addCopyConfSpec(cs, pkgCS, it.value, file)
+                cs.with(pkgCS)
+            }
         }
 
         fsOps.copy {
@@ -159,7 +165,7 @@ abstract class AbstractCreateFolder @Inject constructor(
      */
     abstract fun addCopyConfSpec(cs: CopySpec, pkgCS: CopySpec, prjConf: BaseProjectConfiguration, file: File)
 
-    private fun downloadPackage(dependency: String, classifier: String): File {
+    private fun downloadPackage(dependency: String, classifier: String): File? {
         val dependencyHandler = project.dependencies
         val dep = dependencyHandler.create(dependency) as ExternalModuleDependency
         dep.artifact {
@@ -177,8 +183,14 @@ abstract class AbstractCreateFolder @Inject constructor(
                 ds.add(dep)
             }
 
-        val files = configuration.resolve()
-        return files.first()
+        try {
+            val files = configuration.resolve()
+            return files.first()
+        } catch (anfe: DefaultLenientConfiguration.ArtifactResolveException) {
+            project.logger.warn("No package '{}' is available!", classifier)
+        }
+
+        return null
     }
 
     private val configurationName: String
