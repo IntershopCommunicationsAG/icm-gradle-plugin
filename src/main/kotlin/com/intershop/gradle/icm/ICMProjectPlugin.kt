@@ -30,7 +30,7 @@ import org.gradle.api.file.ProjectLayout
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
-import org.gradle.api.tasks.Copy
+import org.gradle.api.tasks.Sync
 import javax.inject.Inject
 
 /**
@@ -188,7 +188,7 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
                                            prepareTask: Task,
                                            prepareContainerTask: Task) {
         with(project) {
-            val copyAllDevLibs = tasks.maybeCreate("copyAllDev", Copy::class.java).apply {
+            val copyAllDevLibs = tasks.maybeCreate("copyAllDev", Sync::class.java).apply {
                 group = IntershopExtension.INTERSHOP_GROUP_NAME
                 description = "Copy all 3rd party libs of all subprojects to one folder"
 
@@ -197,7 +197,7 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
 
                 prepareTask.dependsOn(this)
             }
-            val copyAllLibs = tasks.maybeCreate("copyAll", Copy::class.java).apply {
+            val copyAllLibs = tasks.maybeCreate("copyAll", Sync::class.java).apply {
                 group = IntershopExtension.INTERSHOP_GROUP_NAME
                 description = "Copy all 3rd party libs of all subprojects to one folder"
 
