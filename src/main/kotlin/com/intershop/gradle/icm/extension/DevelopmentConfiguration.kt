@@ -120,6 +120,6 @@ abstract class DevelopmentConfiguration {
     val configDirectory
         get() = configDirectoryProperty.get()
 
-    val confgiFilePath
+    val configFilePath
         get() = File(configDirectory, "cluster.properties").absolutePath
 }
