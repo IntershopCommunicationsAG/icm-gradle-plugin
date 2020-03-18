@@ -59,6 +59,10 @@ open class ICMBasePlugin: Plugin<Project> {
                 // apply maven publishing plugin to root and subprojects
                 plugins.apply(MavenPublishPlugin::class.java)
 
+                val extension = extensions.findByType(
+                    IntershopExtension::class.java
+                ) ?: extensions.create(IntershopExtension.INTERSHOP_EXTENSION_NAME, IntershopExtension::class.java)
+
                 plugins.withType(JavaPlugin::class.java) {
                     configureBaseConfigurations(project)
                 }
@@ -70,10 +74,6 @@ open class ICMBasePlugin: Plugin<Project> {
                         configureBaseConfigurations(prj)
                     }
                 }
-
-                val extension = extensions.findByType(
-                    IntershopExtension::class.java
-                ) ?: extensions.create(IntershopExtension.INTERSHOP_EXTENSION_NAME, IntershopExtension::class.java)
 
                 configureClusterIdTask(project)
                 configureCreateServerInfoPropertiesTask(project, extension)

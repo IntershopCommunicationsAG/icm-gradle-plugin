@@ -23,6 +23,136 @@ import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
+    def 'check lic configuration from extension'() {
+        given:
+        settingsFile << """
+        rootProject.name='rootproject'
+        """.stripIndent()
+
+        buildFile << """
+            plugins {
+                id 'java'
+                id 'com.intershop.gradle.icm.base'
+            }
+            
+            task showLicPath() { 
+                doLast {
+                    println(project.extensions.getByName("intershop").developmentConfig.licenseFilePath)
+                }
+            }
+
+            """.stripIndent()
+
+        when:
+        def result = getPreparedGradleRunner()
+                .withArguments("showLicPath", "-s")
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        result.task(':showLicPath').outcome == SUCCESS
+        result.output.contains(".gradle/icm-default/lic/license.xml")
+
+        when:
+        def result1 = getPreparedGradleRunner()
+                .withArguments("showLicPath", "-s", "-DlicenseDir=/home/user/licdir")
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        result1.task(':showLicPath').outcome == SUCCESS
+        result1.output.contains("/home/user/licdir/license.xml")
+
+        when:
+        def result2 = getPreparedGradleRunner()
+                .withArguments("showLicPath", "-s", "-PlicenseDir=/home/otheruser/licdir")
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        result2.task(':showLicPath').outcome == SUCCESS
+        result2.output.contains("/home/otheruser/licdir/license.xml")
+
+        when:
+        def result3 = getPreparedGradleRunner()
+                .withArguments("showLicPath", "-s")
+                .withEnvironment([ "LICENSEDIR": "/home/other/licdir" ])
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        result3.task(':showLicPath').outcome == SUCCESS
+        result3.output.contains("/home/other/licdir/license.xml")
+
+        where:
+        gradleVersion << supportedGradleVersions
+    }
+
+    def 'check conf configuration from extension'() {
+        given:
+        settingsFile << """
+        rootProject.name='rootproject'
+        """.stripIndent()
+
+        buildFile << """
+            plugins {
+                id 'java'
+                id 'com.intershop.gradle.icm.base'
+            }
+            
+            task showConfPath() { 
+                doLast {
+                    println(project.extensions.getByName("intershop").developmentConfig.confgiFilePath)
+                }
+            }
+
+            """.stripIndent()
+
+        when:
+        def result = getPreparedGradleRunner()
+                .withArguments("showConfPath", "-s")
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        result.task(':showConfPath').outcome == SUCCESS
+        result.output.contains(".gradle/icm-default/conf/cluster.properties")
+
+        when:
+        def result1 = getPreparedGradleRunner()
+                .withArguments("showConfPath", "-s", "-DconfigDir=/home/user/conf")
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        result1.task(':showConfPath').outcome == SUCCESS
+        result1.output.contains("/home/user/conf/cluster.properties")
+
+        when:
+        def result2 = getPreparedGradleRunner()
+                .withArguments("showConfPath", "-s", "-PconfigDir=/home/otheruser/conf")
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        result2.task(':showConfPath').outcome == SUCCESS
+        result2.output.contains("/home/otheruser/conf/cluster.properties")
+
+        when:
+        def result3 = getPreparedGradleRunner()
+                .withArguments("showConfPath", "-s")
+                .withEnvironment([ "CONFIGDIR": "/home/other/conf" ])
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        result3.task(':showConfPath').outcome == SUCCESS
+        result3.output.contains("/home/other/conf/cluster.properties")
+
+        where:
+        gradleVersion << supportedGradleVersions
+    }
+
     def 'check configuration and dependencies'() {
         given:
         TestRepo repo = new TestRepo(new File(testProjectDir, "/repo"))

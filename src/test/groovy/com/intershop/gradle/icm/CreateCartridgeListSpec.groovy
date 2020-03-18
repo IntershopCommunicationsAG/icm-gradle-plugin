@@ -107,7 +107,7 @@ class CreateCartridgeListSpec extends AbstractIntegrationGroovySpec {
 
         def file = new File(testProjectDir, "build/cartridgelist/cartridgelist.properties")
 
-                when:
+        when:
         def result = getPreparedGradleRunner()
                 .withArguments("tasks", "-s")
                 .withGradleVersion(gradleVersion)

@@ -45,11 +45,31 @@ abstract class IntershopExtension  {
 
     private val mavenPublicationNameProperty: Property<String> = objectFactory.property(String::class.java)
 
+    val developmentConfig: DevelopmentConfiguration = objectFactory.newInstance(DevelopmentConfiguration::class.java)
     val projectInfo: ProjectInfo = objectFactory.newInstance(ProjectInfo::class.java)
     val projectConfig: ProjectConfiguration = objectFactory.newInstance(ProjectConfiguration::class.java)
 
     init {
         mavenPublicationNameProperty.convention("mvn")
+    }
+
+    /**
+     * Configures the development information configuration.
+     *
+     * @param closure closure with project information configuration
+     */
+    @Suppress("unused")
+    fun developmentConfig(closure: Closure<Any>) {
+        ConfigureUtil.configure(closure, developmentConfig)
+    }
+
+    /**
+     * Configures the project information configuration.
+     *
+     * @param action action with project information configuration
+     */
+    fun developmentConfig(action: Action<in DevelopmentConfiguration>) {
+        action.execute(developmentConfig)
     }
 
     /**
