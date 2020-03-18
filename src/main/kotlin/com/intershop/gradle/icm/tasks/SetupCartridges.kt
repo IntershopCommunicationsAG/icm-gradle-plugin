@@ -24,13 +24,10 @@ import com.intershop.gradle.icm.tasks.CartridgeUtil.downloadLibFilter
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.artifacts.ExternalModuleDependency
-import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.file.Directory
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.file.ProjectLayout
-import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
-import org.gradle.api.internal.artifacts.result.DefaultResolvedArtifactResult
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Provider
@@ -42,9 +39,6 @@ import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactIdentifier
-import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
-import org.gradle.maven.MavenModule
-import org.gradle.maven.MavenPomArtifact
 import java.io.File
 import javax.inject.Inject
 
@@ -128,41 +122,42 @@ open class SetupCartridges @Inject constructor(
 
     protected fun createStructure(target: File, filter: List<String>, productionCartridges: Set<String>) {
         val cfg = project.configurations.getByName(CONFIGURATION_EXTERNALCARTRIDGES)
+        val libsCS = project.copySpec()
+
         cfg.allDependencies.forEach { dependency ->
             if( dependency is ExternalModuleDependency) {
                 if(productionCartridges.isEmpty() || productionCartridges.contains(dependency.name)) {
                     project.logger.info("Process external cartridge '{}'.", dependency.name)
                     val staticFile = getStaticFileFor(dependency)
+                    project.logger.info("{}: Process static file {}.", dependency.name, staticFile)
                     fsOps.run {
-                        copy {
+                        sync {
                             it.from(project.zipTree(staticFile))
                             it.into(File(target, "${dependency.name}/release"))
                         }
                     }
-                    project.logger.info("{}: Process static file {}.", dependency.name, staticFile)
+
                     val jarFile = getJarFileFor(dependency)
+                    project.logger.info("{}: Process jar file {}.", dependency.name, jarFile)
                     fsOps.run {
-                        copy {
+                        sync {
                             it.from(jarFile)
                             it.into(File(target, "${dependency.name}/release/lib/"))
                         }
                     }
-                    project.logger.info("{}: Process jar file {}.", dependency.name, jarFile)
-                    val pomFile = getPomFileFor(dependency)
 
-                    project.logger.info("{}: Process jar dependencies {}.", dependency.name, pomFile)
                     val libFiles = getLibsFor(dependency, filter)
                     libFiles.forEach { lib ->
                         project.logger.info("{}: Copy {} to {}.", dependency.name, lib.key, lib.value)
-                        fsOps.run {
-                            copy {
-                                it.from(lib.key)
-                                it.into(File(target, "libs"))
-                                it.rename(lib.key.name, lib.value)
-                            }
-                        }
+                        libsCS.from(lib.key).rename(lib.key.name, lib.value)
                     }
                 }
+            }
+        }
+        fsOps.run {
+            sync {
+                it.with(libsCS)
+                it.into(File(target, "libs"))
             }
         }
     }
@@ -189,26 +184,6 @@ open class SetupCartridges @Inject constructor(
         val files = dcfg.resolve()
 
         return files.first()
-    }
-
-    private fun getPomFileFor(dependency: ExternalModuleDependency): File {
-        val compID = DefaultModuleComponentIdentifier.newId(
-            DefaultModuleIdentifier.newId(dependency.group!!, dependency.name),
-            dependency.version)
-        val mavenArtifacts = project.dependencies.createArtifactResolutionQuery()
-            .forComponents(compID)
-            .withArtifacts(MavenModule::class.java, MavenPomArtifact::class.java)
-            .execute()
-
-        var rv: File? = null
-        mavenArtifacts.resolvedComponents.forEach { car ->
-            if(car.id is ModuleComponentIdentifier) {
-                car.getArtifacts(MavenPomArtifact::class.java).forEach { ar ->
-                    rv = (ar as DefaultResolvedArtifactResult).file
-                }
-            }
-        }
-        return rv!!
     }
 
     private fun getLibsFor(dependency: ExternalModuleDependency, filter: List<String>): Map<File, String> {
