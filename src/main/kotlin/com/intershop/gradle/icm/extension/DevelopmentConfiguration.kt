@@ -21,12 +21,19 @@ import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.wrapper.GradleUserHomeLookup
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import java.io.File
 import javax.inject.Inject
 
 abstract class DevelopmentConfiguration {
 
     companion object {
+        /**
+         * Logger instance for logging.
+         */
+        val log: Logger = LoggerFactory.getLogger(this::class.java.name)
+
         const val LICENSE_DIR_ENV = "LICENSEDIR"
         const val CONFIG_DIR_ENV = "CONFIGDIR"
 
@@ -71,11 +78,19 @@ abstract class DevelopmentConfiguration {
         }
 
         if(licDirPath == null) {
-            licDirPath = providerFactory.gradleProperty(LICENSE_DIR_SYS).orNull
+            try {
+                licDirPath = providerFactory.gradleProperty(LICENSE_DIR_SYS).orNull
+            } catch ( ise: IllegalStateException ) {
+                log.error(ise.message)
+            }
         }
 
         if(configDirPath == null) {
-            configDirPath = providerFactory.gradleProperty(CONFIG_DIR_SYS).orNull
+            try {
+                configDirPath = providerFactory.gradleProperty(CONFIG_DIR_SYS).orNull
+            } catch ( ise: IllegalStateException ) {
+                log.error(ise.message)
+            }
         }
 
         if(licDirPath == null) {
