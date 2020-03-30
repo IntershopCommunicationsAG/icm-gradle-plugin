@@ -140,7 +140,7 @@ abstract class AbstractCreateFolder @Inject constructor(
         }
 
         baseProjects.forEach {
-            val file = downloadPackage(it.value.dependency, classifier)
+            val file = downloadPackage(it.value.dependency, classifier, it.key)
             if(file != null) {
                 val pkgCS = project.copySpec()
                 pkgCS.from(project.zipTree(file))
@@ -165,7 +165,7 @@ abstract class AbstractCreateFolder @Inject constructor(
      */
     abstract fun addCopyConfSpec(cs: CopySpec, pkgCS: CopySpec, prjConf: BaseProjectConfiguration, file: File)
 
-    private fun downloadPackage(dependency: String, classifier: String): File? {
+    private fun downloadPackage(dependency: String, classifier: String, key: String): File? {
         val dependencyHandler = project.dependencies
         val dep = dependencyHandler.create(dependency) as ExternalModuleDependency
         dep.artifact {
@@ -175,7 +175,7 @@ abstract class AbstractCreateFolder @Inject constructor(
             it.type = "zip"
         }
 
-        val configuration = project.configurations.maybeCreate(configurationName)
+        val configuration = project.configurations.maybeCreate("conf_${this.name.toLowerCase()}_${key}")
         configuration.setVisible(false)
             .setTransitive(false)
             .setDescription("$classifier for package download: ${this.name}")
@@ -192,7 +192,4 @@ abstract class AbstractCreateFolder @Inject constructor(
 
         return null
     }
-
-    private val configurationName: String
-        get() = "${this.name.toLowerCase()}_configuration"
 }

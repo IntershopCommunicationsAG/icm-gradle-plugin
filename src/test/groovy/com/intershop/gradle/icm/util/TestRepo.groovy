@@ -87,6 +87,7 @@ class TestRepo {
         addCartridge('cartridge2', '1.0.0', 'development')
 
         addBaseProject("icm-as", "1.0.0")
+        addSecondBaseProject("solrcloud", "1.0.0")
         addBaseProjectWithoutLibsTxt("icm-as", "2.0.0")
         addBaseProjectWithoutSites("icm-as", "3.0.0")
 
@@ -187,6 +188,31 @@ class TestRepo {
                         classifier: "libs",
                         ext: "txt",
                         content: getTextResources('liblist/liblist.txt')
+                )
+            }
+        }.writeTo(repoDir)
+    }
+
+    private void addSecondBaseProject(String projectName, String version) {
+
+        new TestMavenRepoBuilder().repository {
+            project(groupId: 'com.intershop.icm', artifactId: projectName, version: version) {
+                artifact (
+                        classifier: "configuration",
+                        ext: "zip",
+                        entries: [
+                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'system-conf/apps/file2.txt', content: 'apps = test2.component'),
+                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'system-conf/cluster/cartridgelist.properties', content: getTextResources('cartridgelist/cartridgelist.properties')),
+                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'system-conf/cluster/version.properties', content: "testprop = 5")
+                        ]
+                )
+                artifact (
+                        classifier: "sites",
+                        ext: "zip",
+                        entries: [
+                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'sites/customer1_site/file.txt', content: 'customer1_site = test1.component'),
+                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'sites/customer2_site/file.txt', content: 'customer2_site = test1.component')
+                        ]
                 )
             }
         }.writeTo(repoDir)
