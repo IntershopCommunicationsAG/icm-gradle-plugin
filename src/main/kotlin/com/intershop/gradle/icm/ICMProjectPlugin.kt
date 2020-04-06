@@ -302,14 +302,14 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
                     spec.into(conf.targetPath!!)
                 }
 
-                return tasks.maybeCreate("zipConf", org.gradle.api.tasks.bundling.Zip::class.java).apply {
+                return tasks.maybeCreate("zipSites", org.gradle.api.tasks.bundling.Zip::class.java).apply {
                     this.with(spec)
 
                     this.includeEmptyDirs = false
 
                     this.archiveFileName.set("sites.zip")
                     this.archiveClassifier.set("sites")
-                    this.destinationDirectory.set(project.layout.buildDirectory.dir("publish/configuration"))
+                    this.destinationDirectory.set(project.layout.buildDirectory.dir("publish/sites"))
                 }
             }
         }

@@ -97,7 +97,7 @@ object CartridgeUtil {
             it.type = "txt"
         }
 
-        val configuration = project.configurations.maybeCreate(getConfigurationName(name))
+        val configuration = project.configurations.maybeCreate(getConfigurationName(project.name, name))
         configuration.setVisible(false)
             .setTransitive(false)
             .setDescription("Libs for download: $name")
@@ -114,7 +114,7 @@ object CartridgeUtil {
         return null
     }
 
-    fun getConfigurationName(name: String): String {
-        return "${name.toLowerCase()}_config"
+    fun getConfigurationName(projectName: String, name: String): String {
+        return "${projectName.toLowerCase()}_${name.toLowerCase()}_config"
     }
 }
