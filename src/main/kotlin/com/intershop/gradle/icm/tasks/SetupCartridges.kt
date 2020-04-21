@@ -17,24 +17,25 @@
 
 package com.intershop.gradle.icm.tasks
 
-import com.intershop.gradle.icm.ICMProjectPlugin.Companion.CONFIGURATION_EXTERNALCARTRIDGES
-import com.intershop.gradle.icm.extension.BaseProjectConfiguration
 import com.intershop.gradle.icm.extension.IntershopExtension
-import com.intershop.gradle.icm.tasks.CartridgeUtil.downloadLibFilter
+import com.intershop.gradle.icm.utils.CartridgeUtil
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
+import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.file.Directory
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.file.ProjectLayout
+import org.gradle.api.file.RegularFile
+import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.model.ObjectFactory
-import org.gradle.api.provider.MapProperty
+import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.SetProperty
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.Internal
-import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
@@ -53,62 +54,41 @@ open class SetupCartridges @Inject constructor(
 
     @get:Internal
     val outputDirProperty: DirectoryProperty = objectFactory.directoryProperty()
-    private val baseProjectsProperty: MapProperty<String, BaseProjectConfiguration> =
-        objectFactory.mapProperty(String::class.java, BaseProjectConfiguration::class.java)
-    private val productionCartridgesProperty: SetProperty<String> = objectFactory.setProperty(String::class.java)
 
-    init {
-        group = IntershopExtension.INTERSHOP_GROUP_NAME
-        description = "Create a directory with external cartridges."
+    @get:Input
+    val cartridges: SetProperty<String> = objectFactory.setProperty(String::class.java)
 
-        outputDirProperty.convention(projectLayout.buildDirectory.dir("server/cartridges"))
-    }
+    fun provideCartridges(list: Provider<Set<String>>) = cartridges.set(list)
 
-    @get:Nested
-    var baseProjects: Map<String, BaseProjectConfiguration>
-        get() = baseProjectsProperty.get()
-        set(value) = baseProjectsProperty.putAll(value)
+    @get:Input
+    val dbprepareCartridges: SetProperty<String> = objectFactory.setProperty(String::class.java)
 
-    /**
-     * Filter for cartridges and dbprepareCartridges. All listed cartridges are production cartridges.
-     * Not listed cartridges are test or development cartridges. If the list is empty all cartrdiges
-     * are production catridges.
-     *
-     * @property productionCartridges cartridge list of production cartridges
-     */
+    fun provideDBprepareCartridges(list: Provider<Set<String>>) = dbprepareCartridges.set(list)
+
+    @get:Optional
+    @get:InputFile
+    val libFilterFile: RegularFileProperty = objectFactory.fileProperty()
+
+    fun provideLibFilterFile(libFilter: Provider<RegularFile>) = libFilterFile.set(libFilter)
+
     @get:Optional
     @get:Input
-    var productionCartridges: Set<String>
-        get() = if(productionCartridgesProperty.orNull != null) productionCartridgesProperty.get() else setOf()
-        set(value) = productionCartridgesProperty.set(value)
+    val productionCartridgesOnly: Property<Boolean> = objectFactory.property(Boolean::class.java)
 
-    /**
-     * Provider to configure production cartridge filter.
-     *
-     * @param cartridges cartridge list
-     */
-    fun provideProductionCartridges(cartridges: Provider<Set<String>>) = productionCartridgesProperty.set(cartridges)
+    fun provideProductionCartridgesOnly(production: Boolean) = productionCartridgesOnly.set(production)
 
-    /**
-     * Configuration of external dependencies.
-     *
-     * @property externalCartridgeDependencies
-     */
+    @get:Optional
     @get:Input
-    val externalCartridgeDependencies: List<String> by lazy {
-        val returnDeps = mutableListOf<String>()
-        project.configurations.getByName(CONFIGURATION_EXTERNALCARTRIDGES).dependencies.forEach {
-            returnDeps.add(it.toString())
-        }
-        returnDeps
-    }
+    val testCartridges: Property<Boolean> = objectFactory.property(Boolean::class.java)
+
+    fun provideTestCartridges(test: Boolean) = testCartridges.set(test)
 
     /**
      * Provider configuration for target directory.
      *
      * @param cartridgeDir
      */
-    fun provideCartridgeDir(cartridgeDir: Provider<Directory>) = outputDirProperty.set(cartridgeDir)
+    fun provideOutputDir(cartridgeDir: Provider<Directory>) = outputDirProperty.set(cartridgeDir)
 
     /**
      * Output directory of this task.
@@ -120,44 +100,66 @@ open class SetupCartridges @Inject constructor(
         get() = outputDirProperty.get().asFile
         set(value) = outputDirProperty.set(value)
 
-    protected fun createStructure(target: File, filter: List<String>, productionCartridges: Set<String>) {
-        val cfg = project.configurations.getByName(CONFIGURATION_EXTERNALCARTRIDGES)
+    init {
+        group = IntershopExtension.INTERSHOP_GROUP_NAME
+        description = "Create a directory with external cartridges."
+
+        outputDirProperty.convention(projectLayout.buildDirectory.dir("server/cartridges"))
+
+        productionCartridgesOnly.convention(false)
+        testCartridges.convention(false)
+    }
+
+    protected fun createStructure(cartridges: List<String>,
+                                  target: File,
+                                  filter: List<String>,
+                                  production: Boolean,
+                                  test: Boolean) {
+        val deps = mutableListOf<Dependency>()
+        cartridges.forEach { cartridge ->
+            deps.add(project.dependencies.create(cartridge))
+        }
+
+        val dcfg = project.configurations.detachedConfiguration(*deps.toTypedArray())
+        dcfg.isTransitive = false
+
         val libsCS = project.copySpec()
 
-        cfg.allDependencies.forEach { dependency ->
-            if( dependency is ExternalModuleDependency) {
-                if(productionCartridges.isEmpty() || productionCartridges.contains(dependency.name)) {
-                    project.logger.info("Process external cartridge '{}'.", dependency.name)
-                    val staticFile = getStaticFileFor(dependency)
-                    project.logger.info("{}: Process static file {}.", dependency.name, staticFile)
-                    fsOps.run {
-                        sync {
-                            it.from(project.zipTree(staticFile))
-                            it.into(File(target, "${dependency.name}/release"))
-                        }
-                    }
+        dcfg.allDependencies.forEach { dependency ->
+            if( dependency is ExternalModuleDependency &&
+                CartridgeUtil.isCartridge(project, dependency, production, test) ) {
 
-                    val jarFile = getJarFileFor(dependency)
-                    project.logger.info("{}: Process jar file {}.", dependency.name, jarFile)
-                    fsOps.run {
-                        sync {
-                            it.from(jarFile)
-                            it.into(File(target, "${dependency.name}/release/lib/"))
-                        }
-                    }
-
-                    val libFiles = getLibsFor(dependency, filter)
-                    libFiles.forEach { lib ->
-                        project.logger.info("{}: Copy {} to {}.", dependency.name, lib.key, lib.value)
-                        libsCS.from(lib.key).rename(lib.key.name, lib.value)
+                project.logger.info("Process external cartridge '{}'.", dependency.name)
+                val staticFile = getStaticFileFor(dependency)
+                project.logger.info("{}: Process static file {}.", dependency.name, staticFile)
+                
+                fsOps.run {
+                    sync {
+                        it.from(project.zipTree(staticFile))
+                        it.into(File(target, "${dependency.name}/release"))
                     }
                 }
-            }
-        }
-        fsOps.run {
-            sync {
-                it.with(libsCS)
-                it.into(File(target, "libs"))
+
+                val jarFile = getJarFileFor(dependency)
+                project.logger.info("{}: Process jar file {}.", dependency.name, jarFile)
+                fsOps.run {
+                    sync {
+                        it.from(jarFile)
+                        it.into(File(target, "${dependency.name}/release/lib/"))
+                    }
+                }
+
+                val libFiles = getLibsFor(dependency, filter)
+                libFiles.forEach { lib ->
+                    project.logger.info("{}: Copy {} to {}.", dependency.name, lib.key, lib.value)
+                    libsCS.from(lib.key).rename(lib.key.name, lib.value)
+                }
+                fsOps.run {
+                    sync {
+                        it.with(libsCS)
+                        it.into(File(target, "libs"))
+                    }
+                }
             }
         }
     }
@@ -197,9 +199,8 @@ open class SetupCartridges @Inject constructor(
             if (artifact.id is DefaultModuleComponentArtifactIdentifier) {
                 val identifier = artifact.id
                 if(identifier is DefaultModuleComponentArtifactIdentifier) {
-                    val id = "${identifier.componentIdentifier.group}-" +
-                            "${identifier.componentIdentifier.module}-" +
-                            identifier.componentIdentifier.version
+                    val id = CartridgeUtil.getFileIDFrom(identifier.componentIdentifier)
+
                     val name = "${id}.${artifact.type}"
 
                     if(! CartridgeUtil.isCartridge(project, identifier.componentIdentifier) && ! filter.contains(id)) {
@@ -219,16 +220,27 @@ open class SetupCartridges @Inject constructor(
      */
     @TaskAction
     open fun processDependencies() {
-        // call for incremental build ...
-        externalCartridgeDependencies
 
-        val libs = mutableListOf<String>()
-        baseProjects.forEach {
-            val file = downloadLibFilter(project, it.value.dependency, it.key)
-            if(file != null) {
-                libs.addAll(file.readLines())
+        val extCartridges = mutableListOf<String>()
+
+        cartridges.get().forEach { cartridge ->
+            if(CartridgeUtil.isModuleDependency(cartridge)) {
+                extCartridges.add(cartridge)
             }
         }
-        createStructure(outputDirProperty.get().asFile, libs, productionCartridges)
+
+        dbprepareCartridges.get().forEach { cartridge ->
+            if(CartridgeUtil.isModuleDependency(cartridge)) {
+                extCartridges.add(cartridge)
+            }
+        }
+
+        val libFilter = mutableListOf<String>()
+        val filterFile = libFilterFile.orNull
+        if(filterFile != null) {
+            libFilter.addAll(filterFile.asFile.readLines())
+        }
+
+        createStructure(extCartridges, cartridgeDir, libFilter, productionCartridgesOnly.get(), testCartridges.get())
     }
 }

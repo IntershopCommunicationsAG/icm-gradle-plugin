@@ -18,15 +18,13 @@ package com.intershop.gradle.icm.extension
 
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.ProjectLayout
-import org.gradle.api.tasks.InputDirectory
-import org.gradle.api.tasks.Optional
 import java.io.File
 import javax.inject.Inject
 
 /**
  * Object to configure a simple directory object to copy.
  */
-abstract class DirConf: PackageConf() {
+abstract class DirConf: Package() {
 
     /**
      * Inject service of ProjectLayout (See "Service injection" in Gradle documentation.
@@ -41,8 +39,6 @@ abstract class DirConf: PackageConf() {
      *
      * @property dir
      */
-    @get:Optional
-    @get:InputDirectory
     var dir: File?
         get() = if(dirProperty.orNull != null) dirProperty.get().asFile else null
         set(value) = dirProperty.set(value)

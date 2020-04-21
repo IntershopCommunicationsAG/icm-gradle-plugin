@@ -69,11 +69,13 @@ open class CartridgePlugin : Plugin<Project> {
                     CopyThirdpartyLibs.DEFAULT_NAME
                 )
             ) {
+                /**
                 tasks.register(
                     CopyThirdpartyLibs.DEFAULT_NAME,
                     CopyThirdpartyLibs::class.java) {
                         it.baseProjects = extension.projectConfig.baseProjects.asMap
                 }
+                **/
             }
         }
     }

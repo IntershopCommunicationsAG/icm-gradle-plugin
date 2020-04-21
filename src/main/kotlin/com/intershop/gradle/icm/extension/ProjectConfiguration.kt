@@ -21,15 +21,13 @@ import com.intershop.gradle.icm.utils.getValue
 import com.intershop.gradle.icm.utils.setValue
 import groovy.lang.Closure
 import org.gradle.api.Action
-import org.gradle.api.NamedDomainObjectContainer
-import org.gradle.api.file.Directory
-import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.NamedDomainObjectSet
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.SetProperty
 import org.gradle.util.ConfigureUtil
-import java.io.File
 import javax.inject.Inject
 
 /**
@@ -41,12 +39,7 @@ abstract class ProjectConfiguration {
         /**
          * Path in build directory for external cartridges.
          */
-        const val EXTERNAL_CARTRIDGE_PATH = "server/cartridges"
-
-        /**
-         * Path for original cartridge list properties in build directory.
-         */
-        const val CARTRIDGELISTFILE_PATH = "org_cartridgelist/cartridgelist.properties"
+        const val EXTERNAL_CARTRIDGE_PATH = "default/cartridges"
     }
 
     /**
@@ -61,48 +54,52 @@ abstract class ProjectConfiguration {
     @get:Inject
     abstract val projectLayout: ProjectLayout
 
-    private val cartridgeDirProperty: DirectoryProperty = objectFactory.directoryProperty()
+    private val cartridgeListDependencyProperty: Property<String> = objectFactory.property(String::class.java)
+    private val libFilterFileDependencyProperty: Property<String> = objectFactory.property(String::class.java)
 
     private val cartridgesProperty: SetProperty<String> = objectFactory.setProperty(String::class.java)
     private val dbprepareCartridgesProperty: SetProperty<String> = objectFactory.setProperty(String::class.java)
-    private val productionCartridgesProperty: SetProperty<String> = objectFactory.setProperty(String::class.java)
 
-    init {
-        cartridgeDirProperty.convention(projectLayout.buildDirectory.dir(EXTERNAL_CARTRIDGE_PATH))
-    }
+    private val configFolderProperty: Property<String> = objectFactory.property(String::class.java)
+    private val sitesFolderProperty: Property<String> = objectFactory.property(String::class.java)
+    private val devConfigFolderProperty: Property<String> = objectFactory.property(String::class.java)
+    private val devSitesFolderProperty: Property<String> = objectFactory.property(String::class.java)
 
     /**
      * Base project configuration for final project.
      *
-     * @property baseProjects
+     * @property base
      */
-    val baseProjects: NamedDomainObjectContainer<BaseProjectConfiguration>
-            = objectFactory.domainObjectContainer(BaseProjectConfiguration::class.java)
+    val base: CartridgeProject = objectFactory.newInstance(CartridgeProject::class.java)
 
-    /**
-     * Provider of cartridge directory for external cartridges.
-     *
-     * @property cartridgeDirProvider
-     */
-    val cartridgeDirProvider: Provider<Directory>
-        get() = cartridgeDirProperty
-
-    /**
-     * Cartridge directory for external cartridges.
-     *
-     * @property cartridgeDir
-     */
-    var cartridgeDir: File
-        get() = cartridgeDirProperty.get().asFile
-        set(value) = cartridgeDirProperty.set(value)
-
-    /**
-     * Set only a short path for cartridge dir.
-     * @param buildPath
-     */
-    fun setCartridgeBuildPath(buildPath: String) {
-        cartridgeDirProperty.set(projectLayout.buildDirectory.dir(buildPath))
+    fun base(action: Action<in CartridgeProject>) {
+        action.execute(base)
     }
+
+    fun base(c: Closure<CartridgeProject>) {
+        ConfigureUtil.configure(c, base)
+    }
+
+    /**
+     * Additional extension projects for final project.
+     *
+     * @property base
+     */
+    val extensions: NamedDomainObjectSet<CartridgeProject> = objectFactory.namedDomainObjectSet(CartridgeProject::class.java)
+
+    val cartridgeListDependencyProvider: Provider<String>
+        get() = cartridgeListDependencyProperty
+
+    var cartridgeListDependency: String
+        get() = cartridgeListDependencyProperty.getOrElse("")
+        set(value) = cartridgeListDependencyProperty.set(value)
+
+    val libFilterFileDependencyProvider: Provider<String>
+        get() = libFilterFileDependencyProperty
+
+    var libFilterFileDependency: String
+        get() = libFilterFileDependencyProperty.getOrElse("")
+        set(value) = libFilterFileDependencyProperty.set(value)
 
     /**
      * Provider of cartridge list extension of a project.
@@ -152,128 +149,44 @@ abstract class ProjectConfiguration {
         cartridgesProperty.add(cartridge)
     }
 
-    /**
-     * Provider of all production cartridges in the extended list.
-     *
-     * @property productionCartridgesProvider
-     */
-    val productionCartridgesProvider: Provider<Set<String>>
-        get() = productionCartridgesProperty
-
-    /**
-     * Cartridges of this project.
-     *
-     * @property productionCartridges
-     */
-    var productionCartridges by productionCartridgesProperty
-
-    /**
-     * Add a single cartridge to the list of dbprepare cartridges.
-     *
-     * @param cartridge name of an ICM cartridge
-     */
-    fun productionCartridge(cartridge: String) {
-        productionCartridgesProperty.add(cartridge)
-    }
+    val configFolderProvider: Provider<String>
+        get() = configFolderProperty
 
     /**
      * Configuration for configuration folder.
      *
-     * @property conf
+     * @property configFolder
      */
-    val conf : DirConf = objectFactory.newInstance(DirConf::class.java)
+    val configFolder by configFolderProperty
 
-    /**
-     * Configures conf with an action.
-     *
-     * @param action
-     */
-    fun conf(action: Action<in DirConf>) {
-        action.execute(conf)
-    }
-
-    /**
-     * Configures conf with a closure.
-     *
-     * @param c
-     */
-    fun conf(c: Closure<DirConf>) {
-        ConfigureUtil.configure(c, conf)
-    }
+    val sitesFolderProvider: Provider<String>
+        get() = sitesFolderProperty
 
     /**
      * Configuration for sites folder.
      *
-     * @property sites
+     * @property sitesFolder
      */
-    val sites: DirConf = objectFactory.newInstance(DirConf::class.java)
+    val sitesFolder by sitesFolderProperty
 
-    /**
-     * Configures sitesPackage with an action.
-     *
-     * @param action
-     */
-    fun sites(action: Action<in DirConf>) {
-        action.execute(sites)
-    }
-
-    /**
-     * Configures sites with a closure.
-     *
-     * @param c
-     */
-    fun sites(c: Closure<DirConf>) {
-        ConfigureUtil.configure(c, sites)
-    }
+    val devConfigFolderProvider: Provider<String>
+        get() = devConfigFolderProperty
 
     /**
      * Configuration for developer / test configuration folder.
      *
-     * @property devConf
+     * @property devConfigFolder
      */
-    val devConf : DirConf = objectFactory.newInstance(DirConf::class.java)
+    val devConfigFolder by devConfigFolderProperty
 
-    /**
-     * Configures conf with an action.
-     *
-     * @param action
-     */
-    fun devConf(action: Action<in DirConf>) {
-        action.execute(conf)
-    }
-
-    /**
-     * Configures conf with a closure.
-     *
-     * @param c
-     */
-    fun devConf(c: Closure<DirConf>) {
-        ConfigureUtil.configure(c, devConf)
-    }
+    val devSitesFolderProvider: Provider<String>
+        get() = devSitesFolderProperty
 
     /**
      * Configuration for developer / test sites folder.
      *
-     * @property devSites
+     * @property devSitesFolder
      */
-    val devSites: DirConf = objectFactory.newInstance(DirConf::class.java)
-
-    /**
-     * Configures sitesPackage with an action.
-     *
-     * @param action
-     */
-    fun devSites(action: Action<in DirConf>) {
-        action.execute(devSites)
-    }
-
-    /**
-     * Configures sites with a closure.
-     *
-     * @param c
-     */
-    fun devSites(c: Closure<DirConf>) {
-        ConfigureUtil.configure(c, devSites)
-    }
+    val devSitesFolder by devSitesFolderProperty
 
 }

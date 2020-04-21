@@ -17,6 +17,7 @@
 
 package com.intershop.gradle.icm.cartridge
 
+import com.intershop.gradle.icm.utils.CartridgeStyle
 import org.gradle.api.Project
 
 /**
@@ -27,6 +28,7 @@ open class ProductPlugin  : AbstractCartridge() {
 
     override fun apply(project: Project) {
         project.plugins.apply(PublicPlugin::class.java)
-        publishCartridge(project, "cartridge")
+        publishCartridge(project, CartridgeStyle.CARTRIDGE.value)
+        project.extensions.extraProperties.set("cartridge.style", CartridgeStyle.CARTRIDGE.value)
     }
 }

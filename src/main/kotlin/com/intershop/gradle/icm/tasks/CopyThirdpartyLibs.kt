@@ -16,9 +16,9 @@
  */
 package com.intershop.gradle.icm.tasks
 
-import com.intershop.gradle.icm.extension.BaseProjectConfiguration
+import com.intershop.gradle.icm.extension.CartridgeProject
 import com.intershop.gradle.icm.extension.IntershopExtension.Companion.INTERSHOP_GROUP_NAME
-import com.intershop.gradle.icm.tasks.CartridgeUtil.downloadLibFilter
+//import com.intershop.gradle.icm.utils.CartridgeUtil.downloadLibFilter
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.file.Directory
@@ -44,12 +44,12 @@ import javax.inject.Inject
  * a lib folder. This is used for the build of containerimages.
  */
 open class CopyThirdpartyLibs @Inject constructor(
-        projectLayout: ProjectLayout,
-        objectFactory: ObjectFactory) : DefaultTask() {
+    projectLayout: ProjectLayout,
+    objectFactory: ObjectFactory) : DefaultTask() {
 
     private val outputDirProperty: DirectoryProperty = objectFactory.directoryProperty()
-    private val baseProjectsProperty: MapProperty<String, BaseProjectConfiguration> =
-        objectFactory.mapProperty(String::class.java, BaseProjectConfiguration::class.java)
+    private val baseProjectsProperty: MapProperty<String, CartridgeProject> =
+        objectFactory.mapProperty(String::class.java, CartridgeProject::class.java)
 
     companion object {
         const val DEFAULT_NAME = "copyThirdpartyLibs"
@@ -64,7 +64,7 @@ open class CopyThirdpartyLibs @Inject constructor(
     }
 
     @get:Nested
-    var baseProjects: Map<String, BaseProjectConfiguration>
+    var baseProjects: Map<String, CartridgeProject>
         get() = baseProjectsProperty.get()
         set(value) = baseProjectsProperty.putAll(value)
 
@@ -107,10 +107,10 @@ open class CopyThirdpartyLibs @Inject constructor(
 
         val libs = mutableListOf<String>()
         baseProjects.forEach {
-            val file = downloadLibFilter(project, it.value.dependency, it.key)
-            if(file != null) {
-                libs.addAll(file.readLines())
-            }
+            //val file = downloadLibFilter(project, it.value.dependency, it.key)
+            //if(file != null) {
+                //libs.addAll(file.readLines())
+           // }
         }
         if(libs.isEmpty()) {
             project.logger.info("No lib filter entries available.")

@@ -17,7 +17,7 @@
 
 package com.intershop.gradle.icm.tasks
 
-import com.intershop.gradle.icm.extension.BaseProjectConfiguration
+import com.intershop.gradle.icm.extension.CartridgeProject
 import com.intershop.gradle.icm.extension.IntershopExtension
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DuplicatesStrategy
@@ -58,7 +58,7 @@ open class CreateSitesFolder @Inject constructor(
      * @param prjConf   configuration of a base project
      * @param file      package file it self
      */
-    override fun addCopyConfSpec(cs: CopySpec, pkgCS: CopySpec, prjConf: BaseProjectConfiguration, file: File) {
+    override fun addCopyConfSpec(cs: CopySpec, pkgCS: CopySpec, prjConf: CartridgeProject, file: File) {
         with(prjConf) {
             sitesPackage.excludes.forEach {
                 pkgCS.exclude(it)

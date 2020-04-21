@@ -84,7 +84,10 @@ class TestRepo {
         addExtLib('library1', '1.0.0', 'library1', '1.5.0')
         addExtLib('library2', '1.0.0', 'library2', '1.5.0')
 
-        addCartridge('cartridge2', '1.0.0', 'development')
+        addCartridge('cartridge_dev', '1.0.0', 'development')
+        addCartridge('cartridge_test', '1.0.0', 'test')
+        addCartridge('cartridge_adapter', '1.0.0', 'adapter')
+        addCartridge('cartridge_prod', '1.0.0', 'cartridge')
 
         addBaseProject("icm-as", "1.0.0")
         addSecondBaseProject("solrcloud", "1.0.0")

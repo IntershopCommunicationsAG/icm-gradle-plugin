@@ -18,9 +18,10 @@ package com.intershop.gradle.icm
 
 import com.intershop.gradle.icm.extension.IntershopExtension
 import com.intershop.gradle.icm.tasks.CopyThirdpartyLibs
-import com.intershop.gradle.icm.tasks.CreateConfFolder
 import com.intershop.gradle.icm.tasks.CreateServerInfoProperties
-import com.intershop.gradle.icm.tasks.CreateSitesFolder
+import com.intershop.gradle.icm.tasks.ExtendCartridgeList
+import com.intershop.gradle.icm.tasks.ProvideCartridgeListTemplate
+import com.intershop.gradle.icm.tasks.ProvideLibFilter
 import com.intershop.gradle.icm.tasks.SetupCartridges
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -46,6 +47,13 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
 
         const val CREATE_DEVSITES_FOLDER = "createDevSites"
         const val CREATE_DEVCONF_FOLDER = "createDevConfig"
+
+        const val PROVIDE_CARTRIDGELIST_TEMPLATE = "provideCartridgeListTemplate"
+
+        const val EXTEND_CARTRIDGELIST = "extendCartridgeList"
+        const val EXTEND_DEVCARTRIDGELIST = "extendDevCartridgeList"
+
+        const val PROVIDE_LIBFILTER = "provideLibFilter"
 
         const val SETUP_CARTRIDGES = "setupCartridges"
         const val SETUP_DEVCARTRIDGES = "setupDevCartridges"
@@ -102,6 +110,7 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
                                   extension: IntershopExtension,
                                   prepareTask: Task,
                                   infoTask: CreateServerInfoProperties) {
+        /**
         with(project) {
             tasks.maybeCreate(CREATE_DEVCONF_FOLDER, CreateConfFolder::class.java).apply {
                 this.baseProjects = extension.projectConfig.baseProjects.asMap
@@ -111,7 +120,7 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
 
                 this.provideCartridges(extension.projectConfig.cartridgesProvider)
                 this.provideDBprepareCartridges(extension.projectConfig.dbprepareCartridgesProvider)
-                this.provideProductionCartridges(extension.projectConfig.productionCartridgesProvider)
+
 
                 this.writeDevConf = true
                 this.provideVersionInfoFile(infoTask.outputFileProperty)
@@ -128,12 +137,14 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
                 prepareTask.dependsOn(this)
             }
         }
+        **/
     }
 
     private fun configureContainerTasks(project: Project,
                                          extension: IntershopExtension,
                                          prepareContainerTask: Task,
                                         infoTask: CreateServerInfoProperties) {
+        /**
         with(project) {
             tasks.maybeCreate(CREATE_CONF_FOLDER, CreateConfFolder::class.java).apply {
                 this.baseProjects = extension.projectConfig.baseProjects.asMap
@@ -142,7 +153,6 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
 
                 this.provideCartridges(extension.projectConfig.cartridgesProvider)
                 this.provideDBprepareCartridges(extension.projectConfig.dbprepareCartridgesProvider)
-                this.provideProductionCartridges(extension.projectConfig.productionCartridgesProvider)
 
                 this.writeDevConf = false
                 this.provideVersionInfoFile(infoTask.outputFileProperty)
@@ -158,6 +168,7 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
                 prepareContainerTask.dependsOn(this)
             }
         }
+        **/
     }
 
     private fun configureExtCartridgeTask(project: Project,
@@ -165,21 +176,66 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
                                           prepareTask: Task,
                                           prepareContainerTask: Task) {
         with(project) {
-            tasks.maybeCreate(SETUP_DEVCARTRIDGES, SetupCartridges::class.java).apply {
-                provideCartridgeDir(extension.projectConfig.cartridgeDirProvider)
-                this.baseProjects = extension.projectConfig.baseProjects.asMap
-                this.outputDirProperty.set(projectLayout.buildDirectory.dir("server/cartridges"))
-                prepareTask.dependsOn(this)
+            val templateCartridgeList = tasks.maybeCreate(PROVIDE_CARTRIDGELIST_TEMPLATE, ProvideCartridgeListTemplate::class.java).apply {
+                provideBaseDependency(extension.projectConfig.base.dependencyProvider)
+                provideFileDependency(extension.projectConfig.cartridgeListDependencyProvider)
+            }
+
+            tasks.maybeCreate(EXTEND_CARTRIDGELIST, ExtendCartridgeList::class.java).apply {
+                provideTemplateFile(templateCartridgeList.outputFile)
+                provideCartridges(extension.projectConfig.cartridgesProvider)
+                provideDBprepareCartridges(extension.projectConfig.dbprepareCartridgesProvider)
+
+                provideProductionCartridgesOnly(true)
+                provideTestCartridges(false)
+
+                provideOutputFile(project.layout.buildDirectory.file(("container/cartridgelist/cartridgelist.properties")))
+            }
+
+            tasks.maybeCreate(EXTEND_DEVCARTRIDGELIST, ExtendCartridgeList::class.java).apply {
+                provideTemplateFile(templateCartridgeList.outputFile)
+                provideCartridges(extension.projectConfig.cartridgesProvider)
+                provideDBprepareCartridges(extension.projectConfig.dbprepareCartridgesProvider)
+
+                provideProductionCartridgesOnly(false)
+                provideTestCartridges(true)
+
+                provideOutputFile(project.layout.buildDirectory.file(("server/cartridgelist/cartridgelist.properties")))
+            }
+
+            val libfilter = tasks.maybeCreate(PROVIDE_LIBFILTER, ProvideLibFilter::class.java).apply {
+                provideBaseDependency(extension.projectConfig.base.dependencyProvider)
+                provideFileDependency(extension.projectConfig.libFilterFileDependencyProvider)
             }
 
             tasks.maybeCreate(SETUP_CARTRIDGES, SetupCartridges::class.java).apply {
-                provideCartridgeDir(extension.projectConfig.cartridgeDirProvider)
-                this.baseProjects = extension.projectConfig.baseProjects.asMap
-                this.provideProductionCartridges(extension.projectConfig.productionCartridgesProvider)
-                this.outputDirProperty.set(projectLayout.buildDirectory.dir("container/cartridges"))
+                provideOutputDir(projectLayout.buildDirectory.dir("container/cartridges"))
+
+                provideCartridges(extension.projectConfig.cartridgesProvider)
+                provideDBprepareCartridges(extension.projectConfig.dbprepareCartridgesProvider)
+
+                provideLibFilterFile(libfilter.outputFile)
+
+                provideProductionCartridgesOnly(true)
+                provideTestCartridges(false)
 
                 prepareContainerTask.dependsOn(this)
             }
+
+            tasks.maybeCreate(SETUP_DEVCARTRIDGES, SetupCartridges::class.java).apply {
+                provideOutputDir(projectLayout.buildDirectory.dir("server/cartridges"))
+
+                provideCartridges(extension.projectConfig.cartridgesProvider)
+                provideDBprepareCartridges(extension.projectConfig.dbprepareCartridgesProvider)
+
+                provideLibFilterFile(libfilter.outputFile)
+
+                provideProductionCartridgesOnly(false)
+                provideTestCartridges(true)
+
+                prepareTask.dependsOn(this)
+            }
+
         }
     }
 
@@ -209,12 +265,13 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
             subprojects { sub ->
                 sub.tasks.withType(CopyThirdpartyLibs::class.java) { ctt ->
                     copyAllDevLibs.from(ctt.outputs.files)
-
+/**
                     with(extension.projectConfig.productionCartridges) {
                         if (isEmpty() || contains(sub.name)) {
                             copyAllLibs.from(ctt.outputs.files)
                         }
                     }
+                    **/
                 }
             }
         }
@@ -253,6 +310,7 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
     }
 
     private fun configureConfFolder(project: Project, extension: IntershopExtension) : Task? {
+        /**
         with(project) {
             val conf = extension.projectConfig.conf
             if (conf.dir != null) {
@@ -281,10 +339,12 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
                 }
             }
         }
+        **/
         return null
     }
 
     private fun configureSitesFolder(project: Project, extension: IntershopExtension) : Task? {
+        /**
         with(project) {
             val conf = extension.projectConfig.sites
             if (conf.dir != null) {
@@ -313,6 +373,7 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
                 }
             }
         }
+        **/
         return null
     }
 }

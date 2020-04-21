@@ -17,11 +17,10 @@
 
 package com.intershop.gradle.icm.tasks
 
-import com.intershop.gradle.icm.extension.BaseProjectConfiguration
+import com.intershop.gradle.icm.extension.CartridgeProject
 import com.intershop.gradle.icm.extension.IntershopExtension
 import com.intershop.gradle.icm.utils.getValue
 import com.intershop.gradle.icm.utils.setValue
-import org.gradle.api.GradleException
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.file.FileSystemOperations
@@ -36,8 +35,6 @@ import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.TaskAction
 import java.io.File
-import java.io.IOException
-import java.util.*
 import javax.inject.Inject
 
 /**
@@ -159,25 +156,26 @@ open class CreateConfFolder @Inject constructor(
      * @param prjConf   configuration of a base project
      * @param file      package file it self
      */
-    override fun addCopyConfSpec(cs: CopySpec, pkgCS: CopySpec, prjConf: BaseProjectConfiguration, file: File) {
+    override fun addCopyConfSpec(cs: CopySpec, pkgCS: CopySpec, prjConf: CartridgeProject, file: File) {
 
         with(prjConf) {
 
-            confPackage.excludes.forEach {
+            configPackage.excludes.forEach {
                 pkgCS.exclude(it)
             }
-            confPackage.includes.forEach {
+            configPackage.includes.forEach {
                 pkgCS.include(it)
             }
-            if(! confPackage.targetPath.isNullOrEmpty()) {
-                pkgCS.into(confPackage.targetPath!!)
+            if(! configPackage.targetPath.isNullOrEmpty()) {
+                pkgCS.into(configPackage.targetPath!!)
             }
-            if(confPackage.duplicateStrategy != DuplicatesStrategy.INHERIT) {
-                pkgCS.duplicatesStrategy = confPackage.duplicateStrategy
+            if(configPackage.duplicateStrategy != DuplicatesStrategy.INHERIT) {
+                pkgCS.duplicatesStrategy = configPackage.duplicateStrategy
             }
-            if(withCartridgeList) {
+
+           // if(withCartridgeList) {
                 pkgCS.exclude("**/**/${CARTRIDGELISTFILE_NAME}")
-            }
+           // }
 
             if(versionInfoFile != null) {
                 pkgCS.exclude("**/**/version.properties")
@@ -187,7 +185,7 @@ open class CreateConfFolder @Inject constructor(
                     fcs.into(CLUSTER_CONF)
                 }
             }
-
+/**
             if(withCartridgeList) {
                 val propsFile = getCartridgeListProps(file)
                 if(propsFile != null) {
@@ -196,14 +194,15 @@ open class CreateConfFolder @Inject constructor(
                     }
                 }
             }
+            **/
         }
     }
 
     private fun getCartridgeListProps(zipFile: File): File? {
-        val pfiles = project.zipTree(zipFile).matching { pf ->
-            pf.include("**/**/${CARTRIDGELISTFILE_NAME}")
-        }
-
+        //val pfiles = project.zipTree(zipFile).matching { pf ->
+        //    pf.include("**/**/${CARTRIDGELISTFILE_NAME}")
+        //}
+/**
         if (!pfiles.isEmpty) {
             val orgProps = Properties()
             try {
@@ -223,13 +222,14 @@ open class CreateConfFolder @Inject constructor(
 
             return calculateProperties(cartridgeProp.toString(), dbinitCartridgeProp.toString())
         }
+**/
         return null
     }
 
-    private fun calculateProperties(cartridgesProp: String, initCartridgesProp: String): File {
+    private fun calculateProperties(cartridgesProp: String, initCartridgesProp: String): File? {
         val cartridgesSet: MutableSet<String> = cartridgesProp.split(" ").toMutableSet()
         val initCartridgesSet: MutableSet<String> =  initCartridgesProp.split(" ").toMutableSet()
-
+/**
         cartridges.forEach {
             if (productionCartridges.isEmpty() || productionCartridges.contains(it) || writeDevConf) {
                 cartridgesSet.add(it)
@@ -267,7 +267,8 @@ open class CreateConfFolder @Inject constructor(
             }
 
         project.logger.info("cartridgelist.properties are written to {}", outputFile)
+ **/
+        return null
 
-        return outputFile
     }
 }

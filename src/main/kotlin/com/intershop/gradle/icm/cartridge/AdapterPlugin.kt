@@ -16,6 +16,7 @@
  */
 package com.intershop.gradle.icm.cartridge
 
+import com.intershop.gradle.icm.utils.CartridgeStyle
 import org.gradle.api.Project
 
 /**
@@ -26,6 +27,7 @@ open class AdapterPlugin : AbstractCartridge() {
 
     override fun apply(project: Project) {
         project.plugins.apply(ExternalPlugin::class.java)
-        publishCartridge(project, "adapter")
+        publishCartridge(project, CartridgeStyle.ADAPTER.value)
+        project.extensions.extraProperties.set("cartridge.style", CartridgeStyle.ADAPTER.value)
     }
 }

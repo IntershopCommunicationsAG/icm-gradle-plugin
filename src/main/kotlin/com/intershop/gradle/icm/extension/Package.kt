@@ -30,7 +30,7 @@ import javax.inject.Inject
 /**
  * Object to configure a simple file object to copy.
  */
-abstract class PackageConf {
+abstract class Package {
 
     /**
      * Inject service of ObjectFactory (See "Service injection" in Gradle documentation.

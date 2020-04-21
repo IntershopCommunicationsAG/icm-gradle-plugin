@@ -16,7 +16,7 @@
  */
 package com.intershop.gradle.icm.tasks
 
-import com.intershop.gradle.icm.extension.BaseProjectConfiguration
+import com.intershop.gradle.icm.extension.CartridgeProject
 import com.intershop.gradle.icm.extension.DirConf
 import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.ExternalModuleDependency
@@ -46,14 +46,14 @@ abstract class AbstractCreateFolder @Inject constructor(
     @get:Internal
     val outputDirProperty: DirectoryProperty = objectFactory.directoryProperty()
 
-    private val baseProjectsProperty: MapProperty<String, BaseProjectConfiguration> =
-        objectFactory.mapProperty(String::class.java, BaseProjectConfiguration::class.java)
+    private val baseProjectsProperty: MapProperty<String, CartridgeProject> =
+        objectFactory.mapProperty(String::class.java, CartridgeProject::class.java)
 
     private val dirConfProperty: Property<DirConf> = objectFactory.property(DirConf::class.java)
     private val devDirConfProperty: Property<DirConf> = objectFactory.property(DirConf::class.java)
 
     @get:Nested
-    var baseProjects: Map<String, BaseProjectConfiguration>
+    var baseProjects: Map<String, CartridgeProject>
         get() = baseProjectsProperty.get()
         set(value) = baseProjectsProperty.putAll(value)
 
@@ -163,7 +163,7 @@ abstract class AbstractCreateFolder @Inject constructor(
      * @param prjConf   configuration of a base project
      * @param file      package file it self
      */
-    abstract fun addCopyConfSpec(cs: CopySpec, pkgCS: CopySpec, prjConf: BaseProjectConfiguration, file: File)
+    abstract fun addCopyConfSpec(cs: CopySpec, pkgCS: CopySpec, prjConf: CartridgeProject, file: File)
 
     private fun downloadPackage(dependency: String, classifier: String, key: String): File? {
         val dependencyHandler = project.dependencies
