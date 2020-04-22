@@ -23,6 +23,8 @@ import com.intershop.gradle.icm.tasks.ExtendCartridgeList
 import com.intershop.gradle.icm.tasks.ProvideCartridgeListTemplate
 import com.intershop.gradle.icm.tasks.ProvideLibFilter
 import com.intershop.gradle.icm.tasks.SetupCartridges
+import com.intershop.gradle.icm.utils.CartridgeStyle
+import com.intershop.gradle.icm.utils.EnvironmentType
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
@@ -51,12 +53,14 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
         const val PROVIDE_CARTRIDGELIST_TEMPLATE = "provideCartridgeListTemplate"
 
         const val EXTEND_CARTRIDGELIST = "extendCartridgeList"
+        const val EXTEND_TESTCARTRIDGELIST = "extendTestCartridgeList"
         const val EXTEND_DEVCARTRIDGELIST = "extendDevCartridgeList"
 
         const val PROVIDE_LIBFILTER = "provideLibFilter"
 
         const val SETUP_CARTRIDGES = "setupCartridges"
         const val SETUP_DEVCARTRIDGES = "setupDevCartridges"
+        const val SETUP_TESTCARTRIDGES = "setupTestCartridges"
     }
 
     override fun apply(project: Project) {
@@ -78,13 +82,17 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
                 description = "starts all tasks for the preparation of a container build"
             }
 
+            val prepareTestContainerTask = tasks.maybeCreate("prepareTestContainer").apply {
+                group = IntershopExtension.INTERSHOP_GROUP_NAME
+                description = "starts all tasks for the preparation of a test container build"
+            }
+
             val infoTask = configureInfoTask(this, extension)
 
             configureDevTasks(this, extension, prepareTask, infoTask)
             configureContainerTasks(this, extension, prepareContainerTask, infoTask)
 
-            configureExtCartridgeTask(this, extension, prepareTask, prepareContainerTask)
-            configureCopyThirpartyLibs(this, extension, prepareTask, prepareContainerTask)
+            configureExtCartridgeTask(this, extension, prepareTask, prepareContainerTask, prepareTestContainerTask)
 
             configureFolderTasks(this, extension)
         }
@@ -174,7 +182,8 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
     private fun configureExtCartridgeTask(project: Project,
                                           extension: IntershopExtension,
                                           prepareTask: Task,
-                                          prepareContainerTask: Task) {
+                                          prepareContainerTask: Task,
+                                          prepareTestContainerTask: Task) {
         with(project) {
             val templateCartridgeList = tasks.maybeCreate(PROVIDE_CARTRIDGELIST_TEMPLATE, ProvideCartridgeListTemplate::class.java).apply {
                 provideBaseDependency(extension.projectConfig.base.dependencyProvider)
@@ -186,10 +195,19 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
                 provideCartridges(extension.projectConfig.cartridgesProvider)
                 provideDBprepareCartridges(extension.projectConfig.dbprepareCartridgesProvider)
 
-                provideProductionCartridgesOnly(true)
-                provideTestCartridges(false)
+                environmentTypes.set(listOf(EnvironmentType.PRODUCTION))
 
                 provideOutputFile(project.layout.buildDirectory.file(("container/cartridgelist/cartridgelist.properties")))
+            }
+
+            tasks.maybeCreate(EXTEND_TESTCARTRIDGELIST, ExtendCartridgeList::class.java).apply {
+                provideTemplateFile(templateCartridgeList.outputFile)
+                provideCartridges(extension.projectConfig.cartridgesProvider)
+                provideDBprepareCartridges(extension.projectConfig.dbprepareCartridgesProvider)
+
+                environmentTypes.set(listOf(EnvironmentType.PRODUCTION, EnvironmentType.TEST))
+
+                provideOutputFile(project.layout.buildDirectory.file(("testcontainer/cartridgelist/cartridgelist.properties")))
             }
 
             tasks.maybeCreate(EXTEND_DEVCARTRIDGELIST, ExtendCartridgeList::class.java).apply {
@@ -197,11 +215,11 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
                 provideCartridges(extension.projectConfig.cartridgesProvider)
                 provideDBprepareCartridges(extension.projectConfig.dbprepareCartridgesProvider)
 
-                provideProductionCartridgesOnly(false)
-                provideTestCartridges(true)
+                environmentTypes.set(listOf(EnvironmentType.PRODUCTION, EnvironmentType.DEVELOPMENT, EnvironmentType.TEST))
 
                 provideOutputFile(project.layout.buildDirectory.file(("server/cartridgelist/cartridgelist.properties")))
             }
+
 
             val libfilter = tasks.maybeCreate(PROVIDE_LIBFILTER, ProvideLibFilter::class.java).apply {
                 provideBaseDependency(extension.projectConfig.base.dependencyProvider)
@@ -216,10 +234,22 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
 
                 provideLibFilterFile(libfilter.outputFile)
 
-                provideProductionCartridgesOnly(true)
-                provideTestCartridges(false)
+                environmentTypes.set(listOf(EnvironmentType.PRODUCTION))
 
                 prepareContainerTask.dependsOn(this)
+            }
+
+            tasks.maybeCreate(SETUP_TESTCARTRIDGES, SetupCartridges::class.java).apply {
+                provideOutputDir(projectLayout.buildDirectory.dir("testcontainer/cartridges"))
+
+                provideCartridges(extension.projectConfig.cartridgesProvider)
+                provideDBprepareCartridges(extension.projectConfig.dbprepareCartridgesProvider)
+
+                provideLibFilterFile(libfilter.outputFile)
+
+                environmentTypes.set(listOf(EnvironmentType.PRODUCTION, EnvironmentType.TEST))
+
+                prepareTestContainerTask.dependsOn(this)
             }
 
             tasks.maybeCreate(SETUP_DEVCARTRIDGES, SetupCartridges::class.java).apply {
@@ -230,51 +260,77 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
 
                 provideLibFilterFile(libfilter.outputFile)
 
-                provideProductionCartridgesOnly(false)
-                provideTestCartridges(true)
+                environmentTypes.set(listOf(EnvironmentType.PRODUCTION, EnvironmentType.DEVELOPMENT, EnvironmentType.TEST))
 
                 prepareTask.dependsOn(this)
             }
 
-        }
-    }
-
-    private fun configureCopyThirpartyLibs(project: Project,
-                                           extension: IntershopExtension,
-                                           prepareTask: Task,
-                                           prepareContainerTask: Task) {
-        with(project) {
             val copyAllDevLibs = tasks.maybeCreate("copyAllDev", Sync::class.java).apply {
                 group = IntershopExtension.INTERSHOP_GROUP_NAME
-                description = "Copy all 3rd party libs of all subprojects to one folder"
+                description = "Copy all 3rd party libs to one folder for a local server"
 
                 this.into(projectLayout.buildDirectory.dir("server/prjlibs"))
                 this.duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 
                 prepareTask.dependsOn(this)
             }
-            val copyAllLibs = tasks.maybeCreate("copyAll", Sync::class.java).apply {
-                group = IntershopExtension.INTERSHOP_GROUP_NAME
-                description = "Copy all 3rd party libs of all subprojects to one folder"
 
-                this.into(projectLayout.buildDirectory.dir("container/prjlibs"))
+            val copyAllTestLibs = tasks.maybeCreate("copyAll", Sync::class.java).apply {
+                group = IntershopExtension.INTERSHOP_GROUP_NAME
+                description = "Copy all 3rd party libs to one folder for a container"
+
+                this.into(projectLayout.buildDirectory.dir("testcontainer/prjlibs"))
                 this.duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 
                 prepareContainerTask.dependsOn(this)
             }
+
+            val copyAllLibs = tasks.maybeCreate("copyAll", Sync::class.java).apply {
+                group = IntershopExtension.INTERSHOP_GROUP_NAME
+                description = "Copy all 3rd party libs to one folder for a test container"
+
+                this.into(projectLayout.buildDirectory.dir("container/prjlibs"))
+                this.duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
+                prepareTestContainerTask.dependsOn(this)
+            }
+
             subprojects { sub ->
-                sub.tasks.withType(CopyThirdpartyLibs::class.java) { ctt ->
-                    copyAllDevLibs.from(ctt.outputs.files)
-/**
-                    with(extension.projectConfig.productionCartridges) {
-                        if (isEmpty() || contains(sub.name)) {
-                            copyAllLibs.from(ctt.outputs.files)
-                        }
+                val styleValue = if(sub.hasProperty("cartridge.style")) {
+                                     sub.property("cartridge.style").toString()
+                                 } else {
+                                     null
+                                 }
+
+                sub.tasks.withType(CopyThirdpartyLibs::class.java) { ctlTask ->
+                    ctlTask.provideLibFilterFile(libfilter.outputFile)
+
+                    if(checkStyle(styleValue, false, false)) {
+                        copyAllDevLibs.from(ctlTask.outputs.files)
                     }
-                    **/
+                    if(checkStyle(styleValue, false, true)) {
+                        copyAllTestLibs.from(ctlTask.outputs.files)
+                    }
+                    if(checkStyle(styleValue, true, false)) {
+                        copyAllLibs.from(ctlTask.outputs.files)
+                    }
                 }
             }
         }
+    }
+
+    private fun checkStyle(styleValue: String?, container: Boolean, testContainer: Boolean) : Boolean {
+        val style = if(styleValue != null) { CartridgeStyle.valueOf(styleValue.toUpperCase()) } else { null }
+
+        if(style != null) {
+            val envList = when {
+                container -> listOf(EnvironmentType.PRODUCTION)
+                testContainer -> listOf(EnvironmentType.PRODUCTION, EnvironmentType.TEST)
+                else -> listOf(EnvironmentType.PRODUCTION, EnvironmentType.DEVELOPMENT, EnvironmentType.TEST)
+            }
+            return envList.contains(style.environmentType())
+        }
+        return true
     }
 
     private fun configureFolderTasks(project: Project, extension: IntershopExtension) {

@@ -27,9 +27,10 @@ class TestPlugin : AbstractCartridge() {
 
     override fun apply(project: Project) {
         with(project) {
+            project.extensions.extraProperties.set("cartridge.style", CartridgeStyle.TEST.value)
+
             plugins.apply(CartridgePlugin::class.java)
             publishCartridge(project, CartridgeStyle.TEST.value)
-            project.extensions.extraProperties.set("cartridge.style", CartridgeStyle.TEST.value)
         }
     }
 }

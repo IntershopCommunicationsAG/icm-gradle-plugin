@@ -19,6 +19,7 @@ package com.intershop.gradle.icm.tasks
 
 import com.intershop.gradle.icm.extension.IntershopExtension
 import com.intershop.gradle.icm.utils.CartridgeUtil
+import com.intershop.gradle.icm.utils.EnvironmentType
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.artifacts.Dependency
@@ -30,7 +31,7 @@ import org.gradle.api.file.ProjectLayout
 import org.gradle.api.file.RegularFile
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.model.ObjectFactory
-import org.gradle.api.provider.Property
+import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.SetProperty
 import org.gradle.api.tasks.Input
@@ -73,15 +74,9 @@ open class SetupCartridges @Inject constructor(
 
     @get:Optional
     @get:Input
-    val productionCartridgesOnly: Property<Boolean> = objectFactory.property(Boolean::class.java)
+    val environmentTypes: ListProperty<EnvironmentType> = objectFactory.listProperty(EnvironmentType::class.java)
 
-    fun provideProductionCartridgesOnly(production: Boolean) = productionCartridgesOnly.set(production)
-
-    @get:Optional
-    @get:Input
-    val testCartridges: Property<Boolean> = objectFactory.property(Boolean::class.java)
-
-    fun provideTestCartridges(test: Boolean) = testCartridges.set(test)
+    fun provideEnvironmentTypes(list: Provider<List<EnvironmentType>>) = environmentTypes.set(list)
 
     /**
      * Provider configuration for target directory.
@@ -106,15 +101,13 @@ open class SetupCartridges @Inject constructor(
 
         outputDirProperty.convention(projectLayout.buildDirectory.dir("server/cartridges"))
 
-        productionCartridgesOnly.convention(false)
-        testCartridges.convention(false)
+        environmentTypes.convention(listOf(EnvironmentType.PRODUCTION))
     }
 
-    protected fun createStructure(cartridges: List<String>,
+    private fun createStructure(cartridges: List<String>,
                                   target: File,
                                   filter: List<String>,
-                                  production: Boolean,
-                                  test: Boolean) {
+                                  environmentTypes: List<EnvironmentType>) {
         val deps = mutableListOf<Dependency>()
         cartridges.forEach { cartridge ->
             deps.add(project.dependencies.create(cartridge))
@@ -127,7 +120,7 @@ open class SetupCartridges @Inject constructor(
 
         dcfg.allDependencies.forEach { dependency ->
             if( dependency is ExternalModuleDependency &&
-                CartridgeUtil.isCartridge(project, dependency, production, test) ) {
+                CartridgeUtil.isCartridge(project, dependency, environmentTypes) ) {
 
                 project.logger.info("Process external cartridge '{}'.", dependency.name)
                 val staticFile = getStaticFileFor(dependency)
@@ -188,6 +181,7 @@ open class SetupCartridges @Inject constructor(
         return files.first()
     }
 
+    @Throws(GradleException::class)
     private fun getLibsFor(dependency: ExternalModuleDependency, filter: List<String>): Map<File, String> {
         val files  = mutableMapOf<File, String>()
 
@@ -241,6 +235,6 @@ open class SetupCartridges @Inject constructor(
             libFilter.addAll(filterFile.asFile.readLines())
         }
 
-        createStructure(extCartridges, cartridgeDir, libFilter, productionCartridgesOnly.get(), testCartridges.get())
+        createStructure(extCartridges, cartridgeDir, libFilter, environmentTypes.get())
     }
 }

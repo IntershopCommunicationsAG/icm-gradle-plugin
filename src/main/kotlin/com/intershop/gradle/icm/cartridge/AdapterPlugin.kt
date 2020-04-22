@@ -26,8 +26,9 @@ import org.gradle.api.Project
 open class AdapterPlugin : AbstractCartridge() {
 
     override fun apply(project: Project) {
+        project.extensions.extraProperties.set("cartridge.style", CartridgeStyle.ADAPTER.value)
+
         project.plugins.apply(ExternalPlugin::class.java)
         publishCartridge(project, CartridgeStyle.ADAPTER.value)
-        project.extensions.extraProperties.set("cartridge.style", CartridgeStyle.ADAPTER.value)
     }
 }

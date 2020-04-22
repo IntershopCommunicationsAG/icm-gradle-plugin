@@ -63,15 +63,19 @@ open class ProvideLibFilter @Inject constructor(
 
     @TaskAction
     fun downloadFile() {
-        val dependency = if(fileDependency.isPresent && fileDependency.get().isNotEmpty()) {
-            fileDependency.get()
-        } else {
-            baseDependency.get()
+        val dependency = when {
+            fileDependency.isPresent && fileDependency.get().isNotEmpty() -> fileDependency.get()
+            baseDependency.isPresent && baseDependency.get().isNotEmpty() -> baseDependency.get()
+            else -> null
         }
 
-        val resultFile = downloadLibFilter(dependency)
-        if(resultFile != null) {
-            resultFile.copyTo(outputFile.get().asFile)
+        if (dependency != null) {
+            val resultFile = downloadLibFilter(dependency)
+            if (resultFile != null) {
+                resultFile.copyTo(outputFile.get().asFile)
+            } else {
+                outputFile.get().asFile.createNewFile()
+            }
         } else {
             outputFile.get().asFile.createNewFile()
         }

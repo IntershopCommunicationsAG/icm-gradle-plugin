@@ -19,13 +19,14 @@ package com.intershop.gradle.icm.tasks
 import com.intershop.gradle.icm.extension.IntershopExtension
 import com.intershop.gradle.icm.utils.CartridgeStyle
 import com.intershop.gradle.icm.utils.CartridgeUtil
+import com.intershop.gradle.icm.utils.EnvironmentType
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.file.RegularFile
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.model.ObjectFactory
-import org.gradle.api.provider.Property
+import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.SetProperty
 import org.gradle.api.tasks.Input
@@ -75,15 +76,9 @@ open class ExtendCartridgeList @Inject constructor(
 
     @get:Optional
     @get:Input
-    val productionCartridgesOnly: Property<Boolean> = objectFactory.property(Boolean::class.java)
+    val environmentTypes: ListProperty<EnvironmentType> = objectFactory.listProperty(EnvironmentType::class.java)
 
-    fun provideProductionCartridgesOnly(production: Boolean) = productionCartridgesOnly.set(production)
-
-    @get:Optional
-    @get:Input
-    val testCartridges: Property<Boolean> = objectFactory.property(Boolean::class.java)
-
-    fun provideTestCartridges(test: Boolean) = testCartridges.set(test)
+    fun provideEnvironmentTypes(list: Provider<List<EnvironmentType>>) = environmentTypes.set(list)
 
     @get:OutputFile
     val outputFile: RegularFileProperty = objectFactory.fileProperty()
@@ -95,10 +90,10 @@ open class ExtendCartridgeList @Inject constructor(
         description = "Extend an existing cartrldge list."
 
         outputFile.convention(projectLayout.buildDirectory.file("cartridgelist/${CARTRIDGELISTFILE_NAME}"))
-        productionCartridgesOnly.convention(false)
-        testCartridges.convention(false)
+        environmentTypes.convention(listOf(EnvironmentType.PRODUCTION))
     }
 
+    @Throws(GradleException::class)
     @TaskAction
     fun extendList() {
 
@@ -109,7 +104,6 @@ open class ExtendCartridgeList @Inject constructor(
         cartridges.get().forEach { cartridge ->
             val cn = getCartridgeNameFrom(cartridge, projectCartridgeMap)
             if(cn != null) {
-                println("add $cn")
                 prjCartridgeSet.add(cn)
             } else {
                 project.logger.debug("{} is not part of the property '{}'", cartridge, CARTRIDGES_PROPERTY)
@@ -171,27 +165,19 @@ open class ExtendCartridgeList @Inject constructor(
 
             if(CartridgeUtil.isCartridge(project,
                     cartridgeModule[0], cartridgeModule[1], cartridgeModule[2],
-                    productionCartridgesOnly.get(),
-                    testCartridges.get())) {
+                    environmentTypes.get())) {
                 return cartridgeModule[1]
             }
         } else {
             val style = projectMap.get(cartridge)
-            if( style != null && checkCartridgeStyle(style, productionCartridgesOnly.get(), testCartridges.get())) {
+            if( style != null && environmentTypes.get().contains(style.environmentType())) {
                 return cartridge
             }
         }
         return null
     }
 
-    private fun checkCartridgeStyle(style: CartridgeStyle, productionOnly: Boolean, test: Boolean): Boolean {
-        return when {
-            (productionOnly && style.isProduction()) -> true
-            (test && (style.isTest() || style.isProduction())) -> true
-            else -> false
-        }
-    }
-
+    @Throws(GradleException::class)
     private fun readProperties(): Properties {
         val orgProps = Properties()
         try {

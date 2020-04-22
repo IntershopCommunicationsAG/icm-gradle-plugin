@@ -73,7 +73,7 @@ object CartridgeUtil {
      */
     fun isCartridge(project: Project,
                     identifier: ModuleComponentIdentifier): Boolean {
-        return isCartridge(project, identifier.group, identifier.module, identifier.version, false, false)
+        return isCartridge(project, identifier.group, identifier.module, identifier.version, listOf())
     }
 
     /**
@@ -86,9 +86,8 @@ object CartridgeUtil {
      */
     fun isCartridge(project: Project,
                     dependency: ExternalModuleDependency,
-                    productionOnly: Boolean = false,
-                    test: Boolean = false) : Boolean {
-        return isCartridge(project, dependency.group!!, dependency.name, dependency.version!!, productionOnly, test)
+                    environmentTypes: List<EnvironmentType>) : Boolean {
+        return isCartridge(project, dependency.group!!, dependency.name, dependency.version!!, environmentTypes)
     }
 
     /**
@@ -102,11 +101,8 @@ object CartridgeUtil {
      * @param checkStyle style should be verified for a production like cartridge
      */
     fun isCartridge(project: Project,
-                    group: String,
-                    module: String,
-                    version: String,
-                    productionOnly: Boolean = false,
-                    test: Boolean = false) : Boolean {
+                    group: String, module: String, version: String,
+                    environmentTypes: List<EnvironmentType>) : Boolean {
         val query: ArtifactResolutionQuery = project.dependencies
             .createArtifactResolutionQuery()
             .forModule(group, module, version)
@@ -126,7 +122,7 @@ object CartridgeUtil {
                     val xpFactory = XPathFactory.newInstance()
                     val xPath = xpFactory.newXPath()
 
-                    val items = xPath.evaluate(getXPath(productionOnly || test),
+                    val items = xPath.evaluate(getXPath(environmentTypes.size > 0),
                                     doc,
                                     XPathConstants.NODESET) as NodeList
 
@@ -134,9 +130,9 @@ object CartridgeUtil {
                         return false
                     }
 
-                    if(productionOnly || test) {
+                    if(environmentTypes.size > 0) {
                         val style = CartridgeStyle.valueOf(items.item(0).firstChild.nodeValue.toUpperCase())
-                        return ((productionOnly && style.isProduction()) || (test && (style.isProduction() || style.isTest())))
+                        return environmentTypes.contains(style.environmentType())
                     }
 
                     return true

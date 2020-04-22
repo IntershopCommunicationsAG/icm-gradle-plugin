@@ -20,23 +20,18 @@ package com.intershop.gradle.icm.utils
 enum class CartridgeStyle(val value: String) {
 
     TEST("test") {
-        override fun isProduction() = false
-        override fun isTest() = true
+        override fun environmentType() = EnvironmentType.TEST
     },
     DEVELOPMENT("development") {
-        override fun isProduction() = false
-        override fun isTest() = true
+        override fun environmentType() = EnvironmentType.DEVELOPMENT
     },
     CARTRIDGE("cartridge") {
-        override fun isProduction() = true
-        override fun isTest() = false
+        override fun environmentType() = EnvironmentType.PRODUCTION
     },
     ADAPTER("adapter") {
-        override fun isProduction() = true
-        override fun isTest() = false
+        override fun environmentType() = EnvironmentType.PRODUCTION
     };
 
-    abstract fun isProduction(): Boolean
-    abstract fun isTest(): Boolean
+    abstract fun environmentType(): EnvironmentType
 
 }

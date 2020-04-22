@@ -153,7 +153,7 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         gradleVersion << supportedGradleVersions
     }
 
-    def 'check libFilterFile preperation'() {
+    def 'check simple cartridge list and setup cartridges'() {
         prepareDefaultBuildConfig(testProjectDir, settingsFile, buildFile)
 
         when:
@@ -175,6 +175,15 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         resultDEVECL.task(":${com.intershop.gradle.icm.ICMProjectPlugin.EXTEND_DEVCARTRIDGELIST}").outcome == SUCCESS
 
         when:
+        def resultTESTECL = getPreparedGradleRunner()
+                .withArguments(com.intershop.gradle.icm.ICMProjectPlugin.EXTEND_TESTCARTRIDGELIST, "-s")
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        resultTESTECL.task(":${com.intershop.gradle.icm.ICMProjectPlugin.EXTEND_TESTCARTRIDGELIST}").outcome == SUCCESS
+
+        when:
         def resultSC = getPreparedGradleRunner()
                 .withArguments(com.intershop.gradle.icm.ICMProjectPlugin.SETUP_CARTRIDGES, "-s")
                 .withGradleVersion(gradleVersion)
@@ -192,11 +201,18 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         then:
         resultDEVSC.task(":${com.intershop.gradle.icm.ICMProjectPlugin.SETUP_DEVCARTRIDGES}").outcome == SUCCESS
 
+        when:
+        def resultTESTSC = getPreparedGradleRunner()
+                .withArguments(com.intershop.gradle.icm.ICMProjectPlugin.SETUP_TESTCARTRIDGES, "-s")
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        resultTESTSC.task(":${com.intershop.gradle.icm.ICMProjectPlugin.SETUP_TESTCARTRIDGES}").outcome == SUCCESS
+
         where:
         gradleVersion << supportedGradleVersions
     }
-
-
 
     private def prepareDefaultBuildConfig(File testProjectDir, File settingsFile, File buildFile) {
         TestRepo repo = new TestRepo(new File(testProjectDir, "/repo"))
@@ -324,6 +340,7 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         return repoConf
     }
+
 
 
     def 'check external cartridge setup task'() {
@@ -867,7 +884,7 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         def prj1dir = createSubProject('testCartridge1', """
         plugins {
             id 'java-library'
-            id 'com.intershop.icm.cartridge'
+            id 'com.intershop.icm.cartridge.product'
         }
         
         dependencies {
@@ -889,7 +906,7 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         def prj2dir = createSubProject('testCartridge2', """
         plugins {
             id 'java-library'
-            id 'com.intershop.icm.cartridge'
+            id 'com.intershop.icm.cartridge.product'
         }
         
         dependencies {

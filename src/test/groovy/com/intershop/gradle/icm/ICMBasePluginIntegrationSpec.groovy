@@ -369,6 +369,11 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
     def 'Simple test of WriteCartridgeClasspath'(){
         given:
+        File gradleProperties = new File(testProjectDir, "gradle.properties")
+        gradleProperties << """
+            classpath.file.enabled = true
+        """
+
         settingsFile << """
         rootProject.name='rootproject'
         """.stripIndent()
@@ -560,6 +565,11 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
     def 'Extended test of WriteCartridgeDescriptor'(){
         given:
+        File gradleProperties = new File(testProjectDir, "gradle.properties")
+        gradleProperties << """
+            classpath.file.enabled = true
+        """
+
         settingsFile << """
         rootProject.name='rootproject'
         """.stripIndent()

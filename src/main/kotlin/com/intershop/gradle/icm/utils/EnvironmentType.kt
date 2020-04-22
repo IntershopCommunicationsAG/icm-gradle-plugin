@@ -14,23 +14,12 @@
  * limitations under the License.
  *
  */
+package com.intershop.gradle.icm.utils
 
-package com.intershop.gradle.icm.cartridge
+enum class EnvironmentType(val value: String) {
 
-import com.intershop.gradle.icm.utils.CartridgeStyle
-import org.gradle.api.Project
+    PRODUCTION("production"),
+    TEST("test"),
+    DEVELOPMENT("development")
 
-/**
- * The product cartridge plugin applies all basic
- * configuration and tasks to a product cartridge project.
- */
-open class ProductPlugin  : AbstractCartridge() {
-
-    override fun apply(project: Project) {
-        project.extensions.extraProperties.set("cartridge.style", CartridgeStyle.CARTRIDGE.value)
-
-        project.plugins.apply(PublicPlugin::class.java)
-        publishCartridge(project, CartridgeStyle.CARTRIDGE.value)
-
-    }
 }
