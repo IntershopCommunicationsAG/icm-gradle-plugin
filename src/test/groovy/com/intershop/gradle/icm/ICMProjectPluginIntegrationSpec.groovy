@@ -268,7 +268,6 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
             implementation 'io.prometheus:simpleclient:0.6.0'
             implementation 'io.prometheus:simpleclient_hotspot:0.6.0'
             implementation 'io.prometheus:simpleclient_servlet:0.6.0'
-            implementation 'commons-collections:commons-collections:3.2.2'
         } 
         
         repositories {
@@ -301,14 +300,6 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
             id 'com.intershop.icm.cartridge.development'
         }
         
-        dependencies {
-            implementation 'org.codehaus.janino:janino:2.5.16'
-            implementation 'org.codehaus.janino:commons-compiler:3.0.6'
-            implementation 'ch.qos.logback:logback-core:1.2.3'
-            implementation 'ch.qos.logback:logback-classic:1.2.3'
-            implementation 'commons-collections:commons-collections:3.2.2'
-        } 
-        
         repositories {
             jcenter()
         }        
@@ -321,11 +312,8 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         }
         
         dependencies {
-            implementation 'org.codehaus.janino:janino:2.5.16'
-            implementation 'org.codehaus.janino:commons-compiler:3.0.6'
             implementation 'ch.qos.logback:logback-core:1.2.3'
             implementation 'ch.qos.logback:logback-classic:1.2.3'
-            implementation 'commons-collections:commons-collections:3.2.2'
         } 
         
         repositories {
@@ -341,7 +329,39 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         return repoConf
     }
 
+    def 'copy 3rd party libs'() {
+        prepareDefaultBuildConfig(testProjectDir, settingsFile, buildFile)
 
+        when:
+        def result3RDPL = getPreparedGradleRunner()
+                .withArguments(com.intershop.gradle.icm.ICMProjectPlugin.COPY_3RD_PARTYLIBS, "-s")
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        result3RDPL.task(":${com.intershop.gradle.icm.ICMProjectPlugin.COPY_3RD_PARTYLIBS}").outcome == SUCCESS
+
+        when:
+        def result3RDPLDev = getPreparedGradleRunner()
+                .withArguments(com.intershop.gradle.icm.ICMProjectPlugin.COPY_3RD_PARTYLIBS_DEV, "-s")
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        result3RDPLDev.task(":${com.intershop.gradle.icm.ICMProjectPlugin.COPY_3RD_PARTYLIBS_DEV}").outcome == SUCCESS
+
+        when:
+        def result3RDPLTest = getPreparedGradleRunner()
+                .withArguments(com.intershop.gradle.icm.ICMProjectPlugin.COPY_3RD_PARTYLIBS_TEST, "-s")
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        result3RDPLTest.task(":${com.intershop.gradle.icm.ICMProjectPlugin.COPY_3RD_PARTYLIBS_TEST}").outcome == SUCCESS
+
+        where:
+        gradleVersion << supportedGradleVersions
+    }
 
     def 'check external cartridge setup task'() {
         given:
@@ -797,7 +817,6 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         where:
         gradleVersion << supportedGradleVersions
-
     }
 
     def "prepare folder from release"() {
@@ -895,7 +914,6 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
             implementation 'io.prometheus:simpleclient:0.6.0'
             implementation 'io.prometheus:simpleclient_hotspot:0.6.0'
             implementation 'io.prometheus:simpleclient_servlet:0.6.0'
-            implementation 'commons-collections:commons-collections:3.2.2'
         } 
         
         repositories {

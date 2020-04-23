@@ -61,6 +61,10 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
         const val SETUP_CARTRIDGES = "setupCartridges"
         const val SETUP_DEVCARTRIDGES = "setupDevCartridges"
         const val SETUP_TESTCARTRIDGES = "setupTestCartridges"
+
+        const val COPY_3RD_PARTYLIBS = "copy3rdPartyLibs"
+        const val COPY_3RD_PARTYLIBS_DEV = "copy3rdPartyLibsDev"
+        const val COPY_3RD_PARTYLIBS_TEST = "copy3rdPartyLibsTest"
     }
 
     override fun apply(project: Project) {
@@ -265,7 +269,7 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
                 prepareTask.dependsOn(this)
             }
 
-            val copyAllDevLibs = tasks.maybeCreate("copyAllDev", Sync::class.java).apply {
+            val copyAllDevLibs = tasks.maybeCreate(COPY_3RD_PARTYLIBS_DEV, Sync::class.java).apply {
                 group = IntershopExtension.INTERSHOP_GROUP_NAME
                 description = "Copy all 3rd party libs to one folder for a local server"
 
@@ -275,7 +279,7 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
                 prepareTask.dependsOn(this)
             }
 
-            val copyAllTestLibs = tasks.maybeCreate("copyAll", Sync::class.java).apply {
+            val copyAllTestLibs = tasks.maybeCreate(COPY_3RD_PARTYLIBS_TEST, Sync::class.java).apply {
                 group = IntershopExtension.INTERSHOP_GROUP_NAME
                 description = "Copy all 3rd party libs to one folder for a container"
 
@@ -285,7 +289,7 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
                 prepareContainerTask.dependsOn(this)
             }
 
-            val copyAllLibs = tasks.maybeCreate("copyAll", Sync::class.java).apply {
+            val copyAllLibs = tasks.maybeCreate(COPY_3RD_PARTYLIBS, Sync::class.java).apply {
                 group = IntershopExtension.INTERSHOP_GROUP_NAME
                 description = "Copy all 3rd party libs to one folder for a test container"
 
@@ -296,13 +300,13 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
             }
 
             subprojects { sub ->
-                val styleValue = if(sub.hasProperty("cartridge.style")) {
-                                     sub.property("cartridge.style").toString()
-                                 } else {
-                                     null
-                                 }
-
                 sub.tasks.withType(CopyThirdpartyLibs::class.java) { ctlTask ->
+                    val styleValue = if(sub.extensions.extraProperties.has("cartridge.style")) {
+                        sub.extensions.extraProperties.get("cartridge.style").toString()
+                    } else {
+                        null
+                    }
+
                     ctlTask.provideLibFilterFile(libfilter.outputFile)
 
                     if(checkStyle(styleValue, false, false)) {
