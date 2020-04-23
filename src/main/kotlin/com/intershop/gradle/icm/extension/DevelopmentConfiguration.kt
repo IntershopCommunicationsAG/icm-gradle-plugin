@@ -40,8 +40,6 @@ abstract class DevelopmentConfiguration {
         const val LICENSE_DIR_SYS = "licenseDir"
         const val CONFIG_DIR_SYS = "configDir"
 
-        const val GRADLE_USER_HOME = "GRADLE_USER_HOME"
-
         const val DEFAULT_LIC_PATH = "icm-default/lic"
         const val DEFAULT_CONFIG_PATH = "icm-default/conf"
     }
@@ -108,18 +106,18 @@ abstract class DevelopmentConfiguration {
     /**
      * License directory path of the project.
      */
-    val licenseDirectory
+    val licenseDirectory: String
         get() = licenseDirectoryProperty.get()
 
-    val licenseFilePath
+    val licenseFilePath: String
         get() = File(licenseDirectory, "license.xml").absolutePath
 
     /**
      * Local configuration path of the project.
      */
-    val configDirectory
+    val configDirectory: String
         get() = configDirectoryProperty.get()
 
-    val configFilePath
+    val configFilePath: String
         get() = File(configDirectory, "cluster.properties").absolutePath
 }

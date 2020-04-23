@@ -82,7 +82,7 @@ object CartridgeUtil {
      *
      * @param project    the root project
      * @param dependency cartridge dependency
-     * @param checkStyle style should be verified for a production like cartridge
+     * @param environmentTypes list of environment types
      */
     fun isCartridge(project: Project,
                     dependency: ExternalModuleDependency,
@@ -98,7 +98,7 @@ object CartridgeUtil {
      * @param group      module group of the external cartridge
      * @param module     module name of the external cartridge
      * @param version    version of the external cartridge
-     * @param checkStyle style should be verified for a production like cartridge
+     * @param environmentTypes list of environment types
      */
     fun isCartridge(project: Project,
                     group: String, module: String, version: String,
@@ -122,7 +122,7 @@ object CartridgeUtil {
                     val xpFactory = XPathFactory.newInstance()
                     val xPath = xpFactory.newXPath()
 
-                    val items = xPath.evaluate(getXPath(environmentTypes.size > 0),
+                    val items = xPath.evaluate(getXPath(environmentTypes.isNotEmpty()),
                                     doc,
                                     XPathConstants.NODESET) as NodeList
 
@@ -130,7 +130,7 @@ object CartridgeUtil {
                         return false
                     }
 
-                    if(environmentTypes.size > 0) {
+                    if(environmentTypes.isNotEmpty()) {
                         val style = CartridgeStyle.valueOf(items.item(0).firstChild.nodeValue.toUpperCase())
                         return environmentTypes.contains(style.environmentType())
                     }

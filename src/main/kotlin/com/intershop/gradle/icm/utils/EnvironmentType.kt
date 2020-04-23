@@ -20,6 +20,6 @@ enum class EnvironmentType(val value: String) {
 
     PRODUCTION("production"),
     TEST("test"),
-    DEVELOPMENT("development")
-
+    DEVELOPMENT("development"),
+    ALL("all");
 }

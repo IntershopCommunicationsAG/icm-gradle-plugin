@@ -30,6 +30,9 @@ enum class CartridgeStyle(val value: String) {
     },
     ADAPTER("adapter") {
         override fun environmentType() = EnvironmentType.PRODUCTION
+    },
+    ALL("all") {
+        override fun environmentType() = EnvironmentType.ALL
     };
 
     abstract fun environmentType(): EnvironmentType

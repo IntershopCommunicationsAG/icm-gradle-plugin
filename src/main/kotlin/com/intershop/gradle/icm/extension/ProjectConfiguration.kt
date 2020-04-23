@@ -21,7 +21,7 @@ import com.intershop.gradle.icm.utils.getValue
 import com.intershop.gradle.icm.utils.setValue
 import groovy.lang.Closure
 import org.gradle.api.Action
-import org.gradle.api.NamedDomainObjectSet
+import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
@@ -60,11 +60,6 @@ abstract class ProjectConfiguration {
     private val cartridgesProperty: SetProperty<String> = objectFactory.setProperty(String::class.java)
     private val dbprepareCartridgesProperty: SetProperty<String> = objectFactory.setProperty(String::class.java)
 
-    private val configFolderProperty: Property<String> = objectFactory.property(String::class.java)
-    private val sitesFolderProperty: Property<String> = objectFactory.property(String::class.java)
-    private val devConfigFolderProperty: Property<String> = objectFactory.property(String::class.java)
-    private val devSitesFolderProperty: Property<String> = objectFactory.property(String::class.java)
-
     /**
      * Base project configuration for final project.
      *
@@ -83,9 +78,9 @@ abstract class ProjectConfiguration {
     /**
      * Additional extension projects for final project.
      *
-     * @property base
+     * @property modules
      */
-    val extensions: NamedDomainObjectSet<CartridgeProject> = objectFactory.namedDomainObjectSet(CartridgeProject::class.java)
+    val modules: NamedDomainObjectContainer<NamedCartridgeProject> = objectFactory.domainObjectContainer(NamedCartridgeProject::class.java)
 
     val cartridgeListDependencyProvider: Provider<String>
         get() = cartridgeListDependencyProperty
@@ -149,44 +144,13 @@ abstract class ProjectConfiguration {
         cartridgesProperty.add(cartridge)
     }
 
-    val configFolderProvider: Provider<String>
-        get() = configFolderProperty
+    val dirConfig: DirectoryConfiguration = objectFactory.newInstance(DirectoryConfiguration::class.java)
 
-    /**
-     * Configuration for configuration folder.
-     *
-     * @property configFolder
-     */
-    val configFolder by configFolderProperty
+    fun dirConfig(action: Action<in DirectoryConfiguration>) {
+        action.execute(dirConfig)
+    }
 
-    val sitesFolderProvider: Provider<String>
-        get() = sitesFolderProperty
-
-    /**
-     * Configuration for sites folder.
-     *
-     * @property sitesFolder
-     */
-    val sitesFolder by sitesFolderProperty
-
-    val devConfigFolderProvider: Provider<String>
-        get() = devConfigFolderProperty
-
-    /**
-     * Configuration for developer / test configuration folder.
-     *
-     * @property devConfigFolder
-     */
-    val devConfigFolder by devConfigFolderProperty
-
-    val devSitesFolderProvider: Provider<String>
-        get() = devSitesFolderProperty
-
-    /**
-     * Configuration for developer / test sites folder.
-     *
-     * @property devSitesFolder
-     */
-    val devSitesFolder by devSitesFolderProperty
-
+    fun dirConfig(c: Closure<DirectoryConfiguration>) {
+        ConfigureUtil.configure(c, dirConfig)
+    }
 }

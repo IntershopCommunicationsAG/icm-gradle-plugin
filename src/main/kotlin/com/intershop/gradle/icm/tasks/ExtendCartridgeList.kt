@@ -149,10 +149,7 @@ open class ExtendCartridgeList @Inject constructor(
 
         project.rootProject.subprojects { prj ->
             if(prj.hasProperty("cartridge.style")) {
-                projectCartridgeMap.put(
-                    prj.name,
-                    CartridgeStyle.valueOf(prj.property("cartridge.style").toString().toUpperCase())
-                )
+                projectCartridgeMap[prj.name] = CartridgeStyle.valueOf(prj.property("cartridge.style").toString().toUpperCase())
             }
         }
 
@@ -169,7 +166,7 @@ open class ExtendCartridgeList @Inject constructor(
                 return cartridgeModule[1]
             }
         } else {
-            val style = projectMap.get(cartridge)
+            val style = projectMap[cartridge]
             if( style != null && environmentTypes.get().contains(style.environmentType())) {
                 return cartridge
             }
