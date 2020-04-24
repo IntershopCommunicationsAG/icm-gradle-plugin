@@ -455,7 +455,7 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                         }
                     }
 
-                    dirConfig {
+                    folderConfig {
                         base {
                             sites {
                                 path = "sites/base"

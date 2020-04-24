@@ -23,28 +23,28 @@ import org.gradle.api.model.ObjectFactory
 import org.gradle.util.ConfigureUtil
 import javax.inject.Inject
 
-abstract class DirectorySet {
+abstract class FileFolderSet {
 
     @get:Inject
     abstract val objectFactory: ObjectFactory
 
-    val sites = objectFactory.newInstance(Directory::class.java)
+    val sites = objectFactory.newInstance(FileFolder::class.java)
 
-    fun sites(action: Action<in Directory>) {
+    fun sites(action: Action<in FileFolder>) {
         action.execute(sites)
     }
 
-    fun sites(c: Closure<Directory>) {
+    fun sites(c: Closure<FileFolder>) {
         ConfigureUtil.configure(c, sites)
     }
 
-    val config = objectFactory.newInstance(Directory::class.java)
+    val config = objectFactory.newInstance(FileFolder::class.java)
 
-    fun config(action: Action<in Directory>) {
+    fun config(action: Action<in FileFolder>) {
         action.execute(config)
     }
 
-    fun config(c: Closure<Directory>) {
+    fun config(c: Closure<FileFolder>) {
         ConfigureUtil.configure(c, config)
     }
 }

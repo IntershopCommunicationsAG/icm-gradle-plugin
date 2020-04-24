@@ -18,6 +18,7 @@
 package com.intershop.gradle.icm.tasks
 
 import com.intershop.gradle.icm.extension.CartridgeProject
+import com.intershop.gradle.icm.extension.FileFolder
 import com.intershop.gradle.icm.extension.NamedCartridgeProject
 import com.intershop.gradle.icm.utils.PackageUtil
 import org.gradle.api.DefaultTask
@@ -31,19 +32,16 @@ import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
+import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import java.io.File
 import javax.inject.Inject
 
 open class CreateSitesFolderNew
-        @Inject constructor(projectLayout: ProjectLayout,
-                            objectFactory: ObjectFactory,
+        @Inject constructor(val projectLayout: ProjectLayout,
+                            val objectFactory: ObjectFactory,
                             val fsOps: FileSystemOperations): DefaultTask() {
-
-    private val modulesProperty: MapProperty<String, NamedCartridgeProject> =
-        objectFactory.mapProperty(String::class.java, NamedCartridgeProject::class.java)
-    private val baseProjectProperty: Property<CartridgeProject> = objectFactory.property(CartridgeProject::class.java)
 
     @get:Internal
     val outputDirProperty: DirectoryProperty = objectFactory.directoryProperty()
@@ -56,14 +54,19 @@ open class CreateSitesFolderNew
         set(value) = outputDirProperty.set(value)
 
     @get:Nested
-    var baseProject: CartridgeProject
-        get() = baseProjectProperty.get()
-        set(value) = baseProjectProperty.set(value)
+    var baseProject: Property<CartridgeProject> = objectFactory.property(CartridgeProject::class.java)
 
     @get:Nested
-    var modules: Map<String, NamedCartridgeProject>
-        get() = modulesProperty.get()
-        set(value) = modulesProperty.putAll(value)
+    var modules: MapProperty<String, NamedCartridgeProject> =
+                    objectFactory.mapProperty(String::class.java, NamedCartridgeProject::class.java)
+
+    @get:Optional
+    @get:Nested
+    val baseFolder: Property<FileFolder> = objectFactory.property(FileFolder::class.java)
+
+    @get:Optional
+    @get:Nested
+    val extraFolder: Property<FileFolder> = objectFactory.property(FileFolder::class.java)
 
     init {
         outputDirProperty.convention(projectLayout.buildDirectory.dir("server/sites"))
@@ -73,9 +76,13 @@ open class CreateSitesFolderNew
     fun createSites() {
         val cs = project.copySpec()
 
-        PackageUtil.addPackageToCS(project, baseProject.dependency, "sites", cs, baseProject.sitesPackage)
-        modules.forEach { _, prj ->
+        PackageUtil.addPackageToCS(project, baseProject.get().dependency, "sites", cs, baseProject.get().sitesPackage)
+        modules.get().forEach { _, prj ->
             PackageUtil.addPackageToCS(project, prj.dependency, "sites", cs, prj.sitesPackage)
+        }
+
+        if(baseFolder.isPresent) {
+            println("basefolder " + baseFolder.get().dir)
         }
 
         fsOps.copy {

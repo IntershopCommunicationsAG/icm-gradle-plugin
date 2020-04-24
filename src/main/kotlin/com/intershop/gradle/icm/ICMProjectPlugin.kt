@@ -338,8 +338,11 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
             }
 
             val createSites = tasks.maybeCreate("runtest", CreateSitesFolderNew::class.java).apply {
-                this.baseProject = extension.projectConfig.base
-                this.modules = extension.projectConfig.modules.asMap
+                this.baseProject.set(extension.projectConfig.base)
+                this.modules.set(extension.projectConfig.modules.asMap)
+
+                this.baseFolder.set(extension.projectConfig.folderConfig.base.sites)
+                this.extraFolder.set(extension.projectConfig.folderConfig.dev.sites)
             }
         }
     }
