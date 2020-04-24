@@ -14,51 +14,7 @@
  * limitations under the License.
  *
  */
+
 package com.intershop.gradle.icm.extension
 
-import com.intershop.gradle.icm.utils.getValue
-import com.intershop.gradle.icm.utils.setValue
-import org.gradle.api.model.ObjectFactory
-import org.gradle.api.provider.Property
-import org.gradle.api.provider.Provider
-import javax.inject.Inject
-
-/**
- * Extension to configure sub projects, like connectors,
- * payment provider etc.
- */
-abstract class NamedCartridgeProject(val name: String) {
-
-    /**
-     * Inject service of ObjectFactory (See "Service injection" in Gradle documentation.
-     */
-    @get:Inject
-    abstract val objectFactory: ObjectFactory
-
-    private val dependencyProperty: Property<String> = objectFactory.property(String::class.java)
-
-    /**
-     * Dependency of the base project.
-     *
-     * @property dependency
-     */
-    var dependency by dependencyProperty
-
-    val dependencyProvider: Provider<String>
-        get() = dependencyProperty
-
-    /**
-     * Configuration for configuration package.
-     *
-     * @property configPackage
-     */
-    val configPackage : Package = objectFactory.newInstance(Package::class.java)
-
-
-    /**
-     * Configuration for sites package.
-     *
-     * @property sitesPackage
-     */
-    val sitesPackage : Package = objectFactory.newInstance(Package::class.java)
-}
+abstract class NamedCartridgeProject(val name: String): CartridgeProject() { }

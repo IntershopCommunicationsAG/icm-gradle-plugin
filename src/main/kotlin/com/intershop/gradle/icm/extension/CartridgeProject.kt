@@ -21,6 +21,8 @@ import com.intershop.gradle.icm.utils.setValue
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Nested
 import javax.inject.Inject
 
 /**
@@ -42,6 +44,8 @@ abstract class CartridgeProject {
      *
      * @property dependency
      */
+
+    @get:Input
     var dependency by dependencyProperty
 
     val dependencyProvider: Provider<String>
@@ -52,7 +56,8 @@ abstract class CartridgeProject {
      *
      * @property configPackage
      */
-    val configPackage : Package = objectFactory.newInstance(Package::class.java)
+    @get:Nested
+    val configPackage : FilePackage = objectFactory.newInstance(FilePackage::class.java)
 
 
     /**
@@ -60,5 +65,6 @@ abstract class CartridgeProject {
      *
      * @property sitesPackage
      */
-    val sitesPackage : Package = objectFactory.newInstance(Package::class.java)
+    @get:Nested
+    val sitesPackage : FilePackage = objectFactory.newInstance(FilePackage::class.java)
 }

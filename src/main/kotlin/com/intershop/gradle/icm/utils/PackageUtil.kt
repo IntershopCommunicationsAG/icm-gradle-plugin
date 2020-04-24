@@ -17,15 +17,17 @@
 
 package com.intershop.gradle.icm.utils
 
+import com.intershop.gradle.icm.extension.FilePackage
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ExternalModuleDependency
+import org.gradle.api.file.CopySpec
+import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration
 import java.io.File
 
 object PackageUtil {
 
     fun downloadPackage(project: Project, dependency: String, classifier: String): File? {
-
         val dependencyHandler = project.dependencies
         val dep = dependencyHandler.create(dependency) as ExternalModuleDependency
         dep.artifact {
@@ -47,10 +49,38 @@ object PackageUtil {
             val files = configuration.resolve()
             return files.first()
         } catch (anfe: DefaultLenientConfiguration.ArtifactResolveException) {
-            project.logger.warn("No package '{}' is available!", classifier)
+            project.logger.warn("No package '{}' is available for {}!", classifier, dependency)
         }
 
         return null
     }
 
+    fun addSpecConfig(cs: CopySpec, pkg: FilePackage) {
+        with(pkg) {
+            excludes.forEach {
+                cs.exclude(it)
+            }
+            includes.forEach {
+                cs.include(it)
+            }
+            if (! targetPath.isNullOrEmpty()) {
+                cs.into(targetPath!!)
+            }
+            if (duplicateStrategy != DuplicatesStrategy.INHERIT) {
+                cs.duplicatesStrategy = duplicateStrategy
+            }
+        }
+    }
+
+    fun addPackageToCS(project: Project, dependency: String, classifier: String,  cs: CopySpec, pkg: FilePackage) {
+        val file = downloadPackage(project, dependency, classifier)
+        if(file != null) {
+            val pkgCS = project.copySpec()
+            pkgCS.from(project.zipTree(file))
+            addSpecConfig(pkgCS, pkg)
+            cs.with(pkgCS)
+        } else {
+            project.logger.debug("No package '{}' available for dependency {}", classifier, dependency)
+        }
+    }
 }

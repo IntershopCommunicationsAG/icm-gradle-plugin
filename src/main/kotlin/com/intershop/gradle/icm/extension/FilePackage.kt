@@ -30,7 +30,7 @@ import javax.inject.Inject
 /**
  * Object to configure a simple file object to copy.
  */
-abstract class Package {
+abstract class FilePackage {
 
     /**
      * Inject service of ObjectFactory (See "Service injection" in Gradle documentation.
@@ -143,11 +143,6 @@ abstract class Package {
     @Suppress("unused")
     fun provideTargetPath(targetPath: Provider<String>) = targetPathProperty.set(targetPath)
 
-    /**
-     * This list contains includes for file list.
-     *
-     * @property includes list of includes
-     */
     @get:Optional
     @get:Input
     var targetPath: String?

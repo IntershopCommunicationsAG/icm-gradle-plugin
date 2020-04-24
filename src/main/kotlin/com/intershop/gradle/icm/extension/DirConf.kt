@@ -24,7 +24,7 @@ import javax.inject.Inject
 /**
  * Object to configure a simple directory object to copy.
  */
-abstract class DirConf: Package() {
+abstract class DirConf: FilePackage() {
 
     /**
      * Inject service of ProjectLayout (See "Service injection" in Gradle documentation.

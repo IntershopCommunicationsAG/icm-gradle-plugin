@@ -368,12 +368,12 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         when:
         def result = getPreparedGradleRunner()
-                .withArguments("tasks", "-s")
+                .withArguments("runtest", "-s")
                 .withGradleVersion(gradleVersion)
                 .build()
 
         then:
-        result.task(":tasks").outcome == SUCCESS
+        result.task(":runtest").outcome == SUCCESS
 
         where:
         gradleVersion << supportedGradleVersions

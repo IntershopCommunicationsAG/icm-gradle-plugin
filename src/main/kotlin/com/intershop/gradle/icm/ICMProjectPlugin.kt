@@ -19,6 +19,7 @@ package com.intershop.gradle.icm
 import com.intershop.gradle.icm.extension.IntershopExtension
 import com.intershop.gradle.icm.tasks.CopyThirdpartyLibs
 import com.intershop.gradle.icm.tasks.CreateServerInfoProperties
+import com.intershop.gradle.icm.tasks.CreateSitesFolderNew
 import com.intershop.gradle.icm.tasks.ExtendCartridgeList
 import com.intershop.gradle.icm.tasks.ProvideCartridgeListTemplate
 import com.intershop.gradle.icm.tasks.ProvideLibFilter
@@ -334,6 +335,11 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
                         copyLibsProd.from(ctlTask.outputs.files)
                     }
                 }
+            }
+
+            val createSites = tasks.maybeCreate("runtest", CreateSitesFolderNew::class.java).apply {
+                this.baseProject = extension.projectConfig.base
+                this.modules = extension.projectConfig.modules.asMap
             }
         }
     }

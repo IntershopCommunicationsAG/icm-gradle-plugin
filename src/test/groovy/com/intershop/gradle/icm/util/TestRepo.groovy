@@ -200,7 +200,7 @@ class TestRepo {
     private void addSecondBaseProject(String group, String projectName, String version) {
 
         new TestMavenRepoBuilder().repository {
-            project(groupId: 'com.intershop.icm', artifactId: projectName, version: version) {
+            project(groupId: group, artifactId: projectName, version: version) {
                 artifact (
                         classifier: "configuration",
                         ext: "zip",
@@ -225,7 +225,7 @@ class TestRepo {
     private void addThirdBaseProject(String group, String projectName, String version) {
 
         new TestMavenRepoBuilder().repository {
-            project(groupId: 'com.intershop.icm', artifactId: projectName, version: version) {
+            project(groupId: group, artifactId: projectName, version: version) {
                 artifact (
                         classifier: "configuration",
                         ext: "zip",
