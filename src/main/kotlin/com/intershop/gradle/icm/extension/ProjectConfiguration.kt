@@ -144,13 +144,13 @@ abstract class ProjectConfiguration {
         cartridgesProperty.add(cartridge)
     }
 
-    val folderConfig: FileFolderConfiguration = objectFactory.newInstance(FileFolderConfiguration::class.java)
+    val folderConfig: ProjectFolderConfig = objectFactory.newInstance(ProjectFolderConfig::class.java)
 
-    fun folderConfig(action: Action<in FileFolderConfiguration>) {
+    fun folderConfig(action: Action<in ProjectFolderConfig>) {
         action.execute(folderConfig)
     }
 
-    fun folderConfig(c: Closure<FileFolderConfiguration>) {
+    fun folderConfig(c: Closure<ProjectFolderConfig>) {
         ConfigureUtil.configure(c, folderConfig)
     }
 }

@@ -27,7 +27,10 @@ import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.Optional
 import javax.inject.Inject
 
-abstract class FileFolder {
+abstract class FolderConfig
+    @Inject constructor(defaultTarget: String,
+                        defaultExcludes: List<String>,
+                        defaultIncludes: List<String>) {
 
     @get:Inject
     abstract val objectFactory: ObjectFactory
@@ -57,5 +60,19 @@ abstract class FileFolder {
     fun include(pattern: String) = includes.add(pattern)
 
     fun includes(patterns: Collection<String>) = includes.addAll(patterns)
+
+    @get:Optional
+    @get:Input
+    val target: Property<String> = objectFactory.property(String::class.java)
+
+    init {
+        target.convention(defaultTarget)
+        if(defaultExcludes.isNotEmpty()) {
+            excludes.convention(defaultExcludes)
+        }
+        if(defaultIncludes.isNotEmpty()) {
+            excludes.convention(defaultExcludes)
+        }
+    }
 
 }

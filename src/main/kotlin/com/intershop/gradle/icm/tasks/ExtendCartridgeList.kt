@@ -191,7 +191,7 @@ open class ExtendCartridgeList @Inject constructor(
 
         propFile.printWriter().use { out ->
             out.println("# generated cartridge list properties for '${project.name}'")
-            out.println("${CreateConfFolder.CARTRIDGES_PROPERTY} = \\")
+            out.println("${CARTRIDGES_PROPERTY} = \\")
             cartridgeSet.forEach {
                 if(it == cartridgeSet.last()) {
                     out.println("\t${it}")
@@ -200,7 +200,7 @@ open class ExtendCartridgeList @Inject constructor(
                 }
             }
             out.println("")
-            out.println("${CreateConfFolder.CARTRIDGES_DBINIT_PROPERTY} = \\")
+            out.println("${CARTRIDGES_DBINIT_PROPERTY} = \\")
             initCartridgeSet.forEach {
                 if(it == initCartridgeSet.last()) {
                     out.println("\t${it}")

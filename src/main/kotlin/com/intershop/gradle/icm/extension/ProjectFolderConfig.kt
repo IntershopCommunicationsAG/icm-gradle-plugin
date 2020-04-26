@@ -23,48 +23,48 @@ import org.gradle.api.model.ObjectFactory
 import org.gradle.util.ConfigureUtil
 import javax.inject.Inject
 
-abstract class FileFolderConfiguration {
+abstract class ProjectFolderConfig {
 
     @get:Inject
     abstract val objectFactory: ObjectFactory
 
-    val base = objectFactory.newInstance(FileFolderSet::class.java)
+    val base = objectFactory.newInstance(FolderConfigSet::class.java)
 
-    fun base(action: Action<in FileFolderSet>) {
+    fun base(action: Action<in FolderConfigSet>) {
         action.execute(base)
     }
 
-    fun base(c: Closure<FileFolderSet>) {
+    fun base(c: Closure<FolderConfigSet>) {
         ConfigureUtil.configure(c, base)
     }
 
-    val prod= objectFactory.newInstance(FileFolderSet::class.java)
+    val prod= objectFactory.newInstance(FolderConfigSet::class.java)
 
-    fun prod(action: Action<in FileFolderSet>) {
+    fun prod(action: Action<in FolderConfigSet>) {
         action.execute(prod)
     }
 
-    fun prod(c: Closure<FileFolderSet>) {
+    fun prod(c: Closure<FolderConfigSet>) {
         ConfigureUtil.configure(c, prod)
     }
 
-    val test = objectFactory.newInstance(FileFolderSet::class.java)
+    val test = objectFactory.newInstance(FolderConfigSet::class.java)
 
-    fun test(action: Action<in FileFolderSet>) {
+    fun test(action: Action<in FolderConfigSet>) {
         action.execute(test)
     }
 
-    fun test(c: Closure<FileFolderSet>) {
+    fun test(c: Closure<FolderConfigSet>) {
         ConfigureUtil.configure(c, test)
     }
 
-    val dev = objectFactory.newInstance(FileFolderSet::class.java)
+    val dev = objectFactory.newInstance(FolderConfigSet::class.java)
 
-    fun dev(action: Action<in FileFolderSet>) {
+    fun dev(action: Action<in FolderConfigSet>) {
         action.execute(dev)
     }
 
-    fun dev(c: Closure<FileFolderSet>) {
+    fun dev(c: Closure<FolderConfigSet>) {
         ConfigureUtil.configure(c, dev)
     }
 }

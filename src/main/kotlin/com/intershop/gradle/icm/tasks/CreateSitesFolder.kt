@@ -18,60 +18,102 @@
 package com.intershop.gradle.icm.tasks
 
 import com.intershop.gradle.icm.extension.CartridgeProject
-import com.intershop.gradle.icm.extension.IntershopExtension
+import com.intershop.gradle.icm.extension.FolderConfig
+import com.intershop.gradle.icm.extension.NamedCartridgeProject
+import com.intershop.gradle.icm.utils.PackageUtil
+import org.gradle.api.DefaultTask
 import org.gradle.api.file.CopySpec
-import org.gradle.api.file.DuplicatesStrategy
+import org.gradle.api.file.Directory
+import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileSystemOperations
+import org.gradle.api.file.ProjectLayout
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.provider.MapProperty
+import org.gradle.api.provider.Property
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.Nested
+import org.gradle.api.tasks.Optional
+import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import java.io.File
 import javax.inject.Inject
 
-/**
- * Task to create sites folder.
- */
-open class CreateSitesFolder @Inject constructor(
-    objectFactory: ObjectFactory,
-    fsOps: FileSystemOperations): AbstractCreateFolder(objectFactory, fsOps) {
-
-    init {
-        group = IntershopExtension.INTERSHOP_GROUP_NAME
-    }
+open class CreateSitesFolder
+        @Inject constructor(val projectLayout: ProjectLayout,
+                            val objectFactory: ObjectFactory,
+                            val fsOps: FileSystemOperations): DefaultTask() {
 
     @get:Internal
-    override val classifier = "sites"
+    val outputDirProperty: DirectoryProperty = objectFactory.directoryProperty()
 
-    /**
-     * Main function to run the task functionality.
-     */
-    @TaskAction
-    fun runFolderCreation() {
-        super.startFolderCreation()
+    fun provideOutputDir(cartridgeDir: Provider<Directory>) = outputDirProperty.set(cartridgeDir)
+
+    @get:OutputDirectory
+    var outputDir: File
+        get() = outputDirProperty.get().asFile
+        set(value) = outputDirProperty.set(value)
+
+    @get:Nested
+    var baseProject: Property<CartridgeProject> = objectFactory.property(CartridgeProject::class.java)
+
+    @get:Nested
+    var modules: MapProperty<String, NamedCartridgeProject> =
+                    objectFactory.mapProperty(String::class.java, NamedCartridgeProject::class.java)
+
+    @get:Optional
+    @get:Nested
+    val baseFolderConfig: Property<FolderConfig> = objectFactory.property(FolderConfig::class.java)
+
+    @get:Optional
+    @get:Nested
+    val extraFolderConfig: Property<FolderConfig> = objectFactory.property(FolderConfig::class.java)
+
+    init {
+        outputDirProperty.convention(projectLayout.buildDirectory.dir("server/sites"))
     }
 
-    /**
-     * Add copy spec for an package file.
-     *
-     * @param cs        base copy spec
-     * @param pkgCS     package copy spec
-     * @param prjConf   configuration of a base project
-     * @param file      package file it self
-     */
-    override fun addCopyConfSpec(cs: CopySpec, pkgCS: CopySpec, prjConf: CartridgeProject, file: File) {
-        with(prjConf) {
-            sitesPackage.excludes.forEach {
-                pkgCS.exclude(it)
-            }
-            sitesPackage.includes.forEach {
-                pkgCS.include(it)
-            }
-            if (! sitesPackage.targetPath.isNullOrEmpty()) {
-                pkgCS.into(sitesPackage.targetPath!!)
-            }
-            if (sitesPackage.duplicateStrategy != DuplicatesStrategy.INHERIT) {
-                pkgCS.duplicatesStrategy = sitesPackage.duplicateStrategy
-            }
+    @TaskAction
+    fun createSites() {
+        val cs = project.copySpec()
+
+        PackageUtil.addPackageToCS(project, baseProject.get().dependency, "sites", cs, baseProject.get().sitesPackage)
+        modules.get().forEach { _, prj ->
+            PackageUtil.addPackageToCS(project, prj.dependency, "sites", cs, prj.sitesPackage)
+        }
+
+        if(baseFolderConfig.isPresent) {
+            cs.with(getCSFolderConfig(baseFolderConfig.get()))
+        }
+
+        if(extraFolderConfig.isPresent) {
+            cs.with(getCSFolderConfig(extraFolderConfig.get()))
+        }
+
+        fsOps.copy {
+            it.with(cs)
+            it.into(outputDir)
         }
     }
+
+    private fun getCSFolderConfig(folder: FolderConfig): CopySpec {
+        val fcCS = project.copySpec()
+
+        fcCS.from(folder.dir)
+
+        folder.excludes.get().forEach {
+            fcCS.exclude(it)
+        }
+
+        folder.includes.get().forEach {
+            fcCS.include(it)
+        }
+
+        if(folder.target.isPresent) {
+            fcCS.into(folder.target.get())
+        }
+
+        return fcCS
+    }
+
 }
