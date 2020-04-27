@@ -17,28 +17,44 @@
 
 package com.intershop.gradle.icm.tasks
 
+import com.intershop.gradle.icm.ICMProjectPlugin
 import com.intershop.gradle.icm.utils.PackageUtil
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.file.ProjectLayout
+import org.gradle.api.file.RegularFile
+import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.provider.Provider
+import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.TaskAction
 import javax.inject.Inject
 
-open class CreateSitesFolder
+open class CreateConfigFolder
         @Inject constructor(projectLayout: ProjectLayout,
                             objectFactory: ObjectFactory,
                             fsOps: FileSystemOperations): AbstractCreateFolder(projectLayout, objectFactory, fsOps) {
 
     init {
-        outputDirProperty.convention(projectLayout.buildDirectory.dir("server/sites"))
+        outputDirProperty.convention(projectLayout.buildDirectory.dir("server/system-conf"))
     }
 
+    @get:InputFile
+    val cartridgeList: RegularFileProperty = objectFactory.fileProperty()
+
+    fun provideCartridgeListFile(file: Provider<RegularFile>) = cartridgeList.set(file)
+
     override fun addPackages(cs: CopySpec) {
-        PackageUtil.addPackageToCS(project, baseProject.get().dependency, "sites", cs, baseProject.get().sitesPackage, listOf<String>())
+        PackageUtil.addPackageToCS(project, baseProject.get().dependency, "configuration", cs, baseProject.get().configPackage, listOf("**/**/${ICMProjectPlugin.CARTRIDGELIST_FILENAME}"))
         modules.get().forEach { _, prj ->
-            PackageUtil.addPackageToCS(project, prj.dependency, "sites", cs, prj.sitesPackage, listOf<String>())
+            PackageUtil.addPackageToCS(project, prj.dependency, "configuration", cs, prj.configPackage, listOf("**/**/${ICMProjectPlugin.CARTRIDGELIST_FILENAME}"))
         }
+
+        val clfCS = project.copySpec()
+        clfCS.from(cartridgeList.get())
+        clfCS.into("system-conf/cluster")
+
+        cs.with(clfCS)
     }
 
     @TaskAction

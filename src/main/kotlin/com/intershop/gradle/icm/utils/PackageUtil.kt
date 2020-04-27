@@ -72,12 +72,15 @@ object PackageUtil {
         }
     }
 
-    fun addPackageToCS(project: Project, dependency: String, classifier: String,  cs: CopySpec, pkg: FilePackage) {
+    fun addPackageToCS(project: Project, dependency: String, classifier: String,  cs: CopySpec, pkg: FilePackage, excludes: List<String>) {
         val file = downloadPackage(project, dependency, classifier)
         if(file != null) {
             val pkgCS = project.copySpec()
             pkgCS.from(project.zipTree(file))
             addSpecConfig(pkgCS, pkg)
+            if(excludes.isNotEmpty()) {
+                pkgCS.exclude(*excludes.toTypedArray())
+            }
             cs.with(pkgCS)
         } else {
             project.logger.debug("No package '{}' available for dependency {}", classifier, dependency)

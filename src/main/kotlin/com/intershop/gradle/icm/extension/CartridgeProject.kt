@@ -18,11 +18,14 @@ package com.intershop.gradle.icm.extension
 
 import com.intershop.gradle.icm.utils.getValue
 import com.intershop.gradle.icm.utils.setValue
+import groovy.lang.Closure
+import org.gradle.api.Action
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Nested
+import org.gradle.util.ConfigureUtil
 import javax.inject.Inject
 
 /**
@@ -59,6 +62,13 @@ abstract class CartridgeProject {
     @get:Nested
     val configPackage : FilePackage = objectFactory.newInstance(FilePackage::class.java)
 
+    fun configPackage(action: Action<in FilePackage>) {
+        action.execute(configPackage)
+    }
+
+    fun configPackage(c: Closure<FilePackage>) {
+        ConfigureUtil.configure(c, configPackage)
+    }
 
     /**
      * Configuration for sites package.
@@ -67,4 +77,12 @@ abstract class CartridgeProject {
      */
     @get:Nested
     val sitesPackage : FilePackage = objectFactory.newInstance(FilePackage::class.java)
+
+    fun sitesPackage(action: Action<in FilePackage>) {
+        action.execute(sitesPackage)
+    }
+
+    fun sitesPackage(c: Closure<FilePackage>) {
+        ConfigureUtil.configure(c, sitesPackage)
+    }
 }

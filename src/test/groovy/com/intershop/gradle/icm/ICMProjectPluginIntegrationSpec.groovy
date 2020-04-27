@@ -363,17 +363,62 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         return repoConf
     }
 
-    def "prepare configuration folder"() {
+    def "simple test of tasks for folder creation"() {
         prepareExtendedBuildConfig(testProjectDir, settingsFile, buildFile)
 
         when:
-        def result = getPreparedGradleRunner()
-                .withArguments("runtest", "-s")
+        def resultDevConf = getPreparedGradleRunner()
+                .withArguments("${com.intershop.gradle.icm.ICMProjectPlugin.CREATE_CONFIGFOLDER}", "-s")
                 .withGradleVersion(gradleVersion)
                 .build()
 
         then:
-        result.task(":runtest").outcome == SUCCESS
+        resultDevConf.task(":${com.intershop.gradle.icm.ICMProjectPlugin.CREATE_CONFIGFOLDER}").outcome == SUCCESS
+
+        when:
+        def resultProdConf = getPreparedGradleRunner()
+                .withArguments("${com.intershop.gradle.icm.ICMProjectPlugin.CREATE_CONFIGFOLDER_PROD}", "-s")
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        resultProdConf.task(":${com.intershop.gradle.icm.ICMProjectPlugin.CREATE_CONFIGFOLDER_PROD}").outcome == SUCCESS
+
+        when:
+        def resultTestConf = getPreparedGradleRunner()
+                .withArguments("${com.intershop.gradle.icm.ICMProjectPlugin.CREATE_CONFIGFOLDER_TEST}", "-s")
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        resultTestConf.task(":${com.intershop.gradle.icm.ICMProjectPlugin.CREATE_CONFIGFOLDER_TEST}").outcome == SUCCESS
+
+        when:
+        def resultDevSites = getPreparedGradleRunner()
+                .withArguments("${com.intershop.gradle.icm.ICMProjectPlugin.CREATE_SITESFOLDER}", "-s")
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        resultDevSites.task(":${com.intershop.gradle.icm.ICMProjectPlugin.CREATE_SITESFOLDER}").outcome == SUCCESS
+
+        when:
+        def resultProdSites = getPreparedGradleRunner()
+                .withArguments("${com.intershop.gradle.icm.ICMProjectPlugin.CREATE_SITESFOLDER_PROD}", "-s")
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        resultProdSites.task(":${com.intershop.gradle.icm.ICMProjectPlugin.CREATE_SITESFOLDER_PROD}").outcome == SUCCESS
+
+        when:
+        def resultTestSites = getPreparedGradleRunner()
+                .withArguments("${com.intershop.gradle.icm.ICMProjectPlugin.CREATE_SITESFOLDER_TEST}", "-s")
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        resultTestSites.task(":${com.intershop.gradle.icm.ICMProjectPlugin.CREATE_SITESFOLDER_TEST}").outcome == SUCCESS
 
         where:
         gradleVersion << supportedGradleVersions
@@ -449,35 +494,76 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                     modules {
                         solrExt {
                             dependency = "com.intershop.search:solrcloud:1.0.0"
+                            configPackage {
+                                exclude("**/cluster/version.properties")
+                            }
                         }
                         paymentExt {
                             dependency = "com.intershop.payment:paymenttest:1.0.0"
+                            configPackage {
+                                exclude("**/cluster/version.properties")
+                            }
                         }
                     }
 
-                    folderConfig {
+                    serverDirConfig {
                         base {
                             sites {
-                                path = "sites/base"
+                                dirs {
+                                    main {
+                                        dir.set(file("sites/base"))
+                                        exclude("**/units/test.properties")
+                                    }
+                                }
                             }
                             config {
-                                path = "config/base"
+                                dirs {
+                                    main {
+                                        dir.set(file("config/base"))
+                                        exclude("**/cluster/test.properties")
+                                    }
+                                }
+                                exclude("**/cluster/cartridgelist.properties")
                             }
                         }
                         test {
                             sites {
-                                path = "sites/test"
+                                dirs {
+                                    main {
+                                        dir.set(file("sites/test"))
+                                    }
+                                }
                             }
                             config {
-                                path = "config/test"
+                                dirs {
+                                    main {
+                                        dir.set(file("config/test"))
+                                    }
+                                }
                             }
                         }
                         dev {
                             sites {
-                                path = "sites/dev"
+                                dirs {
+                                    main {
+                                        dir.set(file("sites/dev"))
+                                    }
+                                    test {
+                                        dir.set(file("sites/test"))
+                                        exclude("**/units/test.properties")
+                                    }
+                                }
                             }
                             config {
-                                path = "config/dev"
+                                dirs {
+                                    main {
+                                        dir.set(file("config/dev"))
+                                    }
+                                    test {
+                                        dir.set(file("config/test"))
+                                        exclude("**/cluster/test.properties")
+                                    }
+                                }
                             }
                         }
                     }

@@ -18,6 +18,7 @@ package com.intershop.gradle.icm
 
 import com.intershop.gradle.icm.extension.IntershopExtension
 import com.intershop.gradle.icm.tasks.CopyThirdpartyLibs
+import com.intershop.gradle.icm.tasks.CreateConfigFolder
 import com.intershop.gradle.icm.tasks.CreateServerInfoProperties
 import com.intershop.gradle.icm.tasks.CreateSitesFolder
 import com.intershop.gradle.icm.tasks.ExtendCartridgeList
@@ -26,6 +27,7 @@ import com.intershop.gradle.icm.tasks.ProvideLibFilter
 import com.intershop.gradle.icm.tasks.SetupCartridges
 import com.intershop.gradle.icm.utils.CartridgeStyle.ALL
 import com.intershop.gradle.icm.utils.CartridgeStyle.valueOf
+import com.intershop.gradle.icm.utils.CopySpecUtil
 import com.intershop.gradle.icm.utils.EnvironmentType
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -57,11 +59,16 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
         const val CARTRIDGE_FOLDER = "cartridges"
         const val PROJECT_LIBS_FOLDER = "prjlibs"
 
-        const val CREATE_SITES_FOLDER = "createSites"
-        const val CREATE_CONF_FOLDER = "createConfig"
+        const val CREATE_SITESFOLDER_PROD = "createSitesProd"
+        const val CREATE_SITESFOLDER_TEST = "createSitesTest"
+        const val CREATE_SITESFOLDER = "createSites"
 
-        const val CREATE_DEVSITES_FOLDER = "createDevSites"
-        const val CREATE_DEVCONF_FOLDER = "createDevConfig"
+        const val CREATE_CONFIGFOLDER_PROD = "createConfigProd"
+        const val CREATE_CONFIGFOLDER_TEST = "createConfigTest"
+        const val CREATE_CONFIGFOLDER = "createConfig"
+
+        const val SITES_FOLDER = "sites"
+        const val CONFIG_FOLDER = "system-conf"
 
         const val PROVIDE_CARTRIDGELIST_TEMPLATE = "provideCartridgeListTemplate"
 
@@ -109,9 +116,6 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
 
             val infoTask = configureInfoTask(this, extension)
 
-            configureDevTasks(this, extension, prepareTask, infoTask)
-            configureContainerTasks(this, extension, prepareContainerTask, infoTask)
-
             configureExtCartridgeTask(this, extension, prepareTask, prepareContainerTask, prepareTestContainerTask)
 
             configureFolderTasks(this, extension)
@@ -134,71 +138,6 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
         }
     }
 
-    private fun configureDevTasks(project: Project,
-                                  extension: IntershopExtension,
-                                  prepareTask: Task,
-                                  infoTask: CreateServerInfoProperties) {
-        /**
-        with(project) {
-            tasks.maybeCreate(CREATE_DEVCONF_FOLDER, CreateConfFolder::class.java).apply {
-                this.baseProjects = extension.projectConfig.baseProjects.asMap
-                this.dirConf = extension.projectConfig.conf
-                this.devDirConf = extension.projectConfig.devConf
-                this.outputDirProperty.set(projectLayout.buildDirectory.dir("server/configuration"))
-
-                this.provideCartridges(extension.projectConfig.cartridgesProvider)
-                this.provideDBprepareCartridges(extension.projectConfig.dbprepareCartridgesProvider)
-
-
-                this.writeDevConf = true
-                this.provideVersionInfoFile(infoTask.outputFileProperty)
-                prepareTask.dependsOn(this)
-                this.dependsOn(infoTask)
-            }
-
-            tasks.maybeCreate(CREATE_DEVSITES_FOLDER, CreateSitesFolder::class.java).apply {
-                this.baseProjects = extension.projectConfig.baseProjects.asMap
-                this.dirConf = extension.projectConfig.sites
-                this.devDirConf = extension.projectConfig.devSites
-                this.outputDirProperty.set(projectLayout.buildDirectory.dir("server/sites"))
-
-                prepareTask.dependsOn(this)
-            }
-        }
-        **/
-    }
-
-    private fun configureContainerTasks(project: Project,
-                                         extension: IntershopExtension,
-                                         prepareContainerTask: Task,
-                                        infoTask: CreateServerInfoProperties) {
-        /**
-        with(project) {
-            tasks.maybeCreate(CREATE_CONF_FOLDER, CreateConfFolder::class.java).apply {
-                this.baseProjects = extension.projectConfig.baseProjects.asMap
-                this.dirConf = extension.projectConfig.conf
-                this.outputDirProperty.set(projectLayout.buildDirectory.dir("container/configuration"))
-
-                this.provideCartridges(extension.projectConfig.cartridgesProvider)
-                this.provideDBprepareCartridges(extension.projectConfig.dbprepareCartridgesProvider)
-
-                this.writeDevConf = false
-                this.provideVersionInfoFile(infoTask.outputFileProperty)
-                prepareContainerTask.dependsOn(this)
-                this.dependsOn(infoTask)
-            }
-
-            tasks.maybeCreate(CREATE_SITES_FOLDER, CreateSitesFolder::class.java).apply {
-                this.baseProjects = extension.projectConfig.baseProjects.asMap
-                this.dirConf = extension.projectConfig.sites
-                this.outputDirProperty.set(projectLayout.buildDirectory.dir("container/sites"))
-
-                prepareContainerTask.dependsOn(this)
-            }
-        }
-        **/
-    }
-
     private fun configureExtCartridgeTask(project: Project,
                                           extension: IntershopExtension,
                                           prepareTask: Task,
@@ -212,7 +151,7 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
                 provideFileDependency(extension.projectConfig.cartridgeListDependencyProvider)
             }
 
-            tasks.maybeCreate(EXTEND_CARTRIDGELIST_PROD, ExtendCartridgeList::class.java).apply {
+            val cartridgeListTaskProd = tasks.maybeCreate(EXTEND_CARTRIDGELIST_PROD, ExtendCartridgeList::class.java).apply {
                 provideTemplateFile(templateCartridgeList.outputFile)
                 provideCartridges(extension.projectConfig.cartridgesProvider)
                 provideDBprepareCartridges(extension.projectConfig.dbprepareCartridgesProvider)
@@ -222,7 +161,7 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
                 provideOutputFile(project.layout.buildDirectory.file(("${PROD_CONTAINER_FOLDER}/${CARTRIDGELIST_FOLDER}/${CARTRIDGELIST_FILENAME}")))
             }
 
-            tasks.maybeCreate(EXTEND_CARTRIDGELIST_TEST, ExtendCartridgeList::class.java).apply {
+            val cartridgeListTaskTest = tasks.maybeCreate(EXTEND_CARTRIDGELIST_TEST, ExtendCartridgeList::class.java).apply {
                 provideTemplateFile(templateCartridgeList.outputFile)
                 provideCartridges(extension.projectConfig.cartridgesProvider)
                 provideDBprepareCartridges(extension.projectConfig.dbprepareCartridgesProvider)
@@ -232,7 +171,7 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
                 provideOutputFile(project.layout.buildDirectory.file(("${TEST_CONTAINER_FOLDER}/${CARTRIDGELIST_FOLDER}/${CARTRIDGELIST_FILENAME}")))
             }
 
-            tasks.maybeCreate(EXTEND_CARTRIDGELIST, ExtendCartridgeList::class.java).apply {
+            val cartridgeListTask = tasks.maybeCreate(EXTEND_CARTRIDGELIST, ExtendCartridgeList::class.java).apply {
                 provideTemplateFile(templateCartridgeList.outputFile)
                 provideCartridges(extension.projectConfig.cartridgesProvider)
                 provideDBprepareCartridges(extension.projectConfig.dbprepareCartridgesProvider)
@@ -337,12 +276,68 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
                 }
             }
 
-            val createSites = tasks.maybeCreate("runtest", CreateSitesFolder::class.java).apply {
-                this.baseProject.set(extension.projectConfig.base)
-                this.modules.set(extension.projectConfig.modules.asMap)
+            // create sites
+            val createSitesProd = tasks.maybeCreate(CREATE_SITESFOLDER_PROD, CreateSitesFolder::class.java).apply {
+                baseProject.set(extension.projectConfig.base)
+                modules.set(extension.projectConfig.modules.asMap)
 
-                this.baseFolderConfig.set(extension.projectConfig.folderConfig.base.sites)
-                this.extraFolderConfig.set(extension.projectConfig.folderConfig.dev.sites)
+                baseDirConfig.set(extension.projectConfig.serverDirConfig.base.sites)
+                extraDirConfig.set(extension.projectConfig.serverDirConfig.prod.sites)
+
+                provideOutputDir(projectLayout.buildDirectory.dir("${PROD_CONTAINER_FOLDER}/${SITES_FOLDER}"))
+            }
+            val createSitesTest = tasks.maybeCreate(CREATE_SITESFOLDER_TEST, CreateSitesFolder::class.java).apply {
+                baseProject.set(extension.projectConfig.base)
+                modules.set(extension.projectConfig.modules.asMap)
+
+                baseDirConfig.set(extension.projectConfig.serverDirConfig.base.sites)
+                extraDirConfig.set(extension.projectConfig.serverDirConfig.test.sites)
+
+                provideOutputDir(projectLayout.buildDirectory.dir("${TEST_CONTAINER_FOLDER}/${SITES_FOLDER}"))
+            }
+            val createSites = tasks.maybeCreate(CREATE_SITESFOLDER, CreateSitesFolder::class.java).apply {
+                baseProject.set(extension.projectConfig.base)
+                modules.set(extension.projectConfig.modules.asMap)
+
+                baseDirConfig.set(extension.projectConfig.serverDirConfig.base.sites)
+                extraDirConfig.set(extension.projectConfig.serverDirConfig.dev.sites)
+
+                provideOutputDir(projectLayout.buildDirectory.dir("${SERVER_FOLDER}/${SITES_FOLDER}"))
+            }
+
+            // create conf
+            val createConfigProd = tasks.maybeCreate(CREATE_CONFIGFOLDER_PROD, CreateConfigFolder::class.java).apply {
+                baseProject.set(extension.projectConfig.base)
+                modules.set(extension.projectConfig.modules.asMap)
+
+                baseDirConfig.set(extension.projectConfig.serverDirConfig.base.config)
+                extraDirConfig.set(extension.projectConfig.serverDirConfig.prod.config)
+
+                provideCartridgeListFile(cartridgeListTaskProd.outputFile)
+
+                provideOutputDir(projectLayout.buildDirectory.dir("${PROD_CONTAINER_FOLDER}/${CONFIG_FOLDER}"))
+            }
+            val createConfigTest = tasks.maybeCreate(CREATE_CONFIGFOLDER_TEST, CreateConfigFolder::class.java).apply {
+                baseProject.set(extension.projectConfig.base)
+                modules.set(extension.projectConfig.modules.asMap)
+
+                baseDirConfig.set(extension.projectConfig.serverDirConfig.base.config)
+                extraDirConfig.set(extension.projectConfig.serverDirConfig.test.config)
+
+                provideCartridgeListFile(cartridgeListTaskTest.outputFile)
+
+                provideOutputDir(projectLayout.buildDirectory.dir("${TEST_CONTAINER_FOLDER}/${CONFIG_FOLDER}"))
+            }
+            val createConfig = tasks.maybeCreate(CREATE_CONFIGFOLDER, CreateConfigFolder::class.java).apply {
+                baseProject.set(extension.projectConfig.base)
+                modules.set(extension.projectConfig.modules.asMap)
+
+                baseDirConfig.set(extension.projectConfig.serverDirConfig.base.config)
+                extraDirConfig.set(extension.projectConfig.serverDirConfig.dev.config)
+
+                provideCartridgeListFile(cartridgeListTaskProd.outputFile)
+
+                provideOutputDir(projectLayout.buildDirectory.dir("${SERVER_FOLDER}/${CONFIG_FOLDER}"))
             }
         }
     }
@@ -380,26 +375,11 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
     }
 
     private fun configureConfFolder(project: Project, extension: IntershopExtension) : Task? {
-        /**
         with(project) {
-            val conf = extension.projectConfig.conf
-            if (conf.dir != null) {
-                var spec = project.copySpec()
-                spec.from(conf.dir)
-
-                conf.includes.forEach {
-                    spec.include(it)
-                }
-                conf.excludes.forEach {
-                    spec.exclude(it)
-                }
-
-                if(conf.targetPath != null) {
-                    spec.into(conf.targetPath!!)
-                }
-
+            val conf = extension.projectConfig.serverDirConfig.base.config
+            if (conf.dirs.isNotEmpty()) {
                 return tasks.maybeCreate("zipConf", org.gradle.api.tasks.bundling.Zip::class.java).apply {
-                    this.with(spec)
+                    this.with(CopySpecUtil.getCSForServerDir(project, conf))
 
                     this.includeEmptyDirs = false
 
@@ -409,31 +389,15 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
                 }
             }
         }
-        **/
         return null
     }
 
     private fun configureSitesFolder(project: Project, extension: IntershopExtension) : Task? {
-        /**
         with(project) {
-            val conf = extension.projectConfig.sites
-            if (conf.dir != null) {
-                var spec = project.copySpec()
-                spec.from(conf.dir)
-
-                conf.includes.forEach {
-                    spec.include(it)
-                }
-                conf.excludes.forEach {
-                    spec.exclude(it)
-                }
-
-                if(conf.targetPath != null) {
-                    spec.into(conf.targetPath!!)
-                }
-
+            val conf = extension.projectConfig.serverDirConfig.base.sites
+            if (conf.dirs.isNotEmpty()) {
                 return tasks.maybeCreate("zipSites", org.gradle.api.tasks.bundling.Zip::class.java).apply {
-                    this.with(spec)
+                    this.with(CopySpecUtil.getCSForServerDir(project, conf))
 
                     this.includeEmptyDirs = false
 
@@ -443,7 +407,6 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
                 }
             }
         }
-        **/
         return null
     }
 }

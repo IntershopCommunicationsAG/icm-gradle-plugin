@@ -144,13 +144,13 @@ abstract class ProjectConfiguration {
         cartridgesProperty.add(cartridge)
     }
 
-    val folderConfig: ProjectFolderConfig = objectFactory.newInstance(ProjectFolderConfig::class.java)
+    val serverDirConfig: ProjectServerDirs = objectFactory.newInstance(ProjectServerDirs::class.java)
 
-    fun folderConfig(action: Action<in ProjectFolderConfig>) {
-        action.execute(folderConfig)
+    fun serverDirConfig(action: Action<in ProjectServerDirs>) {
+        action.execute(serverDirConfig)
     }
 
-    fun folderConfig(c: Closure<ProjectFolderConfig>) {
-        ConfigureUtil.configure(c, folderConfig)
+    fun serverDirConfig(c: Closure<ProjectServerDirs>) {
+        ConfigureUtil.configure(c, serverDirConfig)
     }
 }

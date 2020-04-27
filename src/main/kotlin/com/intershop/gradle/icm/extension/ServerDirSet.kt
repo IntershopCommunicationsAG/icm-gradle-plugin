@@ -17,41 +17,42 @@
 
 package com.intershop.gradle.icm.extension
 
+import com.intershop.gradle.icm.ICMProjectPlugin.Companion.CARTRIDGELIST_FILENAME
 import groovy.lang.Closure
 import org.gradle.api.Action
 import org.gradle.api.model.ObjectFactory
 import org.gradle.util.ConfigureUtil
 import javax.inject.Inject
 
-abstract class FolderConfigSet {
+abstract class ServerDirSet {
 
     @get:Inject
     abstract val objectFactory: ObjectFactory
 
     val sites = objectFactory.newInstance(
-        FolderConfig::class.java, "sites",
+        ServerDir::class.java, "sites",
         listOf<String>(),
         listOf<String>())
 
-    fun sites(action: Action<in FolderConfig>) {
+    fun sites(action: Action<in ServerDir>) {
         action.execute(sites)
     }
 
-    fun sites(c: Closure<FolderConfig>) {
+    fun sites(c: Closure<ServerDir>) {
         ConfigureUtil.configure(c, sites)
     }
 
     val config = objectFactory.newInstance(
-        FolderConfig::class.java,
+        ServerDir::class.java,
         "system-conf",
-        listOf("**/**/cartridgelist.properties"),
+        listOf("**/**/${CARTRIDGELIST_FILENAME}"),
         listOf<String>())
 
-    fun config(action: Action<in FolderConfig>) {
+    fun config(action: Action<in ServerDir>) {
         action.execute(config)
     }
 
-    fun config(c: Closure<FolderConfig>) {
+    fun config(c: Closure<ServerDir>) {
         ConfigureUtil.configure(c, config)
     }
 }

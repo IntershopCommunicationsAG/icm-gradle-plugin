@@ -17,8 +17,7 @@
 
 package com.intershop.gradle.icm.extension
 
-import org.gradle.api.file.Directory
-import org.gradle.api.file.ProjectLayout
+import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.SetProperty
@@ -27,23 +26,14 @@ import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.Optional
 import javax.inject.Inject
 
-abstract class FolderConfig
-    @Inject constructor(defaultTarget: String,
-                        defaultExcludes: List<String>,
-                        defaultIncludes: List<String>) {
+abstract class DirConfig(val name: String) {
 
     @get:Inject
     abstract val objectFactory: ObjectFactory
 
-    @get:Inject
-    abstract val projectLayout: ProjectLayout
-
-    @get:Input
-    val path: Property<String> = objectFactory.property(String::class.java)
-
+    @get:Optional
     @get:InputDirectory
-    val dir: Directory
-        get() = projectLayout.projectDirectory.dir(path.get())
+    val dir: DirectoryProperty = objectFactory.directoryProperty()
 
     @get:Optional
     @get:Input
@@ -64,15 +54,5 @@ abstract class FolderConfig
     @get:Optional
     @get:Input
     val target: Property<String> = objectFactory.property(String::class.java)
-
-    init {
-        target.convention(defaultTarget)
-        if(defaultExcludes.isNotEmpty()) {
-            excludes.convention(defaultExcludes)
-        }
-        if(defaultIncludes.isNotEmpty()) {
-            excludes.convention(defaultExcludes)
-        }
-    }
 
 }
