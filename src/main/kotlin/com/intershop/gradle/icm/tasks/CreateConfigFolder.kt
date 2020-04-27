@@ -46,7 +46,7 @@ open class CreateConfigFolder
 
     override fun addPackages(cs: CopySpec) {
         PackageUtil.addPackageToCS(project, baseProject.get().dependency, "configuration", cs, baseProject.get().configPackage, listOf("**/**/${ICMProjectPlugin.CARTRIDGELIST_FILENAME}"))
-        modules.get().forEach { _, prj ->
+        modules.get().forEach { (_, prj) ->
             PackageUtil.addPackageToCS(project, prj.dependency, "configuration", cs, prj.configPackage, listOf("**/**/${ICMProjectPlugin.CARTRIDGELIST_FILENAME}"))
         }
 

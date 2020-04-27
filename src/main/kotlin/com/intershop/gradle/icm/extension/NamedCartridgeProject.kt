@@ -17,4 +17,4 @@
 
 package com.intershop.gradle.icm.extension
 
-abstract class NamedCartridgeProject(val name: String): CartridgeProject() { }
+abstract class NamedCartridgeProject(val name: String): CartridgeProject()

@@ -29,7 +29,7 @@ abstract class ServerDirSet {
     @get:Inject
     abstract val objectFactory: ObjectFactory
 
-    val sites = objectFactory.newInstance(
+    val sites: ServerDir = objectFactory.newInstance(
         ServerDir::class.java, "sites",
         listOf<String>(),
         listOf<String>())
@@ -42,7 +42,7 @@ abstract class ServerDirSet {
         ConfigureUtil.configure(c, sites)
     }
 
-    val config = objectFactory.newInstance(
+    val config: ServerDir = objectFactory.newInstance(
         ServerDir::class.java,
         "system-conf",
         listOf("**/**/${CARTRIDGELIST_FILENAME}"),

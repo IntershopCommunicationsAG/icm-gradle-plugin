@@ -28,7 +28,7 @@ abstract class ProjectServerDirs {
     @get:Inject
     abstract val objectFactory: ObjectFactory
 
-    val base = objectFactory.newInstance(ServerDirSet::class.java)
+    val base: ServerDirSet = objectFactory.newInstance(ServerDirSet::class.java)
 
     fun base(action: Action<in ServerDirSet>) {
         action.execute(base)
@@ -38,7 +38,7 @@ abstract class ProjectServerDirs {
         ConfigureUtil.configure(c, base)
     }
 
-    val prod= objectFactory.newInstance(ServerDirSet::class.java)
+    val prod: ServerDirSet = objectFactory.newInstance(ServerDirSet::class.java)
 
     fun prod(action: Action<in ServerDirSet>) {
         action.execute(prod)
@@ -48,7 +48,7 @@ abstract class ProjectServerDirs {
         ConfigureUtil.configure(c, prod)
     }
 
-    val test = objectFactory.newInstance(ServerDirSet::class.java)
+    val test: ServerDirSet = objectFactory.newInstance(ServerDirSet::class.java)
 
     fun test(action: Action<in ServerDirSet>) {
         action.execute(test)
@@ -58,7 +58,7 @@ abstract class ProjectServerDirs {
         ConfigureUtil.configure(c, test)
     }
 
-    val dev = objectFactory.newInstance(ServerDirSet::class.java)
+    val dev: ServerDirSet = objectFactory.newInstance(ServerDirSet::class.java)
 
     fun dev(action: Action<in ServerDirSet>) {
         action.execute(dev)
