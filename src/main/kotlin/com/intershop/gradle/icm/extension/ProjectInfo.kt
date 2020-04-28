@@ -26,13 +26,7 @@ import javax.inject.Inject
 /**
  * Extension for server info properties.
  */
-abstract class ProjectInfo {
-
-    /**
-     * Inject service of ObjectFactory (See "Service injection" in Gradle documentation.
-     */
-    @get:Inject
-    abstract val objectFactory: ObjectFactory
+abstract class ProjectInfo @Inject constructor(objectFactory: ObjectFactory ) {
 
     private val productIDProperty: Property<String> = objectFactory.property(String::class.java)
     private val productNameProperty: Property<String> = objectFactory.property(String::class.java)
@@ -41,11 +35,11 @@ abstract class ProjectInfo {
     private val organizationProperty: Property<String> = objectFactory.property(String::class.java)
 
     init {
-        productIDProperty.set("ICM")
-        productNameProperty.set("Intershop Commerce Management 7")
-        copyrightOwnerProperty.set("Intershop Communications")
-        copyrightFromProperty.set("2005")
-        organizationProperty.set("Intershop Communications")
+        productIDProperty.convention("ICM")
+        productNameProperty.convention("Intershop Commerce Management 7")
+        copyrightOwnerProperty.convention("Intershop Communications")
+        copyrightFromProperty.convention("2005")
+        organizationProperty.convention("Intershop Communications")
     }
 
     /**

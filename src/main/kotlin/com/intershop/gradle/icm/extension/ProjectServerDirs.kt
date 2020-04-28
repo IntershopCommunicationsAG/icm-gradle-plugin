@@ -23,10 +23,7 @@ import org.gradle.api.model.ObjectFactory
 import org.gradle.util.ConfigureUtil
 import javax.inject.Inject
 
-abstract class ProjectServerDirs {
-
-    @get:Inject
-    abstract val objectFactory: ObjectFactory
+abstract class ProjectServerDirs @Inject constructor(objectFactory: ObjectFactory ) {
 
     val base: ServerDirSet = objectFactory.newInstance(ServerDirSet::class.java)
 

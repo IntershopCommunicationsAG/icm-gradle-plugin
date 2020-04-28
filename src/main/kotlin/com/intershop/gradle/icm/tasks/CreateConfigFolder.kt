@@ -31,9 +31,10 @@ import org.gradle.api.tasks.TaskAction
 import javax.inject.Inject
 
 open class CreateConfigFolder
-        @Inject constructor(projectLayout: ProjectLayout,
-                            objectFactory: ObjectFactory,
-                            fsOps: FileSystemOperations): AbstractCreateFolder(projectLayout, objectFactory, fsOps) {
+        @Inject constructor(
+            projectLayout: ProjectLayout,
+            objectFactory: ObjectFactory,
+            fsOps: FileSystemOperations): AbstractCreateFolder(projectLayout, objectFactory, fsOps) {
 
     init {
         outputDirProperty.convention(projectLayout.buildDirectory.dir("server/system-conf"))
@@ -45,9 +46,9 @@ open class CreateConfigFolder
     fun provideCartridgeListFile(file: Provider<RegularFile>) = cartridgeList.set(file)
 
     override fun addPackages(cs: CopySpec) {
-        PackageUtil.addPackageToCS(project, baseProject.get().dependency, "configuration", cs, baseProject.get().configPackage, listOf("**/**/${ICMProjectPlugin.CARTRIDGELIST_FILENAME}"))
+        PackageUtil.addPackageToCS(project, baseProject.get().dependency.get(), "configuration", cs, baseProject.get().configPackage, listOf("**/**/${ICMProjectPlugin.CARTRIDGELIST_FILENAME}"))
         modules.get().forEach { (_, prj) ->
-            PackageUtil.addPackageToCS(project, prj.dependency, "configuration", cs, prj.configPackage, listOf("**/**/${ICMProjectPlugin.CARTRIDGELIST_FILENAME}"))
+            PackageUtil.addPackageToCS(project, prj.dependency.get(), "configuration", cs, prj.configPackage, listOf("**/**/${ICMProjectPlugin.CARTRIDGELIST_FILENAME}"))
         }
 
         val clfCS = project.copySpec()

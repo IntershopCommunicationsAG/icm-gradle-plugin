@@ -35,9 +35,9 @@ open class CreateSitesFolder
     }
 
     override fun addPackages(cs: CopySpec) {
-        PackageUtil.addPackageToCS(project, baseProject.get().dependency, "sites", cs, baseProject.get().sitesPackage, listOf())
+        PackageUtil.addPackageToCS(project, baseProject.get().dependency.get(), "sites", cs, baseProject.get().sitesPackage, listOf())
         modules.get().forEach { (_, prj) ->
-            PackageUtil.addPackageToCS(project, prj.dependency, "sites", cs, prj.sitesPackage, listOf())
+            PackageUtil.addPackageToCS(project, prj.dependency.get(), "sites", cs, prj.sitesPackage, listOf())
         }
     }
 

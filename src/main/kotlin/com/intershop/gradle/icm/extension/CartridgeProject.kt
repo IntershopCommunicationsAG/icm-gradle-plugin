@@ -16,13 +16,10 @@
  */
 package com.intershop.gradle.icm.extension
 
-import com.intershop.gradle.icm.utils.getValue
-import com.intershop.gradle.icm.utils.setValue
 import groovy.lang.Closure
 import org.gradle.api.Action
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
-import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Nested
 import org.gradle.util.ConfigureUtil
@@ -40,8 +37,6 @@ abstract class CartridgeProject {
     @get:Inject
     abstract val objectFactory: ObjectFactory
 
-    private val dependencyProperty: Property<String> = objectFactory.property(String::class.java)
-
     /**
      * Dependency of the base project.
      *
@@ -49,10 +44,7 @@ abstract class CartridgeProject {
      */
 
     @get:Input
-    var dependency by dependencyProperty
-
-    val dependencyProvider: Provider<String>
-        get() = dependencyProperty
+    val dependency: Property<String> = objectFactory.property(String::class.java)
 
     /**
      * Configuration for configuration package.

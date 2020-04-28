@@ -33,6 +33,6 @@ open class ZipStaticFiles: Zip() {
 
         destinationDirectory.set(File(project.buildDir, "staticfiles"))
 
-        from("staticfiles/cartridge")
+        this.from("staticfiles/cartridge")
     }
 }

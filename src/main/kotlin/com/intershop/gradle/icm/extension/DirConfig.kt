@@ -14,7 +14,6 @@
  * limitations under the License.
  *
  */
-
 package com.intershop.gradle.icm.extension
 
 import org.gradle.api.file.DirectoryProperty
@@ -23,10 +22,11 @@ import org.gradle.api.provider.Property
 import org.gradle.api.provider.SetProperty
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Optional
 import javax.inject.Inject
 
-abstract class DirConfig(val name: String) {
+abstract class DirConfig(@Internal val name: String) {
 
     @get:Inject
     abstract val objectFactory: ObjectFactory

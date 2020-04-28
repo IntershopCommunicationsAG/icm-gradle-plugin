@@ -175,17 +175,17 @@ class TestRepo {
                         classifier: "configuration",
                         ext: "zip",
                         entries: [
-                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'system-conf/apps/file.txt', content: 'apps = test1.component'),
+                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'system-conf/apps/file.txt', content: "apps = test1.component(com.intershop.icm:${projectName}:${version})"),
                                 TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'system-conf/cluster/cartridgelist.properties', content: getTextResources('cartridgelist/cartridgelist.properties')),
-                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'system-conf/cluster/version.properties', content: "testprop = 5")
+                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'system-conf/cluster/version.properties', content: "testprop = com.intershop.icm:${projectName}:${version}")
                         ]
                 )
                 artifact (
                         classifier: "sites",
                         ext: "zip",
                         entries: [
-                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'sites/SLDSystem/file.txt', content: 'SLDSystem = test1.component'),
-                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'sites/SMC/file.txt', content: 'smc = test1.component')
+                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'sites/SLDSystem/file.txt', content: "SLDSystem = test1.site (com.intershop.icm:${projectName}:${version}"),
+                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'sites/SMC/file.txt', content: "smc = test2.site (com.intershop.icm:${projectName}:${version}")
                         ]
                 )
                 artifact (
@@ -205,17 +205,17 @@ class TestRepo {
                         classifier: "configuration",
                         ext: "zip",
                         entries: [
-                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'system-conf/apps/file2.txt', content: 'apps = test2.component'),
+                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'system-conf/apps/file2.txt', content: "apps = test2.component (${group}:${projectName}:${version})"),
                                 TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'system-conf/cluster/cartridgelist.properties', content: getTextResources('cartridgelist/cartridgelist.properties')),
-                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'system-conf/cluster/version.properties', content: "testprop = 5")
+                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'system-conf/cluster/version.properties', content: "testprop = ${group}:${projectName}:${version}")
                         ]
                 )
                 artifact (
                         classifier: "sites",
                         ext: "zip",
                         entries: [
-                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'sites/customer1_site/file.txt', content: 'customer1_site = test1.component'),
-                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'sites/customer2_site/file.txt', content: 'customer2_site = test1.component')
+                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'sites/customer1_site/file.txt', content: "customer1_site = test1.component (${group}:${projectName}:${version})"),
+                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'sites/customer2_site/file.txt', content: "customer2_site = test1.component (${group}:${projectName}:${version})")
                         ]
                 )
             }
@@ -231,15 +231,15 @@ class TestRepo {
                         ext: "zip",
                         entries: [
                                 TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'system-conf/apps/paymenr.txt', content: 'payment = test2.component'),
-                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'system-conf/cluster/version.properties', content: "testprop = 5")
+                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'system-conf/cluster/version.properties', content: "testprop = ${group}:${projectName}:${version}")
                         ]
                 )
                 artifact (
                         classifier: "sites",
                         ext: "zip",
                         entries: [
-                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'sites/payment1_site/file.txt', content: 'customer1_site = test1.component'),
-                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'sites/payment2/file.txt', content: 'customer2_site = test1.component')
+                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'sites/payment1_site/file.txt', content: "customer1_site = test1.site ${group}:${projectName}:${version}"),
+                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'sites/payment2/file.txt', content: "customer2_site = test2.site ${group}:${projectName}:${version}")
                         ]
                 )
             }
@@ -254,17 +254,17 @@ class TestRepo {
                         classifier: "configuration",
                         ext: "zip",
                         entries: [
-                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'system-conf/apps/file.txt', content: 'apps = test1.component'),
+                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'system-conf/apps/file.txt', content: "apps = test1.component (com.intershop.icm:${projectName}:${version})"),
                                 TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'system-conf/cluster/cartridgelist.properties', content: getTextResources('cartridgelist/cartridgelist.properties')),
-                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'system-conf/cluster/version.properties', content: "testprop = 5")
+                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'system-conf/cluster/version.properties', content: "testprop = com.intershop.icm:${projectName}:${version}")
                         ]
                 )
                 artifact (
                         classifier: "sites",
                         ext: "zip",
                         entries: [
-                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'sites/SLDSystem/file.txt', content: 'SLDSystem = test1.component'),
-                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'sites/SMC/file.txt', content: 'smc = test1.component')
+                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'sites/SLDSystem/file.txt', content: "SLDSystem = test1.site com.intershop.icm:${projectName}:${version}"),
+                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'sites/SMC/file.txt', content: "smc = test2.site com.intershop.icm:${projectName}:${version}")
                         ]
                 )
             }
@@ -279,9 +279,9 @@ class TestRepo {
                         classifier: "configuration",
                         ext: "zip",
                         entries: [
-                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'system-conf/apps/file.txt', content: 'apps = test1.component'),
+                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'system-conf/apps/file.txt', content: "apps = test1.component com.intershop.icm:${projectName}:${version}"),
                                 TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'system-conf/cluster/cartridgelist.properties', content: getTextResources('cartridgelist/cartridgelist.properties')),
-                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'system-conf/cluster/version.properties', content: "testprop = 5")
+                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'system-conf/cluster/version.properties', content: "testprop = com.intershop.icm:${projectName}:${version}")
                         ]
                 )
             }

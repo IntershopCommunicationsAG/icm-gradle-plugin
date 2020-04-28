@@ -145,7 +145,7 @@ open class SetupCartridges @Inject constructor(
                 val libFiles = getLibsFor(dependency, filter)
                 libFiles.forEach { lib ->
                     project.logger.info("{}: Copy {} to {}.", dependency.name, lib.key, lib.value)
-                    libsCS.from(lib.key).rename(lib.key.name, lib.value)
+                    libsCS.from(lib.key).rename(".*", lib.value)
                 }
                 fsOps.run {
                     sync {
@@ -194,7 +194,6 @@ open class SetupCartridges @Inject constructor(
                 val identifier = artifact.id
                 if(identifier is DefaultModuleComponentArtifactIdentifier) {
                     val id = CartridgeUtil.getFileIDFrom(identifier.componentIdentifier)
-
                     val name = "${id}.${artifact.type}"
 
                     if(! CartridgeUtil.isCartridge(project, identifier.componentIdentifier) && ! filter.contains(id)) {

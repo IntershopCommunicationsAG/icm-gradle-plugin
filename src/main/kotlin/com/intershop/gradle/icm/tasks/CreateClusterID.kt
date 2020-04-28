@@ -33,7 +33,7 @@ import javax.inject.Inject
  * This taks creates an UID with Java functionality
  * in the required format.
  */
-open class CreateClusterID@Inject constructor(
+open class CreateClusterID @Inject constructor(
         projectLayout: ProjectLayout,
         objectFactory: ObjectFactory) : DefaultTask() {
 

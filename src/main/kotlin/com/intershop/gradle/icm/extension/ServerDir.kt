@@ -26,12 +26,10 @@ import org.gradle.api.tasks.Optional
 import javax.inject.Inject
 
 abstract class ServerDir
-    @Inject constructor(defaultTarget: String,
+    @Inject constructor(objectFactory: ObjectFactory,
+                        defaultTarget: String,
                         defaultExcludes: List<String>,
                         defaultIncludes: List<String>) {
-
-    @get:Inject
-    abstract val objectFactory: ObjectFactory
 
     @get:Optional
     @get:Nested

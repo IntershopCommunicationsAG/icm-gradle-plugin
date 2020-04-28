@@ -17,6 +17,10 @@
 
 package com.intershop.gradle.icm.extension
 
+import com.intershop.gradle.icm.ICMProjectPlugin.Companion.CONFIG_FOLDER
+import com.intershop.gradle.icm.ICMProjectPlugin.Companion.PROD_CONTAINER_FOLDER
+import com.intershop.gradle.icm.ICMProjectPlugin.Companion.SERVER_FOLDER
+import com.intershop.gradle.icm.ICMProjectPlugin.Companion.TEST_CONTAINER_FOLDER
 import com.intershop.gradle.icm.utils.getValue
 import com.intershop.gradle.icm.utils.setValue
 import groovy.lang.Closure
@@ -35,13 +39,6 @@ import javax.inject.Inject
  */
 abstract class ProjectConfiguration {
 
-    companion object {
-        /**
-         * Path in build directory for external cartridges.
-         */
-        const val EXTERNAL_CARTRIDGE_PATH = "default/cartridges"
-    }
-
     /**
      * Inject service of ObjectFactory (See "Service injection" in Gradle documentation.
      */
@@ -59,6 +56,13 @@ abstract class ProjectConfiguration {
 
     private val cartridgesProperty: SetProperty<String> = objectFactory.setProperty(String::class.java)
     private val dbprepareCartridgesProperty: SetProperty<String> = objectFactory.setProperty(String::class.java)
+
+
+    val prodConfigFolder = projectLayout.buildDirectory.dir("$PROD_CONTAINER_FOLDER/$CONFIG_FOLDER").get().asFile
+
+    val testConfigFolder = projectLayout.buildDirectory.dir("$TEST_CONTAINER_FOLDER/$CONFIG_FOLDER").get().asFile
+
+    val developmentConfigFolder = projectLayout.buildDirectory.dir("$SERVER_FOLDER/$CONFIG_FOLDER").get().asFile
 
     /**
      * Base project configuration for final project.

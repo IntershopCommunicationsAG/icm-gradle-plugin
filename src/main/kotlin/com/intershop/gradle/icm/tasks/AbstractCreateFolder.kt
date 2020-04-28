@@ -40,9 +40,9 @@ import java.io.File
 import javax.inject.Inject
 
 abstract class AbstractCreateFolder
-        @Inject constructor(val projectLayout: ProjectLayout,
-                            val objectFactory: ObjectFactory,
-                            val fsOps: FileSystemOperations): DefaultTask() {
+        @Inject constructor(@Internal val projectLayout: ProjectLayout,
+                            @Internal val objectFactory: ObjectFactory,
+                            @Internal val fsOps: FileSystemOperations): DefaultTask() {
 
     @get:Internal
     val outputDirProperty: DirectoryProperty = objectFactory.directoryProperty()

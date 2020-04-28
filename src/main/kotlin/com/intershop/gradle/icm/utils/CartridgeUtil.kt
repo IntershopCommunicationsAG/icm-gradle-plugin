@@ -62,7 +62,7 @@ object CartridgeUtil {
      *  @param identifier module identifier of the dependency
      */
     fun getFileIDFrom(identifier: ModuleComponentIdentifier): String {
-        return "${identifier.group}-${identifier.module}- ${identifier.version}"
+        return "${identifier.group}-${identifier.module}-${identifier.version}"
     }
 
     /**
