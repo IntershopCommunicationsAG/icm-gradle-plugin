@@ -23,44 +23,99 @@ import org.gradle.api.model.ObjectFactory
 import org.gradle.util.ConfigureUtil
 import javax.inject.Inject
 
-abstract class ProjectServerDirs @Inject constructor(objectFactory: ObjectFactory ) {
+/**
+ * This is part of the project extension and describes
+ * different directory configurations for different
+ * environment types (prod, dev, test).
+ *
+ * @constructor creates a configuration of a set of ServerDirs.
+ */
+open class ProjectServerDirs @Inject constructor(objectFactory: ObjectFactory ) {
 
     val base: ServerDirSet = objectFactory.newInstance(ServerDirSet::class.java)
 
+    /**
+     * Configures a ServerDirSet from an action
+     * to the base configuration.
+     *
+     * @param action ServerDirSet configuration
+     */
     fun base(action: Action<in ServerDirSet>) {
         action.execute(base)
     }
 
+    /**
+     * Configures a ServerDirSet from an action
+     * to the base configuration.
+     *
+     * @param c ServerDirSet closure
+     */
     fun base(c: Closure<ServerDirSet>) {
         ConfigureUtil.configure(c, base)
     }
 
     val prod: ServerDirSet = objectFactory.newInstance(ServerDirSet::class.java)
 
+    /**
+     * Configures a ServerDirSet from an action
+     * to the prod configuration.
+     *
+     * @param action ServerDirSet configuration
+     */
     fun prod(action: Action<in ServerDirSet>) {
         action.execute(prod)
     }
 
+    /**
+     * Configures a ServerDirSet from an action
+     * to the prod configuration.
+     *
+     * @param c ServerDirSet closure
+     */
     fun prod(c: Closure<ServerDirSet>) {
         ConfigureUtil.configure(c, prod)
     }
 
     val test: ServerDirSet = objectFactory.newInstance(ServerDirSet::class.java)
 
+    /**
+     * Configures a ServerDirSet from an action
+     * to the test configuration.
+     *
+     * @param action ServerDirSet configuration
+     */
     fun test(action: Action<in ServerDirSet>) {
         action.execute(test)
     }
 
+    /**
+     * Configures a ServerDirSet from an action
+     * to the test configuration.
+     *
+     * @param c ServerDirSet closure
+     */
     fun test(c: Closure<ServerDirSet>) {
         ConfigureUtil.configure(c, test)
     }
 
     val dev: ServerDirSet = objectFactory.newInstance(ServerDirSet::class.java)
 
+    /**
+     * Configures a ServerDirSet from an action
+     * to the development configuration.
+     *
+     * @param action ServerDirSet configuration
+     */
     fun dev(action: Action<in ServerDirSet>) {
         action.execute(dev)
     }
 
+    /**
+     * Configures a ServerDirSet from an action
+     * to the development configuration.
+     *
+     * @param c ServerDirSet closure
+     */
     fun dev(c: Closure<ServerDirSet>) {
         ConfigureUtil.configure(c, dev)
     }

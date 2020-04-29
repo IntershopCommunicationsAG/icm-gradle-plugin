@@ -26,6 +26,12 @@ import org.slf4j.LoggerFactory
 import java.io.File
 import javax.inject.Inject
 
+/**
+ * Extends the extension with important
+ * file directories for the server.
+ *
+ * @constructor creates a configuration from environment variables.
+ */
 open class DevelopmentConfiguration
     @Inject constructor(objectFactory: ObjectFactory, providerFactory: ProviderFactory) {
 

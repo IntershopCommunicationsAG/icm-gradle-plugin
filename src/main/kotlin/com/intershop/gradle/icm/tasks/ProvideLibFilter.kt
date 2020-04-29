@@ -48,17 +48,35 @@ open class ProvideLibFilter @Inject constructor(
     @get:Input
     val baseDependency: Property<String> = objectFactory.property(String::class.java)
 
+    /**
+     * This methods provides the dependency of the base project to the task.
+     * Only a module dependency is allowed.
+     *
+     * @param dependency   dependency of the base project.
+     */
     fun provideBaseDependency(dependency: Provider<String>) = baseDependency.set(dependency)
 
     @get:Optional
     @get:Input
     val fileDependency: Property<String> = objectFactory.property(String::class.java)
 
+    /**
+     * This methods provides the dependency of single libfilter file
+     * as a dependency to the task. Only a module dependency is allowed.
+     * Type and extension is txt. The classifier is 'libs'.
+     *
+     * @param dependency   dependency of the file.
+     */
     fun provideFileDependency(dependency: Provider<String>) = fileDependency.set(dependency)
 
     @get:OutputFile
     val outputFile: RegularFileProperty = objectFactory.fileProperty()
 
+    /**
+     * Provide the output file for the task.
+     *
+     * @param file regular file provider.
+     */
     fun provideOutputFile(file: Provider<RegularFile>) = outputFile.set(file)
 
     init {
@@ -68,6 +86,10 @@ open class ProvideLibFilter @Inject constructor(
         outputFile.convention(projectLayout.buildDirectory.file("libfilter/libfilter.txt"))
     }
 
+    /**
+     * Task execution method of this task.
+     * It downloads the property file and stores the result as output file.
+     */
     @TaskAction
     fun downloadFile() {
         val dependency = when {

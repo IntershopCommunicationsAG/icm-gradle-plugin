@@ -25,7 +25,16 @@ import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.Optional
 import javax.inject.Inject
 
-abstract class ServerDir
+/**
+ * This is part of the project extension and describes
+ * a list of directory configuration with excludes and
+ * includes. Furthermore it contains a property for the target.
+ * The task that uses this configuration transforms this
+ * to copyspec configuration.
+ *
+ * @constructor creates a configuration of a simple copyspec.
+ */
+open class ServerDir
     @Inject constructor(objectFactory: ObjectFactory,
                         defaultTarget: String,
                         defaultExcludes: List<String>,
@@ -39,16 +48,36 @@ abstract class ServerDir
     @get:Input
     val excludes: SetProperty<String> = objectFactory.setProperty(String::class.java)
 
+    /**
+     * Adds a single pattern to the exclude list.
+     *
+     * @param pattern Ant style file pattern.
+     */
     fun exclude(pattern: String) = excludes.add(pattern)
 
+    /**
+     * Adds a collection of patterns to the exclude list.
+     *
+     * @param patterns a collection of Ant style file pattern.
+     */
     fun excludes(patterns: Collection<String>) = excludes.addAll(patterns)
 
     @get:Optional
     @get:Input
     val includes: SetProperty<String> = objectFactory.setProperty(String::class.java)
 
+    /**
+     * Adds a single pattern to the include list.
+     *
+     * @param pattern Ant style file pattern.
+     */
     fun include(pattern: String) = includes.add(pattern)
 
+    /**
+     * Adds a collection of patterns to the include list.
+     *
+     * @param patterns a collection of Ant style file pattern.
+     */
     fun includes(patterns: Collection<String>) = includes.addAll(patterns)
 
     @get:Optional

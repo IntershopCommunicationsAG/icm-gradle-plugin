@@ -54,18 +54,35 @@ open class ProvideCartridgeListTemplate
     @get:Input
     val baseDependency: Property<String> = objectFactory.property(String::class.java)
 
-
+    /**
+     * This methods provides the dependency of the base project to the task.
+     * Only a module dependency is allowed.
+     *
+     * @param dependency   dependency of the base project.
+     */
     fun provideBaseDependency(dependency: Provider<String>) = baseDependency.set(dependency)
 
     @get:Optional
     @get:Input
     val fileDependency: Property<String> = objectFactory.property(String::class.java)
 
+    /**
+     * This methods provides the dependency of single cartridgelist.properties
+     * as a dependency to the task. Only a module dependency is allowed.
+     * Type and extension is properties. The classifier is 'cartridgelist'.
+     *
+     * @param dependency   dependency of the file.
+     */
     fun provideFileDependency(dependency: Provider<String>) = fileDependency.set(dependency)
 
     @get:OutputFile
     val outputFile: RegularFileProperty = objectFactory.fileProperty()
 
+    /**
+     * Provide the output file for the task.
+     *
+     * @param file regular file provider.
+     */
     fun provideOutputFile(file: Provider<RegularFile>) = outputFile.set(file)
 
     init {
@@ -75,6 +92,10 @@ open class ProvideCartridgeListTemplate
         outputFile.convention(projectLayout.buildDirectory.file("cartridgelisttemplate/cartridgelist.properties"))
     }
 
+    /**
+     * Task execution method of this task.
+     * It downloads the property file and stores the result as output file.
+     */
     @TaskAction
     fun downloadFile() {
         if(fileDependency.isPresent && fileDependency.get().isNotEmpty()) {
@@ -112,7 +133,7 @@ open class ProvideCartridgeListTemplate
 
         dep.artifact {
             it.name = dep.name
-            it.classifier = "properties"
+            it.classifier = "cartridgelist"
             it.extension = "properties"
             it.type = "properties"
         }

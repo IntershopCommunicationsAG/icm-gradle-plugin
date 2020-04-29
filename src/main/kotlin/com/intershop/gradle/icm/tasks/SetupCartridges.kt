@@ -14,7 +14,6 @@
  * limitations under the License.
  *
  */
-
 package com.intershop.gradle.icm.tasks
 
 import com.intershop.gradle.icm.extension.IntershopExtension
@@ -59,17 +58,37 @@ open class SetupCartridges @Inject constructor(
     @get:Input
     val cartridges: SetProperty<String> = objectFactory.setProperty(String::class.java)
 
+    /**
+     * Provides a list of cartridges - module dependencies and project names - to
+     * the task. Dependent on the cartridge style and the configured environments
+     * the tasks will be downloaded to the project.
+     *
+     * @param list  provider of a set of strings.
+     */
     fun provideCartridges(list: Provider<Set<String>>) = cartridges.set(list)
 
     @get:Input
     val dbprepareCartridges: SetProperty<String> = objectFactory.setProperty(String::class.java)
 
+    /**
+     * Provides a list of db initialization cartridges - module dependencies and project names -
+     * to the task. Dependent on the cartridge style and the configured environments
+     * the tasks will be downloaded to the project.
+     *
+     * @param list  provider of a set of strings.
+     */
     fun provideDBprepareCartridges(list: Provider<Set<String>>) = dbprepareCartridges.set(list)
 
     @get:Optional
     @get:InputFile
     val libFilterFile: RegularFileProperty = objectFactory.fileProperty()
 
+    /**
+     * Provides a file with a list of installed 3rd party libs in the base project container.
+     * See also task ProvideLibFilter.
+     *
+     * @param libFilter regular file provider.
+     */
     fun provideLibFilterFile(libFilter: Provider<RegularFile>) = libFilterFile.set(libFilter)
 
     @get:Optional

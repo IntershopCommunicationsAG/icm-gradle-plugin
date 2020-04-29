@@ -34,6 +34,8 @@ import javax.inject.Inject
 
 /**
  * Extension of an Intershop ICM project.
+ *
+ * @constructor creates the extension of a project configuration.
  */
 abstract class ProjectConfiguration @Inject constructor(objectFactory: ObjectFactory, projectLayout: ProjectLayout) {
 

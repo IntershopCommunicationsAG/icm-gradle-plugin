@@ -26,8 +26,10 @@ import org.gradle.util.ConfigureUtil
 import javax.inject.Inject
 
 /**
- * Extension to configure sub projects, like connectors,
- * payment provider etc.
+ * This is part of the project extension and  describes
+ * sub projects, like connectors, payment provider etc.
+ *
+ * @constructor provides a sub project configuration.
  */
 open class CartridgeProject @Inject constructor(objectFactory: ObjectFactory) {
 
@@ -47,10 +49,20 @@ open class CartridgeProject @Inject constructor(objectFactory: ObjectFactory) {
     @get:Nested
     val configPackage : FilePackage = objectFactory.newInstance(FilePackage::class.java)
 
+    /**
+     * Provides the configuration of a package with configuration files.
+     *
+     * @param action action to configure a file package.
+     */
     fun configPackage(action: Action<in FilePackage>) {
         action.execute(configPackage)
     }
 
+    /**
+     * Provides the configuration of a package with configuration files.
+     *
+     * @param c closure to configure a file package.
+     */
     fun configPackage(c: Closure<FilePackage>) {
         ConfigureUtil.configure(c, configPackage)
     }
@@ -63,10 +75,20 @@ open class CartridgeProject @Inject constructor(objectFactory: ObjectFactory) {
     @get:Nested
     val sitesPackage : FilePackage = objectFactory.newInstance(FilePackage::class.java)
 
+    /**
+     * Provides the configuration of a packes with ICM sites files.
+     *
+     * @param action action to configure a file package.
+     */
     fun sitesPackage(action: Action<in FilePackage>) {
         action.execute(sitesPackage)
     }
 
+    /**
+     * Provides the configuration of a package with ICM sites files.
+     *
+     * @param c closure to configure a file package.
+     */
     fun sitesPackage(c: Closure<FilePackage>) {
         ConfigureUtil.configure(c, sitesPackage)
     }

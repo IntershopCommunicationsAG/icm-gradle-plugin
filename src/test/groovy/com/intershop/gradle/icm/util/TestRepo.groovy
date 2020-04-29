@@ -112,7 +112,7 @@ class TestRepo {
         new TestMavenRepoBuilder().repository {
             project(groupId: group, artifactId: artifactID, version: version) {
                 artifact (
-                        classifier: "properties",
+                        classifier: "cartridgelist",
                         ext: "properties",
                         content: getTextResources('cartridgelist/repocartridgelist.properties')
                 )
