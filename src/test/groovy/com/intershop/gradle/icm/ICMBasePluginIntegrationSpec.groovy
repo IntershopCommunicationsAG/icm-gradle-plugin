@@ -16,6 +16,7 @@
  */
 package com.intershop.gradle.icm
 
+import com.intershop.gradle.icm.tasks.CreateServerInfo
 import com.intershop.gradle.test.AbstractIntegrationGroovySpec
 import org.gradle.testkit.runner.TaskOutcome
 import spock.lang.Ignore
@@ -102,7 +103,7 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         gradleVersion << supportedGradleVersions
     }
 
-    def 'CreateServerInfoProperties is configured and works with default'() {
+    def 'CreateServerInfo is configured and works with default'() {
         given:
         settingsFile << """
         rootProject.name='rootproject'
@@ -121,23 +122,23 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         when:
         def result = getPreparedGradleRunner()
-                .withArguments("createServerInfoProperties")
+                .withArguments("createServerInfo")
                 .withGradleVersion(gradleVersion)
                 .build()
 
-        File f = new File(testProjectDir, "build/serverInfoProps/version.properties")
+        File f = new File(testProjectDir, "build/${CreateServerInfo.VERSIONINFO}")
         Properties props = new Properties()
         props.load(f.newDataInputStream())
 
         then:
-        result.task(':createServerInfoProperties').outcome == SUCCESS
+        result.task(':createServerInfo').outcome == SUCCESS
         props.getProperty("version.information.productName") == "Intershop Commerce Management 7"
 
         where:
         gradleVersion << supportedGradleVersions
     }
 
-    def 'CreateServerInfoProperties is configured and works with changed configuration'() {
+    def 'CreateServerInfo is configured and works with changed configuration'() {
         given:
         settingsFile << """
         rootProject.name='rootproject'
@@ -159,16 +160,16 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         when:
         def result = getPreparedGradleRunner()
-                .withArguments("createServerInfoProperties")
+                .withArguments("createServerInfo")
                 .withGradleVersion(gradleVersion)
                 .build()
 
-        File f = new File(testProjectDir, "build/serverInfoProps/version.properties")
+        File f = new File(testProjectDir, "build/${CreateServerInfo.VERSIONINFO}")
         Properties props = new Properties()
         props.load(f.newDataInputStream())
 
         then:
-        result.task(':createServerInfoProperties').outcome == SUCCESS
+        result.task(':createServerInfo').outcome == SUCCESS
         props.getProperty("version.information.productName") == "Intershop Commerce Management 7 B2C"
 
         where:

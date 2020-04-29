@@ -57,31 +57,36 @@ object PackageUtil {
 
     fun addSpecConfig(cs: CopySpec, pkg: FilePackage) {
         with(pkg) {
-            excludes.forEach {
+            excludes.get().forEach {
                 cs.exclude(it)
             }
-            includes.forEach {
+            includes.get().forEach {
                 cs.include(it)
             }
-            if (! targetPath.isNullOrEmpty()) {
-                cs.into(targetPath!!)
+            if (targetPath.isPresent && ! targetPath.get().isNullOrEmpty()) {
+                cs.into(targetPath)
             }
-            if (duplicateStrategy != DuplicatesStrategy.INHERIT) {
-                cs.duplicatesStrategy = duplicateStrategy
+            if (duplicateStrategy.isPresent && duplicateStrategy.get() != DuplicatesStrategy.INHERIT) {
+                cs.duplicatesStrategy = duplicateStrategy.get()
             }
         }
     }
 
-    fun addPackageToCS(project: Project, dependency: String, classifier: String,  cs: CopySpec, pkg: FilePackage, excludes: List<String>) {
+    fun addPackageToCS(project: Project,
+                       dependency: String,
+                       classifier: String,
+                       copySpec: CopySpec,
+                       filePackage: FilePackage,
+                       excludes: List<String>) {
         val file = downloadPackage(project, dependency, classifier)
         if(file != null) {
             val pkgCS = project.copySpec()
             pkgCS.from(project.zipTree(file))
-            addSpecConfig(pkgCS, pkg)
+            addSpecConfig(pkgCS, filePackage)
             if(excludes.isNotEmpty()) {
                 pkgCS.exclude(*excludes.toTypedArray())
             }
-            cs.with(pkgCS)
+            copySpec.with(pkgCS)
         } else {
             project.logger.debug("No package '{}' available for dependency {}", classifier, dependency)
         }

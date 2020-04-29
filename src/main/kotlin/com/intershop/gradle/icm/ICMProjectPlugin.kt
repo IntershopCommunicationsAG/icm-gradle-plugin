@@ -18,10 +18,11 @@ package com.intershop.gradle.icm
 
 import com.intershop.gradle.icm.extension.IntershopExtension
 import com.intershop.gradle.icm.extension.ProjectConfiguration
+import com.intershop.gradle.icm.extension.ProjectInfo
 import com.intershop.gradle.icm.extension.ServerDir
 import com.intershop.gradle.icm.tasks.CopyThirdpartyLibs
 import com.intershop.gradle.icm.tasks.CreateConfigFolder
-import com.intershop.gradle.icm.tasks.CreateServerInfoProperties
+import com.intershop.gradle.icm.tasks.CreateServerInfo
 import com.intershop.gradle.icm.tasks.CreateSitesFolder
 import com.intershop.gradle.icm.tasks.ExtendCartridgeList
 import com.intershop.gradle.icm.tasks.ProvideCartridgeListTemplate
@@ -34,10 +35,8 @@ import com.intershop.gradle.icm.utils.EnvironmentType
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.gradle.api.file.Directory
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.file.ProjectLayout
-import org.gradle.api.provider.Provider
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
@@ -50,9 +49,11 @@ import javax.inject.Inject
 open class ICMProjectPlugin @Inject constructor(private var projectLayout: ProjectLayout) : Plugin<Project> {
 
     companion object {
-        /**
-         * Path for original cartridge list properties in build directory.
-         */
+
+        const val PREPARE_SERVER = "prepareServer"
+        const val PREPARE_TEST_CONTAINER = "prepareTestContainer"
+        const val PREPARE_CONTAINER = "prepareContainer"
+
         const val PROD_CONTAINER_FOLDER = "container"
         const val TEST_CONTAINER_FOLDER = "testcontainer"
         const val SERVER_FOLDER = "server"
@@ -104,217 +105,307 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
                 IntershopExtension::class.java
             ) ?: extensions.create(IntershopExtension.INTERSHOP_EXTENSION_NAME, IntershopExtension::class.java)
 
-            val prepareTask = tasks.maybeCreate("prepareServer").apply {
-                group = IntershopExtension.INTERSHOP_GROUP_NAME
-                description = "starts all tasks for the preparation of a local server"
-            }
-
-            val prepareContainerTask = tasks.maybeCreate("prepareContainer").apply {
-                group = IntershopExtension.INTERSHOP_GROUP_NAME
-                description = "starts all tasks for the preparation of a container build"
-            }
-
-            val prepareTestContainerTask = tasks.maybeCreate("prepareTestContainer").apply {
-                group = IntershopExtension.INTERSHOP_GROUP_NAME
-                description = "starts all tasks for the preparation of a test container build"
-            }
-
-            val infoTask = configureInfoTask(this, extension)
-
-            configureExtCartridgeTask(this, extension, prepareTask, prepareContainerTask, prepareTestContainerTask)
+            configureProjectTasks(this, extension.projectConfig, extension.projectInfo)
 
             configureFolderTasks(this, extension)
         }
     }
+    
+    private fun configureProjectTasks(project: Project,
+                                      projectConfig: ProjectConfiguration,
+                                      projectInfo: ProjectInfo) {
 
-    private fun configureInfoTask(project: Project,
-                                  extension: IntershopExtension) : CreateServerInfoProperties {
-        with(project) {
-            return tasks.maybeCreate(
-                CreateServerInfoProperties.DEFAULT_NAME,
-                CreateServerInfoProperties::class.java
-            ).apply {
-                this.provideProductId(extension.projectInfo.productIDProvider)
-                this.provideProductName(extension.projectInfo.productNameProvider)
-                this.provideCopyrightOwner(extension.projectInfo.copyrightOwnerProvider)
-                this.provideCopyrightFrom(extension.projectInfo.copyrightFromProvider)
-                this.provideOrganization(extension.projectInfo.organizationProvider)
+        val infoTask = getInfoTask(project, projectInfo)
+        val templateCartridgeList = getTplCartridgeListTask(project, projectConfig)
+        val libfilter = getLibFilterTask(project, projectConfig)
+
+        val prepareContainerTask = prepareContainer(
+            project, projectConfig,  libfilter, templateCartridgeList, infoTask)
+        val prepareTestContainerTask = prepareTestContainer(
+            project, projectConfig, libfilter, templateCartridgeList, infoTask)
+        val prepareServerTask = prepareServer(
+            project, projectConfig, libfilter, templateCartridgeList, infoTask)
+
+        val copyLibsProd = get3rdPartyCopyTask(
+            project = project,
+            taskName = COPY_LIBS_PROD,
+            targetDescr = "test container",
+            targetPath = PROD_CONTAINER_FOLDER)
+
+        prepareContainerTask.dependsOn(copyLibsProd)
+
+        val copyLibsTest = get3rdPartyCopyTask(
+            project = project,
+            taskName = COPY_LIBS_TEST,
+            targetDescr = "container",
+            targetPath = TEST_CONTAINER_FOLDER)
+
+        prepareTestContainerTask.dependsOn(copyLibsTest)
+
+        val copyLibs = get3rdPartyCopyTask(
+            project = project,
+            taskName = COPY_LIBS,
+            targetDescr = "local server",
+            targetPath = SERVER_FOLDER)
+
+        prepareServerTask.dependsOn(copyLibs)
+
+        project.subprojects { sub ->
+            sub.tasks.withType(CopyThirdpartyLibs::class.java) { ctlTask ->
+
+                val styleValue =
+                    with(sub.extensions.extraProperties) {
+                        if (has("cartridge.style")) { get("cartridge.style").toString() } else { "all" }
+                    }
+                val style = valueOf(styleValue.toUpperCase())
+
+                ctlTask.provideLibFilterFile(libfilter.outputFile)
+
+                if(style == ALL || SERVER_ENVS.contains(style.environmentType())) {
+                    copyLibs.from(ctlTask.outputs.files)
+                }
+                if(style == ALL || TEST_ONLY_ENVS.contains(style.environmentType())) {
+                    copyLibsTest.from(ctlTask.outputs.files)
+                }
+                if(style == ALL || PROD_ENVS.contains(style.environmentType())) {
+                    copyLibsProd.from(ctlTask.outputs.files)
+                }
             }
         }
     }
 
-    private fun configureExtCartridgeTask(project: Project,
-                                          extension: IntershopExtension,
-                                          prepareTask: Task,
-                                          prepareContainerTask: Task,
-                                          prepareTestContainerTask: Task) {
+    private fun prepareContainer(project: Project,
+                                 projectConfig: ProjectConfiguration,
+                                 libFilterTask: ProvideLibFilter,
+                                 templateTask: ProvideCartridgeListTemplate,
+                                 versionInfoTask: CreateServerInfo): Task {
+
+        val prodSetupCartridgeTask = getSetupCartridgesTask(
+            project = project,
+            projectConfig = projectConfig,
+            taskName = SETUP_CARTRIDGES_PROD,
+            libFilterTask = libFilterTask,
+            environmentTypesList = PROD_ENVS,
+            targetPath = PROD_CONTAINER_FOLDER)
+
+        val createSitesProd = getSitesTask(
+            project = project,
+            projectConfig = projectConfig,
+            taskName = CREATE_SITESFOLDER_PROD,
+            targetPath = PROD_CONTAINER_FOLDER,
+            extraServerDir = projectConfig.serverDirConfig.prod.sites)
+
+        val createConfigProd = getConfigTask(
+            project = project,
+            projectConfig = projectConfig,
+            templateTask = templateTask,
+            versionInfoTask = versionInfoTask,
+            cartridgeListTaskName = EXTEND_CARTRIDGELIST_PROD,
+            createConfigTaskName = CREATE_CONFIGFOLDER_PROD,
+            environmentTypesList = PROD_ENVS,
+            targetPath = PROD_CONTAINER_FOLDER,
+            extraServerDir = projectConfig.serverDirConfig.prod.config)
+
+        return project.tasks.maybeCreate(PREPARE_CONTAINER).apply {
+            group = IntershopExtension.INTERSHOP_GROUP_NAME
+            description = "starts all tasks for the preparation of a container build"
+
+            dependsOn(prodSetupCartridgeTask, createSitesProd, createConfigProd)
+        }
+    }
+
+    private fun prepareTestContainer(project: Project,
+                                     projectConfig: ProjectConfiguration,
+                                     libFilterTask: ProvideLibFilter,
+                                     templateTask: ProvideCartridgeListTemplate,
+                                     versionInfoTask: CreateServerInfo): Task {
+        val testSetupCartridgeTask = getSetupCartridgesTask(
+            project = project,
+            projectConfig = projectConfig,
+            taskName = SETUP_CARTRIDGES_TEST,
+            libFilterTask = libFilterTask,
+            environmentTypesList = TEST_ONLY_ENVS,
+            targetPath = TEST_CONTAINER_FOLDER)
+
+        val createSitesTest = getSitesTask(
+            project = project,
+            projectConfig = projectConfig,
+            taskName = CREATE_SITESFOLDER_TEST,
+            targetPath = TEST_CONTAINER_FOLDER,
+            extraServerDir = projectConfig.serverDirConfig.test.sites)
+
+        val createConfigTest = getConfigTask(
+            project = project,
+            projectConfig = projectConfig,
+            templateTask = templateTask,
+            versionInfoTask = versionInfoTask,
+            cartridgeListTaskName = EXTEND_CARTRIDGELIST_TEST,
+            createConfigTaskName = CREATE_CONFIGFOLDER_TEST,
+            environmentTypesList = TEST_ENVS,
+            targetPath = TEST_CONTAINER_FOLDER,
+            extraServerDir = projectConfig.serverDirConfig.test.config)
+
+        return project.tasks.maybeCreate(PREPARE_TEST_CONTAINER).apply {
+            group = IntershopExtension.INTERSHOP_GROUP_NAME
+            description = "starts all tasks for the preparation of a test container build"
+
+            dependsOn(testSetupCartridgeTask, createSitesTest, createConfigTest)
+        }
+    }
+
+    private fun prepareServer(project: Project,
+                              projectConfig: ProjectConfiguration,
+                              libFilterTask: ProvideLibFilter,
+                              templateTask: ProvideCartridgeListTemplate,
+                              versionInfoTask: CreateServerInfo): Task {
+
+        val setupCartridgeTask = getSetupCartridgesTask(
+            project = project,
+            projectConfig = projectConfig,
+            taskName = SETUP_CARTRIDGES,
+            libFilterTask = libFilterTask,
+            environmentTypesList = SERVER_ENVS,
+            targetPath = SERVER_FOLDER)
+
+        val createSites = getSitesTask(
+            project = project,
+            projectConfig = projectConfig,
+            taskName = CREATE_SITESFOLDER,
+            targetPath = SERVER_FOLDER,
+            extraServerDir = projectConfig.serverDirConfig.dev.sites)
+
+        val createConfig = getConfigTask(
+            project = project,
+            projectConfig = projectConfig,
+            templateTask = templateTask,
+            versionInfoTask = versionInfoTask,
+            cartridgeListTaskName = EXTEND_CARTRIDGELIST,
+            createConfigTaskName = CREATE_CONFIGFOLDER,
+            environmentTypesList = SERVER_ENVS,
+            targetPath = SERVER_FOLDER,
+            extraServerDir = projectConfig.serverDirConfig.dev.config)
+
+        return project.tasks.maybeCreate(PREPARE_SERVER).apply {
+            group = IntershopExtension.INTERSHOP_GROUP_NAME
+            description = "starts all tasks for the preparation of a local server"
+
+            dependsOn(setupCartridgeTask, createSites, createConfig)
+        }
+    }
+
+    private fun getInfoTask(project: Project,
+                            prjInfo: ProjectInfo) : CreateServerInfo {
         with(project) {
-            val templateCartridgeList = tasks.maybeCreate(
-                                                PROVIDE_CARTRIDGELIST_TEMPLATE,
-                                                ProvideCartridgeListTemplate::class.java).apply {
-                provideBaseDependency(extension.projectConfig.base.dependency)
-                provideFileDependency(extension.projectConfig.cartridgeListDependencyProvider)
+            return tasks.maybeCreate(
+                CreateServerInfo.DEFAULT_NAME,
+                CreateServerInfo::class.java
+            ).apply {
+                this.provideProductId(prjInfo.productIDProvider)
+                this.provideProductName(prjInfo.productNameProvider)
+                this.provideCopyrightOwner(prjInfo.copyrightOwnerProvider)
+                this.provideCopyrightFrom(prjInfo.copyrightFromProvider)
+                this.provideOrganization(prjInfo.organizationProvider)
             }
+        }
+    }
 
-            val libfilter = tasks.maybeCreate(PROVIDE_LIBFILTER, ProvideLibFilter::class.java).apply {
-                provideBaseDependency(extension.projectConfig.base.dependency)
-                provideFileDependency(extension.projectConfig.libFilterFileDependencyProvider)
+    private fun getTplCartridgeListTask(project: Project,
+                                        projectConfig: ProjectConfiguration): ProvideCartridgeListTemplate {
+        with(project) {
+            return tasks.maybeCreate(
+                PROVIDE_CARTRIDGELIST_TEMPLATE,
+                ProvideCartridgeListTemplate::class.java
+            ).apply {
+                provideBaseDependency(projectConfig.base.dependency)
+                provideFileDependency(projectConfig.cartridgeListDependencyProvider)
             }
+        }
+    }
 
-            tasks.maybeCreate(SETUP_CARTRIDGES_PROD, SetupCartridges::class.java).apply {
-                provideCartridges(extension.projectConfig.cartridgesProvider)
-                provideDBprepareCartridges(extension.projectConfig.dbprepareCartridgesProvider)
-                provideLibFilterFile(libfilter.outputFile)
-
-                environmentTypes.set(PROD_ENVS)
-
-                provideOutputDir(getProdFolderProviderFor(CARTRIDGE_FOLDER))
+    private fun getLibFilterTask(project: Project,
+                                 projectConfig: ProjectConfiguration): ProvideLibFilter {
+        with(project) {
+            return tasks.maybeCreate(
+                PROVIDE_LIBFILTER,
+                ProvideLibFilter::class.java
+            ).apply {
+                provideBaseDependency(projectConfig.base.dependency)
+                provideFileDependency(projectConfig.libFilterFileDependencyProvider)
             }
+        }
+    }
 
-            tasks.maybeCreate(SETUP_CARTRIDGES_TEST, SetupCartridges::class.java).apply {
-                provideCartridges(extension.projectConfig.cartridgesProvider)
-                provideDBprepareCartridges(extension.projectConfig.dbprepareCartridgesProvider)
-
-                provideLibFilterFile(libfilter.outputFile)
-
-                environmentTypes.set(TEST_ONLY_ENVS)
-
-                provideOutputDir(getTestFolderProviderFor(CARTRIDGE_FOLDER))
+    private fun getSetupCartridgesTask(project: Project,
+                                       projectConfig: ProjectConfiguration,
+                                       taskName: String,
+                                       libFilterTask: ProvideLibFilter,
+                                       environmentTypesList: List<EnvironmentType>,
+                                       targetPath: String): SetupCartridges {
+        return with(project) {
+            tasks.maybeCreate(
+                taskName,
+                SetupCartridges::class.java
+            ).apply {
+                provideCartridges(projectConfig.cartridgesProvider)
+                provideDBprepareCartridges(projectConfig.dbprepareCartridgesProvider)
+                provideLibFilterFile(libFilterTask.outputFile)
+                environmentTypes.set(environmentTypesList)
+                provideOutputDir(projectLayout.buildDirectory.dir("$targetPath/$CARTRIDGE_FOLDER"))
             }
+        }
+    }
 
-            tasks.maybeCreate(SETUP_CARTRIDGES, SetupCartridges::class.java).apply {
-                provideCartridges(extension.projectConfig.cartridgesProvider)
-                provideDBprepareCartridges(extension.projectConfig.dbprepareCartridgesProvider)
-
-                provideLibFilterFile(libfilter.outputFile)
-
-                environmentTypes.set(SERVER_ENVS)
-
-                provideOutputDir(getServerFolderProviderFor(CARTRIDGE_FOLDER))
-            }
-
-            val copyLibsProd = tasks.maybeCreate(COPY_LIBS_PROD, Sync::class.java).apply {
+    private fun get3rdPartyCopyTask(project: Project,
+                                    taskName: String,
+                                    targetDescr: String,
+                                    targetPath: String): Sync {
+        with(project) {
+            return tasks.maybeCreate(
+                taskName,
+                Sync::class.java
+            ).apply {
                 group = IntershopExtension.INTERSHOP_GROUP_NAME
-                description = "Copy all 3rd party libs to one folder for a test container"
+                description = "Copy all 3rd party libs to one folder for a ${targetDescr}"
 
-                this.into(getProdFolderProviderFor(PROJECT_LIBS_FOLDER))
+                this.into(projectLayout.buildDirectory.dir("$targetPath/$PROJECT_LIBS_FOLDER"))
                 this.duplicatesStrategy = DuplicatesStrategy.EXCLUDE
             }
+        }
+    }
 
-            val copyLibsTest = tasks.maybeCreate(COPY_LIBS_TEST, Sync::class.java).apply {
-                group = IntershopExtension.INTERSHOP_GROUP_NAME
-                description = "Copy all 3rd party libs to one folder for a container"
+    private fun getSitesTask(project: Project,
+                             projectConfig: ProjectConfiguration,
+                             taskName: String,
+                             targetPath: String,
+                             extraServerDir: ServerDir): CreateSitesFolder {
+        with(project) {
+            return tasks.maybeCreate(
+                taskName,
+                CreateSitesFolder::class.java
+            ).apply {
+                baseProject.set(projectConfig.base)
+                modules.set(projectConfig.modules.asMap)
 
-                this.into(getTestFolderProviderFor(PROJECT_LIBS_FOLDER))
-                this.duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+                baseDirConfig.set(projectConfig.serverDirConfig.base.sites)
+                extraDirConfig.set(extraServerDir)
+
+                provideOutputDir(projectLayout.buildDirectory.dir("$targetPath/$SITES_FOLDER"))
             }
-
-            val copyLibs = tasks.maybeCreate(COPY_LIBS, Sync::class.java).apply {
-                group = IntershopExtension.INTERSHOP_GROUP_NAME
-                description = "Copy all 3rd party libs to one folder for a local server"
-
-                this.into(getServerFolderProviderFor(PROJECT_LIBS_FOLDER))
-                this.duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-
-                prepareTask.dependsOn(this)
-            }
-
-            subprojects { sub ->
-                sub.tasks.withType(CopyThirdpartyLibs::class.java) { ctlTask ->
-
-                    val styleValue =
-                        with(sub.extensions.extraProperties)
-                            { if (has("cartridge.style")) { get("cartridge.style").toString() } else { "all" }
-                        }
-                    val style = valueOf(styleValue.toUpperCase())
-
-                    ctlTask.provideLibFilterFile(libfilter.outputFile)
-
-                    if(style == ALL || SERVER_ENVS.contains(style.environmentType())) {
-                        copyLibs.from(ctlTask.outputs.files)
-                    }
-                    if(style == ALL || TEST_ONLY_ENVS.contains(style.environmentType())) {
-                        copyLibsTest.from(ctlTask.outputs.files)
-                    }
-                    if(style == ALL || PROD_ENVS.contains(style.environmentType())) {
-                        copyLibsProd.from(ctlTask.outputs.files)
-                    }
-                }
-            }
-
-            // create sites
-            val createSitesProd = tasks.maybeCreate(CREATE_SITESFOLDER_PROD, CreateSitesFolder::class.java).apply {
-                baseProject.set(extension.projectConfig.base)
-                modules.set(extension.projectConfig.modules.asMap)
-
-                baseDirConfig.set(extension.projectConfig.serverDirConfig.base.sites)
-                extraDirConfig.set(extension.projectConfig.serverDirConfig.prod.sites)
-
-                provideOutputDir(getProdFolderProviderFor(SITES_FOLDER))
-            }
-            val createSitesTest = tasks.maybeCreate(CREATE_SITESFOLDER_TEST, CreateSitesFolder::class.java).apply {
-                baseProject.set(extension.projectConfig.base)
-                modules.set(extension.projectConfig.modules.asMap)
-
-                baseDirConfig.set(extension.projectConfig.serverDirConfig.base.sites)
-                extraDirConfig.set(extension.projectConfig.serverDirConfig.test.sites)
-
-                provideOutputDir(getTestFolderProviderFor(SITES_FOLDER))
-            }
-            val createSites = tasks.maybeCreate(CREATE_SITESFOLDER, CreateSitesFolder::class.java).apply {
-                baseProject.set(extension.projectConfig.base)
-                modules.set(extension.projectConfig.modules.asMap)
-
-                baseDirConfig.set(extension.projectConfig.serverDirConfig.base.sites)
-                extraDirConfig.set(extension.projectConfig.serverDirConfig.dev.sites)
-
-                provideOutputDir(getServerFolderProviderFor(SITES_FOLDER))
-            }
-
-            // create conf
-            val createConfigProd = getConfigTask(
-                                                project = project,
-                                                projectConfig = extension.projectConfig,
-                                                templateTask = templateCartridgeList,
-                                                cartrdigListTaskName = EXTEND_CARTRIDGELIST_PROD,
-                                                createConfigTaskName = CREATE_CONFIGFOLDER_PROD,
-                                                environmentTypesList = PROD_ENVS,
-                                                targetPath = PROD_CONTAINER_FOLDER,
-                                                extraServerDir = extension.projectConfig.serverDirConfig.prod.config)
-
-            val createConfigTest = getConfigTask(
-                                                project = project,
-                                                projectConfig = extension.projectConfig,
-                                                templateTask = templateCartridgeList,
-                                                cartrdigListTaskName = EXTEND_CARTRIDGELIST_TEST,
-                                                createConfigTaskName = CREATE_CONFIGFOLDER_TEST,
-                                                environmentTypesList = TEST_ENVS,
-                                                targetPath = TEST_CONTAINER_FOLDER,
-                                                extraServerDir = extension.projectConfig.serverDirConfig.test.config)
-
-            val createConfig = getConfigTask(
-                                                project = project,
-                                                projectConfig = extension.projectConfig,
-                                                templateTask = templateCartridgeList,
-                                                cartrdigListTaskName = EXTEND_CARTRIDGELIST,
-                                                createConfigTaskName = CREATE_CONFIGFOLDER,
-                                                environmentTypesList = SERVER_ENVS,
-                                                targetPath = SERVER_FOLDER,
-                                                extraServerDir = extension.projectConfig.serverDirConfig.dev.config)
         }
     }
 
     private fun getConfigTask(project: Project,
                               projectConfig: ProjectConfiguration,
                               templateTask: ProvideCartridgeListTemplate,
-                              cartrdigListTaskName: String,
+                              versionInfoTask: CreateServerInfo,
+                              cartridgeListTaskName: String,
                               createConfigTaskName: String,
                               environmentTypesList: List<EnvironmentType>,
                               targetPath: String,
                               extraServerDir: ServerDir): CreateConfigFolder {
         with(project) {
 
-            val cartridgeListTask = tasks.maybeCreate(cartrdigListTaskName, ExtendCartridgeList::class.java).apply {
+            val cartridgeListTask = tasks.maybeCreate(cartridgeListTaskName, ExtendCartridgeList::class.java).apply {
                 provideTemplateFile(templateTask.outputFile)
                 provideCartridges(projectConfig.cartridgesProvider)
                 provideDBprepareCartridges(projectConfig.dbprepareCartridgesProvider)
@@ -332,6 +423,7 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
                 extraDirConfig.set(extraServerDir)
 
                 provideCartridgeListFile(cartridgeListTask.outputFile)
+                provideVersionInfoFile(versionInfoTask.outputFile)
 
                 provideOutputDir(projectLayout.buildDirectory.dir("$targetPath/$CONFIG_FOLDER"))
             }
@@ -340,23 +432,10 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
         }
     }
 
-
-    private fun getServerFolderProviderFor(path: String): Provider<Directory> {
-        return projectLayout.buildDirectory.dir("$SERVER_FOLDER/$path")
-    }
-
-    private fun getTestFolderProviderFor(path: String): Provider<Directory> {
-        return projectLayout.buildDirectory.dir("$TEST_CONTAINER_FOLDER/$path")
-    }
-
-    private fun getProdFolderProviderFor(path: String): Provider<Directory> {
-        return projectLayout.buildDirectory.dir("$PROD_CONTAINER_FOLDER/$path")
-    }
-
     private fun configureFolderTasks(project: Project, extension: IntershopExtension) {
         project.afterEvaluate {
-            val confTask = configureConfFolder(it, extension)
-            val sitesFolder = configureSitesFolder(it, extension)
+            val confTask = getZipFolder(it, extension.projectConfig.serverDirConfig.base.config, "configuration")
+            val sitesFolder = getZipFolder(it, extension.projectConfig.serverDirConfig.base.sites, "sites")
             if(confTask != null || sitesFolder != null) {
                 with(project.extensions) {
                     project.plugins.withType(MavenPublishPlugin::class.java) {
@@ -385,36 +464,17 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
         }
     }
 
-    private fun configureConfFolder(project: Project, extension: IntershopExtension) : Task? {
+    private fun getZipFolder(project: Project, serverDir: ServerDir, type: String) : Task? {
         with(project) {
-            val conf = extension.projectConfig.serverDirConfig.base.config
-            if (conf.dirs.isNotEmpty()) {
-                return tasks.maybeCreate("zipConf", org.gradle.api.tasks.bundling.Zip::class.java).apply {
-                    this.with(CopySpecUtil.getCSForServerDir(project, conf))
+            if (serverDir.dirs.isNotEmpty()) {
+                return tasks.maybeCreate("zip${type.capitalize()}", org.gradle.api.tasks.bundling.Zip::class.java).apply {
+                    this.with(CopySpecUtil.getCSForServerDir(project, serverDir))
 
                     this.includeEmptyDirs = false
 
-                    this.archiveFileName.set("configuration.zip")
-                    this.archiveClassifier.set("configuration")
-                    this.destinationDirectory.set(project.layout.buildDirectory.dir("publish/configuration"))
-                }
-            }
-        }
-        return null
-    }
-
-    private fun configureSitesFolder(project: Project, extension: IntershopExtension) : Task? {
-        with(project) {
-            val conf = extension.projectConfig.serverDirConfig.base.sites
-            if (conf.dirs.isNotEmpty()) {
-                return tasks.maybeCreate("zipSites", org.gradle.api.tasks.bundling.Zip::class.java).apply {
-                    this.with(CopySpecUtil.getCSForServerDir(project, conf))
-
-                    this.includeEmptyDirs = false
-
-                    this.archiveFileName.set("sites.zip")
-                    this.archiveClassifier.set("sites")
-                    this.destinationDirectory.set(project.layout.buildDirectory.dir("publish/sites"))
+                    this.archiveFileName.set("${type}.zip")
+                    this.archiveClassifier.set(type)
+                    this.destinationDirectory.set(project.layout.buildDirectory.dir("publish/${type}"))
                 }
             }
         }

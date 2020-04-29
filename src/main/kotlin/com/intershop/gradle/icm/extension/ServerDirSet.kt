@@ -18,6 +18,7 @@
 package com.intershop.gradle.icm.extension
 
 import com.intershop.gradle.icm.ICMProjectPlugin.Companion.CARTRIDGELIST_FILENAME
+import com.intershop.gradle.icm.tasks.CreateServerInfo.Companion.VERSIONINFO_FILENAME
 import groovy.lang.Closure
 import org.gradle.api.Action
 import org.gradle.api.model.ObjectFactory
@@ -45,7 +46,7 @@ abstract class ServerDirSet @Inject constructor(objectFactory: ObjectFactory ) {
     val config: ServerDir = objectFactory.newInstance(
         ServerDir::class.java,
         "system-conf",
-        listOf("**/**/${CARTRIDGELIST_FILENAME}"),
+        listOf("**/cluster/${CARTRIDGELIST_FILENAME}", "**/cluster/${VERSIONINFO_FILENAME}"),
         listOf<String>())
 
     fun config(action: Action<in ServerDir>) {

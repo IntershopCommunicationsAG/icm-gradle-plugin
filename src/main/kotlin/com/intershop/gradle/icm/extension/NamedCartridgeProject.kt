@@ -17,6 +17,8 @@
 
 package com.intershop.gradle.icm.extension
 
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.Internal
+import javax.inject.Inject
 
-abstract class NamedCartridgeProject(@Internal val name: String): CartridgeProject()
+open class NamedCartridgeProject @Inject constructor(objectFactory: ObjectFactory, @Internal val name: String): CartridgeProject(objectFactory)

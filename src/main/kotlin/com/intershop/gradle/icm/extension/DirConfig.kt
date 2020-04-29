@@ -26,10 +26,7 @@ import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Optional
 import javax.inject.Inject
 
-abstract class DirConfig(@Internal val name: String) {
-
-    @get:Inject
-    abstract val objectFactory: ObjectFactory
+open class DirConfig @Inject constructor(objectFactory: ObjectFactory, @Internal val name: String) {
 
     @get:Optional
     @get:InputDirectory

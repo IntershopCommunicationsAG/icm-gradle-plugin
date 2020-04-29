@@ -17,8 +17,6 @@
 package com.intershop.gradle.icm.tasks
 
 import com.intershop.gradle.icm.extension.IntershopExtension.Companion.INTERSHOP_GROUP_NAME
-import com.intershop.gradle.icm.utils.getValue
-import com.intershop.gradle.icm.utils.setValue
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.file.RegularFile
@@ -27,11 +25,9 @@ import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import org.gradle.internal.util.PropertiesUtils
-import java.io.File
 import java.io.IOException
 import java.nio.charset.Charset
 import java.time.LocalDateTime
@@ -45,91 +41,71 @@ import javax.inject.Inject
  * This task creates a properties file with all project
  * information. This property is used by the server.
  */
-open class CreateServerInfoProperties @Inject constructor(
+open class CreateServerInfo @Inject constructor(
         projectLayout: ProjectLayout,
         objectFactory: ObjectFactory) : DefaultTask() {
 
     companion object {
-        const val DEFAULT_NAME = "createServerInfoProperties"
-        const val PROJECT_INFO = "serverInfoProps/version.properties"
+        const val DEFAULT_NAME = "createServerInfo"
+
+        const val VERSIONINFO_FILENAME = "version.properties"
+        const val VERSIONINFO_FOLDER = "versioninfo"
+        const val VERSIONINFO = "$VERSIONINFO_FOLDER/$VERSIONINFO_FILENAME"
 
         private val now = LocalDateTime.now()
         val dateTime: String = now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
         val year: String = now.format(DateTimeFormatter.ofPattern("yyyy"))
     }
 
-    @get:Internal
-    val outputFileProperty: RegularFileProperty = objectFactory.fileProperty()
-    private val productIdProperty: Property<String> = objectFactory.property(String::class.java)
-    private val productNameProperty: Property<String> = objectFactory.property(String::class.java)
-    private val copyrightOwnerProperty: Property<String> = objectFactory.property(String::class.java)
-    private val copyrightFromProperty: Property<String> = objectFactory.property(String::class.java)
-    private val organizationProperty: Property<String> = objectFactory.property(String::class.java)
-
-    init {
-        group = INTERSHOP_GROUP_NAME
-        description = "Writes the server information to a file."
-
-        outputFileProperty.convention(projectLayout.buildDirectory.file(PROJECT_INFO))
-    }
-
     @get:Input
-    var productId by productIdProperty
+    val productId: Property<String> = objectFactory.property(String::class.java)
 
     /**
      * Configure product id provider for this task.
      *
      * @property productId provider for product ID
      */
-    fun provideProductId(productId: Provider<String>) = productIdProperty.set(productId)
+    fun provideProductId(id: Provider<String>) = productId.set(id)
 
     @get:Input
-    var productName by productNameProperty
+    val productName: Property<String> = objectFactory.property(String::class.java)
 
     /**
      * Configure product name provider for this task.
      *
      * @property productName provider for product name
      */
-    fun provideProductName(productName: Provider<String>) = productNameProperty.set(productName)
+    fun provideProductName(name: Provider<String>) = productName.set(name)
 
     @get:Input
-    var copyrightOwner by copyrightOwnerProperty
+    val copyrightOwner: Property<String> = objectFactory.property(String::class.java)
 
     /**
      * Configure copyright owner provider for this task.
      *
      * @property copyrightOwner provider for copyright owner property
      */
-    fun provideCopyrightOwner(copyrightOwner: Provider<String>) = copyrightOwnerProperty.set(copyrightOwner)
+    fun provideCopyrightOwner(owner: Provider<String>) = copyrightOwner.set(owner)
 
     @get:Input
-    var copyrightFrom by copyrightFromProperty
+    val copyrightFrom: Property<String> = objectFactory.property(String::class.java)
 
     /**
      * Configure copyright from provider for this task.
      *
      * @property copyrightFrom provider for copyright from property
      */
-    fun provideCopyrightFrom(copyrightFrom: Provider<String>) = copyrightFromProperty.set(copyrightFrom)
+    fun provideCopyrightFrom(from: Provider<String>) = copyrightFrom.set(from)
 
     @get:Input
-    var organization by organizationProperty
+    val organization: Property<String> = objectFactory.property(String::class.java)
 
     /**
      * Configure organization provider for this task.
      *
      * @property organization provider for organization
      */
-    fun provideOrganization(organization: Provider<String>) = organizationProperty.set(organization)
-
-    /**
-     * Provides an output file for this task.
-     *
-     * @param outputfile
-     */
-    fun provideOutputfile(outputfile: Provider<RegularFile>)
-            = outputFileProperty.set(outputfile)
+    fun provideOrganization(org: Provider<String>) = organization.set(org)
 
     /**
      * Output file for generated cluster id.
@@ -137,9 +113,21 @@ open class CreateServerInfoProperties @Inject constructor(
      * @property outputFile
      */
     @get:OutputFile
-    var outputFile: File
-        get() = outputFileProperty.get().asFile
-        set(value) = outputFileProperty.set(value)
+    val outputFile: RegularFileProperty = objectFactory.fileProperty()
+
+    /**
+     * Provides an output file for this task.
+     *
+     * @param outputfile
+     */
+    fun provideOutputfile(file: Provider<RegularFile>) = outputFile.set(file)
+
+    init {
+        group = INTERSHOP_GROUP_NAME
+        description = "Writes the server information to a file."
+
+        outputFile.convention(projectLayout.buildDirectory.file(VERSIONINFO))
+    }
 
     /**
      * Main function to run the task functionality.
@@ -148,8 +136,8 @@ open class CreateServerInfoProperties @Inject constructor(
     @TaskAction
     fun writeProperties(){
 
-        if(! outputFile.parentFile.exists()) {
-            outputFile.parentFile.mkdirs()
+        if(! outputFile.get().asFile.parentFile.exists()) {
+            outputFile.get().asFile.parentFile.mkdirs()
         }
 
         val props = linkedMapOf<String,String>()
@@ -158,20 +146,20 @@ open class CreateServerInfoProperties @Inject constructor(
         props["version.information.version"] = project.version.toString()
         props["version.information.installationDate"] = dateTime
 
-        props["version.information.productId"] = productId
-        props["version.information.productName"] = productName
-        props["version.information.copyrightOwner"] = copyrightOwner
-        props["version.information.copyrightFrom"] = copyrightFrom
+        props["version.information.productId"] = productId.getOrElse("product id")
+        props["version.information.productName"] = productName.getOrElse(project.name)
+        props["version.information.copyrightOwner"] = copyrightOwner.getOrElse("Intershop Communications")
+        props["version.information.copyrightFrom"] = copyrightFrom.getOrElse("2020")
 
         props["version.information.copyrightTo"] = year
-        props["version.information.organization"] = organization
+        props["version.information.organization"] = organization.getOrElse("Intershop Communications")
 
         val propsObject = Properties()
         propsObject.putAll(props)
         try {
             PropertiesUtils.store(
                 propsObject,
-                outputFile,
+                outputFile.get().asFile,
                 comment,
                 Charset.forName("ISO_8859_1"),
                 "\n"

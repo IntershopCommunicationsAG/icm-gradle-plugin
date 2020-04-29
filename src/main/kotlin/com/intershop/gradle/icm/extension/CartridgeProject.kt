@@ -29,20 +29,13 @@ import javax.inject.Inject
  * Extension to configure sub projects, like connectors,
  * payment provider etc.
  */
-abstract class CartridgeProject {
-
-    /**
-     * Inject service of ObjectFactory (See "Service injection" in Gradle documentation.
-     */
-    @get:Inject
-    abstract val objectFactory: ObjectFactory
+open class CartridgeProject @Inject constructor(objectFactory: ObjectFactory) {
 
     /**
      * Dependency of the base project.
      *
      * @property dependency
      */
-
     @get:Input
     val dependency: Property<String> = objectFactory.property(String::class.java)
 

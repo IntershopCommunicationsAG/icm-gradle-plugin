@@ -32,6 +32,7 @@ import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.SetProperty
 import org.gradle.util.ConfigureUtil
+import java.io.File
 import javax.inject.Inject
 
 /**
@@ -51,18 +52,15 @@ abstract class ProjectConfiguration {
     @get:Inject
     abstract val projectLayout: ProjectLayout
 
-    private val cartridgeListDependencyProperty: Property<String> = objectFactory.property(String::class.java)
-    private val libFilterFileDependencyProperty: Property<String> = objectFactory.property(String::class.java)
-
     private val cartridgesProperty: SetProperty<String> = objectFactory.setProperty(String::class.java)
     private val dbprepareCartridgesProperty: SetProperty<String> = objectFactory.setProperty(String::class.java)
 
 
-    val prodConfigFolder = projectLayout.buildDirectory.dir("$PROD_CONTAINER_FOLDER/$CONFIG_FOLDER").get().asFile
+    val prodConfigFolder: File = projectLayout.buildDirectory.dir("$PROD_CONTAINER_FOLDER/$CONFIG_FOLDER").get().asFile
 
-    val testConfigFolder = projectLayout.buildDirectory.dir("$TEST_CONTAINER_FOLDER/$CONFIG_FOLDER").get().asFile
+    val testConfigFolder: File = projectLayout.buildDirectory.dir("$TEST_CONTAINER_FOLDER/$CONFIG_FOLDER").get().asFile
 
-    val developmentConfigFolder = projectLayout.buildDirectory.dir("$SERVER_FOLDER/$CONFIG_FOLDER").get().asFile
+    val developmentConfigFolder: File = projectLayout.buildDirectory.dir("$SERVER_FOLDER/$CONFIG_FOLDER").get().asFile
 
     /**
      * Base project configuration for final project.
@@ -87,18 +85,14 @@ abstract class ProjectConfiguration {
     val modules: NamedDomainObjectContainer<NamedCartridgeProject> = objectFactory.domainObjectContainer(NamedCartridgeProject::class.java)
 
     val cartridgeListDependencyProvider: Provider<String>
-        get() = cartridgeListDependencyProperty
+        get() = cartridgeListDependency
 
-    var cartridgeListDependency: String
-        get() = cartridgeListDependencyProperty.getOrElse("")
-        set(value) = cartridgeListDependencyProperty.set(value)
+    var cartridgeListDependency: Property<String> = objectFactory.property(String::class.java)
 
     val libFilterFileDependencyProvider: Provider<String>
-        get() = libFilterFileDependencyProperty
+        get() = libFilterFileDependency
 
-    var libFilterFileDependency: String
-        get() = libFilterFileDependencyProperty.getOrElse("")
-        set(value) = libFilterFileDependencyProperty.set(value)
+    var libFilterFileDependency: Property<String> = objectFactory.property(String::class.java)
 
     /**
      * Provider of cartridge list extension of a project.

@@ -16,8 +16,6 @@
  */
 package com.intershop.gradle.icm.extension
 
-import com.intershop.gradle.icm.utils.getValue
-import com.intershop.gradle.icm.utils.setValue
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
@@ -30,25 +28,7 @@ import javax.inject.Inject
 /**
  * Object to configure a simple file object to copy.
  */
-abstract class FilePackage {
-
-    /**
-     * Inject service of ObjectFactory (See "Service injection" in Gradle documentation.
-     */
-    @get:Inject
-    abstract val objectFactory: ObjectFactory
-
-    private val excludeProperty: SetProperty<String> = objectFactory.setProperty(String::class.java)
-    private val includeProperty: SetProperty<String> = objectFactory.setProperty(String::class.java)
-
-    private val duplicateStrategyProperty: Property<DuplicatesStrategy>
-            = objectFactory.property(DuplicatesStrategy::class.java)
-
-    private val targetPathProperty: Property<String> = objectFactory.property(String::class.java)
-
-    init {
-        duplicateStrategyProperty.set(DuplicatesStrategy.INHERIT)
-    }
+abstract class FilePackage @Inject constructor(objectFactory: ObjectFactory ) {
 
     /**
      * Set provider for includes matches.
@@ -56,7 +36,7 @@ abstract class FilePackage {
      * @param includes list of includes matches.
      */
     @Suppress("unused")
-    fun provideIncludes(includes: Provider<Set<String>>) = includeProperty.set(includes)
+    fun provideIncludes(provider: Provider<Set<String>>) = includes.set(provider)
 
     /**
      * This list contains includes for file list.
@@ -64,7 +44,7 @@ abstract class FilePackage {
      * @property includes list of includes
      */
     @get:Input
-    var includes by includeProperty
+    var includes: SetProperty<String> = objectFactory.setProperty(String::class.java)
 
     /**
      * Add pattern to include.
@@ -72,7 +52,7 @@ abstract class FilePackage {
      * @param pattern Ant style pattern
      */
     fun include(pattern: String) {
-        includeProperty.add(pattern)
+        includes.add(pattern)
     }
 
     /**
@@ -81,7 +61,7 @@ abstract class FilePackage {
      * @param patterns Ant style pattern
      */
     fun includes(patterns: Collection<String>) {
-        includeProperty.addAll(patterns)
+        includes.addAll(patterns)
     }
 
     /**
@@ -90,7 +70,7 @@ abstract class FilePackage {
      * @param excludes list of excludes matches.
      */
     @Suppress("unused")
-    fun excludes(excludes: Provider<Set<String>>) = excludeProperty.set(excludes)
+    fun excludes(provider: Provider<Set<String>>) = excludes.set(provider)
 
     /**
      * This list contains excludes for file list.
@@ -98,7 +78,7 @@ abstract class FilePackage {
      * @property excludes list of includes
      */
     @get:Input
-    var excludes by excludeProperty
+    var excludes: SetProperty<String> = objectFactory.setProperty(String::class.java)
 
     /**
      * Add pattern to include.
@@ -106,7 +86,7 @@ abstract class FilePackage {
      * @param pattern Ant style pattern
      */
     fun exclude(pattern: String) {
-        excludeProperty.add(pattern)
+        excludes.add(pattern)
     }
 
     /**
@@ -115,7 +95,7 @@ abstract class FilePackage {
      * @param patterns Ant style pattern
      */
     fun excludes(patterns: Collection<String>) {
-        excludeProperty.addAll(patterns)
+        excludes.addAll(patterns)
     }
 
     /**
@@ -124,8 +104,7 @@ abstract class FilePackage {
      * @param duplicateStrategy duplication strategy.
      */
     @Suppress("unused")
-    fun provideDuplicateStrategy(duplicateStrategy: Provider<DuplicatesStrategy>)
-            = duplicateStrategyProperty.set(duplicateStrategy)
+    fun provideDuplicateStrategy(strategy: Provider<DuplicatesStrategy>) = duplicateStrategy.set(strategy)
 
     /**
      * The duplication strategy for this package.
@@ -133,7 +112,7 @@ abstract class FilePackage {
      * @property duplicateStrategy duplication strategy.
      */
     @get:Input
-    var duplicateStrategy by duplicateStrategyProperty
+    val duplicateStrategy: Property<DuplicatesStrategy> = objectFactory.property(DuplicatesStrategy::class.java)
 
     /**
      * Set provider for target path configuration.
@@ -141,11 +120,14 @@ abstract class FilePackage {
      * @param targetPath list of includes matches.
      */
     @Suppress("unused")
-    fun provideTargetPath(targetPath: Provider<String>) = targetPathProperty.set(targetPath)
+    fun provideTargetPath(path: Provider<String>) = targetPath.set(path)
 
     @get:Optional
     @get:Input
-    var targetPath: String?
-        get() = targetPathProperty.orNull
-        set(value) = targetPathProperty.set(value)
+    val targetPath: Property<String> = objectFactory.property(String::class.java)
+
+    init {
+        duplicateStrategy.set(DuplicatesStrategy.INHERIT)
+    }
 }
+

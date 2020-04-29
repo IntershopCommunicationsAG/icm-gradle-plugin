@@ -17,7 +17,8 @@
 
 package com.intershop.gradle.icm.tasks
 
-import com.intershop.gradle.icm.ICMProjectPlugin
+import com.intershop.gradle.icm.ICMProjectPlugin.Companion.CARTRIDGELIST_FILENAME
+import com.intershop.gradle.icm.tasks.CreateServerInfo.Companion.VERSIONINFO_FILENAME
 import com.intershop.gradle.icm.utils.PackageUtil
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.FileSystemOperations
@@ -45,17 +46,35 @@ open class CreateConfigFolder
 
     fun provideCartridgeListFile(file: Provider<RegularFile>) = cartridgeList.set(file)
 
+    @get:InputFile
+    val versionInfo: RegularFileProperty = objectFactory.fileProperty()
+
+    fun provideVersionInfoFile(file: Provider<RegularFile>) = versionInfo.set(file)
+
     override fun addPackages(cs: CopySpec) {
-        PackageUtil.addPackageToCS(project, baseProject.get().dependency.get(), "configuration", cs, baseProject.get().configPackage, listOf("**/**/${ICMProjectPlugin.CARTRIDGELIST_FILENAME}"))
+        PackageUtil.addPackageToCS(
+            project = project,
+            dependency = baseProject.get().dependency.get(),
+            classifier = "configuration",
+            copySpec = cs,
+            filePackage = baseProject.get().configPackage,
+            excludes = listOf("**/cluster/${CARTRIDGELIST_FILENAME}", "**/cluster/${VERSIONINFO_FILENAME}"))
         modules.get().forEach { (_, prj) ->
-            PackageUtil.addPackageToCS(project, prj.dependency.get(), "configuration", cs, prj.configPackage, listOf("**/**/${ICMProjectPlugin.CARTRIDGELIST_FILENAME}"))
+            PackageUtil.addPackageToCS(
+                project = project,
+                dependency = prj.dependency.get(),
+                classifier = "configuration",
+                copySpec = cs,
+                filePackage = prj.configPackage,
+                excludes = listOf("**/cluster/${CARTRIDGELIST_FILENAME}", "**/cluster/${VERSIONINFO_FILENAME}"))
         }
 
-        val clfCS = project.copySpec()
-        clfCS.from(cartridgeList.get())
-        clfCS.into("system-conf/cluster")
+        val fileCS = project.copySpec()
+        fileCS.from(cartridgeList.get())
+        fileCS.from(versionInfo.get())
+        fileCS.into("system-conf/cluster")
 
-        cs.with(clfCS)
+        cs.with(fileCS)
     }
 
     @TaskAction

@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory
 import java.io.File
 import javax.inject.Inject
 
-abstract class DevelopmentConfiguration {
+open class DevelopmentConfiguration @Inject constructor(objectFactory: ObjectFactory, providerFactory: ProviderFactory) {
 
     companion object {
         /**
@@ -43,18 +43,6 @@ abstract class DevelopmentConfiguration {
         const val DEFAULT_LIC_PATH = "icm-default/lic"
         const val DEFAULT_CONFIG_PATH = "icm-default/conf"
     }
-
-    /**
-     * Inject service of ObjectFactory (See "Service injection" in Gradle documentation.
-     */
-    @get:Inject
-    abstract val objectFactory: ObjectFactory
-
-    /**
-     * Inject service of ProviderFactory (See "Service injection" in Gradle documentation.
-     */
-    @get:Inject
-    abstract val providerFactory: ProviderFactory
 
     private val licenseDirectoryProperty: Property<String> = objectFactory.property(String::class.java)
     private val configDirectoryProperty: Property<String> = objectFactory.property(String::class.java)
