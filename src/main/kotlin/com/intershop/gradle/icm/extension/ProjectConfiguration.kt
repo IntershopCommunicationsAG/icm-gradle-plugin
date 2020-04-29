@@ -38,19 +38,7 @@ import javax.inject.Inject
 /**
  * Extension of an Intershop ICM project.
  */
-abstract class ProjectConfiguration {
-
-    /**
-     * Inject service of ObjectFactory (See "Service injection" in Gradle documentation.
-     */
-    @get:Inject
-    abstract val objectFactory: ObjectFactory
-
-    /**
-     * Inject service of ProjectLayout (See "Service injection" in Gradle documentation.
-     */
-    @get:Inject
-    abstract val projectLayout: ProjectLayout
+abstract class ProjectConfiguration @Inject constructor(objectFactory: ObjectFactory, projectLayout: ProjectLayout) {
 
     private val cartridgesProperty: SetProperty<String> = objectFactory.setProperty(String::class.java)
     private val dbprepareCartridgesProperty: SetProperty<String> = objectFactory.setProperty(String::class.java)

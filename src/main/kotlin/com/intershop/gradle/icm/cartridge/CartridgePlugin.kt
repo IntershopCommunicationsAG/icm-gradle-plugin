@@ -59,7 +59,6 @@ open class CartridgePlugin : Plugin<Project> {
                     IntershopExtension::class.java
                 )
             }
-            val extension = rootProject.extensions.getByType(IntershopExtension::class.java)
             plugins.apply(JavaPlugin::class.java)
 
             configureAddFileCreation( this)

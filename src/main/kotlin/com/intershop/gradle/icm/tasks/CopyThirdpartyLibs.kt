@@ -34,7 +34,6 @@ import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactIdentifier
-import java.io.File
 import javax.inject.Inject
 
 /**
@@ -47,26 +46,17 @@ open class CopyThirdpartyLibs @Inject constructor(
     projectLayout: ProjectLayout,
     objectFactory: ObjectFactory) : DefaultTask() {
 
-    private val outputDirProperty: DirectoryProperty = objectFactory.directoryProperty()
-
     companion object {
         const val DEFAULT_NAME = "copyThirdpartyLibs"
         const val THIRDPARTYLIB_DIR = "lib"
     }
 
-    init {
-        group = INTERSHOP_GROUP_NAME
-        description = "Copy all thirdparty libs to a directory."
-
-        outputDirProperty.convention(projectLayout.buildDirectory.dir(THIRDPARTYLIB_DIR))
-    }
-
     /**
      * Provider configuration for target directory.
      *
-     * @param outputDir
+     * @param dir
      */
-    fun provideOutputDir(outputDir: Provider<Directory>) = outputDirProperty.set(outputDir)
+    fun provideOutputDir(dir: Provider<Directory>) = outputDir.set(dir)
 
     /**
      * Output directory for generated files.
@@ -74,9 +64,7 @@ open class CopyThirdpartyLibs @Inject constructor(
      * @property outputDir
      */
     @get:OutputDirectory
-    var outputDir: File
-        get() = outputDirProperty.get().asFile
-        set(value) = outputDirProperty.set(value)
+    var outputDir: DirectoryProperty = objectFactory.directoryProperty()
 
     @get:Optional
     @get:InputFile
@@ -91,6 +79,13 @@ open class CopyThirdpartyLibs @Inject constructor(
         returnFiles
     }
 
+    init {
+        group = INTERSHOP_GROUP_NAME
+        description = "Copy all thirdparty libs to a directory."
+
+        outputDir.convention(projectLayout.buildDirectory.dir(THIRDPARTYLIB_DIR))
+    }
+
     /**
      * Task method for the creation of a descriptor file.
      */
@@ -99,9 +94,9 @@ open class CopyThirdpartyLibs @Inject constructor(
     @TaskAction
     fun runCopy() {
         // we are not sure what is changed.
-        if(outputDir.listFiles().isNotEmpty()) {
-            outputDir.deleteRecursively()
-            outputDir.mkdirs()
+        if(outputDir.isPresent && outputDir.get().asFileTree.files.isNotEmpty()) {
+            outputDir.get().asFile.deleteRecursively()
+            outputDir.get().asFile.mkdirs()
         }
 
         val libs = mutableListOf<String>()
@@ -113,6 +108,9 @@ open class CopyThirdpartyLibs @Inject constructor(
         if(libs.isEmpty()) {
             project.logger.debug("No lib filter entries available.")
         }
+
+        //call for incremental task execution
+        configurationClasspath
 
         project.configurations.getByName(RUNTIME_CLASSPATH_CONFIGURATION_NAME)
             .resolvedConfiguration.resolvedArtifacts.forEach { artifact ->
@@ -127,7 +125,7 @@ open class CopyThirdpartyLibs @Inject constructor(
 
                     if(! libs.contains(id)) {
                         artifact.file.copyTo(
-                            File(outputDir, name),
+                            outputDir.file(name).get().asFile,
                             overwrite = true
                         )
                     }

@@ -118,7 +118,7 @@ open class CreateServerInfo @Inject constructor(
     /**
      * Provides an output file for this task.
      *
-     * @param outputfile
+     * @param file
      */
     fun provideOutputfile(file: Provider<RegularFile>) = outputFile.set(file)
 

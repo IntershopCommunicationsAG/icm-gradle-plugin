@@ -33,7 +33,7 @@ abstract class FilePackage @Inject constructor(objectFactory: ObjectFactory ) {
     /**
      * Set provider for includes matches.
      *
-     * @param includes list of includes matches.
+     * @param provider list of includes matches.
      */
     @Suppress("unused")
     fun provideIncludes(provider: Provider<Set<String>>) = includes.set(provider)
@@ -67,7 +67,7 @@ abstract class FilePackage @Inject constructor(objectFactory: ObjectFactory ) {
     /**
      * Set provider for excludes matches.
      *
-     * @param excludes list of excludes matches.
+     * @param provider list of excludes matches.
      */
     @Suppress("unused")
     fun excludes(provider: Provider<Set<String>>) = excludes.set(provider)
@@ -101,7 +101,7 @@ abstract class FilePackage @Inject constructor(objectFactory: ObjectFactory ) {
     /**
      * Set provider for duplication strategy.
      *
-     * @param duplicateStrategy duplication strategy.
+     * @param strategy duplication strategy.
      */
     @Suppress("unused")
     fun provideDuplicateStrategy(strategy: Provider<DuplicatesStrategy>) = duplicateStrategy.set(strategy)
@@ -117,7 +117,7 @@ abstract class FilePackage @Inject constructor(objectFactory: ObjectFactory ) {
     /**
      * Set provider for target path configuration.
      *
-     * @param targetPath list of includes matches.
+     * @param path list of includes matches.
      */
     @Suppress("unused")
     fun provideTargetPath(path: Provider<String>) = targetPath.set(path)

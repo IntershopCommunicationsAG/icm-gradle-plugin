@@ -16,9 +16,7 @@
  */
 package com.intershop.gradle.icm.tasks
 
-import com.intershop.gradle.icm.extension.IntershopExtension.Companion.INTERSHOP_GROUP_NAME
-import com.intershop.gradle.icm.utils.getValue
-import com.intershop.gradle.icm.utils.setValue
+import com.intershop.gradle.icm.extension.IntershopExtension
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.file.ProjectLayout
@@ -30,7 +28,6 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
-import java.io.File
 import javax.inject.Inject
 
 /**
@@ -41,22 +38,9 @@ open class CreateCartridgeList @Inject constructor(
         projectLayout: ProjectLayout,
         objectFactory: ObjectFactory) : DefaultTask() {
 
-    private val outputFileProperty: RegularFileProperty = objectFactory.fileProperty()
-    private val templateFileProperty: RegularFileProperty = objectFactory.fileProperty()
-
-    private val includesListProperty: ListProperty<String> = objectFactory.listProperty(String::class.java)
-    private val excludesListProperty: ListProperty<String> = objectFactory.listProperty(String::class.java)
-
     companion object {
         const val DEFAULT_NAME = "createCartridgeList"
         const val CARTRIDGE_LIST = "cartridgelist/cartridgelist.properties"
-    }
-
-    init {
-        group = INTERSHOP_GROUP_NAME
-        description = "Creates a cartridge list properties file from template."
-
-        outputFileProperty.convention(projectLayout.buildDirectory.file(CARTRIDGE_LIST))
     }
 
     /**
@@ -65,9 +49,7 @@ open class CreateCartridgeList @Inject constructor(
      * @property outputFile
      */
     @get:OutputFile
-    var outputFile: File
-        get() = outputFileProperty.get().asFile
-        set(value) = outputFileProperty.set(value)
+    var outputFile: RegularFileProperty = objectFactory.fileProperty()
 
     /**
      * Input template file with all cartridges.
@@ -75,18 +57,15 @@ open class CreateCartridgeList @Inject constructor(
      * @property templateFile
      */
     @get:InputFile
-    var templateFile: File
-        get() = templateFileProperty.get().asFile
-        set(value) = templateFileProperty.set(value)
+    var templateFile: RegularFileProperty = objectFactory.fileProperty()
 
     /**
      * Set provider for includes matches.
      *
-     * @param includes list of includes matches.
+     * @param provider list of includes matches.
      */
     @Suppress("unused")
-    fun includes(includes: Provider<List<String>>) =
-        includesListProperty.set(includes)
+    fun includes(provider: Provider<List<String>>) = includes.set(provider)
 
     /**
      * This list contains includes for cartridge list.
@@ -94,27 +73,26 @@ open class CreateCartridgeList @Inject constructor(
      * @property includes list of includes
      */
     @get:Input
-    var includes by includesListProperty
+    var includes: ListProperty<String> = objectFactory.listProperty(String::class.java)
 
     /**
      * Add includes matches to the list of includes.
      *
-     * @param includes includes matches
+     * @param params includes matches
      */
-    fun include(vararg includes: Any) {
-        includes.forEach {
-            includesListProperty.add(it.toString())
+    fun include(vararg params: Any) {
+        params.forEach {
+            includes.add(it.toString())
         }
     }
 
     /**
      * Set provider for excludes matches.
      *
-     * @param excludes list of includes matches.
+     * @param provider list of includes matches.
      */
     @Suppress("unused")
-    fun excludes(excludes: Provider<List<String>>) =
-        excludesListProperty.set(excludes)
+    fun excludes(provider: Provider<List<String>>) = excludes.set(provider)
 
     /**
      * This list contains excludes for cartridge list.
@@ -122,17 +100,24 @@ open class CreateCartridgeList @Inject constructor(
      * @property excludes list of includes
      */
     @get:Input
-    var excludes by excludesListProperty
+    var excludes: ListProperty<String> = objectFactory.listProperty(String::class.java)
 
     /**
      * Add excludes matches to the list of excludes.
      *
-     * @param excludes includes matches
+     * @param params includes matches
      */
-    fun exclude(vararg excludes: Any) {
-        excludes.forEach {
-            excludesListProperty.add(it.toString())
+    fun exclude(vararg params: Any) {
+        params.forEach {
+            excludes.add(it.toString())
         }
+    }
+
+    init {
+        group = IntershopExtension.INTERSHOP_GROUP_NAME
+        description = "Creates a cartridge list properties file from template."
+
+        outputFile.convention(projectLayout.buildDirectory.file(CARTRIDGE_LIST))
     }
 
     /**
@@ -140,12 +125,12 @@ open class CreateCartridgeList @Inject constructor(
      */
     @TaskAction
     fun createCartridgeList() {
-        val baseFile = templateFileProperty.get().asFile
+        val baseFile = templateFile.get().asFile
         if(! baseFile.exists()) {
             throw GradleException("File '" + baseFile.absolutePath + "' does not exists.")
         }
 
-        val file = outputFileProperty.get().asFile
+        val file = outputFile.get().asFile
 
         if(file.exists()) {
             project.delete(file)
@@ -156,14 +141,14 @@ open class CreateCartridgeList @Inject constructor(
         baseFile.forEachLine lineIt@{ tline ->
             val uline = tline.replace("\\", "").trim()
             var line = uline
-            excludesListProperty.get().forEach exIt@{ exRegex ->
+            excludes.get().forEach exIt@{ exRegex ->
                 if(uline.matches(exRegex.toRegex())) {
                     line = ""
                     return@exIt
                 }
             }
             if(line == "") {
-                includesListProperty.get().forEach inIt@{ inRegex ->
+                includes.get().forEach inIt@{ inRegex ->
                     if (uline.matches(inRegex.toRegex())) {
                         line = uline
                         return@inIt

@@ -365,7 +365,7 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
                 Sync::class.java
             ).apply {
                 group = IntershopExtension.INTERSHOP_GROUP_NAME
-                description = "Copy all 3rd party libs to one folder for a ${targetDescr}"
+                description = "Copy all 3rd party libs to one folder for a $targetDescr"
 
                 this.into(projectLayout.buildDirectory.dir("$targetPath/$PROJECT_LIBS_FOLDER"))
                 this.duplicatesStrategy = DuplicatesStrategy.EXCLUDE
@@ -415,7 +415,7 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
                 provideOutputFile(project.layout.buildDirectory.file(("$targetPath/$CARTRIDGELIST")))
             }
 
-            val createConfig = tasks.maybeCreate(createConfigTaskName, CreateConfigFolder::class.java).apply {
+            return tasks.maybeCreate(createConfigTaskName, CreateConfigFolder::class.java).apply {
                 baseProject.set(projectConfig.base)
                 modules.set(projectConfig.modules.asMap)
 
@@ -427,8 +427,6 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
 
                 provideOutputDir(projectLayout.buildDirectory.dir("$targetPath/$CONFIG_FOLDER"))
             }
-
-            return createConfig
         }
     }
 

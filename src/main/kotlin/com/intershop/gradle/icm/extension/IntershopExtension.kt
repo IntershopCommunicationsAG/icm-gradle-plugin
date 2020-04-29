@@ -29,19 +29,13 @@ import javax.inject.Inject
 /**
  * Extension for ICM properties.
  */
-abstract class IntershopExtension  {
+abstract class IntershopExtension @Inject constructor(objectFactory: ObjectFactory)  {
 
     companion object {
         // names for the plugin
         const val INTERSHOP_EXTENSION_NAME = "intershop"
         const val INTERSHOP_GROUP_NAME = "Intershop Commerce Management"
     }
-
-    /**
-     * Inject service of ObjectFactory (See "Service injection" in Gradle documentation.
-     */
-    @get:Inject
-    abstract val objectFactory: ObjectFactory
 
     private val mavenPublicationNameProperty: Property<String> = objectFactory.property(String::class.java)
 
