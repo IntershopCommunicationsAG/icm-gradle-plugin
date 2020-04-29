@@ -21,10 +21,12 @@ import com.intershop.gradle.icm.tasks.ExtendCartridgeList.Companion.CARTRIDGELIS
 import com.intershop.gradle.icm.utils.PackageUtil
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
+import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.file.RegularFile
 import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
@@ -32,16 +34,26 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
+import java.io.File
 import javax.inject.Inject
 
-open class ProvideCartridgeListTemplate @Inject constructor(
-    projectLayout: ProjectLayout,
-    objectFactory: ObjectFactory,
-    private var fsOps: FileSystemOperations) : DefaultTask() {
+/**
+ * This task download and extract, if necessary, the cartridgelist.properties
+ * from the configured dependencies.
+ *
+ * @property fsOps service object for file system operations.
+ * @constructor Creates a task that provides the base cartridgelist.properties.
+ */
+open class ProvideCartridgeListTemplate
+    @Inject constructor(
+        projectLayout: ProjectLayout,
+        objectFactory: ObjectFactory,
+        private var fsOps: FileSystemOperations) : DefaultTask() {
 
     @get:Optional
     @get:Input
     val baseDependency: Property<String> = objectFactory.property(String::class.java)
+
 
     fun provideBaseDependency(dependency: Provider<String>) = baseDependency.set(dependency)
 
@@ -65,11 +77,17 @@ open class ProvideCartridgeListTemplate @Inject constructor(
 
     @TaskAction
     fun downloadFile() {
-       if(fileDependency.isPresent && fileDependency.get().isNotEmpty()) {
-            fileDependency.get()
-
+        if(fileDependency.isPresent && fileDependency.get().isNotEmpty()) {
+            val file = downloadPropertiesFile(fileDependency.get())
+            if(file != null) {
+                fsOps.copy {
+                    it.from(file).rename(".*", outputFile.get().asFile.name)
+                    it.into(outputFile.get().asFile.parent)
+                }
+            } else {
+                throw GradleException("Configured file dependency is not available (${fileDependency.get()}).")
+            }
         } else {
-            baseDependency.get()
             val file = PackageUtil.downloadPackage(project, baseDependency.get(), "configuration")
             if(file != null) {
                 val pfiles = project.zipTree(file).matching { pf ->
@@ -82,8 +100,30 @@ open class ProvideCartridgeListTemplate @Inject constructor(
                     }
                 }
             } else {
-                throw GradleException("Configuration package is not available in the configured base project (${baseDependency.get()})")
+                throw GradleException("Configuration package is not available " +
+                        "in the configured base project (${baseDependency.get()})")
             }
         }
+    }
+
+    private fun downloadPropertiesFile(dependency: String) : File? {
+        val dependencyHandler = project.dependencies
+        val dep = dependencyHandler.create(dependency) as ExternalModuleDependency
+
+        dep.artifact {
+            it.name = dep.name
+            it.classifier = "properties"
+            it.extension = "properties"
+            it.type = "properties"
+        }
+        val dcfg = project.configurations.detachedConfiguration(dep)
+
+        try {
+            val files = dcfg.resolve()
+            return files.first()
+        } catch (anfe: DefaultLenientConfiguration.ArtifactResolveException) {
+            project.logger.warn("No library filter is available!")
+        }
+        return null
     }
 }

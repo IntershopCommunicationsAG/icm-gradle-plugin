@@ -851,6 +851,75 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         gradleVersion << supportedGradleVersions
     }
 
+    def "test cartridge.properties from dependency"() {
+        TestRepo repo = new TestRepo(new File(testProjectDir, "/repo"))
+        String repoConf = repo.getRepoConfig()
+
+        settingsFile << """
+        rootProject.name='rootproject'
+        """.stripIndent()
+
+        buildFile << """
+            plugins {
+                id 'java'
+                id 'com.intershop.gradle.icm.project'
+            }
+            
+            group = 'com.intershop.test'
+            version = '10.0.0'
+
+            intershop {
+                projectConfig {
+                    
+                    cartridges = [ 'com.intershop.cartridge:cartridge_test:1.0.0', 
+                                   'prjCartridge_prod',
+                                   'com.intershop.cartridge:cartridge_dev:1.0.0', 
+                                   'com.intershop.cartridge:cartridge_adapter:1.0.0',
+                                   'prjCartridge_adapter',
+                                   'prjCartridge_dev',
+                                   'prjCartridge_test',
+                                   'com.intershop.cartridge:cartridge_prod:1.0.0' ] 
+
+                    dbprepareCartridges = [ 'prjCartridge_prod',
+                                            'prjCartridge_test' ] 
+
+                    base {
+                        dependency = "com.intershop.icm:icm-as:1.0.0"
+                    }
+
+                    cartridgeListDependency = "com.project.group:configuration:1.0.0"
+
+                    modules {
+                        solrExt {
+                            dependency = "com.intershop.search:solrcloud:1.0.0"
+                        }
+                        paymentExt {
+                            dependency = "com.intershop.payment:paymenttest:1.0.0"
+                        }
+                    }
+                }
+            }
+
+            ${repoConf}
+        """.stripIndent()
+
+        when:
+        def result = getPreparedGradleRunner()
+                .withArguments(":provideCartridgeListTemplate", "-s")
+                .withGradleVersion(gradleVersion)
+                .build()
+        def clFile = new File(testProjectDir, "build/cartridgelisttemplate/cartridgelist.properties")
+
+        then:
+        result.task(":provideCartridgeListTemplate").outcome == SUCCESS
+        clFile.exists()
+        clFile.text.contains("simple file on repo")
+
+        where:
+        gradleVersion << supportedGradleVersions
+
+    }
+
     def "prepare folder for release"() {
         prepareDefaultBuildConfig(testProjectDir, settingsFile, buildFile)
 

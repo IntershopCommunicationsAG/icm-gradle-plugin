@@ -21,15 +21,12 @@ import com.intershop.gradle.icm.ICMProjectPlugin.Companion.CONFIG_FOLDER
 import com.intershop.gradle.icm.ICMProjectPlugin.Companion.PROD_CONTAINER_FOLDER
 import com.intershop.gradle.icm.ICMProjectPlugin.Companion.SERVER_FOLDER
 import com.intershop.gradle.icm.ICMProjectPlugin.Companion.TEST_CONTAINER_FOLDER
-import com.intershop.gradle.icm.utils.getValue
-import com.intershop.gradle.icm.utils.setValue
 import groovy.lang.Closure
 import org.gradle.api.Action
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
-import org.gradle.api.provider.Provider
 import org.gradle.api.provider.SetProperty
 import org.gradle.util.ConfigureUtil
 import java.io.File
@@ -70,32 +67,19 @@ abstract class ProjectConfiguration @Inject constructor(objectFactory: ObjectFac
      *
      * @property modules
      */
-    val modules: NamedDomainObjectContainer<NamedCartridgeProject> = objectFactory.domainObjectContainer(NamedCartridgeProject::class.java)
+    val modules: NamedDomainObjectContainer<NamedCartridgeProject> =
+        objectFactory.domainObjectContainer(NamedCartridgeProject::class.java)
 
-    val cartridgeListDependencyProvider: Provider<String>
-        get() = cartridgeListDependency
+    val cartridgeListDependency: Property<String> = objectFactory.property(String::class.java)
 
-    var cartridgeListDependency: Property<String> = objectFactory.property(String::class.java)
-
-    val libFilterFileDependencyProvider: Provider<String>
-        get() = libFilterFileDependency
-
-    var libFilterFileDependency: Property<String> = objectFactory.property(String::class.java)
-
-    /**
-     * Provider of cartridge list extension of a project.
-     *
-     * @property cartridgesProperty
-     */
-    val cartridgesProvider: Provider<Set<String>>
-        get() = cartridgesProperty
+    val libFilterFileDependency: Property<String> = objectFactory.property(String::class.java)
 
     /**
      * Cartridges of this project.
      *
      * @property cartridges
      */
-    var cartridges by cartridgesProperty
+    val cartridges: SetProperty<String> = objectFactory.setProperty(String::class.java)
 
     /**
      * Add a single cartridge to the list.
@@ -107,19 +91,11 @@ abstract class ProjectConfiguration @Inject constructor(objectFactory: ObjectFac
     }
 
     /**
-     * Provider of dbinit/dbprepare cartridge list extension of a project.
-     *
-     * @property dbprepareCartridgesProperty
-     */
-    val dbprepareCartridgesProvider: Provider<Set<String>>
-        get() = dbprepareCartridgesProperty
-
-    /**
      * Cartridges of this project.
      *
      * @property dbprepareCartridges
      */
-    var dbprepareCartridges by dbprepareCartridgesProperty
+    var dbprepareCartridges: SetProperty<String> = objectFactory.setProperty(String::class.java)
 
     /**
      * Add a single cartridge to the list of dbprepare cartridges.
@@ -140,3 +116,4 @@ abstract class ProjectConfiguration @Inject constructor(objectFactory: ObjectFac
         ConfigureUtil.configure(c, serverDirConfig)
     }
 }
+

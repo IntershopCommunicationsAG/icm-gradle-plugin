@@ -70,7 +70,13 @@ open class CopyThirdpartyLibs @Inject constructor(
     @get:InputFile
     val libFilterFile: RegularFileProperty = objectFactory.fileProperty()
 
-    fun provideLibFilterFile(libFilter: Provider<RegularFile>) = libFilterFile.set(libFilter)
+    /**
+     * Provides a file with a special list of used libraries in the base
+     * project. The entry in the list is <group name>-<module name>-<version>.
+     *
+     * @param file regular file provider.
+     */
+    fun provideLibFilterFile(file: Provider<RegularFile>) = libFilterFile.set(file)
 
     @get:Classpath
     val configurationClasspath: FileCollection by lazy {

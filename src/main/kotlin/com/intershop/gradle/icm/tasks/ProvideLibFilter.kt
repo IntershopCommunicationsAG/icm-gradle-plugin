@@ -33,6 +33,13 @@ import org.gradle.api.tasks.TaskAction
 import java.io.File
 import javax.inject.Inject
 
+/**
+ * This task download a text file with all 3rd party libs in a base projects
+ * from the configured dependencies. This files will be excluded from the
+ * calculated dependencies.
+ *
+ * @constructor Creates a task that provides the base libraries filter file.
+ */
 open class ProvideLibFilter @Inject constructor(
     projectLayout: ProjectLayout,
     objectFactory: ObjectFactory ) : DefaultTask() {

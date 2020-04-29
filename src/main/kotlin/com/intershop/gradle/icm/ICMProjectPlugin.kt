@@ -41,6 +41,7 @@ import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
 import org.gradle.api.tasks.Sync
+import org.gradle.api.tasks.bundling.Zip
 import javax.inject.Inject
 
 /**
@@ -317,7 +318,7 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
                 ProvideCartridgeListTemplate::class.java
             ).apply {
                 provideBaseDependency(projectConfig.base.dependency)
-                provideFileDependency(projectConfig.cartridgeListDependencyProvider)
+                provideFileDependency(projectConfig.cartridgeListDependency)
             }
         }
     }
@@ -330,7 +331,7 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
                 ProvideLibFilter::class.java
             ).apply {
                 provideBaseDependency(projectConfig.base.dependency)
-                provideFileDependency(projectConfig.libFilterFileDependencyProvider)
+                provideFileDependency(projectConfig.libFilterFileDependency)
             }
         }
     }
@@ -346,8 +347,8 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
                 taskName,
                 SetupCartridges::class.java
             ).apply {
-                provideCartridges(projectConfig.cartridgesProvider)
-                provideDBprepareCartridges(projectConfig.dbprepareCartridgesProvider)
+                provideCartridges(projectConfig.cartridges)
+                provideDBprepareCartridges(projectConfig.dbprepareCartridges)
                 provideLibFilterFile(libFilterTask.outputFile)
                 environmentTypes.set(environmentTypesList)
                 provideOutputDir(projectLayout.buildDirectory.dir("$targetPath/$CARTRIDGE_FOLDER"))
@@ -407,8 +408,8 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
 
             val cartridgeListTask = tasks.maybeCreate(cartridgeListTaskName, ExtendCartridgeList::class.java).apply {
                 provideTemplateFile(templateTask.outputFile)
-                provideCartridges(projectConfig.cartridgesProvider)
-                provideDBprepareCartridges(projectConfig.dbprepareCartridgesProvider)
+                provideCartridges(projectConfig.cartridges)
+                provideDBprepareCartridges(projectConfig.dbprepareCartridges)
 
                 environmentTypes.set(environmentTypesList)
 
@@ -465,7 +466,7 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
     private fun getZipFolder(project: Project, serverDir: ServerDir, type: String) : Task? {
         with(project) {
             if (serverDir.dirs.isNotEmpty()) {
-                return tasks.maybeCreate("zip${type.capitalize()}", org.gradle.api.tasks.bundling.Zip::class.java).apply {
+                return tasks.maybeCreate("zip${type.capitalize()}", Zip::class.java).apply {
                     this.with(CopySpecUtil.getCSForServerDir(project, serverDir))
 
                     this.includeEmptyDirs = false
@@ -479,4 +480,3 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
         return null
     }
 }
-

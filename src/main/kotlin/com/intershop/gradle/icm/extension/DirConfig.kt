@@ -51,5 +51,4 @@ open class DirConfig @Inject constructor(objectFactory: ObjectFactory, @Internal
     @get:Optional
     @get:Input
     val target: Property<String> = objectFactory.property(String::class.java)
-
 }

@@ -38,9 +38,14 @@ import java.io.IOException
 import java.util.*
 import javax.inject.Inject
 
-open class ExtendCartridgeList @Inject constructor(
-    projectLayout: ProjectLayout,
-    objectFactory: ObjectFactory) : DefaultTask() {
+/**
+ * Task for the extension of an existing properties
+ * template with project configuration settings.
+ *
+ * @constructor Creates a task for editing a special configuration file.
+ */
+open class ExtendCartridgeList
+    @Inject constructor( projectLayout: ProjectLayout, objectFactory: ObjectFactory) : DefaultTask() {
 
     companion object {
         /**
@@ -62,27 +67,56 @@ open class ExtendCartridgeList @Inject constructor(
     @get:Input
     val cartridges: SetProperty<String> = objectFactory.setProperty(String::class.java)
 
+    /**
+     * Provides a list of all additional project cartridges
+     * (project names, dependencies) for the ICM project.
+     *
+     * @param list provider of a String set.
+     */
     fun provideCartridges(list: Provider<Set<String>>) = cartridges.set(list)
 
     @get:Input
     val dbprepareCartridges: SetProperty<String> = objectFactory.setProperty(String::class.java)
 
+    /**
+     * Provides a list of all additional DB project cartridges
+     * (project names, dependencies) for the ICM project.
+     *
+     * @param list provider of a String set.
+     */
     fun provideDBprepareCartridges(list: Provider<Set<String>>) = dbprepareCartridges.set(list)
 
     @get:InputFile
     val templateFile: RegularFileProperty = objectFactory.fileProperty()
 
+    /**
+     * Provides the base template file "cartridgelist.properties" from a base project.
+     *
+     * @param file provider of a regular file.
+     */
     fun provideTemplateFile(file: Provider<RegularFile>) = templateFile.set(file)
 
     @get:Optional
     @get:Input
     val environmentTypes: ListProperty<EnvironmentType> = objectFactory.listProperty(EnvironmentType::class.java)
 
+    /**
+     * Provides a list of environment types which should be handeled by
+     * this created list configuration.
+     *
+     * @param list provider of a list of environment types.
+     */
     fun provideEnvironmentTypes(list: Provider<List<EnvironmentType>>) = environmentTypes.set(list)
 
     @get:OutputFile
     val outputFile: RegularFileProperty = objectFactory.fileProperty()
 
+    /**
+     * Provides the output file of this task. It contains the
+     * cartridge list configuration of this project for special environment types.
+     *
+     * @param file regular file provider.
+     */
     fun provideOutputFile(file: Provider<RegularFile>) = outputFile.set(file)
 
     init {
@@ -93,6 +127,9 @@ open class ExtendCartridgeList @Inject constructor(
         environmentTypes.convention(listOf(EnvironmentType.PRODUCTION))
     }
 
+    /**
+     * Task execution method of this task. It creates the new property file.
+     */
     @Throws(GradleException::class)
     @TaskAction
     fun extendList() {
@@ -149,7 +186,8 @@ open class ExtendCartridgeList @Inject constructor(
 
         project.rootProject.subprojects { prj ->
             if(prj.hasProperty("cartridge.style")) {
-                projectCartridgeMap[prj.name] = CartridgeStyle.valueOf(prj.property("cartridge.style").toString().toUpperCase())
+                projectCartridgeMap[prj.name] =
+                    CartridgeStyle.valueOf(prj.property("cartridge.style").toString().toUpperCase())
             }
         }
 

@@ -17,6 +17,12 @@
 
 package com.intershop.gradle.icm.utils
 
+/**
+ * This enumeration provides a list of cartridge styles.
+ *
+ * @property value the value of the enumeration.
+ * @constructor Provides an enumeration of a string value.
+ */
 enum class CartridgeStyle(val value: String) {
 
     TEST("test") {
@@ -35,6 +41,10 @@ enum class CartridgeStyle(val value: String) {
         override fun environmentType() = EnvironmentType.ALL
     };
 
+    /**
+     * This methode provides the mapping to environment types.
+     *
+     * @return an environment type
+     */
     abstract fun environmentType(): EnvironmentType
-
 }

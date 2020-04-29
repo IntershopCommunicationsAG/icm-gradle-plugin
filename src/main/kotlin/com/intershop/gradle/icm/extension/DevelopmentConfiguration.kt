@@ -26,7 +26,8 @@ import org.slf4j.LoggerFactory
 import java.io.File
 import javax.inject.Inject
 
-open class DevelopmentConfiguration @Inject constructor(objectFactory: ObjectFactory, providerFactory: ProviderFactory) {
+open class DevelopmentConfiguration
+    @Inject constructor(objectFactory: ObjectFactory, providerFactory: ProviderFactory) {
 
     companion object {
         /**

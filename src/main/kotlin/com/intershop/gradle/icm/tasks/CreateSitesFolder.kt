@@ -17,6 +17,7 @@
 
 package com.intershop.gradle.icm.tasks
 
+import com.intershop.gradle.icm.ICMProjectPlugin.Companion.SITES_FOLDER
 import com.intershop.gradle.icm.utils.PackageUtil
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.FileSystemOperations
@@ -25,22 +26,46 @@ import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.TaskAction
 import javax.inject.Inject
 
+/**
+ * Task for folder creation of sites files of a server.
+ *
+ * @property projectLayout service object for project layout handling
+ * @property objectFactory service object for object handling
+ * @property fsOps service object for file system operations
+ * @constructor Creates a task for folder handling.
+ */
 open class CreateSitesFolder
         @Inject constructor(projectLayout: ProjectLayout,
                             objectFactory: ObjectFactory,
                             fsOps: FileSystemOperations): AbstractCreateFolder(projectLayout, objectFactory, fsOps) {
 
     init {
-        outputDirProperty.convention(projectLayout.buildDirectory.dir("server/sites"))
+        outputDir.convention(projectLayout.buildDirectory.dir("$SITES_FOLDER/sites"))
     }
 
     override fun addPackages(cs: CopySpec) {
-        PackageUtil.addPackageToCS(project, baseProject.get().dependency.get(), "sites", cs, baseProject.get().sitesPackage, listOf())
+        PackageUtil.addPackageToCS(
+            project = project,
+            dependency = baseProject.get().dependency.get(),
+            classifier = "sites",
+            copySpec = cs,
+            filePackage = baseProject.get().sitesPackage,
+            excludes = listOf())
         modules.get().forEach { (_, prj) ->
-            PackageUtil.addPackageToCS(project, prj.dependency.get(), "sites", cs, prj.sitesPackage, listOf())
+            PackageUtil.addPackageToCS(
+                project = project,
+                dependency = prj.dependency.get(),
+                classifier = "sites",
+                copySpec = cs,
+                filePackage = prj.sitesPackage,
+                excludes = listOf())
         }
     }
 
+    /**
+     * Task method of this task. It creates
+     * the sites structure for the server.
+     */
     @TaskAction
     fun createSites() {
         createFolder()

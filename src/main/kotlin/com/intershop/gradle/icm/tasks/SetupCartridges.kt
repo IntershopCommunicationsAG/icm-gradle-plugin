@@ -76,8 +76,6 @@ open class SetupCartridges @Inject constructor(
     @get:Input
     val environmentTypes: ListProperty<EnvironmentType> = objectFactory.listProperty(EnvironmentType::class.java)
 
-    fun provideEnvironmentTypes(list: Provider<List<EnvironmentType>>) = environmentTypes.set(list)
-
     /**
      * Provider configuration for target directory.
      *

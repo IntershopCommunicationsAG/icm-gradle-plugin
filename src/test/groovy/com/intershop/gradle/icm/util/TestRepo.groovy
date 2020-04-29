@@ -77,6 +77,8 @@ class TestRepo {
 
         }.writeTo(repoDir)
 
+        addCartridgeList('com.project.group', 'configuration', '1.0.0')
+
         addSimpleLib('library1', '1.5.0')
         addSimpleLib('library2', '1.5.0')
         addSimpleLib('library3', '1.5.0')
@@ -89,11 +91,11 @@ class TestRepo {
         addCartridge('cartridge_adapter', '1.0.0', 'adapter')
         addCartridge('cartridge_prod', '1.0.0', 'cartridge')
 
-        addBaseProject("icm-as", "1.0.0")
-        addSecondBaseProject("com.intershop.search", "solrcloud", "1.0.0")
-        addThirdBaseProject("com.intershop.payment", "paymenttest", "1.0.0")
-        addBaseProjectWithoutLibsTxt("icm-as", "2.0.0")
-        addBaseProjectWithoutSites("icm-as", "3.0.0")
+        addBaseProject('icm-as', '1.0.0')
+        addSecondBaseProject('com.intershop.search', 'solrcloud', '1.0.0')
+        addThirdBaseProject('com.intershop.payment', 'paymenttest', '1.0.0')
+        addBaseProjectWithoutLibsTxt('icm-as', '2.0.0')
+        addBaseProjectWithoutSites('icm-as', '3.0.0')
 
         String repostr = """
             repositories {
@@ -104,6 +106,18 @@ class TestRepo {
             }""".stripIndent()
 
         return repostr
+    }
+
+    private void addCartridgeList(String group, String artifactID, String version) {
+        new TestMavenRepoBuilder().repository {
+            project(groupId: group, artifactId: artifactID, version: version) {
+                artifact (
+                        classifier: "properties",
+                        ext: "properties",
+                        content: getTextResources('cartridgelist/repocartridgelist.properties')
+                )
+            }
+        }.writeTo(repoDir)
     }
 
     private void addSimpleLib(String artifactId, String version) {

@@ -36,23 +36,30 @@ import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
-import java.io.File
 import javax.inject.Inject
 
+/**
+ * Base class for folder creation tasks.
+ *
+ * @property projectLayout service object for project layout handling
+ * @property objectFactory service object for object handling
+ * @property fsOps service object for file system operations
+ * @constructor Creates a task for folder handling.
+ */
 abstract class AbstractCreateFolder
         @Inject constructor(@Internal val projectLayout: ProjectLayout,
                             @Internal val objectFactory: ObjectFactory,
                             @Internal val fsOps: FileSystemOperations): DefaultTask() {
 
-    @get:Internal
-    val outputDirProperty: DirectoryProperty = objectFactory.directoryProperty()
-
-    fun provideOutputDir(cartridgeDir: Provider<Directory>) = outputDirProperty.set(cartridgeDir)
+    /**
+     * Provides the output dir of this task.
+     *
+     * @param cartridgeDir directory provider
+     */
+    fun provideOutputDir(cartridgeDir: Provider<Directory>) = outputDir.set(cartridgeDir)
 
     @get:OutputDirectory
-    var outputDir: File
-        get() = outputDirProperty.get().asFile
-        set(value) = outputDirProperty.set(value)
+    var outputDir: DirectoryProperty = objectFactory.directoryProperty()
 
     @get:Nested
     val baseProject: Property<CartridgeProject> = objectFactory.property(CartridgeProject::class.java)
@@ -89,6 +96,10 @@ abstract class AbstractCreateFolder
         }
     }
 
+    /**
+     * Adds packages to a copy spec, so that the files be stored in the output dir.
+     *
+     * @param cs copy spec will be executed by this task.
+     */
     abstract fun addPackages(cs: CopySpec)
-
 }
