@@ -22,8 +22,18 @@ import com.intershop.gradle.icm.extension.ServerDir
 import org.gradle.api.Project
 import org.gradle.api.file.CopySpec
 
+/**
+ * This object provides methodes to transfer
+ * configurations to a CopySpec.
+ */
 object CopySpecUtil {
 
+    /**
+     * Creates a CopySpec from a ServerDir configuration.
+     *
+     * @param project project
+     * @param serverDir a ServerDir configurtion.
+     */
     fun getCSForServerDir(project: Project, serverDir: ServerDir): CopySpec {
         val cs = project.copySpec()
 
@@ -47,6 +57,12 @@ object CopySpecUtil {
         return cs
     }
 
+    /**
+     * Creates a CopySpec from a DirConfig configuration.
+     *
+     * @param project project
+     * @param dirConfig a DirConfig configurtion.
+     */
     fun getCSForDirConfig(project: Project, dirConfig: DirConfig): CopySpec {
         val cs = project.copySpec()
 

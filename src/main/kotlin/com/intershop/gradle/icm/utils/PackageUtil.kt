@@ -25,6 +25,10 @@ import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration
 import java.io.File
 
+/**
+ * This object provides methods to handle
+ * dependencies for packages.
+ */
 object PackageUtil {
 
     fun downloadPackage(project: Project, dependency: String, classifier: String): File? {

@@ -195,21 +195,23 @@ open class ExtendCartridgeList
     }
 
     private fun getCartridgeNameFrom(cartridge: String, projectMap: Map<String, CartridgeStyle>): String? {
+        var returnValue: String? = null
+
         if(CartridgeUtil.isModuleDependency(cartridge)) {
             val cartridgeModule = cartridge.split(":")
 
             if(CartridgeUtil.isCartridge(project,
                     cartridgeModule[0], cartridgeModule[1], cartridgeModule[2],
                     environmentTypes.get())) {
-                return cartridgeModule[1]
+                returnValue = cartridgeModule[1]
             }
         } else {
             val style = projectMap[cartridge]
             if( style != null && environmentTypes.get().contains(style.environmentType())) {
-                return cartridge
+                returnValue = cartridge
             }
         }
-        return null
+        return returnValue
     }
 
     @Throws(GradleException::class)

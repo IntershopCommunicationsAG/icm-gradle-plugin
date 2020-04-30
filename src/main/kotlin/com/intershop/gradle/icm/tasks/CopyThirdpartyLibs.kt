@@ -64,7 +64,7 @@ open class CopyThirdpartyLibs @Inject constructor(
      * @property outputDir
      */
     @get:OutputDirectory
-    var outputDir: DirectoryProperty = objectFactory.directoryProperty()
+    val outputDir: DirectoryProperty = objectFactory.directoryProperty()
 
     @get:Optional
     @get:InputFile

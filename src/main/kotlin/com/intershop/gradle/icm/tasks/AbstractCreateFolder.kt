@@ -59,7 +59,7 @@ abstract class AbstractCreateFolder
     fun provideOutputDir(cartridgeDir: Provider<Directory>) = outputDir.set(cartridgeDir)
 
     @get:OutputDirectory
-    var outputDir: DirectoryProperty = objectFactory.directoryProperty()
+    val outputDir: DirectoryProperty = objectFactory.directoryProperty()
 
     @get:Nested
     val baseProject: Property<CartridgeProject> = objectFactory.property(CartridgeProject::class.java)

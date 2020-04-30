@@ -103,6 +103,8 @@ object CartridgeUtil {
     fun isCartridge(project: Project,
                     group: String, module: String, version: String,
                     environmentTypes: List<EnvironmentType>) : Boolean {
+        var returnValue = false
+
         val query: ArtifactResolutionQuery = project.dependencies
             .createArtifactResolutionQuery()
             .forModule(group, module, version)
@@ -126,22 +128,20 @@ object CartridgeUtil {
                                     doc,
                                     XPathConstants.NODESET) as NodeList
 
-                    if(items.length == 0) {
-                        return false
+                    if(items.length > 0) {
+                        returnValue = if (environmentTypes.isNotEmpty()) {
+                                            val style = CartridgeStyle.valueOf(items.item(0).firstChild.nodeValue.toUpperCase())
+                                            environmentTypes.contains(style.environmentType())
+                                        } else {
+                                            true
+                                        }
                     }
-
-                    if(environmentTypes.isNotEmpty()) {
-                        val style = CartridgeStyle.valueOf(items.item(0).firstChild.nodeValue.toUpperCase())
-                        return environmentTypes.contains(style.environmentType())
-                    }
-
-                    return true
                 } catch (ex: Exception) {
                     project.logger.info("Pom file is not readable - {}:{}:{}", group, module, version)
                 }
             }
         }
-        return false
+        return returnValue
     }
 
     private fun getXPath(forStyle: Boolean): String {

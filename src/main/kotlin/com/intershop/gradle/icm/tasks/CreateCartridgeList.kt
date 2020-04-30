@@ -49,7 +49,7 @@ open class CreateCartridgeList @Inject constructor(
      * @property outputFile
      */
     @get:OutputFile
-    var outputFile: RegularFileProperty = objectFactory.fileProperty()
+    val outputFile: RegularFileProperty = objectFactory.fileProperty()
 
     /**
      * Input template file with all cartridges.
@@ -57,7 +57,7 @@ open class CreateCartridgeList @Inject constructor(
      * @property templateFile
      */
     @get:InputFile
-    var templateFile: RegularFileProperty = objectFactory.fileProperty()
+    val templateFile: RegularFileProperty = objectFactory.fileProperty()
 
     /**
      * Set provider for includes matches.

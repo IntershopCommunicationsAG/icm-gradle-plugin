@@ -56,19 +56,26 @@ abstract class ProjectConfiguration @Inject constructor(objectFactory: ObjectFac
      */
     val base: CartridgeProject = objectFactory.newInstance(CartridgeProject::class.java)
 
+    /**
+     * Configures a binary base project (This is also connected to
+     * a Docker image.).
+     *
+     * @param action Action to configure Cartridge project (ICM)
+     */
     fun base(action: Action<in CartridgeProject>) {
         action.execute(base)
     }
 
+    /**
+     * Configures a binary base project (This is also connected to
+     * a Docker image.).
+     *
+     * @param c Closure to configure Cartridge project (ICM)
+     */
     fun base(c: Closure<CartridgeProject>) {
         ConfigureUtil.configure(c, base)
     }
 
-    /**
-     * Additional extension projects for final project.
-     *
-     * @property modules
-     */
     val modules: NamedDomainObjectContainer<NamedCartridgeProject> =
         objectFactory.domainObjectContainer(NamedCartridgeProject::class.java)
 
@@ -110,10 +117,20 @@ abstract class ProjectConfiguration @Inject constructor(objectFactory: ObjectFac
 
     val serverDirConfig: ProjectServerDirs = objectFactory.newInstance(ProjectServerDirs::class.java)
 
+    /**
+     * Configures the directory configuration of the project.
+     *
+     * @param action Action to configure project server dirs
+     */
     fun serverDirConfig(action: Action<in ProjectServerDirs>) {
         action.execute(serverDirConfig)
     }
 
+    /**
+     * Configures the directory configuration of the project.
+     *
+     * @param c Closure to configure project server dirs
+     */
     fun serverDirConfig(c: Closure<ProjectServerDirs>) {
         ConfigureUtil.configure(c, serverDirConfig)
     }
