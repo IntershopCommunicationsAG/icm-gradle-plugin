@@ -47,7 +47,7 @@ open class CreateClusterID @Inject constructor(
      * @property outputFile
      */
     @get:OutputFile
-    var outputFile: RegularFileProperty = objectFactory.fileProperty()
+    val outputFile: RegularFileProperty = objectFactory.fileProperty()
 
     init {
         group = IntershopExtension.INTERSHOP_GROUP_NAME
