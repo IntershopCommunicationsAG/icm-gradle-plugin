@@ -130,7 +130,9 @@ object CartridgeUtil {
 
                     if(items.length > 0) {
                         returnValue = if (environmentTypes.isNotEmpty()) {
-                                            val style = CartridgeStyle.valueOf(items.item(0).firstChild.nodeValue.toUpperCase())
+                                            val style = CartridgeStyle.valueOf(
+                                                items.item(0).firstChild.nodeValue.toUpperCase()
+                                            )
                                             environmentTypes.contains(style.environmentType())
                                         } else {
                                             true
