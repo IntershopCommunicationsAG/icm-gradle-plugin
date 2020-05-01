@@ -30,12 +30,12 @@ import com.intershop.gradle.icm.tasks.ProvideLibFilter
 import com.intershop.gradle.icm.tasks.SetupCartridges
 import com.intershop.gradle.icm.utils.CartridgeStyle.ALL
 import com.intershop.gradle.icm.utils.CartridgeStyle.valueOf
-import com.intershop.gradle.icm.utils.CopySpecUtil
 import com.intershop.gradle.icm.utils.EnvironmentType
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.file.DuplicatesStrategy
+import org.gradle.api.file.FileCollection
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
@@ -433,9 +433,22 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
 
     private fun configureFolderTasks(project: Project, extension: IntershopExtension) {
         project.afterEvaluate {
-            val confTask = getZipFolder(it, extension.projectConfig.serverDirConfig.base.config, "configuration")
-            val sitesFolder = getZipFolder(it, extension.projectConfig.serverDirConfig.base.sites, "sites")
-            if(confTask != null || sitesFolder != null) {
+
+            val configTask = project.tasks.findByName(CREATE_CONFIGFOLDER_PROD)
+            val sitesTask = project.tasks.findByName(CREATE_SITESFOLDER_PROD)
+
+            val confZipTask = if(configTask != null ) {
+                                    getZipFolder(project, configTask.outputs.files, "configuration")
+                                } else {
+                                    null
+                                }
+            val sitesZipTask = if(sitesTask != null) {
+                                    getZipFolder(project, sitesTask.outputs.files, "sites")
+                                } else {
+                                    null
+                                }
+
+            if(confZipTask != null || sitesZipTask != null) {
                 with(project.extensions) {
                     project.plugins.withType(MavenPublishPlugin::class.java) {
                         configure(PublishingExtension::class.java) { publishing ->
@@ -443,19 +456,19 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
                                 extension.mavenPublicationName,
                                 MavenPublication::class.java
                             ).apply {
-                                if(confTask != null) {
-                                    artifact(confTask)
+                                if(confZipTask != null) {
+                                    artifact(confZipTask)
                                 }
-                                if(sitesFolder != null) {
-                                    artifact(sitesFolder)
+                                if(sitesZipTask != null) {
+                                    artifact(sitesZipTask)
                                 }
                             }
                         }
-                        if(confTask != null) {
-                            project.tasks.getByName("publish").dependsOn(confTask)
+                        if(configTask != null) {
+                            project.tasks.getByName("publish").dependsOn(configTask)
                         }
-                        if(sitesFolder != null) {
-                            project.tasks.getByName("publish").dependsOn(sitesFolder)
+                        if(sitesTask != null) {
+                            project.tasks.getByName("publish").dependsOn(sitesTask)
                         }
                     }
                 }
@@ -463,11 +476,11 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
         }
     }
 
-    private fun getZipFolder(project: Project, serverDir: ServerDir, type: String) : Task? {
+    private fun getZipFolder(project: Project, fc: FileCollection, type: String) : Task? {
         with(project) {
-            if (serverDir.dirs.isNotEmpty()) {
+            if (! fc.isEmpty) {
                 return tasks.maybeCreate("zip${type.capitalize()}", Zip::class.java).apply {
-                    this.with(CopySpecUtil.getCSForServerDir(project, serverDir))
+                    this.from(fc)
 
                     this.includeEmptyDirs = false
 

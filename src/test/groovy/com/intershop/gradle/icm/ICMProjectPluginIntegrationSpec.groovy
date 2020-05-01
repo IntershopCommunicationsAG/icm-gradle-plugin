@@ -20,6 +20,8 @@ import com.intershop.gradle.icm.util.TestRepo
 import com.intershop.gradle.test.AbstractIntegrationGroovySpec
 import spock.lang.Ignore
 
+import java.util.zip.ZipFile
+
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
@@ -1230,8 +1232,17 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                 .withGradleVersion(gradleVersion)
                 .build()
 
+        def repoConfigFile = new File(testProjectDir, "build/pubrepo/com/intershop/test/rootproject/10.0.0/rootproject-10.0.0-configuration.zip")
+        def repoSitesFile = new File(testProjectDir, "build/pubrepo/com/intershop/test/rootproject/10.0.0/rootproject-10.0.0-sites.zip")
+
         then:
         result.task(':publish').outcome == SUCCESS
+        result.task(':zipSites').outcome == SUCCESS
+        result.task(':zipConfiguration').outcome == SUCCESS
+        repoConfigFile.exists()
+        repoSitesFile.exists()
+        new ZipFile(repoConfigFile).entries().toList().size() == 9
+        new ZipFile(repoSitesFile).entries().toList().size() == 19
 
         where:
         gradleVersion << supportedGradleVersions
