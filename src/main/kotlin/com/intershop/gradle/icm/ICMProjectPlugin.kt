@@ -25,6 +25,7 @@ import com.intershop.gradle.icm.tasks.CreateConfigFolder
 import com.intershop.gradle.icm.tasks.CreateServerInfo
 import com.intershop.gradle.icm.tasks.CreateSitesFolder
 import com.intershop.gradle.icm.tasks.ExtendCartridgeList
+import com.intershop.gradle.icm.tasks.PreparePublishDir
 import com.intershop.gradle.icm.tasks.ProvideCartridgeListTemplate
 import com.intershop.gradle.icm.tasks.ProvideLibFilter
 import com.intershop.gradle.icm.tasks.SetupCartridges
@@ -108,7 +109,11 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
 
             configureProjectTasks(this, extension.projectConfig, extension.projectInfo)
 
-            configureFolderTasks(this, extension)
+            if(extension.projectConfig.newBaseProject.get()) {
+                configureBasePublishingTasks(this, extension)
+            } else {
+                configureAdapterPublishingTasks(this, extension)
+            }
         }
     }
     
@@ -431,7 +436,58 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
         }
     }
 
-    private fun configureFolderTasks(project: Project, extension: IntershopExtension) {
+    private fun configureAdapterPublishingTasks(project: Project, extension: IntershopExtension) {
+        val configZipTask = getZipTasks(project = project,
+            baseDir = extension.projectConfig.serverDirConfig.base.config,
+            prodDir = extension.projectConfig.serverDirConfig.prod.config,
+            type = "configuration")
+
+        val sitesZipTask = getZipTasks(project = project,
+            baseDir = extension.projectConfig.serverDirConfig.base.sites,
+            prodDir = extension.projectConfig.serverDirConfig.prod.sites,
+            type = "sites")
+
+        project.afterEvaluate {
+                with(project.extensions) {
+                    project.plugins.withType(MavenPublishPlugin::class.java) {
+                        configure(PublishingExtension::class.java) { publishing ->
+                            publishing.publications.maybeCreate(
+                                extension.mavenPublicationName,
+                                MavenPublication::class.java
+                            ).apply {
+                                artifact(configZipTask)
+                                artifact(sitesZipTask)
+                            }
+                        }
+                        project.tasks.getByName("publish").dependsOn(configZipTask)
+                        project.tasks.getByName("publish").dependsOn(sitesZipTask)
+                    }
+                }
+
+        }
+    }
+
+    private fun getZipTasks(project: Project, baseDir: ServerDir, prodDir: ServerDir, type: String): Zip {
+        with(project) {
+            val preparePubTask =
+                tasks.maybeCreate("preparePub${type.capitalize()}", PreparePublishDir::class.java).apply {
+                    this.baseDirConfig.set(baseDir)
+                    this.extraDirConfig.set(prodDir)
+
+                    this.outputDirectory.set(project.layout.buildDirectory.dir("publish/predir${type}"))
+                }
+
+            return tasks.maybeCreate("zip${type.capitalize()}", Zip::class.java).apply {
+                this.from(preparePubTask.outputs)
+
+                this.archiveBaseName.set(type)
+                this.archiveClassifier.set(type)
+                this.destinationDirectory.set(project.layout.buildDirectory.dir("publish/${type}"))
+            }
+        }
+    }
+
+    private fun configureBasePublishingTasks(project: Project, extension: IntershopExtension) {
         project.afterEvaluate {
 
             val configTask = project.tasks.findByName(CREATE_CONFIGFOLDER_PROD)

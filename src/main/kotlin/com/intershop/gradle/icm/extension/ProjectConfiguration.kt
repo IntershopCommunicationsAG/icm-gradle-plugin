@@ -39,15 +39,13 @@ import javax.inject.Inject
  */
 abstract class ProjectConfiguration @Inject constructor(objectFactory: ObjectFactory, projectLayout: ProjectLayout) {
 
-    private val cartridgesProperty: SetProperty<String> = objectFactory.setProperty(String::class.java)
-    private val dbprepareCartridgesProperty: SetProperty<String> = objectFactory.setProperty(String::class.java)
-
-
     val prodConfigFolder: File = projectLayout.buildDirectory.dir("$PROD_CONTAINER_FOLDER/$CONFIG_FOLDER").get().asFile
 
     val testConfigFolder: File = projectLayout.buildDirectory.dir("$TEST_CONTAINER_FOLDER/$CONFIG_FOLDER").get().asFile
 
     val developmentConfigFolder: File = projectLayout.buildDirectory.dir("$SERVER_FOLDER/$CONFIG_FOLDER").get().asFile
+
+    val newBaseProject: Property<Boolean> = objectFactory.property(Boolean::class.java)
 
     /**
      * Base project configuration for final project.
@@ -96,7 +94,7 @@ abstract class ProjectConfiguration @Inject constructor(objectFactory: ObjectFac
      * @param cartridge name of an ICM cartridge
      */
     fun cartridge(cartridge: String) {
-        cartridgesProperty.add(cartridge)
+        cartridges.add(cartridge)
     }
 
     /**
@@ -112,7 +110,7 @@ abstract class ProjectConfiguration @Inject constructor(objectFactory: ObjectFac
      * @param cartridge name of an ICM cartridge
      */
     fun dbprepareCartridge(cartridge: String) {
-        cartridgesProperty.add(cartridge)
+        dbprepareCartridges.add(cartridge)
     }
 
     val serverDirConfig: ProjectServerDirs = objectFactory.newInstance(ProjectServerDirs::class.java)
@@ -133,6 +131,10 @@ abstract class ProjectConfiguration @Inject constructor(objectFactory: ObjectFac
      */
     fun serverDirConfig(c: Closure<ProjectServerDirs>) {
         ConfigureUtil.configure(c, serverDirConfig)
+    }
+
+    init {
+        newBaseProject.set(false)
     }
 }
 

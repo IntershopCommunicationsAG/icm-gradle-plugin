@@ -143,7 +143,7 @@ open class ProvideCartridgeListTemplate
             val files = dcfg.resolve()
             return files.first()
         } catch (anfe: DefaultLenientConfiguration.ArtifactResolveException) {
-            project.logger.warn("No library filter is available!")
+            project.logger.warn("No cartridge list is available!")
         }
         return null
     }

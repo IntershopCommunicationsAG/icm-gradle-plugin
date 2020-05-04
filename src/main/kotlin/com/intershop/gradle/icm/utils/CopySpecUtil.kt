@@ -63,7 +63,7 @@ object CopySpecUtil {
      * @param project project
      * @param dirConfig a DirConfig configurtion.
      */
-    fun getCSForDirConfig(project: Project, dirConfig: DirConfig): CopySpec {
+    private fun getCSForDirConfig(project: Project, dirConfig: DirConfig): CopySpec {
         val cs = project.copySpec()
 
         with(dirConfig) {

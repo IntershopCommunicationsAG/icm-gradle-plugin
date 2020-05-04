@@ -59,7 +59,7 @@ object PackageUtil {
         return null
     }
 
-    fun addSpecConfig(cs: CopySpec, pkg: FilePackage) {
+    private fun addSpecConfig(cs: CopySpec, pkg: FilePackage) {
         with(pkg) {
             excludes.get().forEach {
                 cs.exclude(it)

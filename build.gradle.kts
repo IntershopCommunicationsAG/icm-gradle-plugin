@@ -317,6 +317,8 @@ dependencies {
     implementation(gradleApi())
     implementation(localGroovy())
 
+    compileOnly("org.apache.ant:ant:1.10.7")
+
     testImplementation("com.intershop.gradle.test:test-gradle-plugin:3.5.0")
     testImplementation(gradleTestKit())
 }
