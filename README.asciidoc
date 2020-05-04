@@ -1,10 +1,276 @@
-= ICM Build Gradle Plugin
-:latestRevision: RELEASE_2.0.0
+= Intershop Commerce Management Project Plugins
+:latestRevision: 2.0.0
+:toc:
 :icons: font
 
 == Summary
-This plugin contains tasks for building necessary artifacts for Intershop Commerce Management Server.
-It contains also some helper tasks to support the development of projects.
+This plugin collection contains plugins for building all necessary artifacts of an
+Intershop Commerce Management Server.
+
+== Intershop Commerce Management Cartridge Plugins
+
+image::images/CartridgePlugins.png[Cartrdige Plugins, 500]
+
+Product, adapter, development and Test Cartridge plugin applies the
+https://docs.gradle.org/current/userguide/publishing_maven.html[Gradle "Maven Publish Plugin"]
+to the Cartridge project. Furthermore a pom property "cartridge.style" will be added by
+this configuration. This functionality is implemented in the abstract Cartridge plugin.
+
+=== Product Cartridge Plugin
+This plugin applies the "Public Cartridge Plugin" and add an extra property
+"cartridge.style" to the Cartridge project. The value of the property is "cartridge".
+It should be applied to projects for further development.
+
+++++
+<details open>
+<summary>Groovy</summary>
+++++
+.build.gradle
+[source,groovy]
+----
+plugins {
+    id 'com.intershop.icm.cartridge.public' version '{latestRevision}'
+}
+----
+++++
+</details>
+++++
+
+++++
+<details>
+<summary>Kotlin</summary>
+++++
+.build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    id("com.intershop.icm.cartridge.public") version "{latestRevision}"
+}
+----
+++++
+</details>
+++++
+
+=== Adapter Cartridge Plugin
+This plugin applies the "External Cartridge Plugin" and add an extra property
+"cartridge.style" to the Cartridge project. The value of the property is "adapter".
+
+++++
+<details open>
+<summary>Groovy</summary>
+++++
+.build.gradle
+[source,groovy]
+----
+plugins {
+    id 'com.intershop.icm.cartridge.adapter' version '{latestRevision}'
+}
+----
+++++
+</details>
+++++
+
+++++
+<details>
+<summary>Kotlin</summary>
+++++
+.build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    id("com.intershop.icm.cartridge.adapter") version "{latestRevision}"
+}
+----
+++++
+</details>
+++++
+
+This plugin should be applied to special adapter cartridges like payment or search connectors.
+
+=== Development Cartridge Plugin
+This plugin applies the "External Cartridge Plugin" and add an extra property
+"cartridge.style" to the Cartridge project. The value of the property is "development".
+
+++++
+<details open>
+<summary>Groovy</summary>
+++++
+.build.gradle
+[source,groovy]
+----
+plugins {
+    id 'com.intershop.icm.cartridge.development' version '{latestRevision}'
+}
+----
+++++
+</details>
+++++
+
+++++
+<details>
+<summary>Kotlin</summary>
+++++
+.build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    id("com.intershop.icm.cartridge.development") version "{latestRevision}"
+}
+----
+++++
+</details>
+++++
+
+This plugin should be applied to special development projects. This kind of Cartridges are not available
+on a production or test container.
+
+=== Test Cartridge Plugin
+This plugin applies the "Cartridge Plugin" and add an extra property
+"cartridge.style" to the Cartridge project. The value of the property is "test".
+
+++++
+<details open>
+<summary>Groovy</summary>
+++++
+.build.gradle
+[source,groovy]
+----
+plugins {
+    id 'com.intershop.icm.cartridge.test' version '{latestRevision}'
+}
+----
+++++
+</details>
+++++
+
+++++
+<details>
+<summary>Kotlin</summary>
+++++
+.build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    id("com.intershop.icm.cartridge.test") version "{latestRevision}"
+}
+----
+++++
+</details>
+++++
+
+This plugin should be applied to special test projects. This kind of Cartridges are not available
+on a production container.
+
+=== Cartridge Plugin
+* This plugin applies the https://docs.gradle.org/current/userguide/java_plugin.html#header[Gradle "Java Plugin"]
+to the project.
+* It applies two configurations
+** `cartridge` and
+** `cartridgeRuntime` +
+to the project.
+* The following tasks are added by the plugin:
+** `writeCartridgeDescriptor`
+** `writeCartridgeClasspath` - depends on the Gradle property `classpath.file.enabled`
+** `copyThirdpartyLibs`
+
+The tasks "writeCartridgeDescriptor" and "writeCartridgeClasspath" are grouped by the task "writeCartridgeFiles". i
+It is not necessary to apply this plugin to a project separately, because it was applied by some of the plugins above.
+
+==== Configurations
+[cols="15%,15%,15%,54%", width="99%, options="header"]
+|===
+| Configuration name | Transitive | Extends         | Usage
+
+| *cartridge*        | `false`      | `implementation`| for Cartridge dependencies
+| *cartridgeRuntime* | `true`       | `cartridge`     | for Cartridge runtime dependencies
+|===
+
+==== Tasks
+[cols="26%,33%,40%", width="99%, options="header"]
+|===
+| Task name                  | Class                              |Description
+
+| *writeCartridgeDescriptor* | `com.intershop.gradle.icm.tasks +
+WriteCartridgeDescriptor` | Creates a the Cartridge descriptor file `cartridge.descriptor`.
+| *writeCartridgeClasspath*  | `com.intershop.gradle.icm.tasks +
+WriteCartridgeClasspath` | Creates a the Cartridge classpath file `cartridge.classpath` for ICM server projects.
+This task is only configured if the Gradle property `classpath.file.enabled` is true. <<anchor-1,[1]>>
+| *copyThirdpartyLibs*       | `com.intershop.gradle.icm.tasks +
+CopyThirdpartyLibs` | Copies all 3rd party libraries to one build directory. File located in the container of the
+base project are not copied.<<anchor-2,[2]>>
+|===
+
+[[anchor-1]][1] The default value of "classpath.file.enabled" is false.
+
+[[anchor-2]][2] Files, installed on the container of the base project, will be not copied, if the base project provides
+a filter file. There is also a special setting in the extension possible. List entries have the following form:
+``<group name>-<module name>-<version>``.
+
+=== Public Cartrige Plugin
+This plugin configures the publication of a plugin for further development. It configures the publication of the
+project library, the source and and Java doc jars. It adds the description and the inception year to the pom.
+Furthmore the pom property "cartridge.name" is added to the publishing configuration.
+
+It is not necessary to apply this plugin to a project separately, because it was applied by some of the plugins above.
+
+=== External Cartridge Plugin
+This plugin is used for Cartridges, that will be available for projects based on the Intershop Commerce Management server.
+These cartridges will be added to the project configuration for development, test purposes and also for
+special feature sets.
+It adds  the task `zipStaticFiles` for publishing. Furthermore the output of the task `writeCartridgeDescriptor` is added
+to the `zipStaticFiles`. The pom property `cartridge.type` is set to `external`.
+
+==== Tasks
+[cols="26%,33%,40%", width="99%, options="header"]
+|===
+| Task name                  | Class                              |Description
+
+| *zipStaticFiles* | `com.intershop.gradle.icm.tasks +
+ZipStaticFiles` | Creates a zip file with the static Cartridge content.
+|===
+
+++++
+<details open>
+<summary>Groovy</summary>
+++++
+.build.gradle
+[source,groovy]
+----
+plugins {
+    id 'com.intershop.icm.cartridge.test' version '{latestRevision}'
+    id 'com.intershop.icm.cartridge.external' version '{latestRevision}'
+}
+----
+++++
+</details>
+++++
+
+++++
+<details>
+<summary>Kotlin</summary>
+++++
+.build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    id("com.intershop.icm.cartridge.test") version "{latestRevision}"
+    id("com.intershop.icm.cartridge.external") version "{latestRevision}"
+}
+----
+++++
+</details>
+++++
+
+This will configure a test cartridge for external usage.
+
+== Intershop Commerce Management Base Plugin
+
+
+
+
+== Intershop Commerce Management Project Plugin
+
+
 
 == Usage
 To apply the ICM Gradle Plugin to your project, add the following in your build script of the root project:

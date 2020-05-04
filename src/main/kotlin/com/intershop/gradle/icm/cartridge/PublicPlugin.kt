@@ -33,17 +33,6 @@ import java.time.Year
  */
 open class PublicPlugin : Plugin<Project> {
 
-    companion object {
-        /**
-         * Property for task name to create a source jar.
-         */
-        const val TASK_SOURCEJAR = "sourcesJar"
-        /**
-         * Property for task name to create a javadoc jar.
-         */
-        const val TASK_JAVADOCJAR = "javadocJar"
-    }
-
     override fun apply(project: Project) {
         with(project) {
             plugins.apply(CartridgePlugin::class.java)
