@@ -18,9 +18,9 @@ package com.intershop.gradle.icm
 
 import com.intershop.gradle.icm.extension.IntershopExtension
 import com.intershop.gradle.icm.extension.ProjectConfiguration
-import com.intershop.gradle.icm.extension.ProjectInfo
 import com.intershop.gradle.icm.extension.ServerDir
 import com.intershop.gradle.icm.tasks.CopyThirdpartyLibs
+import com.intershop.gradle.icm.tasks.CreateClusterID
 import com.intershop.gradle.icm.tasks.CreateConfigFolder
 import com.intershop.gradle.icm.tasks.CreateServerInfo
 import com.intershop.gradle.icm.tasks.CreateSitesFolder
@@ -103,11 +103,14 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
 
     override fun apply(project: Project) {
         with(project.rootProject) {
+
+            plugins.apply(ICMBasePlugin::class.java)
+
             val extension = extensions.findByType(
                 IntershopExtension::class.java
             ) ?: extensions.create(IntershopExtension.INTERSHOP_EXTENSION_NAME, IntershopExtension::class.java)
 
-            configureProjectTasks(this, extension.projectConfig, extension.projectInfo)
+            configureProjectTasks(this, extension.projectConfig)
 
             if(extension.projectConfig.newBaseProject.get()) {
                 configureBasePublishingTasks(this, extension)
@@ -118,10 +121,9 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
     }
     
     private fun configureProjectTasks(project: Project,
-                                      projectConfig: ProjectConfiguration,
-                                      projectInfo: ProjectInfo) {
+                                      projectConfig: ProjectConfiguration) {
 
-        val infoTask = getInfoTask(project, projectInfo)
+        val infoTask = project.tasks.getByName(CreateServerInfo.DEFAULT_NAME) as CreateServerInfo
         val templateCartridgeList = getTplCartridgeListTask(project, projectConfig)
         val libfilter = getLibFilterTask(project, projectConfig)
 
@@ -291,27 +293,13 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
             targetPath = SERVER_FOLDER,
             extraServerDir = projectConfig.serverDirConfig.dev.config)
 
+        val createClusterID = project.tasks.findByName(CreateClusterID.DEFAULT_NAME)
+
         return project.tasks.maybeCreate(PREPARE_SERVER).apply {
             group = IntershopExtension.INTERSHOP_GROUP_NAME
             description = "starts all tasks for the preparation of a local server"
 
-            dependsOn(setupCartridgeTask, createSites, createConfig)
-        }
-    }
-
-    private fun getInfoTask(project: Project,
-                            prjInfo: ProjectInfo) : CreateServerInfo {
-        with(project) {
-            return tasks.maybeCreate(
-                CreateServerInfo.DEFAULT_NAME,
-                CreateServerInfo::class.java
-            ).apply {
-                this.provideProductId(prjInfo.productIDProvider)
-                this.provideProductName(prjInfo.productNameProvider)
-                this.provideCopyrightOwner(prjInfo.copyrightOwnerProvider)
-                this.provideCopyrightFrom(prjInfo.copyrightFromProvider)
-                this.provideOrganization(prjInfo.organizationProvider)
-            }
+            dependsOn(setupCartridgeTask, createSites, createConfig, createClusterID)
         }
     }
 

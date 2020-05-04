@@ -7,6 +7,9 @@
 This plugin collection contains plugins for building all necessary artifacts of an
 Intershop Commerce Management Server.
 
+== Intershop Extension Configuration
+
+
 == Intershop Commerce Management Cartridge Plugins
 
 image::images/CartridgePlugins.png[Cartrdige Plugins, 500]
@@ -85,7 +88,7 @@ plugins {
 </details>
 ++++
 
-This plugin should be applied to special adapter cartridges like payment or search connectors.
+This plugin should be applied to special adapter Cartridges like payment or search connectors.
 
 === Development Cartridge Plugin
 This plugin applies the "External Cartridge Plugin" and add an extra property
@@ -215,7 +218,7 @@ It is not necessary to apply this plugin to a project separately, because it was
 
 === External Cartridge Plugin
 This plugin is used for Cartridges, that will be available for projects based on the Intershop Commerce Management server.
-These cartridges will be added to the project configuration for development, test purposes and also for
+These Cartridges will be added to the project configuration for development, test purposes and also for
 special feature sets.
 It adds  the task `zipStaticFiles` for publishing. Furthermore the output of the task `writeCartridgeDescriptor` is added
 to the `zipStaticFiles`. The pom property `cartridge.type` is set to `external`.
@@ -261,12 +264,36 @@ plugins {
 </details>
 ++++
 
-This will configure a test cartridge for external usage.
+This will configure a test Cartridge for external usage.
 
 == Intershop Commerce Management Base Plugin
+This plugin will be applied to a root project of an Intershop Commerce Management project with Cartridge sub projects.
+It configures all sub projects and the root project self.
 
+The plugin applies the
+https://docs.gradle.org/current/userguide/publishing_maven.html[Gradle "Maven Publish Plugin"] to all sub projects
+and to the root project and it creates the configurations `cartridge` and `cartridgeRuntime` in the root and all sub projects.
 
+=== Configurations
+[cols="15%,15%,15%,54%", width="99%, options="header"]
+|===
+| Configuration name | Transitive | Extends         | Usage
 
+| *cartridge*        | `false`      | `implementation`| for Cartridge dependencies
+| *cartridgeRuntime* | `true`       | `cartridge`     | for Cartridge runtime dependencies
+|===
+
+=== Tasks
+[cols="26%,33%,40%", width="99%, options="header"]
+|===
+| Task name                  | Class                              |Description
+
+| *allDependencies*    | `com.intershop.gradle.icm.tasks +
+WriteCartridgeDescriptor` | Creates a the Cartridge descriptor file `cartridge.descriptor`.
+| *createServerInfo*    |
+| *createClusterID*     |
+| *writeCartridgeFiles* |
+|===
 
 == Intershop Commerce Management Project Plugin
 

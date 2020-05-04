@@ -57,12 +57,6 @@ object CopySpecUtil {
         return cs
     }
 
-    /**
-     * Creates a CopySpec from a DirConfig configuration.
-     *
-     * @param project project
-     * @param dirConfig a DirConfig configurtion.
-     */
     private fun getCSForDirConfig(project: Project, dirConfig: DirConfig): CopySpec {
         val cs = project.copySpec()
 
