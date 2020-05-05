@@ -7,22 +7,17 @@
 This plugin collection contains plugins for building all necessary artifacts of an
 Intershop Commerce Management Server.
 
-== Intershop Extension Configuration
-
-
 == Intershop Commerce Management Cartridge Plugins
 
 image::images/CartridgePlugins.png[Cartrdige Plugins, 500]
 
-Product, adapter, development and Test Cartridge plugin applies the
-https://docs.gradle.org/current/userguide/publishing_maven.html[Gradle "Maven Publish Plugin"]
-to the Cartridge project. Furthermore a pom property "cartridge.style" will be added by
-this configuration. This functionality is implemented in the abstract Cartridge plugin.
+The abstract Cartridge plugin adds a pom property "cartridge.style" if
+the https://docs.gradle.org/current/userguide/publishing_maven.html[Gradle "Maven Publish Plugin"] is applied.
 
 === Product Cartridge Plugin
 This plugin applies the "Public Cartridge Plugin" and add an extra property
-"cartridge.style" to the Cartridge project. The value of the property is "cartridge".
-It should be applied to projects for further development.
+"cartridge.style" to the Cartridge project. The value of the property is "cartridge". This value is also set
+for the pom property. It should be applied to projects for further development.
 
 ++++
 <details open>
@@ -56,7 +51,9 @@ plugins {
 
 === Adapter Cartridge Plugin
 This plugin applies the "External Cartridge Plugin" and add an extra property
-"cartridge.style" to the Cartridge project. The value of the property is "adapter".
+"cartridge.style" to the Cartridge project. The value of the property is "adapter" and is also
+set to the pom property. This plugin should be applied to special adapter Cartridges like
+payment or search connectors.
 
 ++++
 <details open>
@@ -88,12 +85,11 @@ plugins {
 </details>
 ++++
 
-This plugin should be applied to special adapter Cartridges like payment or search connectors.
-
 === Development Cartridge Plugin
 This plugin applies the "External Cartridge Plugin" and add an extra property
 "cartridge.style" to the Cartridge project. The value of the property is "development".
-
+This plugin should be applied to special development projects. This kind of Cartridges are not available
+on a production or test container.
 ++++
 <details open>
 <summary>Groovy</summary>
@@ -124,12 +120,11 @@ plugins {
 </details>
 ++++
 
-This plugin should be applied to special development projects. This kind of Cartridges are not available
-on a production or test container.
-
 === Test Cartridge Plugin
 This plugin applies the "Cartridge Plugin" and add an extra property
 "cartridge.style" to the Cartridge project. The value of the property is "test".
+This plugin should be applied to special test projects. This kind of Cartridges are not available
+on a production container.
 
 ++++
 <details open>
@@ -160,9 +155,6 @@ plugins {
 ++++
 </details>
 ++++
-
-This plugin should be applied to special test projects. This kind of Cartridges are not available
-on a production container.
 
 === Cartridge Plugin
 * This plugin applies the https://docs.gradle.org/current/userguide/java_plugin.html#header[Gradle "Java Plugin"]
@@ -210,18 +202,25 @@ a filter file. There is also a special setting in the extension possible. List e
 ``<group name>-<module name>-<version>``.
 
 === Public Cartrige Plugin
-This plugin configures the publication of a plugin for further development. It configures the publication of the
-project library, the source and and Java doc jars. It adds the description and the inception year to the pom.
+This plugin applies the
+https://docs.gradle.org/current/userguide/publishing_maven.html[Gradle "Maven Publish Plugin"]
+to a project and configures the publication of a plugin for further development.
+It adds the project library, the source and and Java doc jars to the publication and
+the description and the inception year to the pom.
 Furthmore the pom property "cartridge.name" is added to the publishing configuration.
 
 It is not necessary to apply this plugin to a project separately, because it was applied by some of the plugins above.
 
+This plugin applies the
+https://docs.gradle.org/current/userguide/publishing_maven.html[Gradle "Maven Publish Plugin"]
+to a project.
+
 === External Cartridge Plugin
+This plugin applies the "Public Cartridge Plugin". It adds  the task `zipStaticFiles` for publishing. Furthermore the output of the task `writeCartridgeDescriptor` is added
+to the `zipStaticFiles`. The pom property `cartridge.type` is set to `external`.
 This plugin is used for Cartridges, that will be available for projects based on the Intershop Commerce Management server.
 These Cartridges will be added to the project configuration for development, test purposes and also for
 special feature sets.
-It adds  the task `zipStaticFiles` for publishing. Furthermore the output of the task `writeCartridgeDescriptor` is added
-to the `zipStaticFiles`. The pom property `cartridge.type` is set to `external`.
 
 ==== Tasks
 [cols="26%,33%,40%", width="99%, options="header"]
@@ -271,8 +270,66 @@ This plugin will be applied to a root project of an Intershop Commerce Managemen
 It configures all sub projects and the root project self.
 
 The plugin applies the
-https://docs.gradle.org/current/userguide/publishing_maven.html[Gradle "Maven Publish Plugin"] to all sub projects
-and to the root project and it creates the configurations `cartridge` and `cartridgeRuntime` in the root and all sub projects.
+https://docs.gradle.org/current/userguide/publishing_maven.html[Gradle "Maven Publish Plugin"] to the root
+project and it creates the configurations `cartridge` and `cartridgeRuntime` in the root and all sub projects.
+
+=== Plugin Configuration
+
+++++
+<details open>
+<summary>Groovy</summary>
+++++
+.build.gradle
+[source,groovy]
+----
+plugins {
+    id 'com.intershop.gradle.icm.base' version '{latestRevision}'
+}
+
+intershop {
+
+    projectInfo {
+        productID = 'ICM 7 B2C'
+        productName = 'Intershop Commerce Management 7 B2C'
+        copyrightOwner = 'Intershop Communications'
+        copyrightFrom = '2005'
+        organization = 'Intershop Communications'
+    }
+
+    mavenPublicationName = 'ishmvn'
+}
+----
+++++
+</details>
+++++
+
+++++
+<details>
+<summary>Kotlin</summary>
+++++
+.build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    id("com.intershop.gradle.icm.base") version "{latestRevision}"
+}
+
+intershop {
+
+    projectInfo {
+        productID.set("ICM 7 B2C")
+        productName.set("Intershop Commerce Management 7 B2C")
+        copyrightOwner.set("Intershop Communications")
+        copyrightFrom.set("2005")
+        organization.set("Intershop Communications")
+    }
+
+    mavenPublicationName.set("ishmvn")
+}
+----
+++++
+</details>
+++++
 
 === Configurations
 [cols="15%,15%,15%,54%", width="99%, options="header"]

@@ -64,19 +64,17 @@ open class ICMBasePlugin: Plugin<Project> {
                 ) ?: extensions.create(IntershopExtension.INTERSHOP_EXTENSION_NAME, IntershopExtension::class.java)
 
                 plugins.withType(JavaPlugin::class.java) {
-                    configureBaseConfigurations(project)
+                    configureBaseConfigurations(this)
                 }
 
-                project.subprojects.forEach { prj ->
-                    prj.plugins.apply(MavenPublishPlugin::class.java)
-
+                subprojects.forEach { prj ->
                     prj.plugins.withType(JavaPlugin::class.java) {
                         configureBaseConfigurations(prj)
                     }
                 }
 
-                configureClusterIdTask(project)
-                configureCreateServerInfoPropertiesTask(project, extension)
+                configureClusterIdTask(this)
+                configureCreateServerInfoPropertiesTask(this, extension)
 
                 if(! checkForTask(tasks, TASK_ALLDEPENDENCIESREPORT)) {
                     tasks.register(TASK_ALLDEPENDENCIESREPORT, DependencyReportTask::class.java)

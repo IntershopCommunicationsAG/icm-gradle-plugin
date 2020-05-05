@@ -440,7 +440,7 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
                     project.plugins.withType(MavenPublishPlugin::class.java) {
                         configure(PublishingExtension::class.java) { publishing ->
                             publishing.publications.maybeCreate(
-                                extension.mavenPublicationName,
+                                extension.mavenPublicationName.get(),
                                 MavenPublication::class.java
                             ).apply {
                                 artifact(configZipTask)
@@ -497,7 +497,7 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
                     project.plugins.withType(MavenPublishPlugin::class.java) {
                         configure(PublishingExtension::class.java) { publishing ->
                             publishing.publications.maybeCreate(
-                                extension.mavenPublicationName,
+                                extension.mavenPublicationName.get(),
                                 MavenPublication::class.java
                             ).apply {
                                 if(confZipTask != null) {

@@ -36,7 +36,7 @@ abstract class AbstractCartridge : Plugin<Project> {
                 plugins.withType(MavenPublishPlugin::class.java) {
                     configure(PublishingExtension::class.java) { publishing ->
                         publishing.publications.maybeCreate(
-                            extension.mavenPublicationName,
+                            extension.mavenPublicationName.get(),
                             MavenPublication::class.java
                         ).apply {
                             pom.properties.put("cartridge.style", cartridgeStyle)

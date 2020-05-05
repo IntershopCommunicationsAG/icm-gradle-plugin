@@ -55,7 +55,7 @@ open class ExternalPlugin : Plugin<Project> {
                 plugins.withType(MavenPublishPlugin::class.java) {
                     configure(PublishingExtension::class.java) { publishing ->
                         publishing.publications.maybeCreate(
-                            extension.mavenPublicationName,
+                            extension.mavenPublicationName.get(),
                             MavenPublication::class.java
                         ).apply {
                             artifact(zipStaticTask)

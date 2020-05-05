@@ -36,6 +36,7 @@ open class PublicPlugin : Plugin<Project> {
     override fun apply(project: Project) {
         with(project) {
             plugins.apply(CartridgePlugin::class.java)
+            plugins.apply(MavenPublishPlugin::class.java)
             configureAddJars(this)
         }
     }
@@ -53,7 +54,7 @@ open class PublicPlugin : Plugin<Project> {
                 plugins.withType(MavenPublishPlugin::class.java) {
                     extensions.configure(PublishingExtension::class.java) { publishing ->
                         publishing.publications.maybeCreate(
-                            extension.mavenPublicationName,
+                            extension.mavenPublicationName.get(),
                             MavenPublication::class.java
                         ).apply {
                             versionMapping { vm ->

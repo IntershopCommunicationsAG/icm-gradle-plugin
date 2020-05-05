@@ -16,8 +16,6 @@
  */
 package com.intershop.gradle.icm.extension
 
-import com.intershop.gradle.icm.utils.getValue
-import com.intershop.gradle.icm.utils.setValue
 import groovy.lang.Closure
 import org.gradle.api.Action
 import org.gradle.api.model.ObjectFactory
@@ -37,15 +35,7 @@ abstract class IntershopExtension @Inject constructor(objectFactory: ObjectFacto
         const val INTERSHOP_GROUP_NAME = "Intershop Commerce Management"
     }
 
-    private val mavenPublicationNameProperty: Property<String> = objectFactory.property(String::class.java)
-
     val developmentConfig: DevelopmentConfiguration = objectFactory.newInstance(DevelopmentConfiguration::class.java)
-    val projectInfo: ProjectInfo = objectFactory.newInstance(ProjectInfo::class.java)
-    val projectConfig: ProjectConfiguration = objectFactory.newInstance(ProjectConfiguration::class.java)
-
-    init {
-        mavenPublicationNameProperty.convention("mvn")
-    }
 
     /**
      * Configures the development information configuration.
@@ -66,6 +56,8 @@ abstract class IntershopExtension @Inject constructor(objectFactory: ObjectFacto
         action.execute(developmentConfig)
     }
 
+    val projectInfo: ProjectInfo = objectFactory.newInstance(ProjectInfo::class.java)
+
     /**
      * Configures the project information configuration.
      *
@@ -84,6 +76,8 @@ abstract class IntershopExtension @Inject constructor(objectFactory: ObjectFacto
     fun projectInfo(action: Action<in ProjectInfo>) {
         action.execute(projectInfo)
     }
+
+    val projectConfig: ProjectConfiguration = objectFactory.newInstance(ProjectConfiguration::class.java)
 
     /**
      * Configures the base project of Intershop Commerce Management.
@@ -108,11 +102,14 @@ abstract class IntershopExtension @Inject constructor(objectFactory: ObjectFacto
      * Provider for publication name of Maven.
      */
     val mavenPublicationNameProvider: Provider<String>
-        get() = mavenPublicationNameProperty
+        get() = mavenPublicationName
 
     /**
      *  Publishing name of Maven of the project.
      */
-    var mavenPublicationName by mavenPublicationNameProperty
+    var mavenPublicationName: Property<String> = objectFactory.property(String::class.java)
 
+    init {
+        mavenPublicationName.convention("mvn")
+    }
 }
