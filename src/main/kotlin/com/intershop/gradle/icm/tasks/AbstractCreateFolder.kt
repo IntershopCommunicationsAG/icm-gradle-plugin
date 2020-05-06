@@ -29,9 +29,9 @@ import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.model.ObjectFactory
-import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
+import org.gradle.api.provider.SetProperty
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.Optional
@@ -65,8 +65,11 @@ abstract class AbstractCreateFolder
     val baseProject: Property<CartridgeProject> = objectFactory.property(CartridgeProject::class.java)
 
     @get:Nested
-    val modules: MapProperty<String, NamedCartridgeProject> =
-                    objectFactory.mapProperty(String::class.java, NamedCartridgeProject::class.java)
+    val modules: SetProperty<NamedCartridgeProject> = objectFactory.setProperty(NamedCartridgeProject::class.java)
+
+    fun module(cartridgeProject: NamedCartridgeProject) {
+        modules.add(cartridgeProject)
+    }
 
     @get:Optional
     @get:Nested

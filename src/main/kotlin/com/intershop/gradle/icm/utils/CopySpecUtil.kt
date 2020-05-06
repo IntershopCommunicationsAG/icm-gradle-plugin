@@ -38,7 +38,7 @@ object CopySpecUtil {
         val cs = project.copySpec()
 
         with(serverDir) {
-            dirs.asMap.forEach { (_, dirConfig) ->
+            dirs.all { dirConfig ->
                 cs.with(getCSForDirConfig(project, dirConfig))
             }
 

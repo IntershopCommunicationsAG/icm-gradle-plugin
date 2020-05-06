@@ -34,7 +34,34 @@ class TestRepo {
 
     String getRepoConfig() {
         if(! intRepoconfig) {
-            intRepoconfig = createRepo(repoDir)
+            createRepo(repoDir)
+
+            String repostr = """
+            repositories {
+                jcenter()
+                maven {
+                    url "${repoDir.toURI().toURL()}"
+                }
+            }""".stripIndent()
+
+            return repostr
+        }
+        return intRepoconfig
+    }
+
+    String getRepoKtsConfig() {
+        if(! intRepoconfig) {
+            createRepo(repoDir)
+
+            String repostr = """
+            repositories {
+                jcenter()
+                maven {
+                    url=uri("${repoDir.toURI().toURL()}")
+                }
+            }""".stripIndent()
+
+            return repostr
         }
         return intRepoconfig
     }
@@ -96,16 +123,6 @@ class TestRepo {
         addThirdBaseProject('com.intershop.payment', 'paymenttest', '1.0.0')
         addBaseProjectWithoutLibsTxt('icm-as', '2.0.0')
         addBaseProjectWithoutSites('icm-as', '3.0.0')
-
-        String repostr = """
-            repositories {
-                jcenter()
-                maven {
-                    url "${repoDir.toURI().toURL()}"
-                }
-            }""".stripIndent()
-
-        return repostr
     }
 
     private void addCartridgeList(String group, String artifactID, String version) {
@@ -303,8 +320,8 @@ class TestRepo {
     }
 
     protected String getTextResources(String srcDir) {
-        ClassLoader classLoader = getClass().getClassLoader();
-        URL resource = classLoader.getResource(srcDir);
+        ClassLoader classLoader = getClass().getClassLoader()
+        URL resource = classLoader.getResource(srcDir)
         if (resource == null) {
             throw new RuntimeException("Could not find classpath resource: $srcDir")
         }

@@ -14,17 +14,19 @@
  * limitations under the License.
  *
  */
+
 package com.intershop.gradle.icm
 
 import com.intershop.gradle.icm.util.TestRepo
-import com.intershop.gradle.test.AbstractIntegrationGroovySpec
+import com.intershop.gradle.test.AbstractIntegrationKotlinSpec
 
 import java.util.zip.ZipFile
 
 import static org.gradle.testkit.runner.TaskOutcome.NO_SOURCE
-import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
+import static org.gradle.testkit.runner.TaskOutcome.SUCCESS 
 
-class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
+class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpec {
+
 
     final String PROD_CARTRIDGES = "runtime pf_cartridge component file emf pf_extension pf_property jmx app pf_kafka cache pipeline isml orm configuration businessobject core orm_oracle orm_mssql wsrp rest bc_auditing bc_region bc_service bc_mail bc_ruleengine report bc_auditing_orm bc_organization bc_approval bc_validation bc_address bc_address_orm bc_user bc_user_orm bc_captcha bc_pdf bc_abtest bc_abtest_orm bc_payment sld_pdf sld_preview sld_mcm sld_ch_b2c_base sld_ch_sf_base app_bo_catalog ac_gtm dev_basketinfo dev_apiinfo prjCartridge_prod cartridge_adapter prjCartridge_adapter cartridge_prod"
     final String PROD_DB_CARTRIDGES = "runtime file emf pf_extension pf_property jmx app pf_kafka cache pipeline isml orm orm_oracle orm_mssql wsrp rest bc_user_orm bc_captcha btc monitor smc bc_pricing bc_pmc pmc_rest bc_search bc_mvc bc_order bc_order_orm sld_mcm sld_ch_b2c_base sld_ch_sf_base ac_bmecat ac_oci ac_cxml prjCartridge_prod"
@@ -38,18 +40,19 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
     def 'check lic configuration from extension'() {
         given:
         settingsFile << """
-        rootProject.name='rootproject'
+        rootProject.name="rootproject"
         """.stripIndent()
 
         buildFile << """
             plugins {
-                id 'java'
-                id 'com.intershop.gradle.icm.base'
+                `java`
+                id("com.intershop.gradle.icm.base")
             }
             
-            task showLicPath() { 
+            tasks.register("showLicPath") { 
                 doLast {
-                    println(project.extensions.getByName("intershop").developmentConfig.licenseFilePath)
+                    val extension = project.extensions.getByName("intershop") as com.intershop.gradle.icm.extension.IntershopExtension
+                    println(extension.developmentConfig.licenseFilePath)
                 }
             }
 
@@ -103,21 +106,21 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
     def 'check conf configuration from extension'() {
         given:
         settingsFile << """
-        rootProject.name='rootproject'
+        rootProject.name="rootproject"
         """.stripIndent()
 
         buildFile << """
             plugins {
-                id 'java'
-                id 'com.intershop.gradle.icm.base'
+                `java`
+                id("com.intershop.gradle.icm.base")
             }
             
-            task showConfPath() { 
+            tasks.register("showConfPath") { 
                 doLast {
-                    println(project.extensions.getByName("intershop").developmentConfig.configFilePath)
+                    val extension = project.extensions.getByName("intershop") as com.intershop.gradle.icm.extension.IntershopExtension
+                    println(extension.developmentConfig.configFilePath)
                 }
             }
-
             """.stripIndent()
 
         when:
@@ -385,10 +388,10 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
     private def prepareDefaultBuildConfig(File testProjectDir, File settingsFile, File buildFile) {
         TestRepo repo = new TestRepo(new File(testProjectDir, "/repo"))
-        String repoConf = repo.getRepoConfig()
+        String repoConf = repo.getRepoKtsConfig()
 
         settingsFile << """
-        rootProject.name='rootproject'
+        rootProject.name="rootproject"
         """.stripIndent()
 
         createLocalFile("config/base/cluster/test.properties", "test.properties = base_dir")
@@ -405,38 +408,38 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         buildFile << """
             plugins {
-                id 'java'
-                id 'com.intershop.gradle.icm.project'
+                `java`
+                id("com.intershop.gradle.icm.project")
             }
-            
-            group = 'com.intershop.test'
-            version = '10.0.0'
+
+            group = "com.intershop.test"
+            version = "10.0.0"
 
             intershop {
                 projectConfig {
                     
-                    cartridges = [ 'com.intershop.cartridge:cartridge_test:1.0.0', 
-                                   'prjCartridge_prod',
-                                   'com.intershop.cartridge:cartridge_dev:1.0.0', 
-                                   'com.intershop.cartridge:cartridge_adapter:1.0.0',
-                                   'prjCartridge_adapter',
-                                   'prjCartridge_dev',
-                                   'prjCartridge_test',
-                                   'com.intershop.cartridge:cartridge_prod:1.0.0' ] 
+                    cartridges.set(listOf( "com.intershop.cartridge:cartridge_test:1.0.0", 
+                                   "prjCartridge_prod",
+                                   "com.intershop.cartridge:cartridge_dev:1.0.0", 
+                                   "com.intershop.cartridge:cartridge_adapter:1.0.0",
+                                   "prjCartridge_adapter",
+                                   "prjCartridge_dev",
+                                   "prjCartridge_test",
+                                   "com.intershop.cartridge:cartridge_prod:1.0.0" ))
 
-                    dbprepareCartridges = [ 'prjCartridge_prod',
-                                            'prjCartridge_test' ] 
+                    dbprepareCartridges.set(listOf( "prjCartridge_prod",
+                                            "prjCartridge_test" ))
 
                     base {
-                        dependency = "com.intershop.icm:icm-as:1.0.0"
+                        dependency.set("com.intershop.icm:icm-as:1.0.0")
                     }
 
                     modules {
-                        solrExt {
-                            dependency = "com.intershop.search:solrcloud:1.0.0"
+                        register("solrExt") {
+                            dependency.set("com.intershop.search:solrcloud:1.0.0")
                         }
-                        paymentExt {
-                            dependency = "com.intershop.payment:paymenttest:1.0.0"
+                        register("paymentExt") {
+                            dependency.set("com.intershop.payment:paymenttest:1.0.0")
                         }
                     }
 
@@ -444,7 +447,7 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                         base {
                             sites {
                                 dirs {
-                                    main {
+                                    register("main") {
                                         dir.set(file("sites/base"))
                                         exclude("**/test-site1/units/test.properties")
                                     }
@@ -452,7 +455,7 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                             }
                             config {
                                 dirs {
-                                    main {
+                                    register("main") {
                                         dir.set(file("config/base"))
                                         exclude("**/cluster/test.properties")
                                     }
@@ -463,14 +466,14 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                         prod {
                             config {
                                 dirs {
-                                    main {
+                                    register("main") {
                                         dir.set(file("config/prod"))
                                     }
                                 }
                             }
                             sites {
                                 dirs {
-                                    main {
+                                    register("main") {
                                         dir.set(file("sites/prod"))
                                     }
                                 }
@@ -479,14 +482,14 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                         test {
                             sites {
                                 dirs {
-                                    main {
+                                    register("main") {
                                         dir.set(file("sites/test"))
                                     }
                                 }
                             }
                             config {
                                 dirs {
-                                    main {
+                                    register("main") {
                                         dir.set(file("config/test"))
                                     }
                                 }
@@ -495,10 +498,10 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                         dev {
                             sites {
                                 dirs {
-                                    main {
+                                    register("main") {
                                         dir.set(file("sites/dev"))
                                     }
-                                    test {
+                                    register("test") {
                                         dir.set(file("sites/test"))
                                         exclude("**/units/test.properties")
                                     }
@@ -506,10 +509,10 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                             }
                             config {
                                 dirs {
-                                    main {
+                                    register("main") {
                                         dir.set(file("config/dev"))
                                     }
-                                    test {
+                                    register("test") {
                                         dir.set(file("config/test"))
                                         exclude("**/cluster/test.properties")
                                     }
@@ -525,18 +528,17 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         def prj1dir = createSubProject('prjCartridge_prod', """
         plugins {
-            id 'java-library'
-            id 'com.intershop.icm.cartridge.product'
+            id("com.intershop.icm.cartridge.product")
         }
         
         dependencies {
-            implementation 'com.google.inject:guice:4.0'
-            implementation 'com.google.inject.extensions:guice-servlet:3.0'
-            implementation 'javax.servlet:javax.servlet-api:3.1.0'
+            implementation( "com.google.inject:guice:4.0" )
+            implementation( "com.google.inject.extensions:guice-servlet:3.0" )
+            implementation( "javax.servlet:javax.servlet-api:3.1.0" )
         
-            implementation 'io.prometheus:simpleclient:0.6.0'
-            implementation 'io.prometheus:simpleclient_hotspot:0.6.0'
-            implementation 'io.prometheus:simpleclient_servlet:0.6.0'
+            implementation( "io.prometheus:simpleclient:0.6.0" )
+            implementation( "io.prometheus:simpleclient_hotspot:0.6.0" )
+            implementation( "io.prometheus:simpleclient_servlet:0.6.0" )
         } 
         
         repositories {
@@ -546,16 +548,15 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         def prj2dir = createSubProject('prjCartridge_test', """
         plugins {
-            id 'java-library'
-            id 'com.intershop.icm.cartridge.test'
+            id("com.intershop.icm.cartridge.test")
         }
         
         dependencies {
-            implementation 'org.codehaus.janino:janino:2.5.16'
-            implementation 'org.codehaus.janino:commons-compiler:3.0.6'
-            implementation 'ch.qos.logback:logback-core:1.2.3'
-            implementation 'ch.qos.logback:logback-classic:1.2.3'
-            implementation 'commons-collections:commons-collections:3.2.2'
+            implementation("org.codehaus.janino:janino:2.5.16")
+            implementation("org.codehaus.janino:commons-compiler:3.0.6")
+            implementation("ch.qos.logback:logback-core:1.2.3")
+            implementation("ch.qos.logback:logback-classic:1.2.3")
+            implementation("commons-collections:commons-collections:3.2.2")
         } 
         
         repositories {
@@ -565,8 +566,7 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         def prj3dir = createSubProject('prjCartridge_dev', """
         plugins {
-            id 'java-library'
-            id 'com.intershop.icm.cartridge.development'
+            id("com.intershop.icm.cartridge.development")
         }
         
         repositories {
@@ -576,13 +576,12 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         def prj4dir = createSubProject('prjCartridge_adapter', """
         plugins {
-            id 'java-library'
-            id 'com.intershop.icm.cartridge.adapter'
+            id("com.intershop.icm.cartridge.adapter")
         }
         
         dependencies {
-            implementation 'ch.qos.logback:logback-core:1.2.3'
-            implementation 'ch.qos.logback:logback-classic:1.2.3'
+            implementation("ch.qos.logback:logback-core:1.2.3")
+            implementation("ch.qos.logback:logback-classic:1.2.3")
         } 
         
         repositories {
@@ -603,10 +602,11 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         buildFile << """
 
-            plugins.withType(com.intershop.gradle.icm.ICMProjectPlugin) {
-                task("printProdFolder") {
+            plugins.withType(com.intershop.gradle.icm.ICMProjectPlugin::class.java) {
+                tasks.register("printProdFolder") { 
                     doLast {
-                        println("ProdFolder: \${project.extensions.getByName("intershop").projectConfig.prodConfigFolder}")
+                        val extension = project.extensions.getByName("intershop") as com.intershop.gradle.icm.extension.IntershopExtension
+                        println(extension.projectConfig.prodConfigFolder)
                     }
                 }
             }
@@ -667,10 +667,11 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         buildFile << """
 
-            plugins.withType(com.intershop.gradle.icm.ICMProjectPlugin) {
-                task("printTestFolder") {
+            plugins.withType(com.intershop.gradle.icm.ICMProjectPlugin::class.java) {
+                tasks.register("printTestFolder") { 
                     doLast {
-                        println("ProdFolder: \${project.extensions.getByName("intershop").projectConfig.testConfigFolder}")
+                        val extension = project.extensions.getByName("intershop") as com.intershop.gradle.icm.extension.IntershopExtension
+                        println(extension.projectConfig.testConfigFolder)
                     }
                 }
             }
@@ -731,10 +732,11 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         buildFile << """
 
-            plugins.withType(com.intershop.gradle.icm.ICMProjectPlugin) {
-                task("printDevFolder") {
+            plugins.withType(com.intershop.gradle.icm.ICMProjectPlugin::class.java) {
+                tasks.register("printDevFolder") { 
                     doLast {
-                        println("ProdFolder: \${project.extensions.getByName("intershop").projectConfig.developmentConfigFolder}")
+                        val extension = project.extensions.getByName("intershop") as com.intershop.gradle.icm.extension.IntershopExtension
+                        println(extension.projectConfig.developmentConfigFolder)
                     }
                 }
             }
@@ -855,48 +857,48 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
     def "test cartridge.properties from dependency"() {
         TestRepo repo = new TestRepo(new File(testProjectDir, "/repo"))
-        String repoConf = repo.getRepoConfig()
+        String repoConf = repo.getRepoKtsConfig()
 
         settingsFile << """
-        rootProject.name='rootproject'
+        rootProject.name="rootproject"
         """.stripIndent()
 
         buildFile << """
             plugins {
-                id 'java'
-                id 'com.intershop.gradle.icm.project'
+                `java`
+                id("com.intershop.gradle.icm.project")
             }
             
-            group = 'com.intershop.test'
-            version = '10.0.0'
+            group = "com.intershop.test"
+            version = "10.0.0"
 
             intershop {
                 projectConfig {
                     
-                    cartridges = [ 'com.intershop.cartridge:cartridge_test:1.0.0', 
-                                   'prjCartridge_prod',
-                                   'com.intershop.cartridge:cartridge_dev:1.0.0', 
-                                   'com.intershop.cartridge:cartridge_adapter:1.0.0',
-                                   'prjCartridge_adapter',
-                                   'prjCartridge_dev',
-                                   'prjCartridge_test',
-                                   'com.intershop.cartridge:cartridge_prod:1.0.0' ] 
+                    cartridges.set(listOf("com.intershop.cartridge:cartridge_test:1.0.0", 
+                                   "prjCartridge_prod",
+                                   "com.intershop.cartridge:cartridge_dev:1.0.0", 
+                                   "com.intershop.cartridge:cartridge_adapter:1.0.0",
+                                   "prjCartridge_adapter",
+                                   "prjCartridge_dev",
+                                   "prjCartridge_test",
+                                   "com.intershop.cartridge:cartridge_prod:1.0.0"))
 
-                    dbprepareCartridges = [ 'prjCartridge_prod',
-                                            'prjCartridge_test' ] 
+                    dbprepareCartridges.set(listOf("prjCartridge_prod",
+                                            "prjCartridge_test"))
 
                     base {
-                        dependency = "com.intershop.icm:icm-as:1.0.0"
+                        dependency.set("com.intershop.icm:icm-as:1.0.0")
                     }
 
-                    cartridgeListDependency = "com.project.group:configuration:1.0.0"
+                    cartridgeListDependency.set("com.project.group:configuration:1.0.0")
 
                     modules {
-                        solrExt {
-                            dependency = "com.intershop.search:solrcloud:1.0.0"
+                        register("solrExt") {
+                            dependency.set("com.intershop.search:solrcloud:1.0.0")
                         }
-                        paymentExt {
-                            dependency = "com.intershop.payment:paymenttest:1.0.0"
+                        register("paymentExt") {
+                            dependency.set("com.intershop.payment:paymenttest:1.0.0")
                         }
                     }
                 }
@@ -1000,10 +1002,10 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
     private def prepareDefaultBuildConfigwithPublishing(File testProjectDir, File settingsFile, File buildFile) {
         TestRepo repo = new TestRepo(new File(testProjectDir, "/repo"))
-        String repoConf = repo.getRepoConfig()
+        String repoConf = repo.getRepoKtsConfig()
 
         settingsFile << """
-        rootProject.name='rootproject'
+        rootProject.name="rootproject"
         """.stripIndent()
 
         createLocalFile("config/base/cluster/test.properties", "test.properties = base_dir")
@@ -1021,39 +1023,39 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         buildFile << """
             plugins {
-                id 'java'
-                id 'com.intershop.gradle.icm.project'
-                id 'maven-publish'
+                `java`
+                id("com.intershop.gradle.icm.project")
+                `maven-publish`
             }
             
-            group = 'com.intershop.test'
-            version = '10.0.0'
+            group = "com.intershop.test"
+            version = "10.0.0"
 
             intershop {
                 projectConfig {
                   
-                    cartridges = [ 'com.intershop.cartridge:cartridge_test:1.0.0', 
-                                   'prjCartridge_prod',
-                                   'com.intershop.cartridge:cartridge_dev:1.0.0', 
-                                   'com.intershop.cartridge:cartridge_adapter:1.0.0',
-                                   'prjCartridge_adapter',
-                                   'prjCartridge_dev',
-                                   'prjCartridge_test',
-                                   'com.intershop.cartridge:cartridge_prod:1.0.0' ] 
+                    cartridges.set(listOf("com.intershop.cartridge:cartridge_test:1.0.0", 
+                                   "prjCartridge_prod",
+                                   "com.intershop.cartridge:cartridge_dev:1.0.0", 
+                                   "com.intershop.cartridge:cartridge_adapter:1.0.0",
+                                   "prjCartridge_adapter",
+                                   "prjCartridge_dev",
+                                   "prjCartridge_test",
+                                   "com.intershop.cartridge:cartridge_prod:1.0.0"))
 
-                    dbprepareCartridges = [ 'prjCartridge_prod',
-                                            'prjCartridge_test' ] 
+                    dbprepareCartridges.set(listOf("prjCartridge_prod",
+                                            "prjCartridge_test"))
 
                     base {
-                        dependency = "com.intershop.icm:icm-as:1.0.0"
+                        dependency.set("com.intershop.icm:icm-as:1.0.0")
                     }
 
                     modules {
-                        solrExt {
-                            dependency = "com.intershop.search:solrcloud:1.0.0"
+                        register("solrExt") {
+                            dependency.set("com.intershop.search:solrcloud:1.0.0")
                         }
-                        paymentExt {
-                            dependency = "com.intershop.payment:paymenttest:1.0.0"
+                        register("paymentExt") {
+                            dependency.set("com.intershop.payment:paymenttest:1.0.0")
                         }
                     }
 
@@ -1061,7 +1063,7 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                         base {
                             sites {
                                 dirs {
-                                    main {
+                                    register("main") {
                                         dir.set(file("sites/base"))
                                         exclude("**/test-site1/units/test.properties")
                                     }
@@ -1069,7 +1071,7 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                             }
                             config {
                                 dirs {
-                                    main {
+                                    register("main") {
                                         dir.set(file("config/base"))
                                         exclude("**/cluster/test.properties")
                                     }
@@ -1080,14 +1082,14 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                         prod {
                             config {
                                 dirs {
-                                    main {
+                                    register("main") {
                                         dir.set(file("config/prod"))
                                     }
                                 }
                             }
                             sites {
                                 dirs {
-                                    main {
+                                    register("main") {
                                         dir.set(file("sites/prod"))
                                     }
                                 }
@@ -1096,14 +1098,14 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                         test {
                             sites {
                                 dirs {
-                                    main {
+                                    register("main") {
                                         dir.set(file("sites/test"))
                                     }
                                 }
                             }
                             config {
                                 dirs {
-                                    main {
+                                    register("main") {
                                         dir.set(file("config/test"))
                                     }
                                 }
@@ -1112,10 +1114,10 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                         dev {
                             sites {
                                 dirs {
-                                    main {
+                                    register("main") {
                                         dir.set(file("sites/dev"))
                                     }
-                                    test {
+                                    register("test") {
                                         dir.set(file("sites/test"))
                                         exclude("**/units/test.properties")
                                     }
@@ -1123,10 +1125,10 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                             }
                             config {
                                 dirs {
-                                    main {
+                                    register("main") {
                                         dir.set(file("config/dev"))
                                     }
-                                    test {
+                                    register("test") {
                                         dir.set(file("config/test"))
                                         exclude("**/cluster/test.properties")
                                     }
@@ -1143,7 +1145,7 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                 repositories {
                     maven {
                         // change to point to your repo, e.g. http://my.org/repo
-                        url = "\$buildDir/pubrepo"
+                        url = uri("\$buildDir/pubrepo")
                     }
                 }
             }
@@ -1151,18 +1153,17 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         def prj1dir = createSubProject('prjCartridge_prod', """
         plugins {
-            id 'java-library'
-            id 'com.intershop.icm.cartridge.product'
+            id("com.intershop.icm.cartridge.product")
         }
         
         dependencies {
-            implementation 'com.google.inject:guice:4.0'
-            implementation 'com.google.inject.extensions:guice-servlet:3.0'
-            implementation 'javax.servlet:javax.servlet-api:3.1.0'
+            implementation("com.google.inject:guice:4.0")
+            implementation("com.google.inject.extensions:guice-servlet:3.0")
+            implementation("javax.servlet:javax.servlet-api:3.1.0")
         
-            implementation 'io.prometheus:simpleclient:0.6.0'
-            implementation 'io.prometheus:simpleclient_hotspot:0.6.0'
-            implementation 'io.prometheus:simpleclient_servlet:0.6.0'
+            implementation("io.prometheus:simpleclient:0.6.0")
+            implementation("io.prometheus:simpleclient_hotspot:0.6.0")
+            implementation("io.prometheus:simpleclient_servlet:0.6.0")
         } 
         
         repositories {
@@ -1172,16 +1173,15 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         def prj2dir = createSubProject('prjCartridge_test', """
         plugins {
-            id 'java-library'
-            id 'com.intershop.icm.cartridge.test'
+            id("com.intershop.icm.cartridge.test")
         }
         
         dependencies {
-            implementation 'org.codehaus.janino:janino:2.5.16'
-            implementation 'org.codehaus.janino:commons-compiler:3.0.6'
-            implementation 'ch.qos.logback:logback-core:1.2.3'
-            implementation 'ch.qos.logback:logback-classic:1.2.3'
-            implementation 'commons-collections:commons-collections:3.2.2'
+            implementation("org.codehaus.janino:janino:2.5.16")
+            implementation("org.codehaus.janino:commons-compiler:3.0.6")
+            implementation("ch.qos.logback:logback-core:1.2.3")
+            implementation("ch.qos.logback:logback-classic:1.2.3")
+            implementation("commons-collections:commons-collections:3.2.2")
         } 
         
         repositories {
@@ -1191,8 +1191,7 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         def prj3dir = createSubProject('prjCartridge_dev', """
         plugins {
-            id 'java-library'
-            id 'com.intershop.icm.cartridge.development'
+            id("com.intershop.icm.cartridge.development")
         }
         
         repositories {
@@ -1202,13 +1201,12 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         def prj4dir = createSubProject('prjCartridge_adapter', """
         plugins {
-            id 'java-library'
-            id 'com.intershop.icm.cartridge.adapter'
+            id("com.intershop.icm.cartridge.adapter")
         }
         
         dependencies {
-            implementation 'ch.qos.logback:logback-core:1.2.3'
-            implementation 'ch.qos.logback:logback-classic:1.2.3'
+            implementation("ch.qos.logback:logback-core:1.2.3")
+            implementation("ch.qos.logback:logback-classic:1.2.3")
         } 
         
         repositories {
@@ -1250,10 +1248,10 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
     private def prepareDefaultBuildConfigWithoutLibsTxt(File testProjectDir, File settingsFile, File buildFile) {
         TestRepo repo = new TestRepo(new File(testProjectDir, "/repo"))
-        String repoConf = repo.getRepoConfig()
+        String repoConf = repo.getRepoKtsConfig()
 
         settingsFile << """
-        rootProject.name='rootproject'
+        rootProject.name="rootproject"
         """.stripIndent()
 
         createLocalFile("config/base/cluster/test.properties", "test.properties = base_dir")
@@ -1271,39 +1269,39 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         buildFile << """
             plugins {
-                id 'java'
-                id 'com.intershop.gradle.icm.project'
-                id 'maven-publish'
+                `java`
+                id("com.intershop.gradle.icm.project")
+                `maven-publish`
             }
             
-            group = 'com.intershop.test'
-            version = '10.0.0'
+            group = "com.intershop.test"
+            version = "10.0.0"
 
             intershop {
                 projectConfig {
                     
-                    cartridges = [ 'com.intershop.cartridge:cartridge_test:1.0.0', 
-                                   'prjCartridge_prod',
-                                   'com.intershop.cartridge:cartridge_dev:1.0.0', 
-                                   'com.intershop.cartridge:cartridge_adapter:1.0.0',
-                                   'prjCartridge_adapter',
-                                   'prjCartridge_dev',
-                                   'prjCartridge_test',
-                                   'com.intershop.cartridge:cartridge_prod:1.0.0' ] 
+                    cartridges.set(listOf("com.intershop.cartridge:cartridge_test:1.0.0", 
+                                   "prjCartridge_prod",
+                                   "com.intershop.cartridge:cartridge_dev:1.0.0", 
+                                   "com.intershop.cartridge:cartridge_adapter:1.0.0",
+                                   "prjCartridge_adapter",
+                                   "prjCartridge_dev",
+                                   "prjCartridge_test",
+                                   "com.intershop.cartridge:cartridge_prod:1.0.0"))
 
-                    dbprepareCartridges = [ 'prjCartridge_prod',
-                                            'prjCartridge_test' ] 
+                    dbprepareCartridges.set(listOf("prjCartridge_prod",
+                                            "prjCartridge_test"))
 
                     base {
-                        dependency = "com.intershop.icm:icm-as:2.0.0"
+                        dependency.set("com.intershop.icm:icm-as:2.0.0")
                     }
 
                     modules {
-                        solrExt {
-                            dependency = "com.intershop.search:solrcloud:1.0.0"
+                        register("solrExt") {
+                            dependency.set("com.intershop.search:solrcloud:1.0.0")
                         }
-                        paymentExt {
-                            dependency = "com.intershop.payment:paymenttest:1.0.0"
+                        register("paymentExt") {
+                            dependency.set("com.intershop.payment:paymenttest:1.0.0")
                         }
                     }
 
@@ -1311,7 +1309,7 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                         base {
                             sites {
                                 dirs {
-                                    main {
+                                    register("main") {
                                         dir.set(file("sites/base"))
                                         exclude("**/test-site1/units/test.properties")
                                     }
@@ -1319,7 +1317,7 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                             }
                             config {
                                 dirs {
-                                    main {
+                                    register("main") {
                                         dir.set(file("config/base"))
                                         exclude("**/cluster/test.properties")
                                     }
@@ -1330,14 +1328,14 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                         prod {
                             config {
                                 dirs {
-                                    main {
+                                    register("main") {
                                         dir.set(file("config/prod"))
                                     }
                                 }
                             }
                             sites {
                                 dirs {
-                                    main {
+                                    register("main") {
                                         dir.set(file("sites/prod"))
                                     }
                                 }
@@ -1346,14 +1344,14 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                         test {
                             sites {
                                 dirs {
-                                    main {
+                                    register("main") {
                                         dir.set(file("sites/test"))
                                     }
                                 }
                             }
                             config {
                                 dirs {
-                                    main {
+                                    register("main") {
                                         dir.set(file("config/test"))
                                     }
                                 }
@@ -1362,10 +1360,10 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                         dev {
                             sites {
                                 dirs {
-                                    main {
+                                    register("main") {
                                         dir.set(file("sites/dev"))
                                     }
-                                    test {
+                                    register("test") {
                                         dir.set(file("sites/test"))
                                         exclude("**/units/test.properties")
                                     }
@@ -1373,10 +1371,10 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                             }
                             config {
                                 dirs {
-                                    main {
+                                    register("main") {
                                         dir.set(file("config/dev"))
                                     }
-                                    test {
+                                    register("test") {
                                         dir.set(file("config/test"))
                                         exclude("**/cluster/test.properties")
                                     }
@@ -1393,7 +1391,7 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                 repositories {
                     maven {
                         // change to point to your repo, e.g. http://my.org/repo
-                        url = "\$buildDir/pubrepo"
+                        url = uri("\$buildDir/pubrepo")
                     }
                 }
             }
@@ -1401,18 +1399,17 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         def prj1dir = createSubProject('prjCartridge_prod', """
         plugins {
-            id 'java-library'
-            id 'com.intershop.icm.cartridge.product'
+            id("com.intershop.icm.cartridge.product")
         }
         
         dependencies {
-            implementation 'com.google.inject:guice:4.0'
-            implementation 'com.google.inject.extensions:guice-servlet:3.0'
-            implementation 'javax.servlet:javax.servlet-api:3.1.0'
+            implementation("com.google.inject:guice:4.0")
+            implementation("com.google.inject.extensions:guice-servlet:3.0")
+            implementation("javax.servlet:javax.servlet-api:3.1.0")
         
-            implementation 'io.prometheus:simpleclient:0.6.0'
-            implementation 'io.prometheus:simpleclient_hotspot:0.6.0'
-            implementation 'io.prometheus:simpleclient_servlet:0.6.0'
+            implementation("io.prometheus:simpleclient:0.6.0")
+            implementation("io.prometheus:simpleclient_hotspot:0.6.0")
+            implementation("io.prometheus:simpleclient_servlet:0.6.0")
         } 
         
         repositories {
@@ -1422,16 +1419,15 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         def prj2dir = createSubProject('prjCartridge_test', """
         plugins {
-            id 'java-library'
-            id 'com.intershop.icm.cartridge.test'
+            id("com.intershop.icm.cartridge.test")
         }
         
         dependencies {
-            implementation 'org.codehaus.janino:janino:2.5.16'
-            implementation 'org.codehaus.janino:commons-compiler:3.0.6'
-            implementation 'ch.qos.logback:logback-core:1.2.3'
-            implementation 'ch.qos.logback:logback-classic:1.2.3'
-            implementation 'commons-collections:commons-collections:3.2.2'
+            implementation("org.codehaus.janino:janino:2.5.16")
+            implementation("org.codehaus.janino:commons-compiler:3.0.6")
+            implementation("ch.qos.logback:logback-core:1.2.3")
+            implementation("ch.qos.logback:logback-classic:1.2.3")
+            implementation("commons-collections:commons-collections:3.2.2")
         } 
         
         repositories {
@@ -1441,8 +1437,7 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         def prj3dir = createSubProject('prjCartridge_dev', """
         plugins {
-            id 'java-library'
-            id 'com.intershop.icm.cartridge.development'
+            id("com.intershop.icm.cartridge.development")
         }
         
         repositories {
@@ -1452,13 +1447,12 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         def prj4dir = createSubProject('prjCartridge_adapter', """
         plugins {
-            id 'java-library'
-            id 'com.intershop.icm.cartridge.adapter'
+            id("com.intershop.icm.cartridge.adapter")
         }
         
         dependencies {
-            implementation 'ch.qos.logback:logback-core:1.2.3'
-            implementation 'ch.qos.logback:logback-classic:1.2.3'
+            implementation("ch.qos.logback:logback-core:1.2.3")
+            implementation("ch.qos.logback:logback-classic:1.2.3")
         } 
         
         repositories {
@@ -1515,10 +1509,10 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
     private def prepareBuildConfigwithPublishingWithoutSites(File testProjectDir, File settingsFile, File buildFile) {
         TestRepo repo = new TestRepo(new File(testProjectDir, "/repo"))
-        String repoConf = repo.getRepoConfig()
+        String repoConf = repo.getRepoKtsConfig()
 
         settingsFile << """
-        rootProject.name='rootproject'
+        rootProject.name="rootproject"
         """.stripIndent()
 
         createLocalFile("config/base/cluster/test.properties", "test.properties = base_dir")
@@ -1529,39 +1523,39 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         buildFile << """
             plugins {
-                id 'java'
-                id 'com.intershop.gradle.icm.project'
-                id 'maven-publish'
+                `java`
+                id("com.intershop.gradle.icm.project")
+                `maven-publish`
             }
             
-            group = 'com.intershop.test'
-            version = '10.0.0'
+            group = "com.intershop.test"
+            version = "10.0.0"
 
             intershop {
                 projectConfig {
                     
-                    cartridges = [ 'com.intershop.cartridge:cartridge_test:1.0.0', 
-                                   'prjCartridge_prod',
-                                   'com.intershop.cartridge:cartridge_dev:1.0.0', 
-                                   'com.intershop.cartridge:cartridge_adapter:1.0.0',
-                                   'prjCartridge_adapter',
-                                   'prjCartridge_dev',
-                                   'prjCartridge_test',
-                                   'com.intershop.cartridge:cartridge_prod:1.0.0' ] 
+                    cartridges.set(listOf("com.intershop.cartridge:cartridge_test:1.0.0", 
+                                   "prjCartridge_prod",
+                                   "com.intershop.cartridge:cartridge_dev:1.0.0", 
+                                   "com.intershop.cartridge:cartridge_adapter:1.0.0",
+                                   "prjCartridge_adapter",
+                                   "prjCartridge_dev",
+                                   "prjCartridge_test",
+                                   "com.intershop.cartridge:cartridge_prod:1.0.0"))
 
-                    dbprepareCartridges = [ 'prjCartridge_prod',
-                                            'prjCartridge_test' ] 
+                    dbprepareCartridges.set(listOf("prjCartridge_prod",
+                                            "prjCartridge_test"))
 
                     base {
-                        dependency = "com.intershop.icm:icm-as:1.0.0"
+                        dependency.set("com.intershop.icm:icm-as:1.0.0")
                     }
 
                     modules {
-                        solrExt {
-                            dependency = "com.intershop.search:solrcloud:1.0.0"
+                        register("solrExt") {
+                            dependency.set("com.intershop.search:solrcloud:1.0.0")
                         }
-                        paymentExt {
-                            dependency = "com.intershop.payment:paymenttest:1.0.0"
+                        register("paymentExt") {
+                            dependency.set("com.intershop.payment:paymenttest:1.0.0")
                         }
                     }
 
@@ -1569,7 +1563,7 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                         base {
                             config {
                                 dirs {
-                                    main {
+                                    register("main") {
                                         dir.set(file("config/base"))
                                         exclude("**/cluster/test.properties")
                                     }
@@ -1580,7 +1574,7 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                         prod {
                             config {
                                 dirs {
-                                    main {
+                                    register("main") {
                                         dir.set(file("config/prod"))
                                     }
                                 }
@@ -1589,7 +1583,7 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                         test {
                             config {
                                 dirs {
-                                    main {
+                                    register("main") {
                                         dir.set(file("config/test"))
                                     }
                                 }
@@ -1598,10 +1592,10 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                         dev {
                             config {
                                 dirs {
-                                    main {
+                                    register("main") {
                                         dir.set(file("config/dev"))
                                     }
-                                    test {
+                                    register("test") {
                                         dir.set(file("config/test"))
                                         exclude("**/cluster/test.properties")
                                     }
@@ -1618,7 +1612,7 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                 repositories {
                     maven {
                         // change to point to your repo, e.g. http://my.org/repo
-                        url = "\$buildDir/pubrepo"
+                        url = uri("\$buildDir/pubrepo")
                     }
                 }
             }
@@ -1626,18 +1620,17 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         def prj1dir = createSubProject('prjCartridge_prod', """
         plugins {
-            id 'java-library'
-            id 'com.intershop.icm.cartridge.product'
+            id("com.intershop.icm.cartridge.product")
         }
         
         dependencies {
-            implementation 'com.google.inject:guice:4.0'
-            implementation 'com.google.inject.extensions:guice-servlet:3.0'
-            implementation 'javax.servlet:javax.servlet-api:3.1.0'
+            implementation("com.google.inject:guice:4.0")
+            implementation("com.google.inject.extensions:guice-servlet:3.0")
+            implementation("javax.servlet:javax.servlet-api:3.1.0")
         
-            implementation 'io.prometheus:simpleclient:0.6.0'
-            implementation 'io.prometheus:simpleclient_hotspot:0.6.0'
-            implementation 'io.prometheus:simpleclient_servlet:0.6.0'
+            implementation("io.prometheus:simpleclient:0.6.0")
+            implementation("io.prometheus:simpleclient_hotspot:0.6.0")
+            implementation("io.prometheus:simpleclient_servlet:0.6.0")
         } 
         
         repositories {
@@ -1647,16 +1640,15 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         def prj2dir = createSubProject('prjCartridge_test', """
         plugins {
-            id 'java-library'
-            id 'com.intershop.icm.cartridge.test'
+            id("com.intershop.icm.cartridge.test")
         }
         
         dependencies {
-            implementation 'org.codehaus.janino:janino:2.5.16'
-            implementation 'org.codehaus.janino:commons-compiler:3.0.6'
-            implementation 'ch.qos.logback:logback-core:1.2.3'
-            implementation 'ch.qos.logback:logback-classic:1.2.3'
-            implementation 'commons-collections:commons-collections:3.2.2'
+            implementation("org.codehaus.janino:janino:2.5.16")
+            implementation("org.codehaus.janino:commons-compiler:3.0.6")
+            implementation("ch.qos.logback:logback-core:1.2.3")
+            implementation("ch.qos.logback:logback-classic:1.2.3")
+            implementation("commons-collections:commons-collections:3.2.2")
         } 
         
         repositories {
@@ -1666,8 +1658,7 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         def prj3dir = createSubProject('prjCartridge_dev', """
         plugins {
-            id 'java-library'
-            id 'com.intershop.icm.cartridge.development'
+            id("com.intershop.icm.cartridge.development")
         }
         
         repositories {
@@ -1677,13 +1668,12 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         def prj4dir = createSubProject('prjCartridge_adapter', """
         plugins {
-            id 'java-library'
-            id 'com.intershop.icm.cartridge.adapter'
+            id("com.intershop.icm.cartridge.adapter")
         }
         
         dependencies {
-            implementation 'ch.qos.logback:logback-core:1.2.3'
-            implementation 'ch.qos.logback:logback-classic:1.2.3'
+            implementation("ch.qos.logback:logback-core:1.2.3")
+            implementation("ch.qos.logback:logback-classic:1.2.3")
         } 
         
         repositories {
@@ -1725,47 +1715,47 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
     private def prepareBuildConfigwithPublishingWithoutAnything(File testProjectDir, File settingsFile, File buildFile) {
         TestRepo repo = new TestRepo(new File(testProjectDir, "/repo"))
-        String repoConf = repo.getRepoConfig()
+        String repoConf = repo.getRepoKtsConfig()
 
         settingsFile << """
-        rootProject.name='rootproject'
+        rootProject.name="rootproject"
         """.stripIndent()
 
         buildFile << """
             plugins {
-                id 'java'
-                id 'com.intershop.gradle.icm.project'
-                id 'maven-publish'
+                `java`
+                id("com.intershop.gradle.icm.project")
+                `maven-publish`
             }
             
-            group = 'com.intershop.test'
-            version = '10.0.0'
+            group = "com.intershop.test"
+            version = "10.0.0"
 
             intershop {
                 projectConfig {
                     
-                    cartridges = [ 'com.intershop.cartridge:cartridge_test:1.0.0', 
-                                   'prjCartridge_prod',
-                                   'com.intershop.cartridge:cartridge_dev:1.0.0', 
-                                   'com.intershop.cartridge:cartridge_adapter:1.0.0',
-                                   'prjCartridge_adapter',
-                                   'prjCartridge_dev',
-                                   'prjCartridge_test',
-                                   'com.intershop.cartridge:cartridge_prod:1.0.0' ] 
+                    cartridges.set(listOf("com.intershop.cartridge:cartridge_test:1.0.0", 
+                                   "prjCartridge_prod",
+                                   "com.intershop.cartridge:cartridge_dev:1.0.0", 
+                                   "com.intershop.cartridge:cartridge_adapter:1.0.0",
+                                   "prjCartridge_adapter",
+                                   "prjCartridge_dev",
+                                   "prjCartridge_test",
+                                   "com.intershop.cartridge:cartridge_prod:1.0.0"))
 
-                    dbprepareCartridges = [ 'prjCartridge_prod',
-                                            'prjCartridge_test' ] 
+                    dbprepareCartridges.set(listOf("prjCartridge_prod",
+                                            "prjCartridge_test"))
 
                     base {
-                        dependency = "com.intershop.icm:icm-as:1.0.0"
+                        dependency.set("com.intershop.icm:icm-as:1.0.0")
                     }
 
                     modules {
-                        solrExt {
-                            dependency = "com.intershop.search:solrcloud:1.0.0"
+                        register("solrExt") {
+                            dependency.set("com.intershop.search:solrcloud:1.0.0")
                         }
-                        paymentExt {
-                            dependency = "com.intershop.payment:paymenttest:1.0.0"
+                        register("paymentExt") {
+                            dependency.set("com.intershop.payment:paymenttest:1.0.0")
                         }
                     }
                 }
@@ -1777,7 +1767,7 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                 repositories {
                     maven {
                         // change to point to your repo, e.g. http://my.org/repo
-                        url = "\$buildDir/pubrepo"
+                        url = uri("\$buildDir/pubrepo")
                     }
                 }
             }
@@ -1785,18 +1775,17 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         def prj1dir = createSubProject('prjCartridge_prod', """
         plugins {
-            id 'java-library'
-            id 'com.intershop.icm.cartridge.product'
+            id("com.intershop.icm.cartridge.product")
         }
         
         dependencies {
-            implementation 'com.google.inject:guice:4.0'
-            implementation 'com.google.inject.extensions:guice-servlet:3.0'
-            implementation 'javax.servlet:javax.servlet-api:3.1.0'
+            implementation("com.google.inject:guice:4.0")
+            implementation("com.google.inject.extensions:guice-servlet:3.0")
+            implementation("javax.servlet:javax.servlet-api:3.1.0")
         
-            implementation 'io.prometheus:simpleclient:0.6.0'
-            implementation 'io.prometheus:simpleclient_hotspot:0.6.0'
-            implementation 'io.prometheus:simpleclient_servlet:0.6.0'
+            implementation("io.prometheus:simpleclient:0.6.0")
+            implementation("io.prometheus:simpleclient_hotspot:0.6.0")
+            implementation("io.prometheus:simpleclient_servlet:0.6.0")
         } 
         
         repositories {
@@ -1806,16 +1795,15 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         def prj2dir = createSubProject('prjCartridge_test', """
         plugins {
-            id 'java-library'
-            id 'com.intershop.icm.cartridge.test'
+            id("com.intershop.icm.cartridge.test")
         }
         
         dependencies {
-            implementation 'org.codehaus.janino:janino:2.5.16'
-            implementation 'org.codehaus.janino:commons-compiler:3.0.6'
-            implementation 'ch.qos.logback:logback-core:1.2.3'
-            implementation 'ch.qos.logback:logback-classic:1.2.3'
-            implementation 'commons-collections:commons-collections:3.2.2'
+            implementation("org.codehaus.janino:janino:2.5.16")
+            implementation("org.codehaus.janino:commons-compiler:3.0.6")
+            implementation("ch.qos.logback:logback-core:1.2.3")
+            implementation("ch.qos.logback:logback-classic:1.2.3")
+            implementation("commons-collections:commons-collections:3.2.2")
         } 
         
         repositories {
@@ -1825,8 +1813,7 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         def prj3dir = createSubProject('prjCartridge_dev', """
         plugins {
-            id 'java-library'
-            id 'com.intershop.icm.cartridge.development'
+            id("com.intershop.icm.cartridge.development")
         }
         
         repositories {
@@ -1836,13 +1823,12 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         def prj4dir = createSubProject('prjCartridge_adapter', """
         plugins {
-            id 'java-library'
-            id 'com.intershop.icm.cartridge.adapter'
+            id("com.intershop.icm.cartridge.adapter")
         }
         
         dependencies {
-            implementation 'ch.qos.logback:logback-core:1.2.3'
-            implementation 'ch.qos.logback:logback-classic:1.2.3'
+            implementation("ch.qos.logback:logback-core:1.2.3")
+            implementation("ch.qos.logback:logback-classic:1.2.3")
         } 
         
         repositories {

@@ -378,7 +378,10 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
                 CreateSitesFolder::class.java
             ).apply {
                 baseProject.set(projectConfig.base)
-                modules.set(projectConfig.modules.asMap)
+
+                projectConfig.modules.all {
+                    module(it)
+                }
 
                 baseDirConfig.set(projectConfig.serverDirConfig.base.sites)
                 extraDirConfig.set(extraServerDir)
@@ -409,9 +412,14 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
                 provideOutputFile(project.layout.buildDirectory.file(("$targetPath/$CARTRIDGELIST")))
             }
 
+
+
             return tasks.maybeCreate(createConfigTaskName, CreateConfigFolder::class.java).apply {
                 baseProject.set(projectConfig.base)
-                modules.set(projectConfig.modules.asMap)
+
+                projectConfig.modules.all {
+                    module(it)
+                }
 
                 baseDirConfig.set(projectConfig.serverDirConfig.base.config)
                 extraDirConfig.set(extraServerDir)

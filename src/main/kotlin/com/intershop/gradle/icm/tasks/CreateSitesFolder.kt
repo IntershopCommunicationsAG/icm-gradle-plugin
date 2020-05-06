@@ -51,7 +51,7 @@ open class CreateSitesFolder
             copySpec = cs,
             filePackage = baseProject.get().sitesPackage,
             excludes = listOf())
-        modules.get().forEach { (_, prj) ->
+        modules.get().forEach { prj ->
             PackageUtil.addPackageToCS(
                 project = project,
                 dependency = prj.dependency.get(),

@@ -331,6 +331,9 @@ intershop {
 </details>
 ++++
 
+The project information (`projectInfo`) is used in the display of the login dialog of the the ICM backoffice.
+The property configuration `mavenPublicationName` is used for the publishing configuration. The default value is `mvn`.
+
 === Configurations
 [cols="15%,15%,15%,54%", width="99%, options="header"]
 |===
@@ -359,22 +362,155 @@ Task`  | This task groups two tasks of a cartridge (`writeCartridgeDescriptor`, 
 
 == Intershop Commerce Management Project Plugin
 
+This plugin applies the Intershop Commerce Management Base plugin to the project. It adds also additional tasks and
+configuration for projects that are based on an Intershop Commerce Management base project like Intershop Commerce Management B2X 7.11.
+A base project proivides a container with an installed server configuration.
 
+=== Plugin Configuration
 
-== Usage
-To apply the ICM Gradle Plugin to your project, add the following in your build script of the root project:
-
-[source,groovy]
-[subs=+attributes]
+++++
+<details open>
+<summary>Groovy</summary>
+++++
 .build.gradle
+[source,groovy]
 ----
 plugins {
-    id 'com.intershop.gradle.icm' version '{latestRevision}'
+    id 'com.intershop.gradle.icm.base' version '{latestRevision}'
 }
 
 intershop {
+
+    projectInfo {
+        productID = 'ICM 7 Project'
+        productName = 'Intershop Commerce Management 7 Project'
+        copyrightOwner = 'Intershop Communications'
+        copyrightFrom = '2005'
+        organization = 'Intershop Communications'
+    }
+
+    mavenPublicationName = 'ishmvn'
+
+    projectConfig {
+        cartridges = [ 'com.intershop.cartridge:cartridge_dev:1.0.0',
+                       'projectCartridge_prod',
+                       'com.intershop.cartridge:cartridge_prod:1.0.0',
+                       'projectCartridge_test']
+
+        dbprepareCartridges = [ 'projectCartridge_prod',
+                                'com.intershop.cartridge:cartridge_prod:1.0.0' ]
+
+        base {
+            dependency = "com.intershop.icm:icm-as:1.0.0"
+        }
+
+        modules {
+            solr {
+                dependency = "com.intershop.search:solrcloud:1.0.0"
+            }
+            payment {
+                dependency = "com.intershop.payment:payment:1.0.0"
+            }
+        }
+        serverDirConfig {
+            base {
+                sites {
+                    dirs {
+                        main {
+                            dir.set(file("sites/base"))
+                        }
+                    }
+                }
+                config {
+                    dirs {
+                        main {
+                            dir.set(file("config/base"))
+                        }
+                    }
+                }
+            }
+            prod { }
+            test { }
+            dev { }
+        }
+    }
 }
 ----
+++++
+</details>
+++++
+
+++++
+<details>
+<summary>Kotlin</summary>
+++++
+.build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    id("com.intershop.gradle.icm.base") version "{latestRevision}"
+}
+
+intershop {
+
+    projectInfo {
+        productID.set("ICM 7 B2C")
+        productName.set("Intershop Commerce Management 7 B2C")
+        copyrightOwner.set("Intershop Communications")
+        copyrightFrom.set("2005")
+        organization.set("Intershop Communications")
+    }
+
+    mavenPublicationName.set("ishmvn")
+
+    projectConfig {
+        cartridges.set(listOf("com.intershop.cartridge:cartridge_dev:1.0.0",
+                       "projectCartridge_prod",
+                       "com.intershop.cartridge:cartridge_prod:1.0.0",
+                       "projectCartridge_test"))
+
+        dbprepareCartridges.set(listOf("projectCartridge_prod",
+                                "com.intershop.cartridge:cartridge_prod:1.0.0"))
+
+        base {
+            dependency.set("com.intershop.icm:icm-as:1.0.0")
+        }
+
+        modules {
+            register("solr") {
+                dependency.set("com.intershop.search:solrcloud:1.0.0")
+            }
+            register("payment") {
+                dependency.set("com.intershop.payment:payment:1.0.0")
+            }
+        }
+        serverDirConfig {
+            base {
+                sites {
+                    dirs {
+                        register("main") {
+                            dir.set(file("sites/base"))
+                        }
+                    }
+                }
+                config {
+                    dirs {
+                        register("main") {
+                            dir.set(file("config/base"))
+                        }
+                    }
+                }
+            }
+            prod { }
+            test { }
+            dev { }
+        }
+    }
+}
+----
+++++
+</details>
+++++
 
 == Tasks
 The ICM Build Gradle plugin adds ... to the project.

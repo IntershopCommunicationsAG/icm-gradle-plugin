@@ -79,7 +79,7 @@ open class CreateConfigFolder
             copySpec = cs,
             filePackage = baseProject.get().configPackage,
             excludes = listOf("**/cluster/${CARTRIDGELIST_FILENAME}", "**/cluster/${VERSIONINFO_FILENAME}"))
-        modules.get().forEach { (_, prj) ->
+        modules.get().forEach { prj ->
             PackageUtil.addPackageToCS(
                 project = project,
                 dependency = prj.dependency.get(),
