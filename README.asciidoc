@@ -332,9 +332,78 @@ intershop {
 ++++
 
 The project information (`projectInfo`) is used in the display of the login dialog of the the ICM backoffice.
-The property configuration `mavenPublicationName` is used for the publishing configuration. The default value is `mvn`.
 
-=== Configurations
+==== Extension 'intershop' for Base Plugin
+
+===== Properties
+
+[cols="25%,10%,10%,55%", width="99%, options="header"]
+|===
+|Property               | Type      | Default value | Description
+
+|`mavenPublicationName` | `String`  | `mvn` | The property is used for the publishing configuration.
+|===
+
+===== Methods
+
+[cols="17%,17%,66%", width="99%, options="header"]
+|===
+|Method | Parameter | Description
+
+|`developmentConfig` | `Action<in `DevelopmentConfiguration`>` | Configures a development configuration from an action.
+|`developmentConfig` | `Closure<Any>` | Configures a development configuration from a closure.
+|`projectInfo` | `Action<in ProjectInfo>` | Configures a project information from an action.
+|`projectInfo` | `Closure<Any>` | Configures a project information from a closure.
+|===
+
+===== Object `DevelopmentConfiguration`
+====== Properties
+
+[cols="20%,10%,50%,30%", width="99%, options="header"]
+|===
+|Property           | Type     | Default value | Description
+
+|`licenseDirectory` | `String` |
+One of these values in the following order: +
+1. value of environement variable `LICENSEDIR` +
+2. value of system property `licenseDir` +
+3. value of Gradle property `licenseDir` +
+4. default value `$GRADLE_USER_HOME/icm-default/lic` | Path of a directory with the
+Intershop license file. This is required by an ICM server instance.
+|`licenseFilePath`  | `String` | `<licenseDirectory>/license.xml` |The absolute path of the license file.
+|`configDirectory`  | `String` |
+One of these values in the following order: +
+1. value of environement variable `CONFIGDIR` +
+2. value of system property `configDir` +
+3. value of Gradle property `configDir` +
+4. default value `$GRADLE_USER_HOME/icm-default/conf` |Path of a directory with an
+local environment specific configuration file. This is necessary to overwrite an existing
+configuration of a server, such as the database settings.
+|`configFilePath`   | `String` | `<configDirectory>/cluster.properties` | The absolute path of the configuration file.
+|===
+
+NOTE: All properties are read only.
+
+===== Object `ProjectInfo`
+====== Properties
+
+[cols="20%,10%,5%,30%,45%", width="99%, options="header"]
+|===
+|Property           | Type                  | Read only | Default value | Description
+
+|`productIDProvider`     | `Provider<String>` | x | `productID` instance | Provider of the product ID of the project.
+|`productID`             | `Property<String>` | | *`ICM`* | Product ID property.
+|`productNameProvider`   | `Provider<String>` | x | `productName` instance | Provider of the product name of the project.
+|`productName`           | `Property<String>` | | *`Intershop Commerce Management 7`* | Product name property.
+|`copyrightOwnerProvider`| `Provider<String>` | x | `copyrightOwner` instance | Provider of the copyright owner of the project.
+|`copyrightOwner`        | `Property<String>` | | *`Intershop Communications`* | Copyright owner property.
+|`copyrightFromProvider`| `Provider<String>` | x | `copyrightFrom` instance| Provider of the 'copyright from' property.
+|`copyrightFrom`        | `Property<String>` | | *`2005`* | 'Copyright from' property.
+|`organizationProvider` | `Provider<String>` | x | `organization` instance | Provider of the organization property.
+|`organization`         | `Property<String>` | | *`Intershop Communications`* | Organization property.
+|===
+
+=== Dependency Configurations
 [cols="15%,15%,15%,54%", width="99%, options="header"]
 |===
 | Configuration name | Transitive | Extends         | Usage
@@ -512,7 +581,9 @@ intershop {
 </details>
 ++++
 
-== Tasks
+
+
+=== Tasks
 The ICM Build Gradle plugin adds ... to the project.
 
 
