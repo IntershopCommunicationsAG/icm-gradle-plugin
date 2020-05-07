@@ -34,7 +34,34 @@ class TestRepo {
 
     String getRepoConfig() {
         if(! intRepoconfig) {
-            intRepoconfig = createRepo(repoDir)
+            createRepo(repoDir)
+
+            String repostr = """
+            repositories {
+                jcenter()
+                maven {
+                    url "${repoDir.toURI().toURL()}"
+                }
+            }""".stripIndent()
+
+            return repostr
+        }
+        return intRepoconfig
+    }
+
+    String getRepoKtsConfig() {
+        if(! intRepoconfig) {
+            createRepo(repoDir)
+
+            String repostr = """
+            repositories {
+                jcenter()
+                maven {
+                    url=uri("${repoDir.toURI().toURL()}")
+                }
+            }""".stripIndent()
+
+            return repostr
         }
         return intRepoconfig
     }
@@ -77,6 +104,8 @@ class TestRepo {
 
         }.writeTo(repoDir)
 
+        addCartridgeList('com.project.group', 'configuration', '1.0.0')
+
         addSimpleLib('library1', '1.5.0')
         addSimpleLib('library2', '1.5.0')
         addSimpleLib('library3', '1.5.0')
@@ -84,22 +113,28 @@ class TestRepo {
         addExtLib('library1', '1.0.0', 'library1', '1.5.0')
         addExtLib('library2', '1.0.0', 'library2', '1.5.0')
 
-        addCartridge('cartridge2', '1.0.0', 'development')
+        addCartridge('cartridge_dev', '1.0.0', 'development')
+        addCartridge('cartridge_test', '1.0.0', 'test')
+        addCartridge('cartridge_adapter', '1.0.0', 'adapter')
+        addCartridge('cartridge_prod', '1.0.0', 'cartridge')
 
-        addBaseProject("icm-as", "1.0.0")
-        addSecondBaseProject("solrcloud", "1.0.0")
-        addBaseProjectWithoutLibsTxt("icm-as", "2.0.0")
-        addBaseProjectWithoutSites("icm-as", "3.0.0")
+        addBaseProject('icm-as', '1.0.0')
+        addSecondBaseProject('com.intershop.search', 'solrcloud', '1.0.0')
+        addThirdBaseProject('com.intershop.payment', 'paymenttest', '1.0.0')
+        addBaseProjectWithoutLibsTxt('icm-as', '2.0.0')
+        addBaseProjectWithoutSites('icm-as', '3.0.0')
+    }
 
-        String repostr = """
-            repositories {
-                jcenter()
-                maven {
-                    url "${repoDir.toURI().toURL()}"
-                }
-            }""".stripIndent()
-
-        return repostr
+    private void addCartridgeList(String group, String artifactID, String version) {
+        new TestMavenRepoBuilder().repository {
+            project(groupId: group, artifactId: artifactID, version: version) {
+                artifact (
+                        classifier: "cartridgelist",
+                        ext: "properties",
+                        content: getTextResources('cartridgelist/repocartridgelist.properties')
+                )
+            }
+        }.writeTo(repoDir)
     }
 
     private void addSimpleLib(String artifactId, String version) {
@@ -171,17 +206,17 @@ class TestRepo {
                         classifier: "configuration",
                         ext: "zip",
                         entries: [
-                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'system-conf/apps/file.txt', content: 'apps = test1.component'),
+                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'system-conf/apps/file.txt', content: "apps = test1.component(com.intershop.icm:${projectName}:${version})"),
                                 TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'system-conf/cluster/cartridgelist.properties', content: getTextResources('cartridgelist/cartridgelist.properties')),
-                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'system-conf/cluster/version.properties', content: "testprop = 5")
+                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'system-conf/cluster/version.properties', content: "testprop = com.intershop.icm:${projectName}:${version}")
                         ]
                 )
                 artifact (
                         classifier: "sites",
                         ext: "zip",
                         entries: [
-                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'sites/SLDSystem/file.txt', content: 'SLDSystem = test1.component'),
-                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'sites/SMC/file.txt', content: 'smc = test1.component')
+                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'sites/SLDSystem/file.txt', content: "SLDSystem = test1.site (com.intershop.icm:${projectName}:${version}"),
+                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'sites/SMC/file.txt', content: "smc = test2.site (com.intershop.icm:${projectName}:${version}")
                         ]
                 )
                 artifact (
@@ -193,25 +228,49 @@ class TestRepo {
         }.writeTo(repoDir)
     }
 
-    private void addSecondBaseProject(String projectName, String version) {
+    private void addSecondBaseProject(String group, String projectName, String version) {
 
         new TestMavenRepoBuilder().repository {
-            project(groupId: 'com.intershop.icm', artifactId: projectName, version: version) {
+            project(groupId: group, artifactId: projectName, version: version) {
                 artifact (
                         classifier: "configuration",
                         ext: "zip",
                         entries: [
-                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'system-conf/apps/file2.txt', content: 'apps = test2.component'),
+                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'system-conf/apps/file2.txt', content: "apps = test2.component (${group}:${projectName}:${version})"),
                                 TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'system-conf/cluster/cartridgelist.properties', content: getTextResources('cartridgelist/cartridgelist.properties')),
-                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'system-conf/cluster/version.properties', content: "testprop = 5")
+                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'system-conf/cluster/version.properties', content: "testprop = ${group}:${projectName}:${version}")
                         ]
                 )
                 artifact (
                         classifier: "sites",
                         ext: "zip",
                         entries: [
-                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'sites/customer1_site/file.txt', content: 'customer1_site = test1.component'),
-                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'sites/customer2_site/file.txt', content: 'customer2_site = test1.component')
+                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'sites/customer1_site/file.txt', content: "customer1_site = test1.component (${group}:${projectName}:${version})"),
+                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'sites/customer2_site/file.txt', content: "customer2_site = test1.component (${group}:${projectName}:${version})")
+                        ]
+                )
+            }
+        }.writeTo(repoDir)
+    }
+
+    private void addThirdBaseProject(String group, String projectName, String version) {
+
+        new TestMavenRepoBuilder().repository {
+            project(groupId: group, artifactId: projectName, version: version) {
+                artifact (
+                        classifier: "configuration",
+                        ext: "zip",
+                        entries: [
+                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'system-conf/apps/paymenr.txt', content: 'payment = test2.component'),
+                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'system-conf/cluster/version.properties', content: "testprop = ${group}:${projectName}:${version}")
+                        ]
+                )
+                artifact (
+                        classifier: "sites",
+                        ext: "zip",
+                        entries: [
+                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'sites/payment1_site/file.txt', content: "customer1_site = test1.site ${group}:${projectName}:${version}"),
+                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'sites/payment2/file.txt', content: "customer2_site = test2.site ${group}:${projectName}:${version}")
                         ]
                 )
             }
@@ -226,17 +285,17 @@ class TestRepo {
                         classifier: "configuration",
                         ext: "zip",
                         entries: [
-                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'system-conf/apps/file.txt', content: 'apps = test1.component'),
+                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'system-conf/apps/file.txt', content: "apps = test1.component (com.intershop.icm:${projectName}:${version})"),
                                 TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'system-conf/cluster/cartridgelist.properties', content: getTextResources('cartridgelist/cartridgelist.properties')),
-                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'system-conf/cluster/version.properties', content: "testprop = 5")
+                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'system-conf/cluster/version.properties', content: "testprop = com.intershop.icm:${projectName}:${version}")
                         ]
                 )
                 artifact (
                         classifier: "sites",
                         ext: "zip",
                         entries: [
-                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'sites/SLDSystem/file.txt', content: 'SLDSystem = test1.component'),
-                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'sites/SMC/file.txt', content: 'smc = test1.component')
+                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'sites/SLDSystem/file.txt', content: "SLDSystem = test1.site com.intershop.icm:${projectName}:${version}"),
+                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'sites/SMC/file.txt', content: "smc = test2.site com.intershop.icm:${projectName}:${version}")
                         ]
                 )
             }
@@ -251,9 +310,9 @@ class TestRepo {
                         classifier: "configuration",
                         ext: "zip",
                         entries: [
-                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'system-conf/apps/file.txt', content: 'apps = test1.component'),
+                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'system-conf/apps/file.txt', content: "apps = test1.component com.intershop.icm:${projectName}:${version}"),
                                 TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'system-conf/cluster/cartridgelist.properties', content: getTextResources('cartridgelist/cartridgelist.properties')),
-                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'system-conf/cluster/version.properties', content: "testprop = 5")
+                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'system-conf/cluster/version.properties', content: "testprop = com.intershop.icm:${projectName}:${version}")
                         ]
                 )
             }
@@ -261,8 +320,8 @@ class TestRepo {
     }
 
     protected String getTextResources(String srcDir) {
-        ClassLoader classLoader = getClass().getClassLoader();
-        URL resource = classLoader.getResource(srcDir);
+        ClassLoader classLoader = getClass().getClassLoader()
+        URL resource = classLoader.getResource(srcDir)
         if (resource == null) {
             throw new RuntimeException("Could not find classpath resource: $srcDir")
         }

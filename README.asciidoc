@@ -1,61 +1,885 @@
-= ICM Build Gradle Plugin
-:latestRevision: RELEASE_1.2.0-dev5
+= Intershop Commerce Management Project Plugins
+:latestRevision: 2.0.0
+:toc:
 :icons: font
 
 == Summary
-This plugin contains tasks for building necessary artifacts for Intershop Commerce Management Server.
-It contains also some helper tasks to support the development of projects.
+This plugin collection contains plugins for building all necessary artifacts of an
+Intershop Commerce Management Server.
 
-== Usage
-To apply the ICM Gradle Plugin to your project, add the following in your build script of the root project:
+== Intershop Commerce Management Cartridge Plugins
 
-[source,groovy]
-[subs=+attributes]
+image::images/CartridgePlugins.png[Cartrdige Plugins, 500]
+
+The abstract Cartridge plugin adds a pom property "cartridge.style" if
+the https://docs.gradle.org/current/userguide/publishing_maven.html[Gradle "Maven Publish Plugin"] is applied.
+
+=== Product Cartridge Plugin
+This plugin applies the "Public Cartridge Plugin" and add an extra property
+"cartridge.style" to the Cartridge project. The value of the property is "cartridge". This value is also set
+for the pom property. It should be applied to projects for further development.
+
+++++
+<details open>
+<summary>Groovy</summary>
+++++
 .build.gradle
+[source,groovy]
 ----
 plugins {
-    id 'com.intershop.gradle.icm' version '{latestRevision}'
+    id 'com.intershop.icm.cartridge.public' version '{latestRevision}'
+}
+----
+++++
+</details>
+++++
+
+++++
+<details>
+<summary>Kotlin</summary>
+++++
+.build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    id("com.intershop.icm.cartridge.public") version "{latestRevision}"
+}
+----
+++++
+</details>
+++++
+
+=== Adapter Cartridge Plugin
+This plugin applies the "External Cartridge Plugin" and add an extra property
+"cartridge.style" to the Cartridge project. The value of the property is "adapter" and is also
+set to the pom property. This plugin should be applied to special adapter Cartridges like
+payment or search connectors.
+
+++++
+<details open>
+<summary>Groovy</summary>
+++++
+.build.gradle
+[source,groovy]
+----
+plugins {
+    id 'com.intershop.icm.cartridge.adapter' version '{latestRevision}'
+}
+----
+++++
+</details>
+++++
+
+++++
+<details>
+<summary>Kotlin</summary>
+++++
+.build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    id("com.intershop.icm.cartridge.adapter") version "{latestRevision}"
+}
+----
+++++
+</details>
+++++
+
+=== Development Cartridge Plugin
+This plugin applies the "External Cartridge Plugin" and add an extra property
+"cartridge.style" to the Cartridge project. The value of the property is "development".
+This plugin should be applied to special development projects. This kind of Cartridges are not available
+on a production or test container.
+++++
+<details open>
+<summary>Groovy</summary>
+++++
+.build.gradle
+[source,groovy]
+----
+plugins {
+    id 'com.intershop.icm.cartridge.development' version '{latestRevision}'
+}
+----
+++++
+</details>
+++++
+
+++++
+<details>
+<summary>Kotlin</summary>
+++++
+.build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    id("com.intershop.icm.cartridge.development") version "{latestRevision}"
+}
+----
+++++
+</details>
+++++
+
+=== Test Cartridge Plugin
+This plugin applies the "Cartridge Plugin" and add an extra property
+"cartridge.style" to the Cartridge project. The value of the property is "test".
+This plugin should be applied to special test projects. This kind of Cartridges are not available
+on a production container.
+
+++++
+<details open>
+<summary>Groovy</summary>
+++++
+.build.gradle
+[source,groovy]
+----
+plugins {
+    id 'com.intershop.icm.cartridge.test' version '{latestRevision}'
+}
+----
+++++
+</details>
+++++
+
+++++
+<details>
+<summary>Kotlin</summary>
+++++
+.build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    id("com.intershop.icm.cartridge.test") version "{latestRevision}"
+}
+----
+++++
+</details>
+++++
+
+=== Cartridge Plugin
+* This plugin applies the https://docs.gradle.org/current/userguide/java_plugin.html#header[Gradle "Java Plugin"]
+to the project.
+* It applies two configurations
+** `cartridge` and
+** `cartridgeRuntime` +
+to the project.
+* The following tasks are added by the plugin:
+** `writeCartridgeDescriptor`
+** `writeCartridgeClasspath` - depends on the Gradle property `classpath.file.enabled`
+** `copyThirdpartyLibs`
+
+The tasks "writeCartridgeDescriptor" and "writeCartridgeClasspath" are grouped by the task "writeCartridgeFiles". i
+It is not necessary to apply this plugin to a project separately, because it was applied by some of the plugins above.
+
+==== Configurations
+[cols="15%,15%,15%,54%", width="99%, options="header"]
+|===
+| Configuration name | Transitive | Extends         | Usage
+
+| *cartridge*        | `false`      | `implementation`| for Cartridge dependencies
+| *cartridgeRuntime* | `true`       | `cartridge`     | for Cartridge runtime dependencies
+|===
+
+==== Tasks
+[cols="26%,33%,40%", width="99%, options="header"]
+|===
+| Task name                  | Class                              |Description
+
+| *writeCartridgeDescriptor* | `com.intershop.gradle.icm.tasks +
+WriteCartridgeDescriptor` | Creates a the Cartridge descriptor file `cartridge.descriptor`.
+| *writeCartridgeClasspath*  | `com.intershop.gradle.icm.tasks +
+WriteCartridgeClasspath` | Creates a the Cartridge classpath file `cartridge.classpath` for ICM server projects.
+This task is only configured if the Gradle property `classpath.file.enabled` is true. <<anchor-1,[1]>>
+| *copyThirdpartyLibs*       | `com.intershop.gradle.icm.tasks +
+CopyThirdpartyLibs` | Copies all 3rd party libraries to one build directory. File located in the container of the
+base project are not copied.<<anchor-2,[2]>>
+|===
+
+[[anchor-1]][1] The default value of "classpath.file.enabled" is false.
+
+[[anchor-2]][2] Files, installed on the container of the base project, will be not copied, if the base project provides
+a filter file. There is also a special setting in the extension possible. List entries have the following form:
+``<group name>-<module name>-<version>``.
+
+=== Public Cartrige Plugin
+This plugin applies the
+https://docs.gradle.org/current/userguide/publishing_maven.html[Gradle "Maven Publish Plugin"]
+to a project and configures the publication of a plugin for further development.
+It adds the project library, the source and and Java doc jars to the publication and
+the description and the inception year to the pom.
+Furthmore the pom property "cartridge.name" is added to the publishing configuration.
+
+It is not necessary to apply this plugin to a project separately, because it was applied by some of the plugins above.
+
+This plugin applies the
+https://docs.gradle.org/current/userguide/publishing_maven.html[Gradle "Maven Publish Plugin"]
+to a project.
+
+=== External Cartridge Plugin
+This plugin applies the "Public Cartridge Plugin". It adds  the task `zipStaticFiles` for publishing. Furthermore the output of the task `writeCartridgeDescriptor` is added
+to the `zipStaticFiles`. The pom property `cartridge.type` is set to `external`.
+This plugin is used for Cartridges, that will be available for projects based on the Intershop Commerce Management server.
+These Cartridges will be added to the project configuration for development, test purposes and also for
+special feature sets.
+
+==== Tasks
+[cols="26%,33%,40%", width="99%, options="header"]
+|===
+| Task name                  | Class                              |Description
+
+| *zipStaticFiles* | `com.intershop.gradle.icm.tasks +
+ZipStaticFiles` | Creates a zip file with the static Cartridge content.
+|===
+
+++++
+<details open>
+<summary>Groovy</summary>
+++++
+.build.gradle
+[source,groovy]
+----
+plugins {
+    id 'com.intershop.icm.cartridge.test' version '{latestRevision}'
+    id 'com.intershop.icm.cartridge.external' version '{latestRevision}'
+}
+----
+++++
+</details>
+++++
+
+++++
+<details>
+<summary>Kotlin</summary>
+++++
+.build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    id("com.intershop.icm.cartridge.test") version "{latestRevision}"
+    id("com.intershop.icm.cartridge.external") version "{latestRevision}"
+}
+----
+++++
+</details>
+++++
+
+This will configure a test Cartridge for external usage.
+
+== Intershop Commerce Management Base Plugin
+This plugin will be applied to a root project of an Intershop Commerce Management project with Cartridge sub projects.
+It configures all sub projects and the root project self.
+
+The plugin applies the
+https://docs.gradle.org/current/userguide/publishing_maven.html[Gradle "Maven Publish Plugin"] to the root
+project and it creates the configurations `cartridge` and `cartridgeRuntime` in the root and all sub projects.
+
+=== Plugin Configuration
+
+++++
+<details open>
+<summary>Groovy</summary>
+++++
+.build.gradle
+[source,groovy]
+----
+plugins {
+    id 'com.intershop.gradle.icm.base' version '{latestRevision}'
 }
 
 intershop {
+
+    projectInfo {
+        productID = 'ICM 7 B2C'
+        productName = 'Intershop Commerce Management 7 B2C'
+        copyrightOwner = 'Intershop Communications'
+        copyrightFrom = '2005'
+        organization = 'Intershop Communications'
+    }
+
+    mavenPublicationName = 'ishmvn'
 }
 ----
+++++
+</details>
+++++
 
-== Tasks
-The ICM Build Gradle plugin adds ... to the project.
+++++
+<details>
+<summary>Kotlin</summary>
+++++
+.build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    id("com.intershop.gradle.icm.base") version "{latestRevision}"
+}
 
+intershop {
 
-[cols="25%,30%,45%", width="90%, options="header"]
-|===
-|Task name                          | Type                              |Description
-|===
+    projectInfo {
+        productID.set("ICM 7 B2C")
+        productName.set("Intershop Commerce Management 7 B2C")
+        copyrightOwner.set("Intershop Communications")
+        copyrightFrom.set("2005")
+        organization.set("Intershop Communications")
+    }
 
-== Project Extension 'intershop'
-This plugin adds an extension *`intershop`* to the project.
+    mavenPublicationName.set("ishmvn")
+}
+----
+++++
+</details>
+++++
 
-=== Methods
-[cols="20%,15%,65%", width="90%", options="header"]
-|===
-|Method  | Values | Description
-|===
+The project information (`projectInfo`) is used in the display of the login dialog of the the ICM backoffice.
+
+[[ExtensionBasePlugin]]==== Extension 'intershop' for Base Plugin
 
 ===== Properties
 
-[cols="25%,10%,10%,55%", width="90%, options="header"]
+[cols="25%,10%,10%,55%", width="99%, options="header"]
 |===
-|Property | Type | Default value | Description
+|Property               | Type      | Default value | Description
+
+|`mavenPublicationName` | `String`  | `mvn` | The property is used for the publishing configuration.
 |===
 
 ===== Methods
 
-[cols="17%,17%,66%", width="90%, options="header"]
+[cols="17%,17%,66%", width="99%, options="header"]
 |===
 |Method | Parameter | Description
+
+|`developmentConfig` | `Action<in `DevelopmentConfiguration`>` | Configures a development configuration from an action.
+|`developmentConfig` | `Closure<Any>` | Configures a development configuration from a closure.
+|`projectInfo` | `Action<in ProjectInfo>` | Configures a project information from an action.
+|`projectInfo` | `Closure<Any>` | Configures a project information from a closure.
 |===
+
+===== Object `DevelopmentConfiguration`
+====== Properties
+
+[cols="20%,10%,50%,30%", width="99%, options="header"]
+|===
+|Property           | Type     | Default value | Description
+
+|`licenseDirectory` | `String` |
+One of these values in the following order: +
+1. value of environement variable `LICENSEDIR` +
+2. value of system property `licenseDir` +
+3. value of Gradle property `licenseDir` +
+4. default value `$GRADLE_USER_HOME/icm-default/lic` | Path of a directory with the
+Intershop license file. This is required by an ICM server instance.
+|`licenseFilePath`  | `String` | `<licenseDirectory>/license.xml` |The absolute path of the license file.
+|`configDirectory`  | `String` |
+One of these values in the following order: +
+1. value of environement variable `CONFIGDIR` +
+2. value of system property `configDir` +
+3. value of Gradle property `configDir` +
+4. default value `$GRADLE_USER_HOME/icm-default/conf` |Path of a directory with an
+local environment specific configuration file. This is necessary to overwrite an existing
+configuration of a server, such as the database settings.
+|`configFilePath`   | `String` | `<configDirectory>/cluster.properties` | The absolute path of the configuration file.
+|===
+
+NOTE: All properties are read only.
+
+===== Object `ProjectInfo`
+====== Properties
+
+[cols="20%,10%,5%,30%,45%", width="99%, options="header"]
+|===
+|Property           | Type                  | Read only | Default value | Description
+
+|`productIDProvider`     | `Provider<String>` | x | `productID` instance | Provider of the product ID of the project.
+|`productID`             | `Property<String>` | | *`ICM`* | Product ID property.
+|`productNameProvider`   | `Provider<String>` | x | `productName` instance | Provider of the product name of the project.
+|`productName`           | `Property<String>` | | *`Intershop Commerce Management 7`* | Product name property.
+|`copyrightOwnerProvider`| `Provider<String>` | x | `copyrightOwner` instance | Provider of the copyright owner of the project.
+|`copyrightOwner`        | `Property<String>` | | *`Intershop Communications`* | Copyright owner property.
+|`copyrightFromProvider`| `Provider<String>` | x | `copyrightFrom` instance| Provider of the 'copyright from' property.
+|`copyrightFrom`        | `Property<String>` | | *`2005`* | 'Copyright from' property.
+|`organizationProvider` | `Provider<String>` | x | `organization` instance | Provider of the organization property.
+|`organization`         | `Property<String>` | | *`Intershop Communications`* | Organization property.
+|===
+
+=== Dependency Configurations
+[cols="15%,15%,15%,54%", width="99%, options="header"]
+|===
+| Configuration name | Transitive | Extends         | Usage
+
+| *cartridge*        | `false`      | `implementation`| for Cartridge dependencies
+| *cartridgeRuntime* | `true`       | `cartridge`     | for Cartridge runtime dependencies
+|===
+
+=== Tasks
+[cols="26%,33%,40%", width="99%, options="header"]
+|===
+| Task name                  | Class                              |Description
+
+| *allDependencies*    | `org.gradle.api.tasks.diagnostics +
+DependencyReportTask` | Displays the dependency tree for a project. An instance of this type is used when you
+execute the dependencies task from the command-line.
+| *createServerInfo*    | `com.intershop.gradle.icm.tasks +
+CreateServerInfo`  | Creates a properties file with all project information.
+This property is used by the server.
+| *createClusterID*     | `com.intershop.gradle.icm.tasks +
+CreateClusterID` |  This taks creates an UID with Java functionality in the required format for the server.
+| *writeCartridgeFiles* | `org.gradle.api +
+Task`  | This task groups two tasks of a cartridge (`writeCartridgeDescriptor`, `writeCartridgeClasspath`)
+|===
+
+== Intershop Commerce Management Project Plugin
+
+This plugin applies the Intershop Commerce Management Base plugin to the project. It adds also additional tasks and
+configuration for projects that are based on an Intershop Commerce Management base project like Intershop Commerce Management B2X 7.11.
+A base project proivides a container with an installed server configuration.
+
+=== Plugin Configuration
+
+++++
+<details open>
+<summary>Groovy</summary>
+++++
+.build.gradle
+[source,groovy]
+----
+plugins {
+    id 'com.intershop.gradle.icm.base' version '{latestRevision}'
+}
+
+intershop {
+
+    projectInfo {
+        productID = 'ICM 7 Project'
+        productName = 'Intershop Commerce Management 7 Project'
+        copyrightOwner = 'Intershop Communications'
+        copyrightFrom = '2005'
+        organization = 'Intershop Communications'
+    }
+
+    mavenPublicationName = 'ishmvn'
+
+    projectConfig {
+        cartridges = [ 'com.intershop.cartridge:cartridge_dev:1.0.0',
+                       'projectCartridge_prod',
+                       'com.intershop.cartridge:cartridge_prod:1.0.0',
+                       'projectCartridge_test']
+
+        dbprepareCartridges = [ 'projectCartridge_prod',
+                                'com.intershop.cartridge:cartridge_prod:1.0.0' ]
+
+        base {
+            dependency = "com.intershop.icm:icm-as:1.0.0"
+        }
+
+        modules {
+            solr {
+                dependency = "com.intershop.search:solrcloud:1.0.0"
+            }
+            payment {
+                dependency = "com.intershop.payment:payment:1.0.0"
+            }
+        }
+        serverDirConfig {
+            base {
+                sites {
+                    dirs {
+                        main {
+                            dir.set(file("sites/base"))
+                        }
+                    }
+                }
+                config {
+                    dirs {
+                        main {
+                            dir.set(file("config/base"))
+                        }
+                    }
+                }
+            }
+            prod { }
+            test { }
+            dev { }
+        }
+    }
+}
+----
+++++
+</details>
+++++
+
+++++
+<details>
+<summary>Kotlin</summary>
+++++
+.build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    id("com.intershop.gradle.icm.base") version "{latestRevision}"
+}
+
+intershop {
+
+    projectInfo {
+        productID.set("ICM 7 B2C")
+        productName.set("Intershop Commerce Management 7 B2C")
+        copyrightOwner.set("Intershop Communications")
+        copyrightFrom.set("2005")
+        organization.set("Intershop Communications")
+    }
+
+    mavenPublicationName.set("ishmvn")
+
+    projectConfig {
+        cartridges.set(listOf("com.intershop.cartridge:cartridge_dev:1.0.0",
+                       "projectCartridge_prod",
+                       "com.intershop.cartridge:cartridge_prod:1.0.0",
+                       "projectCartridge_test"))
+
+        dbprepareCartridges.set(listOf("projectCartridge_prod",
+                                "com.intershop.cartridge:cartridge_prod:1.0.0"))
+
+        base {
+            dependency.set("com.intershop.icm:icm-as:1.0.0")
+        }
+
+        modules {
+            register("solr") {
+                dependency.set("com.intershop.search:solrcloud:1.0.0")
+            }
+            register("payment") {
+                dependency.set("com.intershop.payment:payment:1.0.0")
+            }
+        }
+        serverDirConfig {
+            base {
+                sites {
+                    dirs {
+                        register("main") {
+                            dir.set(file("sites/base"))
+                        }
+                    }
+                }
+                config {
+                    dirs {
+                        register("main") {
+                            dir.set(file("config/base"))
+                        }
+                    }
+                }
+            }
+            prod { }
+            test { }
+            dev { }
+        }
+    }
+}
+----
+++++
+</details>
+++++
+
+==== Extension 'intershop' for Project Plugin
+
+This plugin uses additional methods and objects to configure all necessary tasks.
+See <<ExtensionBasePlugin,'Extension 'intershop' for Project Plugin'>> for base configuration.
+
+===== Methods
+
+[cols="17%,17%,66%", width="99%, options="header"]
+|===
+|Method | Parameter | Description
+
+| `projectConfig` | `Action<in ProjectConfiguration>` | Configures a configuration of a project based on Intershop Commerce Management from an action.
+| `projectConfig` | `Closure<ProjectConfiguration>` | Configures a configuration of a project based on Intershop Commerce Management from a closure.
+|===
+
+===== Object `ProjectConfiguration`
+
+====== Properties of `ProjectConfiguration`
+Read only properties
+
+[cols="20%,10%,30%,49%", width="99%, options="header"]
+|===
+|Property               | Type | Default value | Description
+
+| `containerConfig`    | `File` | `$BUILDDIR/ +
+container/config_folder` | Contains the complete configuration of a project container.
+| `testContainerConfig`| `File` | `$BUILDDIR/ +
+testcontainer/config_folder` | Contains the test configuration only for a special test container of the project.
+| `config`             | `File` | `$BUILDDIR/ +
+server/config_folder` | Contains the complete configuration of a development server. It contains test as well development configuration.
+| `containerSites`     | `File` | `$BUILDDIR/ +
+container/sites_folder` | Contains the complete sites directory structure of a project container.
+| `testContainerSites` | `File` | `$BUILDDIR/ +
+testcontainer/sites_folder` | Contains the test sites directory structure only for a special test container of the project.
+| `sites`              | `File` | `$BUILDDIR/ +
+server/sites_folder` | Contains the complete sites directory structure of a development server. It contains test as well development sites.
+|===
+
+[cols="20%,10%,30%,49%", width="99%, options="header"]
+|===
+|Property               | Type | Default value | Description
+| `newBaseProject` | `boolean` | `false` | If this property is true, the configuration and the sites release can be used as a new base project.
+| `cartridgeListDependency` | `Property<String>` | *optional* | If the base cartridge list configuration should not taken from the base project, it is necessary to specify a separate configuration.
+| `libFilterFileDependency` | `Property<String>` | *optional* | If the base library filter configuration should not taken from the base project, it is necessary to specify a separate configuration.
+| `cartridges` | `SetProperty<String>` |  | This configuration is used to extend the base cartridge list for the project. It contains a set of cartridge dependencies and project names.
+| `dbprepareCartridges` | `SetProperty<String>` |  | This configuration is used to extend the base cartridge list for the project for Database preparation. It contains a set of cartridge dependencies and project names.
+|===
+
+====== Methods of `ProjectConfiguration`
+
+[cols="17%,17%,66%", width="99%, options="header"]
+|===
+|Method | Parameter | Description
+
+| `cartridge` | `String` | Add a cartridge to the list of cartridges. This can be a project name or a short module dependency configuration (`group:module:version`).
+| `dbprepareCartridge` | `String` | Add a cartridge to the list of cartridges for Database preparation. This can be a project name or a short module dependency configuration (`group:module:version`).
+| `base`| Action<in CartridgeProject> | Configures the base project dependencies from an action.
+| `base`| Closure<CartridgeProject> | Configures the base project dependencies from a closure.
+| `serverDirConfig` | Action<in ProjectServerDirs> | Configures the usage of project directories for configuration and sites from an action.
+| `serverDirConfig` | Closure<ProjectServerDirs> | Configures the usage of project directories for configuration and sites from a closure.
+|===
+
+`modules` is a `NamedDomainObjectContainer` of `CartridgeProject` a configuration is possible in a `Closure` or in a `Action`.
+Methods are generated by Gradle automatically. This container contains a list of additional project for integration like search and payment integrations.
+
+====== Object `CartridgeProject`
+
+Properties of `CartridgeProject`
+[cols="20%,10%,30%,49%", width="99%, options="header"]
+|===
+|Property               | Type | Default value | Description
+
+| `dependency` | `Property<String>` | | It contains the dependency of the base project. Only a short module dependency configuration (`group:module:version`) is allowed.
+|===
+
+Methods of `CartridgeProject`
+[cols="17%,17%,66%", width="99%, options="header"]
+|===
+|Method | Parameter | Description
+
+| `configPackage` | `Action<in FilePackage>` | Configures the configuration package of the cartridge project from an action.
+| `configPackage` | `Closure<FilePackage>` | Configures the configuration package of the cartridge project from a closure.
+| `sitesPackage` | `Action<in FilePackage>` | Configures the sites package of the cartridge project from an action.
+| `sitesPackage` | `Closure<FilePackage>` | Configures the sites package of the cartridge project from a closure.
+|===
+
+====== Object `FilePackage`
+This configuration prepares a https://docs.gradle.org/current/javadoc/org/gradle/api/file/CopySpec.html[CopySpec] for the file packages of a cartridge project object.
+
+Properties of `FilePackage`
+[cols="20%,10%,30%,49%", width="99%, options="header"]
+|===
+|Property               | Type | Default value | Description
+
+| `includes` | `SetProperty<String>` | *Optional* | This is a set Ant based exclude patterns.
+| `excludes` | `SetProperty<String>` | *Optional* | This is a set Ant based include patterns.
+| `duplicateStrategy` | `Property +
+<DuplicatesStrategy>` | `DuplicatesStrategy. +
+INHERIT` | This is the specified duplication strategy. See also https://docs.gradle.org/current/javadoc/org/gradle/api/file/DuplicatesStrategy.html[DuplicatesStrategy]
+| `targetPath` | `Property<String>` | *Optional* | The target path of this package.
+|===
+
+Methods of `CartridgeProject`
+
+[cols="17%,17%,66%", width="99%, options="header"]
+|===
+|Method | Parameter | Description
+
+| `include` | `String` | Adds an include pattern to the set.
+| `includes` | `Collection<String>` | Adds a collection of include pattern to the set.
+| `exclude` | `String` | Adds an exclude pattern to the set.
+| `excludes` | `Collection<String>` | Adds a collection of exclude pattern to the set.
+|===
+
+====== Object `ProjectServerDirs`
+This configures directories for environment types. These configurations are all optional.
+
+Methods of `ProjectServerDirs`
+
+[cols="17%,17%,66%", width="99%, options="header"]
+|===
+|Method | Parameter | Description
+
+| `base` | `Action<in ServerDirSet>` | This configures basically directories and files of the project from an action.
+| `base` | `Closure<ServerDirSet> | This configures basically directories and files of the project from a closure.
+| `prod` | `Action<in ServerDirSet>` | This configures production (container) directories and files of the project from an action.
+| `prod` | `Closure<ServerDirSet> | This configures production (container) directories and files of the project from a closure.
+| `test` | `Action<in ServerDirSet>` | This configures test (testcontainer) directories and files of the project from an action.
+| `test` | `Closure<ServerDirSet> | This configures test (testcontainer) directories and files of the project from a closure.
+| `dev` | `Action<in ServerDirSet>` | This configures development (server) directories and files of the project from an action.
+| `dev` | `Closure<ServerDirSet> | This configures development (server) directories and files of the project from a closure.
+|===
+
+====== Object `ServerDirSet`
+
+This configuration prepares a https://docs.gradle.org/current/javadoc/org/gradle/api/file/CopySpec.html[CopySpec] for the directories of the project.
+The `ServerDirSet` object contains a container `dirs` of single real directories
+
+Properties of `ServerDirSet`
+
+[cols="20%,10%,30%,49%", width="99%, options="header"]
+|===
+|Property               | Type | Default value | Description
+
+| `includes` | `SetProperty<String>` | *Optional* | This is a set Ant based exclude patterns.
+| `excludes` | `SetProperty<String>` | *Optional* | This is a set Ant based include patterns.
+| `targetPath` | `Property<String>` | *Optional* | The target path of this package.
+|===
+
+Methods of `ServerDirSet`
+
+[cols="17%,17%,66%", width="99%, options="header"]
+|===
+|Method | Parameter | Description
+
+| `include` | `String` | Adds an include pattern to the set.
+| `includes` | `Collection<String>` | Adds a collection of include pattern to the set.
+| `exclude` | `String` | Adds an exclude pattern to the set.
+| `excludes` | `Collection<String>` | Adds a collection of exclude pattern to the set.
+|===
+
+====== Object `DirConfig`
+This configuration prepares a https://docs.gradle.org/current/javadoc/org/gradle/api/file/CopySpec.html[CopySpec] for the directories of the project.
+
+[cols="20%,10%,30%,49%", width="99%, options="header"]
+|===
+|Property               | Type | Default value | Description
+
+| `dir` | `DirectoryProperty` |  | This is the source directory of the configuration.
+| `includes` | `SetProperty<String>` | *Optional* | This is a set Ant based exclude patterns.
+| `excludes` | `SetProperty<String>` | *Optional* | This is a set Ant based include patterns.
+| `targetPath` | `Property<String>` | *Optional* | The target path of this directory configuration.
+|===
+
+Methods of `DirConfig`
+
+[cols="17%,17%,66%", width="99%, options="header"]
+|===
+|Method | Parameter | Description
+
+| `include` | `String` | Adds an include pattern to the set.
+| `includes` | `Collection<String>` | Adds a collection of include pattern to the set.
+| `exclude` | `String` | Adds an exclude pattern to the set.
+| `excludes` | `Collection<String>` | Adds a collection of exclude pattern to the set.
+|===
+
+=== Tasks
+
+The Intershop Commerce Management Project Plugin add the following tasks to existing project. It configures the root
+project and sub projects. The main goal of all tasks is the preparation of configuration and sites directories of
+a development server, a container and a test container. Other tasks will prepare all external cartridges for the
+different server configurations.
+
+[cols="25%,30%,45%", width="90%, options="header"]
+|===
+|Task name                          | Type                              |Description
+
+|`prepareServer`        | `org.gradle.api +
+Task` | Start all tasks to prepare a complete server file structure for development.
+|`prepareTestContainer` | `org.gradle.api +
+Task` | Start all tasks to prepare a file structure to create a test container based on the container of the project.
+|`prepareContainer`     | `org.gradle.api +
+Task` | Start all tasks to prepare a complete file structure to create a container for the project.
+|`createSitesProd`      | `com.intershop.gradle.icm.tasks +
+CreateSitesFolder` | Creates the complete sites file structure for the container creation.
+|`createSitesTest`      | `com.intershop.gradle.icm.tasks +
+CreateSitesFolder` | Creates the sites file structure for the test container creation.
+|`createSites`          | `com.intershop.gradle.icm.tasks +
+CreateSitesFolder` | Creates the complete sites file structure of a development server.
+|`createConfigProd`     | `com.intershop.gradle.icm.tasks +
+CreateConfigFolder` | Creates the complete configuration file structure for the container creation.
+|`createConfigTest`     | `com.intershop.gradle.icm.tasks +
+CreateConfigFolder` | Creates the configuration file structure for the test container creation.
+|`createConfig`         | `com.intershop.gradle.icm.tasks +`
+CreateConfigFolder` | Creates the complete configuration file structure of a development server.
+|`provideCartridgeListTemplate` | `com.intershop.gradle.icm.tasks +
+ProvideCartridgeListTemplate` | Download the base cartridge list configuration from a dependency.
+|`extendCartridgeListProd`      | `com.intershop.gradle.icm.tasks +
+ExtendCartridgeList` | Extend the base cartridge list configuration for the container creation.
+|`extendCartridgeListTest`      | `com.intershop.gradle.icm.tasks +
+ExtendCartridgeList` | Extend the base cartridge list configuration for the container creation.
+|`extendCartridgeList`   | `com.intershop.gradle.icm.tasks +
+ExtendCartridgeList` | Extend the base cartridge list configuration of a development server.
+|`provideLibFilter`      | `com.intershop.gradle.icm.tasks +
+ProvideLibFilter` | Download a file for lib filtering for the container creation from a dependency.
+|`setupCartridgesProd`   | `com.intershop.gradle.icm.tasks +
+SetupCartridges` | Prepares a structure of external cartridges for the container creation.
+|`setupCartridgesTest`   | `com.intershop.gradle.icm.tasks +
+SetupCartridges` | Prepares a structure of external cartridges for the test container creation.
+|`setupCartridges`       | `com.intershop.gradle.icm.tasks +
+SetupCartridges` | Prepares a structure of external cartridges of a development server.
+|`copyLibsProd`  | `org.gradle.api.tasks +
+Sync` | Sync libraries from all cartridges to a single libraries directory of a container.
+|`copyLibsTest`  | `org.gradle.api.tasks +
+Sync` | Sync libraries from all cartridges to a single libraries directory of a test container.
+|`copyLibs`      | `org.gradle.api.tasks +
+Sync` | Sync libraries from all cartridges to a single libraries directory of a development server.
+|`zipConfiguration`  | `org.gradle.api.tasks.bundling +
+Zip` | Creates a zip file of configuration files for publishing. The content depends on the property `newBaseProject`.
+|`preparePubConfiguration` | `com.intershop.gradle.icm.tasks +
+PreparePublishDir` | Prepares the directory for publishing of a configuration package from the extension configuration.
+|`zipSites`        | `org.gradle.api.tasks.bundling +
+Zip` | Creates a zip file of sites files for publishing. The content depends on the property `newBaseProject`.
+|`preparePubSites` | `com.intershop.gradle.icm.tasks +
+PreparePublishDir` | Prepares the directory for publishing of a sites package from the extension configuration.
+|===
+
+=== Build Directory Overview for Further Usage
+
+[source]
+----
+   - build                <build directory of the main project>
+    |
+    +- server             <necessary directories and files of a server>
+    |  |
+    |  +- cartridges      <contains all external cartridges, like payment, search etc.>
+    |  |  |
+    |  |  +- libs         <contains all additional 3rd party libs of external cartridges>
+    |  |  +- cartridge1
+    |  |  +- cartridge2
+    |  |  ...
+    |  |
+    |  +- config_folder   <target folder for configuration files>
+    |  |  |
+    |  |  +- system-conf
+    |  |     |
+    |  |     +- cluster
+    |  |     ...
+    |  +- prjlibs         <target of all additional 3rd party libs of the project>
+    |  |  |
+    |  |  +- <group>-<module>-<version>.jar
+    |  |  |
+    |  |  ...
+    |  |
+    |  +- sites_folder    <target of all sites folder files>
+    |  |  |
+    |  |  +- sites
+    |  |     |
+    |  |     +- SLDSystem
+    |  |     ...
+    +- container          <necessary directories and files of a container>
+    |  |
+    |  +- cartridges
+    |  +- config_folder
+    |  +- prjlibs
+    |  +- sites_folder
+    |
+    +- testcontainer      <necessary directories and files of a test container>
+       |
+       +- cartridges
+       +- config_folder
+       +- prjlibs
+       +- sites_folder
+----
+
 
 == License
 
-Copyright 2014-2018 Intershop Communications.
+Copyright 2014-2020 Intershop Communications.
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
 

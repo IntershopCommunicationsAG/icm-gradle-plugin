@@ -16,8 +16,6 @@
  */
 package com.intershop.gradle.icm.extension
 
-import com.intershop.gradle.icm.utils.getValue
-import com.intershop.gradle.icm.utils.setValue
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
@@ -26,77 +24,65 @@ import javax.inject.Inject
 /**
  * Extension for server info properties.
  */
-abstract class ProjectInfo {
-
-    /**
-     * Inject service of ObjectFactory (See "Service injection" in Gradle documentation.
-     */
-    @get:Inject
-    abstract val objectFactory: ObjectFactory
-
-    private val productIDProperty: Property<String> = objectFactory.property(String::class.java)
-    private val productNameProperty: Property<String> = objectFactory.property(String::class.java)
-    private val copyrightOwnerProperty: Property<String> = objectFactory.property(String::class.java)
-    private val copyrightFromProperty: Property<String> = objectFactory.property(String::class.java)
-    private val organizationProperty: Property<String> = objectFactory.property(String::class.java)
-
-    init {
-        productIDProperty.set("ICM")
-        productNameProperty.set("Intershop Commerce Management 7")
-        copyrightOwnerProperty.set("Intershop Communications")
-        copyrightFromProperty.set("2005")
-        organizationProperty.set("Intershop Communications")
-    }
+open class ProjectInfo @Inject constructor(objectFactory: ObjectFactory ) {
 
     /**
      * Provider for product id property.
      */
     val productIDProvider: Provider<String>
-        get() = productIDProperty
+        get() = productID
 
     /**
      * Product id of the project.
      */
-    var productID by productIDProperty
+    val productID: Property<String> = objectFactory.property(String::class.java)
 
     /**
      * Provider for product name property.
      */
     val productNameProvider: Provider<String>
-        get() = productNameProperty
+        get() = productName
 
     /**
      * Product name of the project.
      */
-    var productName by productNameProperty
+    val productName: Property<String> = objectFactory.property(String::class.java)
 
     /**
      * Provider for copyright owner property.
      */
     val copyrightOwnerProvider: Provider<String>
-        get() = copyrightOwnerProperty
+        get() = copyrightOwner
 
     /**
      * Copyright owner of the project.
      */
-    var copyrightOwner by copyrightOwnerProperty
+    val copyrightOwner: Property<String> = objectFactory.property(String::class.java)
 
     /**
      * Copyright "from" property of the project.
      */
     val copyrightFromProvider: Provider<String>
-        get() = copyrightFromProperty
+        get() = copyrightFrom
 
-    var copyrightFrom by copyrightFromProperty
+    val copyrightFrom: Property<String> = objectFactory.property(String::class.java)
 
     /**
      * Provider for organization property.
      */
     val organizationProvider: Provider<String>
-        get() = organizationProperty
+        get() = organization
 
     /**
      * Organization of the project.
      */
-    var organization by organizationProperty
+    val organization: Property<String> = objectFactory.property(String::class.java)
+
+    init {
+        productID.convention("ICM")
+        productName.convention("Intershop Commerce Management 7")
+        copyrightOwner.convention("Intershop Communications")
+        copyrightFrom.convention("2005")
+        organization.convention("Intershop Communications")
+    }
 }

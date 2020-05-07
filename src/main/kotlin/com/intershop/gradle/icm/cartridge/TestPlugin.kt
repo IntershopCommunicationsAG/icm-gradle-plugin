@@ -16,18 +16,21 @@
  */
 package com.intershop.gradle.icm.cartridge
 
-import org.gradle.api.Plugin
+import com.intershop.gradle.icm.utils.CartridgeStyle
 import org.gradle.api.Project
 
 /**
  * The test cartridge plugin applies all basic configurations
  * and tasks for a integration test cartridge project.
  */
-class TestPlugin : Plugin<Project> {
+class TestPlugin : AbstractCartridge() {
 
     override fun apply(project: Project) {
         with(project) {
+            project.extensions.extraProperties.set("cartridge.style", CartridgeStyle.TEST.value)
+
             plugins.apply(CartridgePlugin::class.java)
+            publishCartridge(project, CartridgeStyle.TEST.value)
         }
     }
 }

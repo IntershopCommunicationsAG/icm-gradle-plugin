@@ -59,21 +59,12 @@ open class CartridgePlugin : Plugin<Project> {
                     IntershopExtension::class.java
                 )
             }
-            val extension = rootProject.extensions.getByType(IntershopExtension::class.java)
             plugins.apply(JavaPlugin::class.java)
 
             configureAddFileCreation( this)
 
-            if (!checkForTask(
-                    tasks,
-                    CopyThirdpartyLibs.DEFAULT_NAME
-                )
-            ) {
-                tasks.register(
-                    CopyThirdpartyLibs.DEFAULT_NAME,
-                    CopyThirdpartyLibs::class.java) {
-                        it.baseProjects = extension.projectConfig.baseProjects.asMap
-                }
+            if (!checkForTask( tasks, CopyThirdpartyLibs.DEFAULT_NAME ) ) {
+                tasks.register( CopyThirdpartyLibs.DEFAULT_NAME, CopyThirdpartyLibs::class.java)
             }
         }
     }
@@ -93,11 +84,7 @@ open class CartridgePlugin : Plugin<Project> {
 
             val tasksWriteFiles = HashSet<Task>()
 
-            if (!checkForTask(
-                    project.tasks,
-                    WriteCartridgeDescriptor.DEFAULT_NAME
-                )
-            ) {
+            if (!checkForTask( project.tasks, WriteCartridgeDescriptor.DEFAULT_NAME ) ) {
                 val taskWriteCartridgeDescriptor = project.tasks.register(
                     WriteCartridgeDescriptor.DEFAULT_NAME, WriteCartridgeDescriptor::class.java
                 ) {
@@ -106,17 +93,15 @@ open class CartridgePlugin : Plugin<Project> {
                 tasksWriteFiles.add(taskWriteCartridgeDescriptor.get())
             }
 
-            if (!checkForTask(
-                    project.tasks,
-                    WriteCartridgeClasspath.DEFAULT_NAME
-                )
-            ) {
-                val taskWriteCartridgeClasspath = project.tasks.register(
-                    WriteCartridgeClasspath.DEFAULT_NAME, WriteCartridgeClasspath::class.java
-                ) {
-                    it.dependsOn(cartridgeRuntime, runtime)
+            if(project.hasProperty("classpath.file.enabled") && project.property("classpath.file.enabled") == "true") {
+                if (!checkForTask(project.tasks, WriteCartridgeClasspath.DEFAULT_NAME)) {
+                    val taskWriteCartridgeClasspath = project.tasks.register(
+                        WriteCartridgeClasspath.DEFAULT_NAME, WriteCartridgeClasspath::class.java
+                    ) {
+                        it.dependsOn(cartridgeRuntime, runtime)
+                    }
+                    tasksWriteFiles.add(taskWriteCartridgeClasspath.get())
                 }
-                tasksWriteFiles.add(taskWriteCartridgeClasspath.get())
             }
 
             project.rootProject.tasks.findByName(ICMBasePlugin.TASK_WRITECARTRIDGEFILES)?.dependsOn(tasksWriteFiles)

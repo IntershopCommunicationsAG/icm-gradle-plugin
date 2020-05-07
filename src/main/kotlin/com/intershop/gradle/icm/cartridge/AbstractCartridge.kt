@@ -28,7 +28,7 @@ import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
  */
 abstract class AbstractCartridge : Plugin<Project> {
 
-    protected fun publishCartridge(project: Project, catridgeStyle: String ) {
+    protected fun publishCartridge(project: Project, cartridgeStyle: String ) {
         with(project) {
             val extension = rootProject.extensions.getByType(IntershopExtension::class.java)
 
@@ -36,10 +36,10 @@ abstract class AbstractCartridge : Plugin<Project> {
                 plugins.withType(MavenPublishPlugin::class.java) {
                     configure(PublishingExtension::class.java) { publishing ->
                         publishing.publications.maybeCreate(
-                            extension.mavenPublicationName,
+                            extension.mavenPublicationName.get(),
                             MavenPublication::class.java
                         ).apply {
-                            pom.properties.put("cartridge.style", catridgeStyle)
+                            pom.properties.put("cartridge.style", cartridgeStyle)
                         }
                     }
                 }

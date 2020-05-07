@@ -17,61 +17,57 @@
 
 package com.intershop.gradle.icm.tasks
 
-import com.intershop.gradle.icm.extension.BaseProjectConfiguration
-import com.intershop.gradle.icm.extension.IntershopExtension
+import com.intershop.gradle.icm.ICMProjectPlugin.Companion.SITES_FOLDER
+import com.intershop.gradle.icm.utils.PackageUtil
 import org.gradle.api.file.CopySpec
-import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.file.FileSystemOperations
+import org.gradle.api.file.ProjectLayout
 import org.gradle.api.model.ObjectFactory
-import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
-import java.io.File
 import javax.inject.Inject
 
 /**
- * Task to create sites folder.
+ * Task for folder creation of sites files of a server.
+ *
+ * @property projectLayout service object for project layout handling
+ * @property objectFactory service object for object handling
+ * @property fsOps service object for file system operations
+ * @constructor Creates a task for folder handling.
  */
-open class CreateSitesFolder @Inject constructor(
-    objectFactory: ObjectFactory,
-    fsOps: FileSystemOperations): AbstractCreateFolder(objectFactory, fsOps) {
+open class CreateSitesFolder
+        @Inject constructor(projectLayout: ProjectLayout,
+                            objectFactory: ObjectFactory,
+                            fsOps: FileSystemOperations): AbstractCreateFolder(projectLayout, objectFactory, fsOps) {
 
     init {
-        group = IntershopExtension.INTERSHOP_GROUP_NAME
+        outputDir.convention(projectLayout.buildDirectory.dir("$SITES_FOLDER/sites"))
     }
 
-    @get:Internal
-    override val classifier = "sites"
+    override fun addPackages(cs: CopySpec) {
+        PackageUtil.addPackageToCS(
+            project = project,
+            dependency = baseProject.get().dependency.get(),
+            classifier = "sites",
+            copySpec = cs,
+            filePackage = baseProject.get().sitesPackage,
+            excludes = listOf())
+        modules.get().forEach { prj ->
+            PackageUtil.addPackageToCS(
+                project = project,
+                dependency = prj.dependency.get(),
+                classifier = "sites",
+                copySpec = cs,
+                filePackage = prj.sitesPackage,
+                excludes = listOf())
+        }
+    }
 
     /**
-     * Main function to run the task functionality.
+     * Task method of this task. It creates
+     * the sites structure for the server.
      */
     @TaskAction
-    fun runFolderCreation() {
-        super.startFolderCreation()
-    }
-
-    /**
-     * Add copy spec for an package file.
-     *
-     * @param cs        base copy spec
-     * @param pkgCS     package copy spec
-     * @param prjConf   configuration of a base project
-     * @param file      package file it self
-     */
-    override fun addCopyConfSpec(cs: CopySpec, pkgCS: CopySpec, prjConf: BaseProjectConfiguration, file: File) {
-        with(prjConf) {
-            sitesPackage.excludes.forEach {
-                pkgCS.exclude(it)
-            }
-            sitesPackage.includes.forEach {
-                pkgCS.include(it)
-            }
-            if (! sitesPackage.targetPath.isNullOrEmpty()) {
-                pkgCS.into(sitesPackage.targetPath!!)
-            }
-            if (sitesPackage.duplicateStrategy != DuplicatesStrategy.INHERIT) {
-                pkgCS.duplicatesStrategy = sitesPackage.duplicateStrategy
-            }
-        }
+    fun createSites() {
+        createFolder()
     }
 }

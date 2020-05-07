@@ -14,139 +14,88 @@
  * limitations under the License.
  *
  */
+
 package com.intershop.gradle.icm.tasks
 
-import com.intershop.gradle.icm.extension.BaseProjectConfiguration
-import com.intershop.gradle.icm.extension.DirConf
+import com.intershop.gradle.icm.extension.CartridgeProject
+import com.intershop.gradle.icm.extension.NamedCartridgeProject
+import com.intershop.gradle.icm.extension.ServerDir
+import com.intershop.gradle.icm.utils.CopySpecUtil
 import org.gradle.api.DefaultTask
-import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.file.CopySpec
+import org.gradle.api.file.Directory
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.file.FileSystemOperations
-import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration
+import org.gradle.api.file.ProjectLayout
 import org.gradle.api.model.ObjectFactory
-import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
+import org.gradle.api.provider.Provider
+import org.gradle.api.provider.SetProperty
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
-import java.io.File
 import javax.inject.Inject
 
 /**
- * Abstract task class to create folders for
- * project or adapter cartridges.
+ * Base class for folder creation tasks.
+ *
+ * @property projectLayout service object for project layout handling
+ * @property objectFactory service object for object handling
+ * @property fsOps service object for file system operations
+ * @constructor Creates a task for folder handling.
  */
-abstract class AbstractCreateFolder @Inject constructor(
-    objectFactory: ObjectFactory,
-    private var fsOps: FileSystemOperations): DefaultTask() {
-
-    @get:Internal
-    val outputDirProperty: DirectoryProperty = objectFactory.directoryProperty()
-
-    private val baseProjectsProperty: MapProperty<String, BaseProjectConfiguration> =
-        objectFactory.mapProperty(String::class.java, BaseProjectConfiguration::class.java)
-
-    private val dirConfProperty: Property<DirConf> = objectFactory.property(DirConf::class.java)
-    private val devDirConfProperty: Property<DirConf> = objectFactory.property(DirConf::class.java)
-
-    @get:Nested
-    var baseProjects: Map<String, BaseProjectConfiguration>
-        get() = baseProjectsProperty.get()
-        set(value) = baseProjectsProperty.putAll(value)
+abstract class AbstractCreateFolder
+        @Inject constructor(@Internal val projectLayout: ProjectLayout,
+                            @Internal val objectFactory: ObjectFactory,
+                            @Internal val fsOps: FileSystemOperations): DefaultTask() {
 
     /**
-     * Configuration for project folder.
+     * Provides the output dir of this task.
      *
-     * @property dirConf
+     * @param cartridgeDir directory provider
      */
-    @get:Optional
-    @get:Nested
-    var dirConf: DirConf?
-        get() = if(dirConfProperty.get().dir != null) dirConfProperty.get() else null
-        set(value) = dirConfProperty.set(value)
+    fun provideOutputDir(cartridgeDir: Provider<Directory>) = outputDir.set(cartridgeDir)
 
-    /**
-     * Configuration for project developer configuration folder.
-     *
-     * @property devDirConf
-     */
-    @get:Optional
-    @get:Nested
-    var devDirConf: DirConf?
-        get() = if(devDirConfProperty.isPresent && devDirConfProperty.get().dir != null)
-                    devDirConfProperty.get()
-                else
-                    null
-        set(value) = devDirConfProperty.set(value)
-
-    /**
-     * Output directory for generated files.
-     *
-     * @property outputDir
-     */
     @get:OutputDirectory
-    var outputDir: File
-        get() = outputDirProperty.get().asFile
-        set(value) = outputDirProperty.set(value)
+    val outputDir: DirectoryProperty = objectFactory.directoryProperty()
 
-    @get:Internal
-    abstract val classifier: String
+    @get:Nested
+    val baseProject: Property<CartridgeProject> = objectFactory.property(CartridgeProject::class.java)
 
-    protected fun startFolderCreation() {
+    @get:Nested
+    val modules: SetProperty<NamedCartridgeProject> = objectFactory.setProperty(NamedCartridgeProject::class.java)
+
+    /**
+     * Add a module configuration.
+     *
+     * @param cartridgeProject a new NamedCartridgeProject configuration
+     */
+    fun module(cartridgeProject: NamedCartridgeProject) {
+        modules.add(cartridgeProject)
+    }
+
+    @get:Optional
+    @get:Nested
+    val baseDirConfig: Property<ServerDir> = objectFactory.property(ServerDir::class.java)
+
+    @get:Optional
+    @get:Nested
+    val extraDirConfig: Property<ServerDir> = objectFactory.property(ServerDir::class.java)
+
+    protected fun createFolder() {
         val cs = project.copySpec()
+        cs.duplicatesStrategy = DuplicatesStrategy.FAIL
 
-        if(dirConf != null) {
-            val dirCS = project.copySpec()
-            dirCS.from(dirConf?.dir)
+        addPackages(cs)
 
-            dirConf?.excludes?.forEach {
-                dirCS.exclude(it)
-            }
-            dirConf?.includes?.forEach {
-                dirCS.include(it)
-            }
-            if(! dirConf?.targetPath.isNullOrEmpty()) {
-                dirCS.into(dirConf?.targetPath!!)
-            }
-            if(dirConf != null && dirConf?.duplicateStrategy != DuplicatesStrategy.INHERIT) {
-                dirCS.duplicatesStrategy = dirConf!!.duplicateStrategy
-            }
-
-            cs.with(dirCS)
+        if(baseDirConfig.isPresent && baseDirConfig.get().dirs.isNotEmpty()) {
+            cs.with(CopySpecUtil.getCSForServerDir(project, baseDirConfig.get()))
         }
 
-        if(devDirConf != null) {
-            val devDirCS = project.copySpec()
-            devDirCS.from(devDirConf?.dir)
-
-            devDirConf?.includes?.forEach {
-                devDirCS.include(it)
-            }
-            devDirConf?.excludes?.forEach {
-                devDirCS.exclude(it)
-            }
-
-            if(! devDirConf?.targetPath.isNullOrEmpty()) {
-                devDirCS.into(devDirConf?.targetPath!!)
-            }
-            if(dirConf != null && devDirConf?.duplicateStrategy != DuplicatesStrategy.INHERIT) {
-                devDirCS.duplicatesStrategy = devDirConf!!.duplicateStrategy
-            }
-
-            cs.with(devDirCS)
-        }
-
-        baseProjects.forEach {
-            val file = downloadPackage(it.value.dependency, classifier, it.key)
-            if(file != null) {
-                val pkgCS = project.copySpec()
-                pkgCS.from(project.zipTree(file))
-                addCopyConfSpec(cs, pkgCS, it.value, file)
-                cs.with(pkgCS)
-            }
+        if(extraDirConfig.isPresent && extraDirConfig.get().dirs.isNotEmpty()) {
+            cs.with(CopySpecUtil.getCSForServerDir(project, extraDirConfig.get()))
         }
 
         fsOps.copy {
@@ -156,40 +105,9 @@ abstract class AbstractCreateFolder @Inject constructor(
     }
 
     /**
-     * Add copy spec for an package file.
+     * Adds packages to a copy spec, so that the files be stored in the output dir.
      *
-     * @param cs        base copy spec
-     * @param pkgCS     package copy spec
-     * @param prjConf   configuration of a base project
-     * @param file      package file it self
+     * @param cs copy spec will be executed by this task.
      */
-    abstract fun addCopyConfSpec(cs: CopySpec, pkgCS: CopySpec, prjConf: BaseProjectConfiguration, file: File)
-
-    private fun downloadPackage(dependency: String, classifier: String, key: String): File? {
-        val dependencyHandler = project.dependencies
-        val dep = dependencyHandler.create(dependency) as ExternalModuleDependency
-        dep.artifact {
-            it.name = dep.name
-            it.classifier = classifier
-            it.extension = "zip"
-            it.type = "zip"
-        }
-
-        val configuration = project.configurations.maybeCreate("conf_${this.name.toLowerCase()}_${key}")
-        configuration.setVisible(false)
-            .setTransitive(false)
-            .setDescription("$classifier for package download: ${this.name}")
-            .defaultDependencies { ds ->
-                ds.add(dep)
-            }
-
-        try {
-            val files = configuration.resolve()
-            return files.first()
-        } catch (anfe: DefaultLenientConfiguration.ArtifactResolveException) {
-            project.logger.warn("No package '{}' is available!", classifier)
-        }
-
-        return null
-    }
+    abstract fun addPackages(cs: CopySpec)
 }

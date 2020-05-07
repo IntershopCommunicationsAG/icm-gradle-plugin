@@ -155,7 +155,6 @@ class CreateCartridgeListSpec extends AbstractIntegrationGroovySpec {
         then:
         result3.task(':createCartridgeList').outcome == UP_TO_DATE
         file.exists()
-        file.getText().contains("dev_query")
 
         where:
         gradleVersion << supportedGradleVersions
@@ -193,8 +192,8 @@ class CreateCartridgeListSpec extends AbstractIntegrationGroovySpec {
 
         then:
         result.task(':createCartridgeList').outcome == SUCCESS
-        file.text.contains("init_contactcenter")
-        ! file.text.contains("init_contactcenter \\")
+        file.text.contains("ac_gtm")
+        ! file.text.contains("ac_gtm \\")
 
         where:
         gradleVersion << supportedGradleVersions

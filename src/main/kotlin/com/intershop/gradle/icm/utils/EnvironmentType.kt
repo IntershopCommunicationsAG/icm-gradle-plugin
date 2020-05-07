@@ -14,22 +14,18 @@
  * limitations under the License.
  *
  */
-package com.intershop.gradle.icm.cartridge
-
-import com.intershop.gradle.icm.utils.CartridgeStyle
-import org.gradle.api.Project
+package com.intershop.gradle.icm.utils
 
 /**
- * The project cartridge plugin applies all basic configurations
- * and tasks for a cartridge project, that can be provided as
- * module dependendcy to other projects.
+ * This enumeration provides a list of environment types.
+ *
+ * @property value the value of the enumeration.
+ * @constructor Provides an enumeration of a string value.
  */
-open class DevelopmentPlugin : AbstractCartridge() {
+enum class EnvironmentType(val value: String) {
 
-    override fun apply(project: Project) {
-        project.extensions.extraProperties.set("cartridge.style", CartridgeStyle.DEVELOPMENT.value)
-
-        project.plugins.apply(ExternalPlugin::class.java)
-        publishCartridge(project, CartridgeStyle.DEVELOPMENT.value)
-    }
+    PRODUCTION("production"),
+    TEST("test"),
+    DEVELOPMENT("development"),
+    ALL("all");
 }

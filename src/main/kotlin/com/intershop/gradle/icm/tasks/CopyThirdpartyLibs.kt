@@ -16,25 +16,24 @@
  */
 package com.intershop.gradle.icm.tasks
 
-import com.intershop.gradle.icm.extension.BaseProjectConfiguration
 import com.intershop.gradle.icm.extension.IntershopExtension.Companion.INTERSHOP_GROUP_NAME
-import com.intershop.gradle.icm.tasks.CartridgeUtil.downloadLibFilter
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.file.Directory
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.ProjectLayout
+import org.gradle.api.file.RegularFile
+import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME
-import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Classpath
-import org.gradle.api.tasks.Nested
+import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactIdentifier
-import java.io.File
 import javax.inject.Inject
 
 /**
@@ -44,36 +43,20 @@ import javax.inject.Inject
  * a lib folder. This is used for the build of containerimages.
  */
 open class CopyThirdpartyLibs @Inject constructor(
-        projectLayout: ProjectLayout,
-        objectFactory: ObjectFactory) : DefaultTask() {
-
-    private val outputDirProperty: DirectoryProperty = objectFactory.directoryProperty()
-    private val baseProjectsProperty: MapProperty<String, BaseProjectConfiguration> =
-        objectFactory.mapProperty(String::class.java, BaseProjectConfiguration::class.java)
+    projectLayout: ProjectLayout,
+    objectFactory: ObjectFactory) : DefaultTask() {
 
     companion object {
         const val DEFAULT_NAME = "copyThirdpartyLibs"
         const val THIRDPARTYLIB_DIR = "lib"
     }
 
-    init {
-        group = INTERSHOP_GROUP_NAME
-        description = "Copy all thirdparty libs to a directory."
-
-        outputDirProperty.convention(projectLayout.buildDirectory.dir(THIRDPARTYLIB_DIR))
-    }
-
-    @get:Nested
-    var baseProjects: Map<String, BaseProjectConfiguration>
-        get() = baseProjectsProperty.get()
-        set(value) = baseProjectsProperty.putAll(value)
-
     /**
      * Provider configuration for target directory.
      *
-     * @param outputDir
+     * @param dir
      */
-    fun provideOutputDir(outputDir: Provider<Directory>) = outputDirProperty.set(outputDir)
+    fun provideOutputDir(dir: Provider<Directory>) = outputDir.set(dir)
 
     /**
      * Output directory for generated files.
@@ -81,15 +64,32 @@ open class CopyThirdpartyLibs @Inject constructor(
      * @property outputDir
      */
     @get:OutputDirectory
-    var outputDir: File
-        get() = outputDirProperty.get().asFile
-        set(value) = outputDirProperty.set(value)
+    val outputDir: DirectoryProperty = objectFactory.directoryProperty()
+
+    @get:Optional
+    @get:InputFile
+    val libFilterFile: RegularFileProperty = objectFactory.fileProperty()
+
+    /**
+     * Provides a file with a special list of used libraries in the base
+     * project. The entry in the list is <group name>-<module name>-<version>.
+     *
+     * @param file regular file provider.
+     */
+    fun provideLibFilterFile(file: Provider<RegularFile>) = libFilterFile.set(file)
 
     @get:Classpath
     val configurationClasspath: FileCollection by lazy {
         val returnFiles = project.files()
         returnFiles.from(project.configurations.getByName(RUNTIME_CLASSPATH_CONFIGURATION_NAME).files)
         returnFiles
+    }
+
+    init {
+        group = INTERSHOP_GROUP_NAME
+        description = "Copy all thirdparty libs to a directory."
+
+        outputDir.convention(projectLayout.buildDirectory.dir(THIRDPARTYLIB_DIR))
     }
 
     /**
@@ -100,21 +100,23 @@ open class CopyThirdpartyLibs @Inject constructor(
     @TaskAction
     fun runCopy() {
         // we are not sure what is changed.
-        if(outputDir.listFiles().isNotEmpty()) {
-            outputDir.deleteRecursively()
-            outputDir.mkdirs()
+        if(outputDir.isPresent && outputDir.get().asFileTree.files.isNotEmpty()) {
+            outputDir.get().asFile.deleteRecursively()
+            outputDir.get().asFile.mkdirs()
         }
 
         val libs = mutableListOf<String>()
-        baseProjects.forEach {
-            val file = downloadLibFilter(project, it.value.dependency, it.key)
-            if(file != null) {
-                libs.addAll(file.readLines())
-            }
+
+        if(libFilterFile.isPresent && libFilterFile.get().asFile.exists()) {
+            libs.addAll(libFilterFile.get().asFile.readLines())
         }
+
         if(libs.isEmpty()) {
-            project.logger.info("No lib filter entries available.")
+            project.logger.debug("No lib filter entries available.")
         }
+
+        //call for incremental task execution
+        configurationClasspath
 
         project.configurations.getByName(RUNTIME_CLASSPATH_CONFIGURATION_NAME)
             .resolvedConfiguration.resolvedArtifacts.forEach { artifact ->
@@ -127,9 +129,9 @@ open class CopyThirdpartyLibs @Inject constructor(
                              identifier.componentIdentifier.version
                     val name = "${id}.${artifact.type}"
 
-                    if(libs.isEmpty() || ! libs.contains(id)) {
+                    if(! libs.contains(id)) {
                         artifact.file.copyTo(
-                            File(outputDir, name),
+                            outputDir.file(name).get().asFile,
                             overwrite = true
                         )
                     }

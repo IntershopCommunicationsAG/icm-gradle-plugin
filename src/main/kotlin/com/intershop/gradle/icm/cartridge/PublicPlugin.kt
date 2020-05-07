@@ -33,20 +33,10 @@ import java.time.Year
  */
 open class PublicPlugin : Plugin<Project> {
 
-    companion object {
-        /**
-         * Property for task name to create a source jar.
-         */
-        const val TASK_SOURCEJAR = "sourcesJar"
-        /**
-         * Property for task name to create a javadoc jar.
-         */
-        const val TASK_JAVADOCJAR = "javadocJar"
-    }
-
     override fun apply(project: Project) {
         with(project) {
             plugins.apply(CartridgePlugin::class.java)
+            plugins.apply(MavenPublishPlugin::class.java)
             configureAddJars(this)
         }
     }
@@ -64,7 +54,7 @@ open class PublicPlugin : Plugin<Project> {
                 plugins.withType(MavenPublishPlugin::class.java) {
                     extensions.configure(PublishingExtension::class.java) { publishing ->
                         publishing.publications.maybeCreate(
-                            extension.mavenPublicationName,
+                            extension.mavenPublicationName.get(),
                             MavenPublication::class.java
                         ).apply {
                             versionMapping { vm ->

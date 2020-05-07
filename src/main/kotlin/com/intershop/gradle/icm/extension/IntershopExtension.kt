@@ -16,8 +16,6 @@
  */
 package com.intershop.gradle.icm.extension
 
-import com.intershop.gradle.icm.utils.getValue
-import com.intershop.gradle.icm.utils.setValue
 import groovy.lang.Closure
 import org.gradle.api.Action
 import org.gradle.api.model.ObjectFactory
@@ -29,7 +27,7 @@ import javax.inject.Inject
 /**
  * Extension for ICM properties.
  */
-abstract class IntershopExtension  {
+abstract class IntershopExtension @Inject constructor(objectFactory: ObjectFactory)  {
 
     companion object {
         // names for the plugin
@@ -37,21 +35,7 @@ abstract class IntershopExtension  {
         const val INTERSHOP_GROUP_NAME = "Intershop Commerce Management"
     }
 
-    /**
-     * Inject service of ObjectFactory (See "Service injection" in Gradle documentation.
-     */
-    @get:Inject
-    abstract val objectFactory: ObjectFactory
-
-    private val mavenPublicationNameProperty: Property<String> = objectFactory.property(String::class.java)
-
     val developmentConfig: DevelopmentConfiguration = objectFactory.newInstance(DevelopmentConfiguration::class.java)
-    val projectInfo: ProjectInfo = objectFactory.newInstance(ProjectInfo::class.java)
-    val projectConfig: ProjectConfiguration = objectFactory.newInstance(ProjectConfiguration::class.java)
-
-    init {
-        mavenPublicationNameProperty.convention("mvn")
-    }
 
     /**
      * Configures the development information configuration.
@@ -72,6 +56,8 @@ abstract class IntershopExtension  {
         action.execute(developmentConfig)
     }
 
+    val projectInfo: ProjectInfo = objectFactory.newInstance(ProjectInfo::class.java)
+
     /**
      * Configures the project information configuration.
      *
@@ -90,6 +76,8 @@ abstract class IntershopExtension  {
     fun projectInfo(action: Action<in ProjectInfo>) {
         action.execute(projectInfo)
     }
+
+    val projectConfig: ProjectConfiguration = objectFactory.newInstance(ProjectConfiguration::class.java)
 
     /**
      * Configures the base project of Intershop Commerce Management.
@@ -114,11 +102,14 @@ abstract class IntershopExtension  {
      * Provider for publication name of Maven.
      */
     val mavenPublicationNameProvider: Provider<String>
-        get() = mavenPublicationNameProperty
+        get() = mavenPublicationName
 
     /**
      *  Publishing name of Maven of the project.
      */
-    var mavenPublicationName by mavenPublicationNameProperty
+    var mavenPublicationName: Property<String> = objectFactory.property(String::class.java)
 
+    init {
+        mavenPublicationName.convention("mvn")
+    }
 }

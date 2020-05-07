@@ -15,22 +15,18 @@
  *
  */
 
-package com.intershop.gradle.icm.cartridge
+package com.intershop.gradle.icm.extension
 
-import com.intershop.gradle.icm.utils.CartridgeStyle
-import org.gradle.api.Project
+import org.gradle.api.model.ObjectFactory
+import org.gradle.api.tasks.Internal
+import javax.inject.Inject
 
 /**
- * The product cartridge plugin applies all basic
- * configuration and tasks to a product cartridge project.
+ * Extension to configure sub projects, like connectors,
+ * payment provider etc.
+ *
+ * @property name only for internal use in a named container.
+ * @constructor provides a sub project configuration.
  */
-open class ProductPlugin  : AbstractCartridge() {
-
-    override fun apply(project: Project) {
-        project.extensions.extraProperties.set("cartridge.style", CartridgeStyle.CARTRIDGE.value)
-
-        project.plugins.apply(PublicPlugin::class.java)
-        publishCartridge(project, CartridgeStyle.CARTRIDGE.value)
-
-    }
-}
+open class NamedCartridgeProject
+    @Inject constructor(objectFactory: ObjectFactory, @Internal val name: String): CartridgeProject(objectFactory)

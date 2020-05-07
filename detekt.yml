@@ -87,13 +87,13 @@ complexity:
     active: false
   LargeClass:
     active: true
-    threshold: 300
+    threshold: 400
   LongMethod:
     active: true
     threshold: 55
   LongParameterList:
     active: true
-    threshold: 8
+    threshold: 10
     ignoreDefaultParameters: false
   MethodOverloading:
     active: false

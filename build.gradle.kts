@@ -151,7 +151,7 @@ detekt {
 
 tasks {
     withType<Test>().configureEach {
-        systemProperty("intershop.gradle.versions", "6.2.1")
+        systemProperty("intershop.gradle.versions", "6.4")
 
         dependsOn("jar")
     }
@@ -177,7 +177,7 @@ tasks {
     }
 
     withType<AsciidoctorTask> {
-        dependsOn("copyAsciiDoc")
+        dependsOn(copyAsciiDoc)
 
         setSourceDir(file("$buildDir/tmp/asciidoctorSrc"))
         sources(delegateClosureOf<PatternSet> {
@@ -214,8 +214,8 @@ tasks {
         jacocoTestReport.dependsOn("test")
     }
 
-    getByName("bintrayUpload")?.dependsOn("asciidoctor")
-    getByName("jar")?.dependsOn("asciidoctor")
+    getByName("bintrayUpload").dependsOn("asciidoctor")
+    getByName("jar").dependsOn("asciidoctor")
 
     val compileKotlin by getting(KotlinCompile::class) {
         kotlinOptions.jvmTarget = "1.8"
@@ -316,6 +316,8 @@ bintray {
 dependencies {
     implementation(gradleApi())
     implementation(localGroovy())
+
+    compileOnly("org.apache.ant:ant:1.10.7")
 
     testImplementation("com.intershop.gradle.test:test-gradle-plugin:3.5.0")
     testImplementation(gradleTestKit())

@@ -16,11 +16,13 @@
  */
 package com.intershop.gradle.icm
 
+import com.intershop.gradle.icm.tasks.CreateServerInfo
 import com.intershop.gradle.test.AbstractIntegrationGroovySpec
 import org.gradle.testkit.runner.TaskOutcome
 import spock.lang.Ignore
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
+import static org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
 
 class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
@@ -102,7 +104,7 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         gradleVersion << supportedGradleVersions
     }
 
-    def 'CreateServerInfoProperties is configured and works with default'() {
+    def 'CreateServerInfo is configured and works with default'() {
         given:
         settingsFile << """
         rootProject.name='rootproject'
@@ -121,23 +123,23 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         when:
         def result = getPreparedGradleRunner()
-                .withArguments("createServerInfoProperties")
+                .withArguments("createServerInfo")
                 .withGradleVersion(gradleVersion)
                 .build()
 
-        File f = new File(testProjectDir, "build/serverInfoProps/version.properties")
+        File f = new File(testProjectDir, "build/${CreateServerInfo.VERSIONINFO}")
         Properties props = new Properties()
         props.load(f.newDataInputStream())
 
         then:
-        result.task(':createServerInfoProperties').outcome == SUCCESS
+        result.task(':createServerInfo').outcome == SUCCESS
         props.getProperty("version.information.productName") == "Intershop Commerce Management 7"
 
         where:
         gradleVersion << supportedGradleVersions
     }
 
-    def 'CreateServerInfoProperties is configured and works with changed configuration'() {
+    def 'CreateServerInfo is configured and works with changed configuration'() {
         given:
         settingsFile << """
         rootProject.name='rootproject'
@@ -159,16 +161,16 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         when:
         def result = getPreparedGradleRunner()
-                .withArguments("createServerInfoProperties")
+                .withArguments("createServerInfo")
                 .withGradleVersion(gradleVersion)
                 .build()
 
-        File f = new File(testProjectDir, "build/serverInfoProps/version.properties")
+        File f = new File(testProjectDir, "build/${CreateServerInfo.VERSIONINFO}")
         Properties props = new Properties()
         props.load(f.newDataInputStream())
 
         then:
-        result.task(':createServerInfoProperties').outcome == SUCCESS
+        result.task(':createServerInfo').outcome == SUCCESS
         props.getProperty("version.information.productName") == "Intershop Commerce Management 7 B2C"
 
         where:
@@ -369,6 +371,11 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
     def 'Simple test of WriteCartridgeClasspath'(){
         given:
+        File gradleProperties = new File(testProjectDir, "gradle.properties")
+        gradleProperties << """
+            classpath.file.enabled = true
+        """
+
         settingsFile << """
         rootProject.name='rootproject'
         """.stripIndent()
@@ -560,6 +567,11 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
     def 'Extended test of WriteCartridgeDescriptor'(){
         given:
+        File gradleProperties = new File(testProjectDir, "gradle.properties")
+        gradleProperties << """
+            classpath.file.enabled = true
+        """
+
         settingsFile << """
         rootProject.name='rootproject'
         """.stripIndent()
@@ -871,6 +883,186 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         then:
         result.task(':subprj1:publish').outcome == SUCCESS
 
+        where:
+        gradleVersion << supportedGradleVersions
+    }
+
+    def 'Run complete configuration'() {
+        given:
+        settingsFile << """
+        rootProject.name='rootproject'
+        """.stripIndent()
+
+        buildFile << """
+            plugins {
+                id 'com.intershop.gradle.icm.base' version '{latestRevision}'
+            }
+            
+            group = "com.intershop.test"
+            version = "7.11.0.0"
+            
+            intershop {
+            
+                projectInfo {
+                    productID = 'ICM 7 B2C'
+                    productName = 'Intershop Commerce Management 7 B2C'
+                    copyrightOwner = 'Intershop Communications'
+                    copyrightFrom = '2005'
+                    organization = 'Intershop Communications'
+                }
+            
+                mavenPublicationName = 'ishmvn'
+            }
+            
+            publishing {
+                repositories {
+                    maven {
+                        // change to point to your repo, e.g. http://my.org/repo
+                        url = "\$buildDir/pubrepo"
+                    }
+                }
+            }
+        """.stripIndent()
+
+        def prj1dir = createSubProject('prjCartridge_prod', """
+        plugins {
+            id 'com.intershop.icm.cartridge.product'
+        }
+        
+        dependencies {
+            implementation 'com.google.inject:guice:4.0'
+            implementation 'com.google.inject.extensions:guice-servlet:3.0'
+            implementation 'javax.servlet:javax.servlet-api:3.1.0'
+        
+            implementation 'io.prometheus:simpleclient:0.6.0'
+            implementation 'io.prometheus:simpleclient_hotspot:0.6.0'
+            implementation 'io.prometheus:simpleclient_servlet:0.6.0'
+        } 
+        
+        repositories {
+            jcenter()
+        }
+        
+        publishing {
+            repositories {
+                maven {
+                    // change to point to your repo, e.g. http://my.org/repo
+                    url = "\${project.rootProject.buildDir}/pubrepo"
+                }
+            }
+        }
+        """.stripIndent())
+
+        def prj2dir = createSubProject('prjCartridge_test', """
+        plugins {
+            id 'com.intershop.icm.cartridge.test'
+        }
+        
+        dependencies {
+            implementation 'org.codehaus.janino:janino:2.5.16'
+            implementation 'org.codehaus.janino:commons-compiler:3.0.6'
+            implementation 'ch.qos.logback:logback-core:1.2.3'
+            implementation 'ch.qos.logback:logback-classic:1.2.3'
+            implementation 'commons-collections:commons-collections:3.2.2'
+        } 
+        
+        repositories {
+            jcenter()
+        } 
+        """.stripIndent())
+
+        def prj3dir = createSubProject('prjCartridge_dev', """
+        plugins {
+            id 'com.intershop.icm.cartridge.development'
+        }
+        
+        repositories {
+            jcenter()
+        }    
+        
+        publishing {
+            repositories {
+                maven {
+                    // change to point to your repo, e.g. http://my.org/repo
+                    url = "\${project.rootProject.buildDir}/pubrepo"
+                }
+            }
+        }    
+        """.stripIndent())
+
+        def prj4dir = createSubProject('prjCartridge_adapter', """
+        plugins {
+            id 'com.intershop.icm.cartridge.adapter'
+        }
+        
+        dependencies {
+            implementation 'ch.qos.logback:logback-core:1.2.3'
+            implementation 'ch.qos.logback:logback-classic:1.2.3'
+        } 
+        
+        repositories {
+            jcenter()
+        }     
+        
+        publishing {
+            repositories {
+                maven {
+                    // change to point to your repo, e.g. http://my.org/repo
+                    url = "\${project.rootProject.buildDir}/pubrepo"
+                }
+            }
+        }   
+        """.stripIndent())
+
+        writeJavaTestClass("com.intershop.prod", prj1dir)
+        writeJavaTestClass("com.intershop.test", prj2dir)
+        writeJavaTestClass("com.intershop.dev", prj3dir)
+        writeJavaTestClass("com.intershop.adapter", prj4dir)
+
+        when:
+        def result = getPreparedGradleRunner()
+                .withArguments("createServerInfo")
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        File f = new File(testProjectDir, "build/${CreateServerInfo.VERSIONINFO}")
+        Properties props = new Properties()
+        props.load(f.newDataInputStream())
+
+        then:
+        result.task(':createServerInfo').outcome == SUCCESS
+        props.getProperty("version.information.productName") == "Intershop Commerce Management 7 B2C"
+
+        when:
+        def resultpub = getPreparedGradleRunner()
+                .withArguments("publish")
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        resultpub.task(':publish').outcome == UP_TO_DATE
+        resultpub.task(':prjCartridge_adapter:zipStaticFiles').outcome == SUCCESS
+        resultpub.task(':prjCartridge_adapter:writeCartridgeDescriptor').outcome == SUCCESS
+        resultpub.task(':prjCartridge_adapter:generateMetadataFileForIshmvnPublication').outcome == SUCCESS
+        resultpub.task(':prjCartridge_adapter:generatePomFileForIshmvnPublication').outcome == SUCCESS
+        resultpub.task(':prjCartridge_adapter:publishIshmvnPublicationToMavenRepository').outcome == SUCCESS
+        resultpub.task(':prjCartridge_adapter:publish').outcome == SUCCESS
+
+        resultpub.task(':prjCartridge_dev:zipStaticFiles').outcome == SUCCESS
+        resultpub.task(':prjCartridge_dev:writeCartridgeDescriptor').outcome == SUCCESS
+        resultpub.task(':prjCartridge_dev:generateMetadataFileForIshmvnPublication').outcome == SUCCESS
+        resultpub.task(':prjCartridge_dev:generatePomFileForIshmvnPublication').outcome == SUCCESS
+        resultpub.task(':prjCartridge_dev:publishIshmvnPublicationToMavenRepository').outcome == SUCCESS
+        resultpub.task(':prjCartridge_dev:publish').outcome == SUCCESS
+
+        resultpub.task(':prjCartridge_prod:zipStaticFiles') == null
+        resultpub.task(':prjCartridge_prod:writeCartridgeDescriptor') == null
+        resultpub.task(':prjCartridge_prod:generateMetadataFileForIshmvnPublication').outcome == SUCCESS
+        resultpub.task(':prjCartridge_prod:generatePomFileForIshmvnPublication').outcome == SUCCESS
+        resultpub.task(':prjCartridge_prod:publishIshmvnPublicationToMavenRepository').outcome == SUCCESS
+        resultpub.task(':prjCartridge_prod:publish').outcome == SUCCESS
+
+        resultpub.task(':prjCartridge_test:publish') == null
         where:
         gradleVersion << supportedGradleVersions
     }

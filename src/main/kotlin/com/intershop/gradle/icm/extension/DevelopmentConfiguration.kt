@@ -26,7 +26,14 @@ import org.slf4j.LoggerFactory
 import java.io.File
 import javax.inject.Inject
 
-abstract class DevelopmentConfiguration {
+/**
+ * Extends the extension with important
+ * file directories for the server.
+ *
+ * @constructor creates a configuration from environment variables.
+ */
+open class DevelopmentConfiguration
+    @Inject constructor(objectFactory: ObjectFactory, providerFactory: ProviderFactory) {
 
     companion object {
         /**
@@ -40,23 +47,9 @@ abstract class DevelopmentConfiguration {
         const val LICENSE_DIR_SYS = "licenseDir"
         const val CONFIG_DIR_SYS = "configDir"
 
-        const val GRADLE_USER_HOME = "GRADLE_USER_HOME"
-
         const val DEFAULT_LIC_PATH = "icm-default/lic"
         const val DEFAULT_CONFIG_PATH = "icm-default/conf"
     }
-
-    /**
-     * Inject service of ObjectFactory (See "Service injection" in Gradle documentation.
-     */
-    @get:Inject
-    abstract val objectFactory: ObjectFactory
-
-    /**
-     * Inject service of ProviderFactory (See "Service injection" in Gradle documentation.
-     */
-    @get:Inject
-    abstract val providerFactory: ProviderFactory
 
     private val licenseDirectoryProperty: Property<String> = objectFactory.property(String::class.java)
     private val configDirectoryProperty: Property<String> = objectFactory.property(String::class.java)
@@ -108,18 +101,18 @@ abstract class DevelopmentConfiguration {
     /**
      * License directory path of the project.
      */
-    val licenseDirectory
+    val licenseDirectory: String
         get() = licenseDirectoryProperty.get()
 
-    val licenseFilePath
+    val licenseFilePath: String
         get() = File(licenseDirectory, "license.xml").absolutePath
 
     /**
      * Local configuration path of the project.
      */
-    val configDirectory
+    val configDirectory: String
         get() = configDirectoryProperty.get()
 
-    val configFilePath
+    val configFilePath: String
         get() = File(configDirectory, "cluster.properties").absolutePath
 }

@@ -19,7 +19,7 @@ package com.intershop.gradle.icm
 
 import com.intershop.gradle.icm.extension.IntershopExtension
 import com.intershop.gradle.icm.tasks.CreateClusterID
-import com.intershop.gradle.icm.tasks.CreateServerInfoProperties
+import com.intershop.gradle.icm.tasks.CreateServerInfo
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaPlugin
@@ -64,19 +64,17 @@ open class ICMBasePlugin: Plugin<Project> {
                 ) ?: extensions.create(IntershopExtension.INTERSHOP_EXTENSION_NAME, IntershopExtension::class.java)
 
                 plugins.withType(JavaPlugin::class.java) {
-                    configureBaseConfigurations(project)
+                    configureBaseConfigurations(this)
                 }
 
-                project.subprojects.forEach { prj ->
-                    prj.plugins.apply(MavenPublishPlugin::class.java)
-
+                subprojects.forEach { prj ->
                     prj.plugins.withType(JavaPlugin::class.java) {
                         configureBaseConfigurations(prj)
                     }
                 }
 
-                configureClusterIdTask(project)
-                configureCreateServerInfoPropertiesTask(project, extension)
+                configureClusterIdTask(this)
+                configureCreateServerInfoPropertiesTask(this, extension)
 
                 if(! checkForTask(tasks, TASK_ALLDEPENDENCIESREPORT)) {
                     tasks.register(TASK_ALLDEPENDENCIESREPORT, DependencyReportTask::class.java)
@@ -109,10 +107,10 @@ open class ICMBasePlugin: Plugin<Project> {
 
     private fun configureCreateServerInfoPropertiesTask(project: Project, extension: IntershopExtension) {
         with(project) {
-            if(! checkForTask(tasks, CreateServerInfoProperties.DEFAULT_NAME)) {
+            if(! checkForTask(tasks, CreateServerInfo.DEFAULT_NAME)) {
                 tasks.register(
-                    CreateServerInfoProperties.DEFAULT_NAME,
-                    CreateServerInfoProperties::class.java
+                    CreateServerInfo.DEFAULT_NAME,
+                    CreateServerInfo::class.java
                 ) { task ->
                     task.provideProductId(extension.projectInfo.productIDProvider)
                     task.provideProductName(extension.projectInfo.productNameProvider)

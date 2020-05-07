@@ -16,14 +16,13 @@
  */
 package com.intershop.gradle.icm.tasks
 
-import com.intershop.gradle.icm.extension.IntershopExtension.Companion.INTERSHOP_GROUP_NAME
+import com.intershop.gradle.icm.extension.IntershopExtension
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
-import java.io.File
 import java.util.*
 import javax.inject.Inject
 
@@ -33,22 +32,13 @@ import javax.inject.Inject
  * This taks creates an UID with Java functionality
  * in the required format.
  */
-open class CreateClusterID@Inject constructor(
+open class CreateClusterID @Inject constructor(
         projectLayout: ProjectLayout,
         objectFactory: ObjectFactory) : DefaultTask() {
-
-    private val outputFileProperty: RegularFileProperty = objectFactory.fileProperty()
 
     companion object {
         const val DEFAULT_NAME = "createClusterID"
         const val CLUSTER_ID = "clusterIDDir/cluster.id"
-    }
-
-    init {
-        group = INTERSHOP_GROUP_NAME
-        description = "Creates a cluster ID to start a server."
-
-        outputFileProperty.convention(projectLayout.buildDirectory.file(CLUSTER_ID))
     }
 
     /**
@@ -57,9 +47,14 @@ open class CreateClusterID@Inject constructor(
      * @property outputFile
      */
     @get:OutputFile
-    var outputFile: File
-        get() = outputFileProperty.get().asFile
-        set(value) = outputFileProperty.set(value)
+    val outputFile: RegularFileProperty = objectFactory.fileProperty()
+
+    init {
+        group = IntershopExtension.INTERSHOP_GROUP_NAME
+        description = "Creates a cluster ID to start a server."
+
+        outputFile.convention(projectLayout.buildDirectory.file(CLUSTER_ID))
+    }
 
     /**
      * This function represents the logic of this task.
@@ -68,7 +63,7 @@ open class CreateClusterID@Inject constructor(
     fun createID() {
         val uuid = UUID.randomUUID()
         val uuidStr = uuid.toString().replace("-", "")
-        val outputFile = outputFileProperty.get().asFile
+        val outputFile = outputFile.get().asFile
 
         if(! outputFile.parentFile.exists()) {
             project.delete(outputFile.parentFile)
