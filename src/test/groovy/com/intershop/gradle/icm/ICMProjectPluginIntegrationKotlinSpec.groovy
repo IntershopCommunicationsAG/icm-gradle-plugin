@@ -943,6 +943,8 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
 
         then:
         result.task(':prepareContainer').outcome == SUCCESS
+        result.task(':provideCartridgeListTemplate').outcome == SUCCESS
+        result.task(':extendCartridgeListProd').outcome == SUCCESS
         cartridgesDir.exists()
         cartridgesDir.listFiles().size() == 3
         cartridgesLibDir.exists()
