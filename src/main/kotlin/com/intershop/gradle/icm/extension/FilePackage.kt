@@ -19,7 +19,6 @@ package com.intershop.gradle.icm.extension
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
-import org.gradle.api.provider.Provider
 import org.gradle.api.provider.SetProperty
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Optional
@@ -29,14 +28,6 @@ import javax.inject.Inject
  * Object to configure a simple file object to copy.
  */
 abstract class FilePackage @Inject constructor(objectFactory: ObjectFactory ) {
-
-    /**
-     * Set provider for includes matches.
-     *
-     * @param provider list of includes matches.
-     */
-    @Suppress("unused")
-    fun provideIncludes(provider: Provider<Set<String>>) = includes.set(provider)
 
     /**
      * This list contains includes for file list.
@@ -65,14 +56,6 @@ abstract class FilePackage @Inject constructor(objectFactory: ObjectFactory ) {
     }
 
     /**
-     * Set provider for excludes matches.
-     *
-     * @param provider list of excludes matches.
-     */
-    @Suppress("unused")
-    fun excludes(provider: Provider<Set<String>>) = excludes.set(provider)
-
-    /**
      * This list contains excludes for file list.
      *
      * @property excludes list of includes
@@ -99,28 +82,12 @@ abstract class FilePackage @Inject constructor(objectFactory: ObjectFactory ) {
     }
 
     /**
-     * Set provider for duplication strategy.
-     *
-     * @param strategy duplication strategy.
-     */
-    @Suppress("unused")
-    fun provideDuplicateStrategy(strategy: Provider<DuplicatesStrategy>) = duplicateStrategy.set(strategy)
-
-    /**
      * The duplication strategy for this package.
      *
      * @property duplicateStrategy duplication strategy.
      */
     @get:Input
     val duplicateStrategy: Property<DuplicatesStrategy> = objectFactory.property(DuplicatesStrategy::class.java)
-
-    /**
-     * Set provider for target path configuration.
-     *
-     * @param path list of includes matches.
-     */
-    @Suppress("unused")
-    fun provideTargetPath(path: Provider<String>) = targetPath.set(path)
 
     @get:Optional
     @get:Input

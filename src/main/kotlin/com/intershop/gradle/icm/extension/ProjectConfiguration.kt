@@ -20,6 +20,7 @@ package com.intershop.gradle.icm.extension
 import com.intershop.gradle.icm.ICMProjectPlugin.Companion.CONFIG_FOLDER
 import com.intershop.gradle.icm.ICMProjectPlugin.Companion.PROD_CONTAINER_FOLDER
 import com.intershop.gradle.icm.ICMProjectPlugin.Companion.SERVER_FOLDER
+import com.intershop.gradle.icm.ICMProjectPlugin.Companion.SITES_FOLDER
 import com.intershop.gradle.icm.ICMProjectPlugin.Companion.TEST_CONTAINER_FOLDER
 import groovy.lang.Closure
 import org.gradle.api.Action
@@ -39,11 +40,17 @@ import javax.inject.Inject
  */
 abstract class ProjectConfiguration @Inject constructor(objectFactory: ObjectFactory, projectLayout: ProjectLayout) {
 
-    val prodConfigFolder: File = projectLayout.buildDirectory.dir("$PROD_CONTAINER_FOLDER/$CONFIG_FOLDER").get().asFile
+    val containerConfig: File = projectLayout.buildDirectory.dir("$PROD_CONTAINER_FOLDER/$CONFIG_FOLDER").get().asFile
 
-    val testConfigFolder: File = projectLayout.buildDirectory.dir("$TEST_CONTAINER_FOLDER/$CONFIG_FOLDER").get().asFile
+    val testContainerConfig: File = projectLayout.buildDirectory.dir("$TEST_CONTAINER_FOLDER/$CONFIG_FOLDER").get().asFile
 
-    val developmentConfigFolder: File = projectLayout.buildDirectory.dir("$SERVER_FOLDER/$CONFIG_FOLDER").get().asFile
+    val config: File = projectLayout.buildDirectory.dir("$SERVER_FOLDER/$CONFIG_FOLDER").get().asFile
+
+    val containerSites: File = projectLayout.buildDirectory.dir("$PROD_CONTAINER_FOLDER/$SITES_FOLDER").get().asFile
+
+    val testContainerSites: File = projectLayout.buildDirectory.dir("$TEST_CONTAINER_FOLDER/$SITES_FOLDER").get().asFile
+
+    val sites: File = projectLayout.buildDirectory.dir("$SERVER_FOLDER/$SITES_FOLDER").get().asFile
 
     val newBaseProject: Property<Boolean> = objectFactory.property(Boolean::class.java)
 
