@@ -606,7 +606,7 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
             plugins.withType(com.intershop.gradle.icm.ICMProjectPlugin) {
                 task("printProdFolder") {
                     doLast {
-                        println("ProdFolder: \${project.extensions.getByName("intershop").projectConfig.prodConfigFolder}")
+                        println("ProdFolder: \${project.extensions.getByName("intershop").projectConfig.containerConfig}")
                     }
                 }
             }
@@ -670,7 +670,7 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
             plugins.withType(com.intershop.gradle.icm.ICMProjectPlugin) {
                 task("printTestFolder") {
                     doLast {
-                        println("ProdFolder: \${project.extensions.getByName("intershop").projectConfig.testConfigFolder}")
+                        println("ProdFolder: \${project.extensions.getByName("intershop").projectConfig.testcontainerConfig}")
                     }
                 }
             }
@@ -734,7 +734,7 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
             plugins.withType(com.intershop.gradle.icm.ICMProjectPlugin) {
                 task("printDevFolder") {
                     doLast {
-                        println("ProdFolder: \${project.extensions.getByName("intershop").projectConfig.developmentConfigFolder}")
+                        println("ProdFolder: \${project.extensions.getByName("intershop").projectConfig.config}")
                     }
                 }
             }

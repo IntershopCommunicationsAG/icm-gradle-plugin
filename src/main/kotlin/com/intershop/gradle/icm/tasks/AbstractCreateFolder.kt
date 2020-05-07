@@ -67,6 +67,11 @@ abstract class AbstractCreateFolder
     @get:Nested
     val modules: SetProperty<NamedCartridgeProject> = objectFactory.setProperty(NamedCartridgeProject::class.java)
 
+    /**
+     * Add a module configuration.
+     *
+     * @param cartridgeProject a new NamedCartridgeProject configuration
+     */
     fun module(cartridgeProject: NamedCartridgeProject) {
         modules.add(cartridgeProject)
     }

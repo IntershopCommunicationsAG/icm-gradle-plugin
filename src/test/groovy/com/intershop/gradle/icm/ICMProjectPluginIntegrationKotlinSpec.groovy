@@ -606,7 +606,7 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
                 tasks.register("printProdFolder") { 
                     doLast {
                         val extension = project.extensions.getByName("intershop") as com.intershop.gradle.icm.extension.IntershopExtension
-                        println(extension.projectConfig.prodConfigFolder)
+                        println(extension.projectConfig.containerConfig)
                     }
                 }
             }
@@ -671,7 +671,7 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
                 tasks.register("printTestFolder") { 
                     doLast {
                         val extension = project.extensions.getByName("intershop") as com.intershop.gradle.icm.extension.IntershopExtension
-                        println(extension.projectConfig.testConfigFolder)
+                        println(extension.projectConfig.testcontainerConfig)
                     }
                 }
             }
@@ -736,7 +736,7 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
                 tasks.register("printDevFolder") { 
                     doLast {
                         val extension = project.extensions.getByName("intershop") as com.intershop.gradle.icm.extension.IntershopExtension
-                        println(extension.projectConfig.developmentConfigFolder)
+                        println(extension.projectConfig.config)
                     }
                 }
             }
