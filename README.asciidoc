@@ -828,8 +828,53 @@ Zip` | Creates a zip file of sites files for publishing. The content depends on 
 PreparePublishDir` | Prepares the directory for publishing of a sites package from the extension configuration.
 |===
 
-=== Build Directory Overview
+=== Build Directory Overview for Further Usage
 
+[source]
+----
+   - build                <build directory of the main project>
+    |
+    +- server             <necessary directories and files of a server>
+    |  |
+    |  +- cartridges      <contains all external cartridges, like payment, search etc.>
+    |  |  |
+    |  |  +- libs         <contains all additional 3rd party libs of external cartridges>
+    |  |  +- cartridge1
+    |  |  +- cartridge2
+    |  |  ...
+    |  |
+    |  +- config_folder   <target folder for configuration files>
+    |  |  |
+    |  |  +- system-conf
+    |  |     |
+    |  |     +- cluster
+    |  |     ...
+    |  +- prjlibs         <target of all additional 3rd party libs of the project>
+    |  |  |
+    |  |  +- <group>-<module>-<version>.jar
+    |  |  |
+    |  |  ...
+    |  |
+    |  +- sites_folder    <target of all sites folder files>
+    |  |  |
+    |  |  +- sites
+    |  |     |
+    |  |     +- SLDSystem
+    |  |     ...
+    +- container          <necessary directories and files of a container>
+    |  |
+    |  +- cartridges
+    |  +- config_folder
+    |  +- prjlibs
+    |  +- sites_folder
+    |
+    +- testcontainer      <necessary directories and files of a test container>
+       |
+       +- cartridges
+       +- config_folder
+       +- prjlibs
+       +- sites_folder
+----
 
 
 == License
