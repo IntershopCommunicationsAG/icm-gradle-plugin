@@ -413,6 +413,8 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
                 environmentTypes.set(environmentTypesList)
 
                 provideOutputFile(project.layout.buildDirectory.file(("$targetPath/$CARTRIDGELIST")))
+
+                dependsOn(templateTask)
             }
 
 

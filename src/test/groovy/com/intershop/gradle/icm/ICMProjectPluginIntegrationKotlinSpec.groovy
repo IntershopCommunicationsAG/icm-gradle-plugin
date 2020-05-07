@@ -943,6 +943,8 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
 
         then:
         result.task(':prepareContainer').outcome == SUCCESS
+        result.task(':provideCartridgeListTemplate').outcome == SUCCESS
+        result.task(':extendCartridgeList').outcome == SUCCESS
         cartridgesDir.exists()
         cartridgesDir.listFiles().size() == 3
         cartridgesLibDir.exists()
@@ -1237,6 +1239,8 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
         result.task(':publish').outcome == SUCCESS
         result.task(':zipSites').outcome == SUCCESS
         result.task(':zipConfiguration').outcome == SUCCESS
+        result.task(':provideCartridgeListTemplate').outcome == SUCCESS
+        result.task(':extendCartridgeList').outcome == SUCCESS
         repoConfigFile.exists()
         repoSitesFile.exists()
         new ZipFile(repoConfigFile).entries().toList().size() == 3
