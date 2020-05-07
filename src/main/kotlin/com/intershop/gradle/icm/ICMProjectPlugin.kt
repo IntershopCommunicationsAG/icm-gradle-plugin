@@ -16,6 +16,7 @@
  */
 package com.intershop.gradle.icm
 
+import com.intershop.gradle.icm.ICMBasePlugin.Companion.TASK_WRITECARTRIDGEFILES
 import com.intershop.gradle.icm.extension.IntershopExtension
 import com.intershop.gradle.icm.extension.ProjectConfiguration
 import com.intershop.gradle.icm.extension.ServerDir
@@ -124,6 +125,8 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
                                       projectConfig: ProjectConfiguration) {
 
         val infoTask = project.tasks.getByName(CreateServerInfo.DEFAULT_NAME) as CreateServerInfo
+        val writeCartridgeFile = project.tasks.getByName(TASK_WRITECARTRIDGEFILES)
+
         val templateCartridgeList = getTplCartridgeListTask(project, projectConfig)
         val libfilter = getLibFilterTask(project, projectConfig)
 
@@ -140,7 +143,7 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
             targetDescr = "test container",
             targetPath = PROD_CONTAINER_FOLDER)
 
-        prepareContainerTask.dependsOn(copyLibsProd)
+        prepareContainerTask.dependsOn(copyLibsProd, writeCartridgeFile)
 
         val copyLibsTest = get3rdPartyCopyTask(
             project = project,
@@ -148,7 +151,7 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
             targetDescr = "container",
             targetPath = TEST_CONTAINER_FOLDER)
 
-        prepareTestContainerTask.dependsOn(copyLibsTest)
+        prepareTestContainerTask.dependsOn(copyLibsTest, writeCartridgeFile)
 
         val copyLibs = get3rdPartyCopyTask(
             project = project,
@@ -156,7 +159,7 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
             targetDescr = "local server",
             targetPath = SERVER_FOLDER)
 
-        prepareServerTask.dependsOn(copyLibs)
+        prepareServerTask.dependsOn(copyLibs, writeCartridgeFile)
 
         project.subprojects { sub ->
             sub.tasks.withType(CopyThirdpartyLibs::class.java) { ctlTask ->
