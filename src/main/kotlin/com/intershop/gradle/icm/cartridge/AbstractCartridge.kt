@@ -31,15 +31,16 @@ abstract class AbstractCartridge : Plugin<Project> {
     protected fun publishCartridge(project: Project, cartridgeStyle: String ) {
         with(project) {
             val extension = rootProject.extensions.getByType(IntershopExtension::class.java)
-
             with(extensions) {
-                plugins.withType(MavenPublishPlugin::class.java) {
-                    configure(PublishingExtension::class.java) { publishing ->
-                        publishing.publications.maybeCreate(
-                            extension.mavenPublicationName.get(),
-                            MavenPublication::class.java
-                        ).apply {
-                            pom.properties.put("cartridge.style", cartridgeStyle)
+                afterEvaluate {
+                    plugins.withType(MavenPublishPlugin::class.java) {
+                        configure(PublishingExtension::class.java) { publishing ->
+                            publishing.publications.maybeCreate(
+                                extension.mavenPublicationName.get(),
+                                MavenPublication::class.java
+                            ).apply {
+                                pom.properties.put("cartridge.style", cartridgeStyle)
+                            }
                         }
                     }
                 }
