@@ -98,6 +98,10 @@ open class ProvideLibFilter @Inject constructor(
             else -> null
         }
 
+        if(outputFile.asFile.get().exists()) {
+            outputFile.asFile.get().delete()
+        }
+
         if (dependency != null) {
             val resultFile = downloadLibFilter(dependency)
             if (resultFile != null) {

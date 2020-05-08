@@ -168,6 +168,9 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
     def 'check product cartridge list and setup cartridges'() {
         prepareDefaultBuildConfig(testProjectDir, settingsFile, buildFile)
 
+        createLocalFile("build/container/cartridgelist/cartridgelist.properties", "previous_file = true")
+        createLocalFile("build/libfilter/libfilter.txt", "previous_file = true")
+
         when:
         def resultECL = getPreparedGradleRunner()
                 .withArguments(com.intershop.gradle.icm.ICMProjectPlugin.EXTEND_CARTRIDGELIST_PROD, "-s", "--warning-mode", "all")
@@ -178,6 +181,7 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         then:
         resultECL.task(":${com.intershop.gradle.icm.ICMProjectPlugin.EXTEND_CARTRIDGELIST_PROD}").outcome == SUCCESS
         cartridgeListProd.exists()
+        ! cartridgeListProd.text.contains("previous_file = true")
 
         when:
         Properties properties = new Properties()
@@ -210,6 +214,8 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         ! cartridges_libs_library2.exists()
         cartridges_libs_library3.exists()
         templateFile.exists()
+        ! templateFile.text.contains("previous_file = true")
+
 
         def libs = []
         templateFile.eachLine { line ->
