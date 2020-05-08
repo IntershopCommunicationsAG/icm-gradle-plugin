@@ -98,13 +98,15 @@ open class ProvideCartridgeListTemplate
      */
     @TaskAction
     fun downloadFile() {
+
+        if(outputFile.asFile.get().exists()) {
+            outputFile.asFile.get().delete()
+        }
+
         if(fileDependency.isPresent && fileDependency.get().isNotEmpty()) {
             val file = downloadPropertiesFile(fileDependency.get())
             if(file != null) {
-                fsOps.copy {
-                    it.from(file).rename(".*", outputFile.get().asFile.name)
-                    it.into(outputFile.get().asFile.parent)
-                }
+                copyFile(file)
             } else {
                 throw GradleException("Configured file dependency is not available (${fileDependency.get()}).")
             }
@@ -115,15 +117,19 @@ open class ProvideCartridgeListTemplate
                     pf.include("**/**/${CARTRIDGELISTFILE_NAME}")
                 }
                 if (!pfiles.isEmpty) {
-                    fsOps.copy {
-                        it.from(pfiles.asPath)
-                        it.into(outputFile.get().asFile.parent)
-                    }
+                    copyFile(pfiles.files.first())
                 }
             } else {
                 throw GradleException("Configuration package is not available " +
                         "in the configured base project (${baseDependency.get()})")
             }
+        }
+    }
+
+    private fun copyFile(source: File) {
+        fsOps.copy {
+            it.from(source).rename(".*", outputFile.get().asFile.name)
+            it.into(outputFile.get().asFile.parent)
         }
     }
 
