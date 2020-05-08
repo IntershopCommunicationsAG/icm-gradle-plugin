@@ -1222,10 +1222,34 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         }        
         """.stripIndent())
 
+        def prj5dir = createSubProject('prjCartridge_testext', """
+        plugins {
+            id 'java-library'
+            id 'com.intershop.icm.cartridge.test'
+            id 'com.intershop.icm.cartridge.external'
+        }
+        
+        group = 'com.intershop.test'
+        version = '10.0.0'
+
+        repositories {
+            jcenter()
+        }      
+        publishing {
+            repositories {
+                maven {
+                    // change to point to your repo, e.g. http://my.org/repo
+                    url = "\${rootProject.buildDir}/pubrepo"
+                }
+            }
+        }  
+        """.stripIndent())
+
         writeJavaTestClass("com.intershop.prod", prj1dir)
         writeJavaTestClass("com.intershop.test", prj2dir)
         writeJavaTestClass("com.intershop.dev", prj3dir)
         writeJavaTestClass("com.intershop.adapter", prj4dir)
+        writeJavaTestClass("com.intershop.testext", prj5dir)
 
         return repoConf
     }
@@ -1240,11 +1264,14 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         def repoConfigFile = new File(testProjectDir, "build/pubrepo/com/intershop/test/rootproject/10.0.0/rootproject-10.0.0-configuration.zip")
         def repoSitesFile = new File(testProjectDir, "build/pubrepo/com/intershop/test/rootproject/10.0.0/rootproject-10.0.0-sites.zip")
+        def pomfile = new File(testProjectDir, "build/pubrepo/com/intershop/test/prjCartridge_testext/10.0.0/prjCartridge_testext-10.0.0.pom")
 
         then:
         result.task(':publish').outcome == SUCCESS
         result.task(':zipSites').outcome == SUCCESS
         result.task(':zipConfiguration').outcome == SUCCESS
+        pomfile.exists()
+        pomfile.text.contains("<cartridge.style>test</cartridge.style>")
         repoConfigFile.exists()
         repoSitesFile.exists()
         new ZipFile(repoConfigFile).entries().toList().size() == 3
