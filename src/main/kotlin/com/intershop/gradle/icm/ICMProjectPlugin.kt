@@ -163,10 +163,22 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
         prepareServerTask.dependsOn(copyLibs, writeCartridgeFile)
 
         project.subprojects { sub ->
-            sub.tasks.withType(Jar::class.java) {
-                prepareTestContainerTask.dependsOn(it)
-                prepareContainerTask.dependsOn(it)
-                prepareServerTask.dependsOn(it)
+            sub.tasks.withType(Jar::class.java) { jarTask ->
+                val styleValue =
+                    with(sub.extensions.extraProperties) {
+                        if (has("cartridge.style")) { get("cartridge.style").toString() } else { "all" }
+                    }
+                val style = valueOf(styleValue.toUpperCase())
+
+                if(style == ALL || SERVER_ENVS.contains(style.environmentType())) {
+                    prepareServerTask.dependsOn(jarTask)
+                }
+                if(style == ALL || TEST_ONLY_ENVS.contains(style.environmentType())) {
+                    prepareTestContainerTask.dependsOn(jarTask)
+                }
+                if(style == ALL || PROD_ENVS.contains(style.environmentType())) {
+                    prepareContainerTask.dependsOn(jarTask)
+                }
             }
 
             sub.tasks.withType(CopyThirdpartyLibs::class.java) { ctlTask ->
