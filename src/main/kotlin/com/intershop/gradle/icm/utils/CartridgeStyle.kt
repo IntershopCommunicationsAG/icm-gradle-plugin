@@ -31,6 +31,9 @@ enum class CartridgeStyle(val value: String) {
     DEVELOPMENT("development") {
         override fun environmentType() = EnvironmentType.DEVELOPMENT
     },
+    CONTAINER("container") {
+        override fun environmentType() = EnvironmentType.PRODUCTION
+    },
     CARTRIDGE("cartridge") {
         override fun environmentType() = EnvironmentType.PRODUCTION
     },

@@ -926,6 +926,7 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         def prj1dir = createSubProject('prjCartridge_prod', """
         plugins {
+            id 'java'
             id 'com.intershop.icm.cartridge.product'
         }
         
@@ -955,6 +956,7 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         def prj2dir = createSubProject('prjCartridge_test', """
         plugins {
+            id 'java'
             id 'com.intershop.icm.cartridge.test'
         }
         
@@ -973,6 +975,7 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         def prj3dir = createSubProject('prjCartridge_dev', """
         plugins {
+            id 'java'
             id 'com.intershop.icm.cartridge.development'
         }
         
@@ -992,6 +995,7 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         def prj4dir = createSubProject('prjCartridge_adapter', """
         plugins {
+            id 'java'
             id 'com.intershop.icm.cartridge.adapter'
         }
         

@@ -43,6 +43,7 @@ import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
 import org.gradle.api.tasks.Sync
+import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.bundling.Zip
 import javax.inject.Inject
 
@@ -162,6 +163,24 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
         prepareServerTask.dependsOn(copyLibs, writeCartridgeFile)
 
         project.subprojects { sub ->
+            sub.tasks.withType(Jar::class.java) { jarTask ->
+                val styleValue =
+                    with(sub.extensions.extraProperties) {
+                        if (has("cartridge.style")) { get("cartridge.style").toString() } else { "all" }
+                    }
+                val style = valueOf(styleValue.toUpperCase())
+
+                if(style == ALL || SERVER_ENVS.contains(style.environmentType())) {
+                    prepareServerTask.dependsOn(jarTask)
+                }
+                if(style == ALL || TEST_ONLY_ENVS.contains(style.environmentType())) {
+                    prepareTestContainerTask.dependsOn(jarTask)
+                }
+                if(style == ALL || PROD_ENVS.contains(style.environmentType())) {
+                    prepareContainerTask.dependsOn(jarTask)
+                }
+            }
+
             sub.tasks.withType(CopyThirdpartyLibs::class.java) { ctlTask ->
 
                 val styleValue =

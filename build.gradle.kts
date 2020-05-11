@@ -88,6 +88,12 @@ gradlePlugin {
             displayName = "icm-cartridge"
             description = "The cartridge plugin applies all basic configurations and tasks."
         }
+        create("icmContainerPlugin") {
+            id = "com.intershop.icm.cartridge.container"
+            implementationClass = "com.intershop.gradle.icm.cartridge.ContainerPlugin"
+            displayName = "icm-container-cartridge"
+            description = "The container cartridge plugin applies all basic configurations and tasks for container cartridges."
+        }
         create("icmProductCartridgePlugin") {
             id = "com.intershop.icm.cartridge.product"
             implementationClass = "com.intershop.gradle.icm.cartridge.ProductPlugin"

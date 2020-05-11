@@ -14,10 +14,11 @@ image::images/CartridgePlugins.png[Cartrdige Plugins, 500]
 The abstract Cartridge plugin adds a pom property "cartridge.style" if
 the https://docs.gradle.org/current/userguide/publishing_maven.html[Gradle "Maven Publish Plugin"] is applied.
 
-=== Product Cartridge Plugin
-This plugin applies the "Public Cartridge Plugin" and add an extra property
-"cartridge.style" to the Cartridge project. The value of the property is "cartridge". This value is also set
-for the pom property. It should be applied to projects for further development.
+=== Container Cartridge Plugin
+This plugin applies the standard Cartridge plugin only and should be used for cartridges, that are
+only deployed to a container. It add an extra property "cartridge.style" to the Cartridge project.
+The value of the property is "container". There is no publishing configuration for an external Maven repository.
+
 
 ++++
 <details open>
@@ -27,7 +28,7 @@ for the pom property. It should be applied to projects for further development.
 [source,groovy]
 ----
 plugins {
-    id 'com.intershop.icm.cartridge.public' version '{latestRevision}'
+    id 'com.intershop.icm.cartridge.container' version '{latestRevision}'
 }
 ----
 ++++
@@ -42,7 +43,44 @@ plugins {
 [source,kotlin]
 ----
 plugins {
-    id("com.intershop.icm.cartridge.public") version "{latestRevision}"
+    id("com.intershop.icm.cartridge.container") version "{latestRevision}"
+}
+----
+++++
+</details>
+++++
+
+
+=== Product Cartridge Plugin
+This plugin applies the "Public Cartridge Plugin" and add an extra property
+"cartridge.style" to the Cartridge project. The value of the property is "cartridge". This value is also set
+for the pom property. It should be applied to projects for further development. The following artifacts will be
+published to a Maven repository: jar, source jar and javadoc jar.
+
+++++
+<details open>
+<summary>Groovy</summary>
+++++
+.build.gradle
+[source,groovy]
+----
+plugins {
+    id 'com.intershop.icm.cartridge.product' version '{latestRevision}'
+}
+----
+++++
+</details>
+++++
+
+++++
+<details>
+<summary>Kotlin</summary>
+++++
+.build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    id("com.intershop.icm.cartridge.product") version "{latestRevision}"
 }
 ----
 ++++
