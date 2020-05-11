@@ -43,6 +43,7 @@ import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
 import org.gradle.api.tasks.Sync
+import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.bundling.Zip
 import javax.inject.Inject
 
@@ -162,6 +163,12 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
         prepareServerTask.dependsOn(copyLibs, writeCartridgeFile)
 
         project.subprojects { sub ->
+            sub.tasks.withType(Jar::class.java) {
+                prepareTestContainerTask.dependsOn(it)
+                prepareContainerTask.dependsOn(it)
+                prepareServerTask.dependsOn(it)
+            }
+
             sub.tasks.withType(CopyThirdpartyLibs::class.java) { ctlTask ->
 
                 val styleValue =

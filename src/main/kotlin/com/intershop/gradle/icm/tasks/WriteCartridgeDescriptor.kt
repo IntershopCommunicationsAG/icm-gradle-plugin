@@ -187,6 +187,7 @@ open class WriteCartridgeDescriptor @Inject constructor(
 
         cartridges.forEach {
             if(! cartridgesTransitive.contains(it)) {
+                logger.info("It seems, that {} is not a cartridge!", it)
                 noCartridges.add(it)
             }
         }

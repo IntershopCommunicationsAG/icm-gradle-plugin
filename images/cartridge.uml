@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Diagram>
+  <ID>JAVA</ID>
+  <OriginalElement>com.intershop.gradle.icm.cartridge</OriginalElement>
+  <nodes>
+    <node x="150.0" y="194.0">com.intershop.gradle.icm.cartridge.CartridgePlugin</node>
+    <node x="492.0" y="101.0">com.intershop.gradle.icm.cartridge.ProductPlugin</node>
+    <node x="648.0" y="101.0">com.intershop.gradle.icm.cartridge.AdapterPlugin</node>
+    <node x="536.0" y="194.0">com.intershop.gradle.icm.cartridge.PublicPlugin</node>
+    <node x="360.0" y="101.0">com.intershop.gradle.icm.cartridge.TestPlugin</node>
+    <node x="332.0" y="0.0">com.intershop.gradle.icm.cartridge.AbstractCartridge</node>
+    <node x="188.0" y="101.0">com.intershop.gradle.icm.cartridge.ContainerPlugin</node>
+    <node x="347.0" y="194.0">com.intershop.gradle.icm.cartridge.ExternalPlugin</node>
+    <node x="0.0" y="101.0">com.intershop.gradle.icm.cartridge.DevelopmentPlugin</node>
+  </nodes>
+  <notes />
+  <edges>
+    <edge source="com.intershop.gradle.icm.cartridge.DevelopmentPlugin" target="com.intershop.gradle.icm.cartridge.AbstractCartridge">
+      <point x="0.0" y="-25.5" />
+      <point x="84.0" y="71.0" />
+      <point x="348.8" y="71.0" />
+      <point x="-67.19999999999999" y="25.5" />
+    </edge>
+    <edge source="com.intershop.gradle.icm.cartridge.ProductPlugin" target="com.intershop.gradle.icm.cartridge.AbstractCartridge">
+      <point x="0.0" y="-25.5" />
+      <point x="560.0" y="81.0" />
+      <point x="449.59999999999997" y="81.0" />
+      <point x="33.599999999999966" y="25.5" />
+    </edge>
+    <edge source="com.intershop.gradle.icm.cartridge.TestPlugin" target="com.intershop.gradle.icm.cartridge.AbstractCartridge">
+      <point x="0.0" y="-25.5" />
+      <point x="0.0" y="25.5" />
+    </edge>
+    <edge source="com.intershop.gradle.icm.cartridge.ContainerPlugin" target="com.intershop.gradle.icm.cartridge.AbstractCartridge">
+      <point x="0.0" y="-25.5" />
+      <point x="264.0" y="81.0" />
+      <point x="382.4" y="81.0" />
+      <point x="-33.60000000000002" y="25.5" />
+    </edge>
+    <edge source="com.intershop.gradle.icm.cartridge.AdapterPlugin" target="com.intershop.gradle.icm.cartridge.AbstractCartridge">
+      <point x="0.0" y="-25.5" />
+      <point x="716.0" y="71.0" />
+      <point x="483.2" y="71.0" />
+      <point x="67.19999999999999" y="25.5" />
+    </edge>
+  </edges>
+  <settings layout="Hierarchic Group" zoom="1.0" x="392.0" y="220.0" />
+  <SelectedNodes />
+  <Categories />
+  <SCOPE>All</SCOPE>
+  <VISIBILITY>public</VISIBILITY>
+</Diagram>
+

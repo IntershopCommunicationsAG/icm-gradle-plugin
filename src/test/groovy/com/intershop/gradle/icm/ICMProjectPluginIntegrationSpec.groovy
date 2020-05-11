@@ -1232,9 +1232,12 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         group = 'com.intershop.test'
         version = '10.0.0'
 
-        repositories {
-            jcenter()
-        }      
+        dependencies {
+            cartridge 'com.intershop.cartridge:cartridge_adapter:1.0.0' 
+        }
+
+        ${repoConf}
+   
         publishing {
             repositories {
                 maven {
@@ -1245,11 +1248,67 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         }  
         """.stripIndent())
 
+        def prj6dir = createSubProject('prjCartridge_static', """
+        plugins {
+            id 'com.intershop.icm.cartridge.adapter'
+        }
+        
+        group = 'com.intershop.test'
+        version = '10.0.0'
+
+        dependencies {
+            cartridge 'com.intershop.cartridge:cartridge_adapter:1.0.0' 
+        }
+
+         ${repoConf}
+    
+        publishing {
+            repositories {
+                maven {
+                    // change to point to your repo, e.g. http://my.org/repo
+                    url = "\${rootProject.buildDir}/pubrepo"
+                }
+            }
+        }  
+        """.stripIndent())
+
+        file("staticfiles/cartridge/logback/logback-test.xml", prj6dir)
+        file("staticfiles/cartridge/components/cartridge.components", prj6dir)
+
+        def prj7dir = createSubProject('prjCartridge_container', """
+        plugins {
+            id 'java'
+            id 'com.intershop.icm.cartridge.container'
+        }
+        
+        group = 'com.intershop.test'
+        version = '10.0.0'
+
+        dependencies {
+            cartridge 'com.intershop.cartridge:cartridge_adapter:1.0.0' 
+        }
+
+         ${repoConf}
+    
+        publishing {
+            repositories {
+                maven {
+                    // change to point to your repo, e.g. http://my.org/repo
+                    url = "\${rootProject.buildDir}/pubrepo"
+                }
+            }
+        }  
+        """.stripIndent())
+
+        file("staticfiles/cartridge/logback/logback2-test.xml", prj7dir)
+        file("staticfiles/cartridge/components/cartridge2.components", prj7dir)
+
         writeJavaTestClass("com.intershop.prod", prj1dir)
         writeJavaTestClass("com.intershop.test", prj2dir)
         writeJavaTestClass("com.intershop.dev", prj3dir)
         writeJavaTestClass("com.intershop.adapter", prj4dir)
         writeJavaTestClass("com.intershop.testext", prj5dir)
+        writeJavaTestClass("com.intershop.container", prj7dir)
 
         return repoConf
     }
@@ -1270,12 +1329,22 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         result.task(':publish').outcome == SUCCESS
         result.task(':zipSites').outcome == SUCCESS
         result.task(':zipConfiguration').outcome == SUCCESS
+        result.task(':prjCartridge_container:writeCartridgeDescriptor') == null
         pomfile.exists()
         pomfile.text.contains("<cartridge.style>test</cartridge.style>")
         repoConfigFile.exists()
         repoSitesFile.exists()
         new ZipFile(repoConfigFile).entries().toList().size() == 3
         new ZipFile(repoSitesFile).entries().toList().size() == 10
+
+        when:
+        def resultDev = getPreparedGradleRunner()
+                .withArguments("prepareServer", "-s")
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        resultDev.task(':prjCartridge_container:writeCartridgeDescriptor').outcome == SUCCESS
 
         where:
         gradleVersion << supportedGradleVersions

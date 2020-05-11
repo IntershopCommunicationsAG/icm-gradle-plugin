@@ -24,12 +24,12 @@ import org.gradle.api.Project
  * The product cartridge plugin applies all basic
  * configuration and tasks to a product cartridge project.
  */
-open class ProductPlugin  : AbstractCartridge() {
+open class ContainerPlugin : AbstractCartridge() {
 
     override fun apply(project: Project) {
-        project.extensions.extraProperties.set("cartridge.style", CartridgeStyle.CARTRIDGE.value)
+        project.extensions.extraProperties.set("cartridge.style", CartridgeStyle.CONTAINER.value)
 
-        project.plugins.apply(PublicPlugin::class.java)
-        publishCartridge(project, CartridgeStyle.CARTRIDGE.value)
+        project.plugins.apply(CartridgePlugin::class.java)
+        publishCartridge(project, CartridgeStyle.CONTAINER.value)
     }
 }

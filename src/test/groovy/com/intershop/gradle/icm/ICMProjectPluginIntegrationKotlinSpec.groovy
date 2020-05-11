@@ -528,6 +528,7 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
 
         def prj1dir = createSubProject('prjCartridge_prod', """
         plugins {
+            `java`        
             id("com.intershop.icm.cartridge.product")
         }
         
@@ -548,6 +549,7 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
 
         def prj2dir = createSubProject('prjCartridge_test', """
         plugins {
+            `java`
             id("com.intershop.icm.cartridge.test")
         }
         
@@ -566,6 +568,7 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
 
         def prj3dir = createSubProject('prjCartridge_dev', """
         plugins {
+            `java`
             id("com.intershop.icm.cartridge.development")
         }
         
@@ -576,6 +579,7 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
 
         def prj4dir = createSubProject('prjCartridge_adapter', """
         plugins {
+            `java`
             id("com.intershop.icm.cartridge.adapter")
         }
         
@@ -1155,6 +1159,7 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
 
         def prj1dir = createSubProject('prjCartridge_prod', """
         plugins {
+            `java`
             id("com.intershop.icm.cartridge.product")
         }
         
@@ -1175,6 +1180,7 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
 
         def prj2dir = createSubProject('prjCartridge_test', """
         plugins {
+            `java`
             id("com.intershop.icm.cartridge.test")
         }
         
@@ -1193,6 +1199,7 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
 
         def prj3dir = createSubProject('prjCartridge_dev', """
         plugins {
+            `java`        
             id("com.intershop.icm.cartridge.development")
         }
         
@@ -1203,6 +1210,7 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
 
         def prj4dir = createSubProject('prjCartridge_adapter', """
         plugins {
+            `java`        
             id("com.intershop.icm.cartridge.adapter")
         }
         
@@ -1401,6 +1409,7 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
 
         def prj1dir = createSubProject('prjCartridge_prod', """
         plugins {
+            `java`        
             id("com.intershop.icm.cartridge.product")
         }
         
@@ -1421,6 +1430,7 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
 
         def prj2dir = createSubProject('prjCartridge_test', """
         plugins {
+            `java`        
             id("com.intershop.icm.cartridge.test")
         }
         
@@ -1439,6 +1449,7 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
 
         def prj3dir = createSubProject('prjCartridge_dev', """
         plugins {
+            `java`        
             id("com.intershop.icm.cartridge.development")
         }
         
@@ -1449,6 +1460,7 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
 
         def prj4dir = createSubProject('prjCartridge_adapter', """
         plugins {
+            `java`        
             id("com.intershop.icm.cartridge.adapter")
         }
         
@@ -1622,6 +1634,7 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
 
         def prj1dir = createSubProject('prjCartridge_prod', """
         plugins {
+            `java`        
             id("com.intershop.icm.cartridge.product")
         }
         
@@ -1642,6 +1655,7 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
 
         def prj2dir = createSubProject('prjCartridge_test', """
         plugins {
+            `java`        
             id("com.intershop.icm.cartridge.test")
         }
         
@@ -1670,6 +1684,7 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
 
         def prj4dir = createSubProject('prjCartridge_adapter', """
         plugins {
+            `java`        
             id("com.intershop.icm.cartridge.adapter")
         }
         
@@ -1777,6 +1792,7 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
 
         def prj1dir = createSubProject('prjCartridge_prod', """
         plugins {
+            `java`        
             id("com.intershop.icm.cartridge.product")
         }
         
@@ -1797,6 +1813,7 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
 
         def prj2dir = createSubProject('prjCartridge_test', """
         plugins {
+            `java`        
             id("com.intershop.icm.cartridge.test")
         }
         
@@ -1815,6 +1832,7 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
 
         def prj3dir = createSubProject('prjCartridge_dev', """
         plugins {
+            `java`        
             id("com.intershop.icm.cartridge.development")
         }
         
@@ -1825,6 +1843,7 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
 
         def prj4dir = createSubProject('prjCartridge_adapter', """
         plugins {
+            `java`        
             id("com.intershop.icm.cartridge.adapter")
         }
         
