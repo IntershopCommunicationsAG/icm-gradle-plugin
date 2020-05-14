@@ -20,6 +20,10 @@ import com.intershop.gradle.icm.ICMBasePlugin.Companion.TASK_WRITECARTRIDGEFILES
 import com.intershop.gradle.icm.extension.IntershopExtension
 import com.intershop.gradle.icm.extension.ProjectConfiguration
 import com.intershop.gradle.icm.extension.ServerDir
+import com.intershop.gradle.icm.internal.tasks.CreateInitPackage
+import com.intershop.gradle.icm.internal.tasks.CreateInitTestPackage
+import com.intershop.gradle.icm.internal.tasks.CreateMainPackage
+import com.intershop.gradle.icm.internal.tasks.CreateTestPackage
 import com.intershop.gradle.icm.tasks.CopyThirdpartyLibs
 import com.intershop.gradle.icm.tasks.CreateClusterID
 import com.intershop.gradle.icm.tasks.CreateConfigFolder
@@ -33,6 +37,7 @@ import com.intershop.gradle.icm.tasks.SetupCartridges
 import com.intershop.gradle.icm.utils.CartridgeStyle.ALL
 import com.intershop.gradle.icm.utils.CartridgeStyle.valueOf
 import com.intershop.gradle.icm.utils.EnvironmentType
+import com.intershop.gradle.isml.IsmlPlugin
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
@@ -131,26 +136,25 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
         val templateCartridgeList = getTplCartridgeListTask(project, projectConfig)
         val libfilter = getLibFilterTask(project, projectConfig)
 
-        val prepareContainerTask = prepareContainer(
-            project, projectConfig,  libfilter, templateCartridgeList, infoTask)
-        val prepareTestContainerTask = prepareTestContainer(
-            project, projectConfig, libfilter, templateCartridgeList, infoTask)
-        val prepareServerTask = prepareServer(
-            project, projectConfig, libfilter, templateCartridgeList, infoTask)
-
         val copyLibsProd = get3rdPartyCopyTask(
             project = project,
             taskName = COPY_LIBS_PROD,
-            targetDescr = "test container",
+            targetDescr = "container",
             targetPath = PROD_CONTAINER_FOLDER)
+
+        val prepareContainerTask = prepareContainer(
+            project, projectConfig,  libfilter, templateCartridgeList, infoTask, copyLibsProd)
 
         prepareContainerTask.dependsOn(copyLibsProd, writeCartridgeFile)
 
         val copyLibsTest = get3rdPartyCopyTask(
             project = project,
             taskName = COPY_LIBS_TEST,
-            targetDescr = "container",
+            targetDescr = "test container",
             targetPath = TEST_CONTAINER_FOLDER)
+
+        val prepareTestContainerTask = prepareTestContainer(
+            project, projectConfig, libfilter, templateCartridgeList, infoTask, copyLibsTest)
 
         prepareTestContainerTask.dependsOn(copyLibsTest, writeCartridgeFile)
 
@@ -159,6 +163,9 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
             taskName = COPY_LIBS,
             targetDescr = "local server",
             targetPath = SERVER_FOLDER)
+
+        val prepareServerTask = prepareServer(
+            project, projectConfig, libfilter, templateCartridgeList, infoTask)
 
         prepareServerTask.dependsOn(copyLibs, writeCartridgeFile)
 
@@ -201,6 +208,12 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
                     copyLibsProd.from(ctlTask.outputs.files)
                 }
             }
+
+            sub.plugins.withType(IsmlPlugin::class.java) {
+                prepareServerTask.dependsOn(sub.tasks.getByName("isml2classMain"))
+                prepareContainerTask.dependsOn(sub.tasks.getByName("isml2classMain"))
+                prepareTestContainerTask.dependsOn(sub.tasks.getByName("isml2classMain"))
+            }
         }
     }
 
@@ -208,7 +221,8 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
                                  projectConfig: ProjectConfiguration,
                                  libFilterTask: ProvideLibFilter,
                                  templateTask: ProvideCartridgeListTemplate,
-                                 versionInfoTask: CreateServerInfo): Task {
+                                 versionInfoTask: CreateServerInfo,
+                                 copyLibs: Sync): Task {
 
         val prodSetupCartridgeTask = getSetupCartridgesTask(
             project = project,
@@ -236,6 +250,9 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
             targetPath = PROD_CONTAINER_FOLDER,
             extraServerDir = projectConfig.serverDirConfig.prod.config)
 
+        configureInitPackageTasks(project, createSitesProd)
+        configurePackageTasks(project, createConfigProd, prodSetupCartridgeTask, copyLibs)
+
         return project.tasks.maybeCreate(PREPARE_CONTAINER).apply {
             group = IntershopExtension.INTERSHOP_GROUP_NAME
             description = "starts all tasks for the preparation of a container build"
@@ -248,7 +265,8 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
                                      projectConfig: ProjectConfiguration,
                                      libFilterTask: ProvideLibFilter,
                                      templateTask: ProvideCartridgeListTemplate,
-                                     versionInfoTask: CreateServerInfo): Task {
+                                     versionInfoTask: CreateServerInfo,
+                                     copyLibs: Sync): Task {
         val testSetupCartridgeTask = getSetupCartridgesTask(
             project = project,
             projectConfig = projectConfig,
@@ -274,6 +292,9 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
             environmentTypesList = TEST_ENVS,
             targetPath = TEST_CONTAINER_FOLDER,
             extraServerDir = projectConfig.serverDirConfig.test.config)
+
+        configureTestInitPackageTask(project, createSitesTest)
+        configurePackageTestTasks(project, createConfigTest, testSetupCartridgeTask, copyLibs)
 
         return project.tasks.maybeCreate(PREPARE_TEST_CONTAINER).apply {
             group = IntershopExtension.INTERSHOP_GROUP_NAME
@@ -436,8 +457,6 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
                 dependsOn(templateTask)
             }
 
-
-
             return tasks.maybeCreate(createConfigTaskName, CreateConfigFolder::class.java).apply {
                 baseProject.set(projectConfig.base)
 
@@ -567,5 +586,77 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
             }
         }
         return null
+    }
+
+    private fun configureInitPackageTasks(project: Project, sitesFolderTask: CreateSitesFolder) {
+        with(project) {
+
+            val createInitPackage = tasks.getByName(CreateInitPackage.DEFAULT_NAME) as CreateInitPackage
+
+            createInitPackage.with(
+                project.copySpec { cp ->
+                    cp.from(sitesFolderTask.outputs)
+                }
+            )
+            createInitPackage.dependsOn(sitesFolderTask)
+        }
+    }
+
+    private fun configurePackageTasks(project: Project,
+                                      configTask: CreateConfigFolder,
+                                      cartridgesTask: SetupCartridges,
+                                      copyLibs: Sync) {
+
+        with(project) {
+            val createMainPackage = tasks.getByName(CreateMainPackage.DEFAULT_NAME) as CreateMainPackage
+
+            createMainPackage.with(
+                project.copySpec {cp ->
+                    cp.from(cartridgesTask.outputs)
+                    cp.from(configTask.outputs)
+                    cp.from(copyLibs.outputs)
+                }
+            )
+
+            createMainPackage.dependsOn(cartridgesTask)
+            createMainPackage.dependsOn(configTask)
+            createMainPackage.dependsOn(copyLibs)
+        }
+    }
+
+    private fun configureTestInitPackageTask(project: Project, sitesFolderTask: CreateSitesFolder) {
+        with(project) {
+
+            val createInitTestPackage = tasks.getByName(CreateInitTestPackage.DEFAULT_NAME) as CreateInitTestPackage
+
+            createInitTestPackage.with(
+                project.copySpec { cp ->
+                    cp.from(sitesFolderTask.outputs)
+                }
+            )
+            createInitTestPackage.dependsOn(sitesFolderTask)
+        }
+    }
+
+    private fun configurePackageTestTasks(project: Project,
+                                      configTask: CreateConfigFolder,
+                                      cartridgesTask: SetupCartridges,
+                                      copyLibs: Sync) {
+
+        with(project) {
+            val createTestPackage = tasks.getByName(CreateTestPackage.DEFAULT_NAME) as CreateTestPackage
+
+            createTestPackage.with(
+                project.copySpec {cp ->
+                    cp.from(cartridgesTask.outputs)
+                    cp.from(configTask.outputs)
+                    cp.from(copyLibs.outputs)
+                }
+            )
+
+            createTestPackage.dependsOn(cartridgesTask)
+            createTestPackage.dependsOn(configTask)
+            createTestPackage.dependsOn(copyLibs)
+        }
     }
 }
