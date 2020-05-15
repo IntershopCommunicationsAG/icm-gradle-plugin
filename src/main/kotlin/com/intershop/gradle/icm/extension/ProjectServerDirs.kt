@@ -19,6 +19,7 @@ package com.intershop.gradle.icm.extension
 
 import groovy.lang.Closure
 import org.gradle.api.Action
+import org.gradle.api.GradleException
 import org.gradle.api.model.ObjectFactory
 import org.gradle.util.ConfigureUtil
 import javax.inject.Inject
@@ -118,5 +119,15 @@ open class ProjectServerDirs @Inject constructor(objectFactory: ObjectFactory ) 
      */
     fun dev(c: Closure<ServerDirSet>) {
         ConfigureUtil.configure(c, dev)
+    }
+
+    fun getServerDirSet(type: String): ServerDirSet {
+        return when (type) {
+            "BASE"          -> base
+            "PRODUCTION"    -> prod
+            "DEVELOPMENT"   -> dev
+            "TEST"          -> test
+            else -> throw GradleException("Server dir configuration for ${type} is not available!")
+        }
     }
 }

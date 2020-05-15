@@ -21,12 +21,12 @@ import com.intershop.gradle.icm.cartridge.CartridgePlugin
 import com.intershop.gradle.icm.cartridge.ProductPlugin
 import com.intershop.gradle.icm.cartridge.TestPlugin
 import com.intershop.gradle.icm.extension.IntershopExtension
-import com.intershop.gradle.icm.internal.tasks.CreateInitPackage
-import com.intershop.gradle.icm.internal.tasks.CreateInitTestPackage
-import com.intershop.gradle.icm.internal.tasks.CreateMainPackage
-import com.intershop.gradle.icm.internal.tasks.CreateTestPackage
 import com.intershop.gradle.icm.tasks.CreateClusterID
+import com.intershop.gradle.icm.tasks.CreateInitPackage
+import com.intershop.gradle.icm.tasks.CreateInitTestPackage
+import com.intershop.gradle.icm.tasks.CreateMainPackage
 import com.intershop.gradle.icm.tasks.CreateServerInfo
+import com.intershop.gradle.icm.tasks.CreateTestPackage
 import com.intershop.gradle.icm.tasks.WriteCartridgeDescriptor.Companion.DEFAULT_NAME
 import com.intershop.gradle.isml.IsmlPlugin
 import org.gradle.api.Plugin

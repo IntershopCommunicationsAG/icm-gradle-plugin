@@ -17,11 +17,7 @@
 
 package com.intershop.gradle.icm.extension
 
-import com.intershop.gradle.icm.ICMProjectPlugin.Companion.CONFIG_FOLDER
-import com.intershop.gradle.icm.ICMProjectPlugin.Companion.PROD_CONTAINER_FOLDER
-import com.intershop.gradle.icm.ICMProjectPlugin.Companion.SERVER_FOLDER
-import com.intershop.gradle.icm.ICMProjectPlugin.Companion.SITES_FOLDER
-import com.intershop.gradle.icm.ICMProjectPlugin.Companion.TEST_CONTAINER_FOLDER
+import com.intershop.gradle.icm.project.TargetConf
 import groovy.lang.Closure
 import org.gradle.api.Action
 import org.gradle.api.NamedDomainObjectContainer
@@ -40,23 +36,17 @@ import javax.inject.Inject
  */
 abstract class ProjectConfiguration @Inject constructor(objectFactory: ObjectFactory, projectLayout: ProjectLayout) {
 
-    val containerConfig: File = projectLayout.buildDirectory.dir(
-        "$PROD_CONTAINER_FOLDER/$CONFIG_FOLDER").get().asFile
+    val containerConfig: File = TargetConf.PRODUCTION.config(projectLayout).get().asFile
 
-    val testcontainerConfig: File = projectLayout.buildDirectory.dir(
-        "$TEST_CONTAINER_FOLDER/$CONFIG_FOLDER").get().asFile
+    val testcontainerConfig: File = TargetConf.TEST.config(projectLayout).get().asFile
 
-    val config: File = projectLayout.buildDirectory.dir(
-        "$SERVER_FOLDER/$CONFIG_FOLDER").get().asFile
+    val config: File = TargetConf.DEVELOPMENT.config(projectLayout).get().asFile
 
-    val containerSites: File = projectLayout.buildDirectory.dir(
-        "$PROD_CONTAINER_FOLDER/$SITES_FOLDER").get().asFile
+    val containerSites: File = TargetConf.PRODUCTION.sites(projectLayout).get().asFile
 
-    val testcontainerSites: File = projectLayout.buildDirectory.dir(
-        "$TEST_CONTAINER_FOLDER/$SITES_FOLDER").get().asFile
+    val testcontainerSites: File = TargetConf.TEST.sites(projectLayout).get().asFile
 
-    val sites: File = projectLayout.buildDirectory.dir(
-        "$SERVER_FOLDER/$SITES_FOLDER").get().asFile
+    val sites: File = TargetConf.DEVELOPMENT.sites(projectLayout).get().asFile
 
     val newBaseProject: Property<Boolean> = objectFactory.property(Boolean::class.java)
 

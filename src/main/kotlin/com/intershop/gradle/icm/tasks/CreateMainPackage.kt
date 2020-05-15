@@ -15,7 +15,7 @@
  *
  */
 
-package com.intershop.gradle.icm.internal.tasks
+package com.intershop.gradle.icm.tasks
 
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.tasks.bundling.Compression

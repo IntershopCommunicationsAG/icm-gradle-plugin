@@ -16,6 +16,11 @@
  */
 package com.intershop.gradle.icm
 
+
+import com.intershop.gradle.icm.tasks.CreateInitPackage
+import com.intershop.gradle.icm.tasks.CreateInitTestPackage
+import com.intershop.gradle.icm.tasks.CreateMainPackage
+import com.intershop.gradle.icm.tasks.CreateTestPackage
 import com.intershop.gradle.icm.util.TestRepo
 import com.intershop.gradle.test.AbstractIntegrationGroovySpec
 
@@ -173,13 +178,13 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         when:
         def resultECL = getPreparedGradleRunner()
-                .withArguments(com.intershop.gradle.icm.ICMProjectPlugin.EXTEND_CARTRIDGELIST_PROD, "-s", "--warning-mode", "all")
+                .withArguments("extendCartridgeListProd", "-s", "--warning-mode", "all")
                 .withGradleVersion(gradleVersion)
                 .build()
         def cartridgeListProd = new File(testProjectDir, "build/container/cartridgelist/cartridgelist.properties")
 
         then:
-        resultECL.task(":${com.intershop.gradle.icm.ICMProjectPlugin.EXTEND_CARTRIDGELIST_PROD}").outcome == SUCCESS
+        resultECL.task(":extendCartridgeListProd").outcome == SUCCESS
         cartridgeListProd.exists()
         ! cartridgeListProd.text.contains("previous_file = true")
 
@@ -195,7 +200,7 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         when:
         def resultSC = getPreparedGradleRunner()
-                .withArguments(com.intershop.gradle.icm.ICMProjectPlugin.SETUP_CARTRIDGES_PROD, "-s", "--warning-mode", "all")
+                .withArguments("setupCartridgesProd", "-s", "--warning-mode", "all")
                 .withGradleVersion(gradleVersion)
                 .build()
 
@@ -207,7 +212,7 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         def templateFile = new File(testProjectDir, "build/libfilter/libfilter.txt")
 
         then:
-        resultSC.task(":${com.intershop.gradle.icm.ICMProjectPlugin.SETUP_CARTRIDGES_PROD}").outcome == SUCCESS
+        resultSC.task(":setupCartridgesProd").outcome == SUCCESS
         cartridges.exists()
         adapter_cartridge.exists()
         prod_cartridge.exists()
@@ -233,13 +238,13 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         when:
         def resultECL = getPreparedGradleRunner()
-                .withArguments(com.intershop.gradle.icm.ICMProjectPlugin.EXTEND_CARTRIDGELIST_TEST, "-s", "--warning-mode", "all")
+                .withArguments("extendCartridgeListTest", "-s", "--warning-mode", "all")
                 .withGradleVersion(gradleVersion)
                 .build()
         def cartridgeListTest = new File(testProjectDir, "build/testcontainer/cartridgelist/cartridgelist.properties")
 
         then:
-        resultECL.task(":${com.intershop.gradle.icm.ICMProjectPlugin.EXTEND_CARTRIDGELIST_TEST}").outcome == SUCCESS
+        resultECL.task(":extendCartridgeListTest").outcome == SUCCESS
         cartridgeListTest.exists()
 
         when:
@@ -254,7 +259,7 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         when:
         def resultSC = getPreparedGradleRunner()
-                .withArguments(com.intershop.gradle.icm.ICMProjectPlugin.SETUP_CARTRIDGES_TEST,  "-s", "--warning-mode", "all")
+                .withArguments("setupCartridgesTest",  "-s", "--warning-mode", "all")
                 .withGradleVersion(gradleVersion)
                 .build()
 
@@ -264,7 +269,7 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         def templateFile = new File(testProjectDir, "build/libfilter/libfilter.txt")
 
         then:
-        resultSC.task(":${com.intershop.gradle.icm.ICMProjectPlugin.SETUP_CARTRIDGES_TEST}").outcome == SUCCESS
+        resultSC.task(":setupCartridgesTest").outcome == SUCCESS
         cartridges.exists()
         test_cartridge.exists()
         cartridges_libs_library3.exists()
@@ -280,13 +285,13 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         when:
         def resultECL = getPreparedGradleRunner()
-                .withArguments(com.intershop.gradle.icm.ICMProjectPlugin.EXTEND_CARTRIDGELIST, "-s", "--warning-mode", "all")
+                .withArguments("extendCartridgeList", "-s", "--warning-mode", "all")
                 .withGradleVersion(gradleVersion)
                 .build()
         def cartridgeList = new File(testProjectDir, "build/server/cartridgelist/cartridgelist.properties")
 
         then:
-        resultECL.task(":${com.intershop.gradle.icm.ICMProjectPlugin.EXTEND_CARTRIDGELIST}").outcome == SUCCESS
+        resultECL.task(":extendCartridgeList").outcome == SUCCESS
         cartridgeList.exists()
 
         when:
@@ -301,7 +306,7 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         when:
         def resultSC = getPreparedGradleRunner()
-                .withArguments(com.intershop.gradle.icm.ICMProjectPlugin.SETUP_CARTRIDGES, "-s", "--warning-mode", "all")
+                .withArguments("setupCartridges", "-s", "--warning-mode", "all")
                 .withGradleVersion(gradleVersion)
                 .build()
 
@@ -314,7 +319,7 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         def templateFile = new File(testProjectDir, "build/libfilter/libfilter.txt")
 
         then:
-        resultSC.task(":${com.intershop.gradle.icm.ICMProjectPlugin.SETUP_CARTRIDGES}").outcome == SUCCESS
+        resultSC.task(":setupCartridges").outcome == SUCCESS
         cartridges.exists()
         adapter_cartridge.exists()
         prod_cartridge.exists()
@@ -333,14 +338,14 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         when:
         def result3RDPL = getPreparedGradleRunner()
-                .withArguments(com.intershop.gradle.icm.ICMProjectPlugin.COPY_LIBS_PROD, "-s", "--warning-mode", "all")
+                .withArguments("copyLibsProd", "-s", "--warning-mode", "all")
                 .withGradleVersion(gradleVersion)
                 .build()
 
         def prodDir = new File(testProjectDir, "build/container/prjlibs")
 
         then:
-        result3RDPL.task(":${com.intershop.gradle.icm.ICMProjectPlugin.COPY_LIBS_PROD}").outcome == SUCCESS
+        result3RDPL.task(":copyLibsProd").outcome == SUCCESS
         prodDir.exists()
         new File(prodDir, "com.google.guava-guava-16.0.1.jar").exists()
         ! new File(prodDir, "org.codehaus.janino-janino-2.5.16.jar").exists()
@@ -349,14 +354,14 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         when:
         def result3RDPLTest = getPreparedGradleRunner()
-                .withArguments(com.intershop.gradle.icm.ICMProjectPlugin.COPY_LIBS_TEST, "-s", "--warning-mode", "all")
+                .withArguments("copyLibsTest", "-s", "--warning-mode", "all")
                 .withGradleVersion(gradleVersion)
                 .build()
 
         def testDir = new File(testProjectDir, "build/testcontainer/prjlibs")
 
         then:
-        result3RDPLTest.task(":${com.intershop.gradle.icm.ICMProjectPlugin.COPY_LIBS_TEST}").outcome == SUCCESS
+        result3RDPLTest.task(":copyLibsTest").outcome == SUCCESS
         testDir.exists()
         ! new File(testDir, "com.google.guava-guava-16.0.1.jar").exists()
         new File(testDir, "org.codehaus.janino-janino-2.5.16.jar").exists()
@@ -365,14 +370,14 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         when:
         def result3RDPLDev = getPreparedGradleRunner()
-                .withArguments(com.intershop.gradle.icm.ICMProjectPlugin.COPY_LIBS, "-s", "--warning-mode", "all")
+                .withArguments("copyLibs", "-s", "--warning-mode", "all")
                 .withGradleVersion(gradleVersion)
                 .build()
 
         def devDir = new File(testProjectDir, "build/server/prjlibs")
 
         then:
-        result3RDPLDev.task(":${com.intershop.gradle.icm.ICMProjectPlugin.COPY_LIBS}").outcome == SUCCESS
+        result3RDPLDev.task(":copyLibs").outcome == SUCCESS
         devDir.exists()
         new File(devDir, "com.google.guava-guava-16.0.1.jar").exists()
         new File(devDir, "org.codehaus.janino-janino-2.5.16.jar").exists()
@@ -630,7 +635,7 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         when:
         def resultProdConf = getPreparedGradleRunner()
-                .withArguments("${com.intershop.gradle.icm.ICMProjectPlugin.CREATE_CONFIGFOLDER_PROD}", "-s", "--warning-mode", "all")
+                .withArguments("createConfigProd", "-s", "--warning-mode", "all")
                 .withGradleVersion(gradleVersion)
                 .build()
 
@@ -648,7 +653,7 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         def testPropsFile = new File(testProjectDir,"build/container/config_folder/system-conf/cluster/test.properties")
 
         then:
-        resultProdConf.task(":${com.intershop.gradle.icm.ICMProjectPlugin.CREATE_CONFIGFOLDER_PROD}").outcome == SUCCESS
+        resultProdConf.task(":createConfigProd").outcome == SUCCESS
 
         properties.getProperty(com.intershop.gradle.icm.tasks.ExtendCartridgeList.CARTRIDGES_PROPERTY) == PROD_CARTRIDGES
         properties.getProperty(com.intershop.gradle.icm.tasks.ExtendCartridgeList.CARTRIDGES_DBINIT_PROPERTY) == PROD_DB_CARTRIDGES
@@ -694,7 +699,7 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         when:
         def resultProdConf = getPreparedGradleRunner()
-                .withArguments("${com.intershop.gradle.icm.ICMProjectPlugin.CREATE_CONFIGFOLDER_TEST}", "-s", "--warning-mode", "all")
+                .withArguments("createConfigTest", "-s", "--warning-mode", "all")
                 .withGradleVersion(gradleVersion)
                 .build()
 
@@ -712,7 +717,7 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         def testPropsFile = new File(testProjectDir,"build/testcontainer/config_folder/system-conf/cluster/test.properties")
 
         then:
-        resultProdConf.task(":${com.intershop.gradle.icm.ICMProjectPlugin.CREATE_CONFIGFOLDER_TEST}").outcome == SUCCESS
+        resultProdConf.task(":createConfigTest").outcome == SUCCESS
 
         properties.getProperty(com.intershop.gradle.icm.tasks.ExtendCartridgeList.CARTRIDGES_PROPERTY) == TEST_CARTRIDGES
         properties.getProperty(com.intershop.gradle.icm.tasks.ExtendCartridgeList.CARTRIDGES_DBINIT_PROPERTY) == TEST_DB_CARTRIDGES
@@ -758,7 +763,7 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         when:
         def resultProdConf = getPreparedGradleRunner()
-                .withArguments("${com.intershop.gradle.icm.ICMProjectPlugin.CREATE_CONFIGFOLDER}", "-s", "--warning-mode", "all")
+                .withArguments("createConfig", "-s", "--warning-mode", "all")
                 .withGradleVersion(gradleVersion)
                 .build()
 
@@ -776,7 +781,7 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         def testPropsFile = new File(testProjectDir,"build/server/config_folder/system-conf/cluster/test.properties")
 
         then:
-        resultProdConf.task(":${com.intershop.gradle.icm.ICMProjectPlugin.CREATE_CONFIGFOLDER}").outcome == SUCCESS
+        resultProdConf.task(":createConfig").outcome == SUCCESS
 
         properties.getProperty(com.intershop.gradle.icm.tasks.ExtendCartridgeList.CARTRIDGES_PROPERTY) == CARTRIDGES
         properties.getProperty(com.intershop.gradle.icm.tasks.ExtendCartridgeList.CARTRIDGES_DBINIT_PROPERTY) == DB_CARTRIDGES
@@ -801,14 +806,14 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         when:
         def resultDevSites = getPreparedGradleRunner()
-                .withArguments("${com.intershop.gradle.icm.ICMProjectPlugin.CREATE_SITESFOLDER_PROD}", "-s")
+                .withArguments("createSitesProd", "-s")
                 .withGradleVersion(gradleVersion)
                 .build()
 
         def sitesFolder = new File(testProjectDir,"build/container/sites_folder/sites")
 
         then:
-        resultDevSites.task(":${com.intershop.gradle.icm.ICMProjectPlugin.CREATE_SITESFOLDER_PROD}").outcome == SUCCESS
+        resultDevSites.task(":createSitesProd").outcome == SUCCESS
         sitesFolder.exists()
         sitesFolder.listFiles().size() == 8
         new File(sitesFolder, "test-site1/units/test.properties").text.contains("test-site1-sites = prod")
@@ -822,14 +827,14 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         when:
         def resultDevSites = getPreparedGradleRunner()
-                .withArguments("${com.intershop.gradle.icm.ICMProjectPlugin.CREATE_SITESFOLDER_TEST}", "-s")
+                .withArguments("createSitesTest", "-s")
                 .withGradleVersion(gradleVersion)
                 .build()
 
         def sitesFolder = new File(testProjectDir,"build/testcontainer/sites_folder/sites")
 
         then:
-        resultDevSites.task(":${com.intershop.gradle.icm.ICMProjectPlugin.CREATE_SITESFOLDER_TEST}").outcome == SUCCESS
+        resultDevSites.task(":createSitesTest").outcome == SUCCESS
         sitesFolder.exists()
         sitesFolder.listFiles().size() == 8
         new File(sitesFolder, "test-site1/units/test.properties").text.contains("test-site1-sites = test")
@@ -843,14 +848,14 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         when:
         def resultDevSites = getPreparedGradleRunner()
-                .withArguments("${com.intershop.gradle.icm.ICMProjectPlugin.CREATE_SITESFOLDER}", "-s")
+                .withArguments("createSites", "-s")
                 .withGradleVersion(gradleVersion)
                 .build()
 
         def sitesFolder = new File(testProjectDir,"build/server/sites_folder/sites")
 
         then:
-        resultDevSites.task(":${com.intershop.gradle.icm.ICMProjectPlugin.CREATE_SITESFOLDER}").outcome == SUCCESS
+        resultDevSites.task(":createSites").outcome == SUCCESS
         sitesFolder.exists()
         sitesFolder.listFiles().size() == 8
         new File(sitesFolder, "test-site1/units/test.properties").text.contains("test-site1-sites = dev")
@@ -1345,6 +1350,45 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         then:
         resultDev.task(':prjCartridge_container:writeCartridgeDescriptor').outcome == SUCCESS
+
+        when:
+        def resultPkgMain = getPreparedGradleRunner()
+                .withArguments(CreateMainPackage.DEFAULT_NAME)
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        resultPkgMain.task(":${CreateMainPackage.DEFAULT_NAME}").outcome == SUCCESS
+        file("build/packages/mainpkg.tgz").exists()
+
+        when:
+        def resultPkgTest = getPreparedGradleRunner()
+                .withArguments(CreateTestPackage.DEFAULT_NAME)
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        resultPkgTest.task(":${CreateTestPackage.DEFAULT_NAME}").outcome == SUCCESS
+        file("build/packages/testpkg.tgz").exists()
+
+        when:
+        def resultPkgInit = getPreparedGradleRunner()
+                .withArguments(CreateInitPackage.DEFAULT_NAME)
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        resultPkgInit.task(":${CreateInitPackage.DEFAULT_NAME}").outcome == SUCCESS
+
+        when:
+        def resultPkgTestInit = getPreparedGradleRunner()
+                .withArguments(CreateInitTestPackage.DEFAULT_NAME)
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        resultPkgTestInit.task(":${CreateInitTestPackage.DEFAULT_NAME}").outcome == SUCCESS
+
 
         where:
         gradleVersion << supportedGradleVersions

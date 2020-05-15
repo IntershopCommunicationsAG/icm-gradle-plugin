@@ -18,7 +18,7 @@
 package com.intershop.gradle.icm.tasks
 
 import com.intershop.gradle.icm.ICMProjectPlugin.Companion.CARTRIDGELIST_FILENAME
-import com.intershop.gradle.icm.ICMProjectPlugin.Companion.CONFIG_FOLDER
+import com.intershop.gradle.icm.project.TargetConf
 import com.intershop.gradle.icm.tasks.CreateServerInfo.Companion.VERSIONINFO_FILENAME
 import com.intershop.gradle.icm.utils.PackageUtil
 import org.gradle.api.file.CopySpec
@@ -47,7 +47,7 @@ open class CreateConfigFolder
             fsOps: FileSystemOperations): AbstractCreateFolder(projectLayout, objectFactory, fsOps) {
 
     init {
-        outputDir.convention(projectLayout.buildDirectory.dir("$CONFIG_FOLDER/system-conf"))
+        outputDir.convention(TargetConf.DEVELOPMENT.config(projectLayout))
     }
 
     @get:InputFile

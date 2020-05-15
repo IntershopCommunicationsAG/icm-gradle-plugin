@@ -22,10 +22,10 @@ package com.intershop.gradle.icm.utils
  * @property value the value of the enumeration.
  * @constructor Provides an enumeration of a string value.
  */
-enum class EnvironmentType(val value: String) {
+enum class EnvironmentType {
 
-    PRODUCTION("production"),
-    TEST("test"),
-    DEVELOPMENT("development"),
-    ALL("all");
+    PRODUCTION,
+    TEST,
+    DEVELOPMENT,
+    ALL;
 }

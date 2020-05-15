@@ -16,10 +16,10 @@
  */
 package com.intershop.gradle.icm
 
-import com.intershop.gradle.icm.internal.tasks.CreateInitPackage
-import com.intershop.gradle.icm.internal.tasks.CreateInitTestPackage
-import com.intershop.gradle.icm.internal.tasks.CreateMainPackage
-import com.intershop.gradle.icm.internal.tasks.CreateTestPackage
+import com.intershop.gradle.icm.tasks.CreateInitPackage
+import com.intershop.gradle.icm.tasks.CreateInitTestPackage
+import com.intershop.gradle.icm.tasks.CreateMainPackage
+import com.intershop.gradle.icm.tasks.CreateTestPackage
 import com.intershop.gradle.icm.tasks.CreateServerInfo
 import com.intershop.gradle.test.AbstractIntegrationGroovySpec
 import org.gradle.testkit.runner.TaskOutcome

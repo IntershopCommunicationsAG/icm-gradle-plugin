@@ -17,7 +17,7 @@
 
 package com.intershop.gradle.icm.tasks
 
-import com.intershop.gradle.icm.ICMProjectPlugin.Companion.SITES_FOLDER
+import com.intershop.gradle.icm.project.TargetConf
 import com.intershop.gradle.icm.utils.PackageUtil
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.FileSystemOperations
@@ -40,7 +40,7 @@ open class CreateSitesFolder
                             fsOps: FileSystemOperations): AbstractCreateFolder(projectLayout, objectFactory, fsOps) {
 
     init {
-        outputDir.convention(projectLayout.buildDirectory.dir("$SITES_FOLDER/sites"))
+        outputDir.convention(TargetConf.DEVELOPMENT.sites(projectLayout))
     }
 
     override fun addPackages(cs: CopySpec) {
