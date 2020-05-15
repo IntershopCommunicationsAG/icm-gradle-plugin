@@ -29,51 +29,51 @@ import org.gradle.api.provider.Provider
 enum class TargetConf(val value: String) {
 
     PRODUCTION("production") {
-        override fun cartridges(projectLayout: ProjectLayout) =
+        override fun cartridges(projectLayout: ProjectLayout): Provider<Directory> =
             projectLayout.buildDirectory.dir("container/cartridges")
 
-        override fun libs(projectLayout: ProjectLayout) =
+        override fun libs(projectLayout: ProjectLayout): Provider<Directory> =
             projectLayout.buildDirectory.dir("container/prjlibs")
 
-        override fun sites(projectLayout: ProjectLayout) =
+        override fun sites(projectLayout: ProjectLayout): Provider<Directory> =
             projectLayout.buildDirectory.dir("container/sites_folder")
 
-        override fun config(projectLayout: ProjectLayout) =
+        override fun config(projectLayout: ProjectLayout): Provider<Directory> =
             projectLayout.buildDirectory.dir("container/config_folder")
 
-        override fun cartridgelist(projectLayout: ProjectLayout) =
+        override fun cartridgelist(projectLayout: ProjectLayout): Provider<RegularFile> =
             projectLayout.buildDirectory.file("container/cartridgelist/cartridgelist.properties")
     },
     TEST("test") {
-        override fun cartridges(projectLayout: ProjectLayout) =
+        override fun cartridges(projectLayout: ProjectLayout): Provider<Directory> =
             projectLayout.buildDirectory.dir("testcontainer/cartridges")
 
-        override fun libs(projectLayout: ProjectLayout) =
+        override fun libs(projectLayout: ProjectLayout): Provider<Directory> =
             projectLayout.buildDirectory.dir("testcontainer/prjlibs")
 
-        override fun sites(projectLayout: ProjectLayout) =
+        override fun sites(projectLayout: ProjectLayout): Provider<Directory> =
             projectLayout.buildDirectory.dir("testcontainer/sites_folder")
 
-        override fun config(projectLayout: ProjectLayout) =
+        override fun config(projectLayout: ProjectLayout): Provider<Directory> =
             projectLayout.buildDirectory.dir("testcontainer/config_folder")
 
-        override fun cartridgelist(projectLayout: ProjectLayout) =
+        override fun cartridgelist(projectLayout: ProjectLayout): Provider<RegularFile> =
             projectLayout.buildDirectory.file("testcontainer/cartridgelist/cartridgelist.properties")
     },
     DEVELOPMENT("server") {
-        override fun cartridges(projectLayout: ProjectLayout) =
+        override fun cartridges(projectLayout: ProjectLayout): Provider<Directory> =
             projectLayout.buildDirectory.dir("server/cartridges")
 
-        override fun libs(projectLayout: ProjectLayout) =
+        override fun libs(projectLayout: ProjectLayout): Provider<Directory> =
             projectLayout.buildDirectory.dir("server/prjlibs")
 
-        override fun sites(projectLayout: ProjectLayout) =
+        override fun sites(projectLayout: ProjectLayout): Provider<Directory> =
             projectLayout.buildDirectory.dir("server/sites_folder")
 
-        override fun config(projectLayout: ProjectLayout) =
+        override fun config(projectLayout: ProjectLayout): Provider<Directory> =
             projectLayout.buildDirectory.dir("server/config_folder")
 
-        override fun cartridgelist(projectLayout: ProjectLayout) =
+        override fun cartridgelist(projectLayout: ProjectLayout): Provider<RegularFile> =
             projectLayout.buildDirectory.file("server/cartridgelist/cartridgelist.properties")
     };
 

@@ -19,7 +19,6 @@ package com.intershop.gradle.icm.utils
 /**
  * This enumeration provides a list of environment types.
  *
- * @property value the value of the enumeration.
  * @constructor Provides an enumeration of a string value.
  */
 enum class EnvironmentType {

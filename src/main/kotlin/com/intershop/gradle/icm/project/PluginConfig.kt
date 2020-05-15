@@ -64,7 +64,7 @@ class PluginConfig(val project: Project,
      * Configures the task for the setup of external cartridges.
      *
      * @param libFilterTask task provides a file with libs of the base container project
-     * @param typ String: PROD, TEST, SERVER
+     * @param type environment type
      * @param environmentTypesList List of environment types
      */
     fun getSetupCartridgesTask(libFilterTask: ProvideLibFilter,

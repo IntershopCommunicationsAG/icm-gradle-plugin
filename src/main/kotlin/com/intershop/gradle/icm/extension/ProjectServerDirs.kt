@@ -127,7 +127,7 @@ open class ProjectServerDirs @Inject constructor(objectFactory: ObjectFactory ) 
             "PRODUCTION"    -> prod
             "DEVELOPMENT"   -> dev
             "TEST"          -> test
-            else -> throw GradleException("Server dir configuration for ${type} is not available!")
+            else -> throw GradleException("Server dir configuration for $type is not available!")
         }
     }
 }
