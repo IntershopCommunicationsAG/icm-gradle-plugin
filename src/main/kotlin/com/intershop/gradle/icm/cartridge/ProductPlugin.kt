@@ -27,9 +27,10 @@ import org.gradle.api.Project
 open class ProductPlugin  : AbstractCartridge() {
 
     override fun apply(project: Project) {
-        project.extensions.extraProperties.set("cartridge.style", CartridgeStyle.CARTRIDGE.value)
-
-        project.plugins.apply(PublicPlugin::class.java)
-        publishCartridge(project, CartridgeStyle.CARTRIDGE.value)
+        with(project) {
+            extensions.extraProperties.set("cartridge.style", CartridgeStyle.CARTRIDGE.value)
+            plugins.apply(PublicPlugin::class.java)
+            publishCartridge(project, CartridgeStyle.CARTRIDGE.value)
+        }
     }
 }

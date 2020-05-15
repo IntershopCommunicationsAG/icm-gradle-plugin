@@ -17,6 +17,7 @@
 
 package com.intershop.gradle.icm.extension
 
+import com.intershop.gradle.icm.utils.EnvironmentType
 import groovy.lang.Closure
 import org.gradle.api.Action
 import org.gradle.api.GradleException
@@ -121,12 +122,16 @@ open class ProjectServerDirs @Inject constructor(objectFactory: ObjectFactory ) 
         ConfigureUtil.configure(c, dev)
     }
 
-    fun getServerDirSet(type: String): ServerDirSet {
+    /**
+     * Get serverdir set of environment type.
+     *
+     * @param type environment type
+     */
+    fun getServerDirSet(type: EnvironmentType): ServerDirSet {
         return when (type) {
-            "BASE"          -> base
-            "PRODUCTION"    -> prod
-            "DEVELOPMENT"   -> dev
-            "TEST"          -> test
+            EnvironmentType.PRODUCTION    -> prod
+            EnvironmentType.DEVELOPMENT   -> dev
+            EnvironmentType.TEST          -> test
             else -> throw GradleException("Server dir configuration for $type is not available!")
         }
     }

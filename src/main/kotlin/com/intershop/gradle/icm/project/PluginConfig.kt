@@ -17,6 +17,7 @@
 
 package com.intershop.gradle.icm.project
 
+import com.intershop.gradle.icm.ICMProjectPlugin
 import com.intershop.gradle.icm.extension.IntershopExtension
 import com.intershop.gradle.icm.extension.ProjectConfiguration
 import com.intershop.gradle.icm.tasks.CreateConfigFolder
@@ -35,6 +36,13 @@ import org.gradle.api.file.ProjectLayout
 import org.gradle.api.tasks.Sync
 import org.gradle.api.tasks.bundling.Tar
 
+/**
+ * This class provides methods and configurations
+ * tasks for the project plugin.
+ *
+ * @param project   project of project plugin
+ * @param projectLayout project layout service
+ */
 class PluginConfig(val project: Project,
                    val projectLayout: ProjectLayout) {
 
@@ -63,13 +71,10 @@ class PluginConfig(val project: Project,
     /**
      * Configures the task for the setup of external cartridges.
      *
-     * @param libFilterTask task provides a file with libs of the base container project
      * @param type environment type
      * @param environmentTypesList List of environment types
      */
-    fun getSetupCartridgesTask(libFilterTask: ProvideLibFilter,
-                               type: EnvironmentType,
-                               environmentTypesList: List<EnvironmentType> ): SetupCartridges {
+    fun getSetupCartridgesTask(type: EnvironmentType, environmentTypesList: List<EnvironmentType> ): SetupCartridges {
         return with(project) {
             tasks.maybeCreate(
                 TaskName.valueOf(type.name).cartridges(),
@@ -77,13 +82,18 @@ class PluginConfig(val project: Project,
             ).apply {
                 provideCartridges(projectConfig.cartridges)
                 provideDBprepareCartridges(projectConfig.dbprepareCartridges)
-                provideLibFilterFile(libFilterTask.outputFile)
+                provideLibFilterFile(getLibFilterFile().outputFile)
                 environmentTypes.set(environmentTypesList)
                 provideOutputDir(TargetConf.valueOf(type.name).cartridges(projectLayout))
             }
         }
     }
 
+    /**
+     * Configures the task for the sites folder creation.
+     *
+     * @param type environment type
+     */
     fun getSitesTask(type: EnvironmentType): CreateSitesFolder {
         with(project) {
             return tasks.maybeCreate( TaskName.valueOf(type.name).sites(), CreateSitesFolder::class.java ).apply {
@@ -94,15 +104,21 @@ class PluginConfig(val project: Project,
                 }
 
                 baseDirConfig.set(projectConfig.serverDirConfig.base.sites)
-                extraDirConfig.set(projectConfig.serverDirConfig.getServerDirSet(type.name).sites)
+                extraDirConfig.set(projectConfig.serverDirConfig.getServerDirSet(type).sites)
 
                 provideOutputDir(TargetConf.valueOf(type.name).sites(projectLayout))
             }
         }
     }
 
-    fun getConfigTask(templateTask: ProvideCartridgeListTemplate,
-                      versionInfoTask: CreateServerInfo,
+    /**
+     * Configures the task for the configuration folder creation.
+     *
+     * @param versionInfoTask task that creates the server info
+     * @param type environment type
+     * @param environmentTypesList list of environment types for the configuration
+     */
+    fun getConfigTask(versionInfoTask: CreateServerInfo,
                       type: EnvironmentType,
                       environmentTypesList: List<EnvironmentType>): CreateConfigFolder {
         with(project) {
@@ -111,7 +127,7 @@ class PluginConfig(val project: Project,
             val target = TargetConf.valueOf(type.name)
 
             val cartridgeListTask = tasks.maybeCreate(task.cartridgelist(), ExtendCartridgeList::class.java).apply {
-                provideTemplateFile(templateTask.outputFile)
+                provideTemplateFile(getCartridgeListTemplate().outputFile)
                 provideCartridges(projectConfig.cartridges)
                 provideDBprepareCartridges(projectConfig.dbprepareCartridges)
 
@@ -119,7 +135,7 @@ class PluginConfig(val project: Project,
 
                 provideOutputFile(target.cartridgelist(projectLayout))
 
-                dependsOn(templateTask)
+                dependsOn(getCartridgeListTemplate())
             }
 
             return tasks.maybeCreate(task.config(), CreateConfigFolder::class.java).apply {
@@ -130,7 +146,7 @@ class PluginConfig(val project: Project,
                 }
 
                 baseDirConfig.set(projectConfig.serverDirConfig.base.config)
-                extraDirConfig.set(projectConfig.serverDirConfig.getServerDirSet(type.name).config)
+                extraDirConfig.set(projectConfig.serverDirConfig.getServerDirSet(type).config)
 
                 provideCartridgeListFile(cartridgeListTask.outputFile)
                 provideVersionInfoFile(versionInfoTask.outputFile)
@@ -140,6 +156,12 @@ class PluginConfig(val project: Project,
         }
     }
 
+    /**
+     * Configures an existing package task - initalization package.
+     *
+     * @param sitesFolderTask creates the sites folder
+     * @param taskname specify the task name of the package folder
+     */
     fun configureInitTask(sitesFolderTask: CreateSitesFolder, taskname: String) {
         with(project) {
 
@@ -154,6 +176,14 @@ class PluginConfig(val project: Project,
         }
     }
 
+    /**
+     * Configures an existing package task package.
+     *
+     * @param configTask creates the configuration folder
+     * @param cartridgesTask creates the folder with external cartridges
+     * @param copyLibs copy 3rd party libs
+     * @param taskname specify the task name of the package folder
+     */
     fun configurePackageTask(configTask: CreateConfigFolder,
                              cartridgesTask: SetupCartridges,
                              copyLibs: Sync,
@@ -172,6 +202,11 @@ class PluginConfig(val project: Project,
         }
     }
 
+    /**
+     * Configures the main task for the preparation.
+     *
+     * @param type environment type
+     */
     fun configurePrepareTask(type: EnvironmentType): Task {
         return project.tasks.maybeCreate(TaskName.valueOf(type.name).prepare()).apply {
             group = IntershopExtension.INTERSHOP_GROUP_NAME
@@ -179,6 +214,11 @@ class PluginConfig(val project: Project,
         }
     }
 
+    /**
+     * Get task from task container by name.
+     *
+     * @param taskname name of the task
+     */
     fun getTask(taskname: String): Task {
         return project.tasks.getByName(taskname)
     }
@@ -203,6 +243,33 @@ class PluginConfig(val project: Project,
             cp.from(configTask.outputs)
             cp.from(copyLibs.outputs) { cps ->
                 cps.into("libs")
+            }
+        }
+    }
+
+    private fun getCartridgeListTemplate(): ProvideCartridgeListTemplate {
+        with(project) {
+            return tasks.maybeCreate(
+                ICMProjectPlugin.PROVIDE_CARTRIDGELIST_TEMPLATE,
+                ProvideCartridgeListTemplate::class.java
+            ).apply {
+                provideBaseDependency(projectConfig.base.dependency)
+                provideFileDependency(projectConfig.cartridgeListDependency)
+            }
+        }
+    }
+
+    /**
+     * Get lib filter file task.
+     */
+    fun getLibFilterFile(): ProvideLibFilter {
+        with(project) {
+            return tasks.maybeCreate(
+                ICMProjectPlugin.PROVIDE_LIBFILTER,
+                ProvideLibFilter::class.java
+            ).apply {
+                provideBaseDependency(projectConfig.base.dependency)
+                provideFileDependency(projectConfig.libFilterFileDependency)
             }
         }
     }
