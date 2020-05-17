@@ -17,9 +17,18 @@
 
 package com.intershop.gradle.icm
 
+import com.intershop.gradle.icm.cartridge.CartridgePlugin
+import com.intershop.gradle.icm.cartridge.ProductPlugin
+import com.intershop.gradle.icm.cartridge.TestPlugin
 import com.intershop.gradle.icm.extension.IntershopExtension
 import com.intershop.gradle.icm.tasks.CreateClusterID
+import com.intershop.gradle.icm.tasks.CreateInitPackage
+import com.intershop.gradle.icm.tasks.CreateInitTestPackage
+import com.intershop.gradle.icm.tasks.CreateMainPackage
 import com.intershop.gradle.icm.tasks.CreateServerInfo
+import com.intershop.gradle.icm.tasks.CreateTestPackage
+import com.intershop.gradle.icm.tasks.WriteCartridgeDescriptor.Companion.DEFAULT_NAME
+import com.intershop.gradle.isml.IsmlPlugin
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaPlugin
@@ -85,6 +94,8 @@ open class ICMBasePlugin: Plugin<Project> {
                     description = "Lifecycle task for ICM cartridge build"
                 }
 
+                createPackageTasks(this)
+
             } else {
                 logger.warn("ICM build plugin will be not applied to the sub project '{}'", name)
             }
@@ -129,6 +140,71 @@ open class ICMBasePlugin: Plugin<Project> {
                     CreateClusterID.DEFAULT_NAME,
                     CreateClusterID::class.java
                 )
+            }
+        }
+    }
+
+    private fun createPackageTasks(project: Project) {
+        with(project) {
+            if(!checkForTask(tasks, CreateInitPackage.DEFAULT_NAME)) {
+                tasks.register(CreateInitPackage.DEFAULT_NAME, CreateInitPackage::class.java)
+            }
+
+            if(!checkForTask(tasks, CreateInitTestPackage.DEFAULT_NAME)) {
+                tasks.register(CreateInitTestPackage.DEFAULT_NAME, CreateInitTestPackage::class.java)
+            }
+
+            if(!checkForTask(tasks, CreateMainPackage.DEFAULT_NAME)) {
+                tasks.register(CreateMainPackage.DEFAULT_NAME, CreateMainPackage::class.java).get()
+            }
+
+            if(!checkForTask(tasks, CreateTestPackage.DEFAULT_NAME)) {
+                tasks.register(CreateTestPackage.DEFAULT_NAME, CreateTestPackage::class.java)
+            }
+
+            val createMainPackage = tasks.getByName(CreateMainPackage.DEFAULT_NAME) as CreateMainPackage
+            val createTestPackage = tasks.getByName(CreateTestPackage.DEFAULT_NAME) as CreateTestPackage
+
+            subprojects {sub ->
+                sub.plugins.withType(CartridgePlugin::class.java) {
+                    val cartridgefiles = project.copySpec { cp ->
+                        cp.from(sub.layout.projectDirectory.dir("staticfiles/cartridge")) { cps ->
+                            cps.into("cartridges/${sub.name}/release")
+                        }
+
+                        sub.plugins.withType(IsmlPlugin::class.java) {
+                            cp.from(sub.tasks.getByName("isml2classMain")) { cpt ->
+                               cpt.into{"cartridges/${sub.name}/release"}
+                            }
+                        }
+
+                        cp.from(sub.tasks.getByName(DEFAULT_NAME)) { cps ->
+                            cps.into("cartridges/${sub.name}/release")
+                        }
+
+                        sub.plugins.withType(JavaPlugin::class.java) {
+                            cp.from(sub.tasks.getByName("jar")) { cps ->
+                                cps.into("cartridges/${sub.name}/release/lib")
+                            }
+                        }
+                    }
+
+                    sub.plugins.withType(ProductPlugin::class.java) {
+                        sub.plugins.withType(IsmlPlugin::class.java) {
+                            createMainPackage.dependsOn(sub.tasks.getByName("isml2classMain"))
+                            createMainPackage.dependsOn(sub.tasks.getByName("jar"))
+                        }
+                        createMainPackage.with(cartridgefiles)
+                    }
+
+                    sub.plugins.withType(TestPlugin::class.java) {
+                        sub.plugins.withType(IsmlPlugin::class.java) {
+                            createTestPackage.dependsOn(sub.tasks.getByName("isml2classMain"))
+                            createTestPackage.dependsOn(sub.tasks.getByName("jar"))
+                        }
+                        createTestPackage.with(cartridgefiles)
+                    }
+                }
             }
         }
     }

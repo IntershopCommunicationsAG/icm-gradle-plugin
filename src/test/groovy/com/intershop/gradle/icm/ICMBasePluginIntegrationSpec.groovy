@@ -16,13 +16,16 @@
  */
 package com.intershop.gradle.icm
 
+import com.intershop.gradle.icm.tasks.CreateInitPackage
+import com.intershop.gradle.icm.tasks.CreateInitTestPackage
+import com.intershop.gradle.icm.tasks.CreateMainPackage
+import com.intershop.gradle.icm.tasks.CreateTestPackage
 import com.intershop.gradle.icm.tasks.CreateServerInfo
 import com.intershop.gradle.test.AbstractIntegrationGroovySpec
 import org.gradle.testkit.runner.TaskOutcome
 import spock.lang.Ignore
 
-import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
-import static org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
+import static org.gradle.testkit.runner.TaskOutcome.*
 
 class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
@@ -1067,6 +1070,45 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         resultpub.task(':prjCartridge_prod:publish').outcome == SUCCESS
 
         resultpub.task(':prjCartridge_test:publish') == null
+
+        when:
+        def resultPkgMain = getPreparedGradleRunner()
+                .withArguments(CreateMainPackage.DEFAULT_NAME)
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        resultPkgMain.task(":${CreateMainPackage.DEFAULT_NAME}").outcome == SUCCESS
+        file("build/packages/mainpkg.tgz").exists()
+
+        when:
+        def resultPkgTest = getPreparedGradleRunner()
+                .withArguments(CreateTestPackage.DEFAULT_NAME)
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        resultPkgTest.task(":${CreateTestPackage.DEFAULT_NAME}").outcome == SUCCESS
+        file("build/packages/testpkg.tgz").exists()
+
+        when:
+        def resultPkgInit = getPreparedGradleRunner()
+                .withArguments(CreateInitPackage.DEFAULT_NAME)
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        resultPkgInit.task(":${CreateInitPackage.DEFAULT_NAME}").outcome == NO_SOURCE
+
+        when:
+        def resultPkgTestInit = getPreparedGradleRunner()
+                .withArguments(CreateInitTestPackage.DEFAULT_NAME)
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        resultPkgTestInit.task(":${CreateInitTestPackage.DEFAULT_NAME}").outcome == NO_SOURCE
+
         where:
         gradleVersion << supportedGradleVersions
     }

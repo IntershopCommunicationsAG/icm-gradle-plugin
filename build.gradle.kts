@@ -307,7 +307,7 @@ bintray {
         websiteUrl = "https://github.com/IntershopCommunicationsAG/${project.name}"
         issueTrackerUrl = "https://github.com/IntershopCommunicationsAG/${project.name}/issues"
 
-        setLabels("intershop", "gradle", "plugin", "build", "wsdl")
+        setLabels("intershop", "gradle", "plugin", "build", "icm")
         publicDownloadNumbers = true
 
         version(delegateClosureOf<BintrayExtension.VersionConfig> {
@@ -324,6 +324,7 @@ dependencies {
     implementation(localGroovy())
 
     compileOnly("org.apache.ant:ant:1.10.7")
+    implementation("com.intershop.gradle.isml:isml-gradle-plugin:3.1.0")
 
     testImplementation("com.intershop.gradle.test:test-gradle-plugin:3.5.0")
     testImplementation(gradleTestKit())

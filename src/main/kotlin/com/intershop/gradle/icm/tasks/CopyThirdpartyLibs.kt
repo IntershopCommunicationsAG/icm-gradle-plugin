@@ -17,6 +17,7 @@
 package com.intershop.gradle.icm.tasks
 
 import com.intershop.gradle.icm.extension.IntershopExtension.Companion.INTERSHOP_GROUP_NAME
+import com.intershop.gradle.icm.utils.CartridgeUtil
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.file.Directory
@@ -129,7 +130,7 @@ open class CopyThirdpartyLibs @Inject constructor(
                              identifier.componentIdentifier.version
                     val name = "${id}.${artifact.type}"
 
-                    if(! libs.contains(id)) {
+                    if(! CartridgeUtil.isCartridge(project, identifier.componentIdentifier) && ! libs.contains(id)) {
                         artifact.file.copyTo(
                             outputDir.file(name).get().asFile,
                             overwrite = true
