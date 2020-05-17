@@ -371,7 +371,7 @@ intershop {
 
 The project information (`projectInfo`) is used in the display of the login dialog of the the ICM backoffice.
 
-[[ExtensionBasePlugin]]==== Extension 'intershop' for Base Plugin
+==== [[ExtensionBasePlugin]]Extension 'intershop' for Base Plugin
 
 ===== Properties
 
@@ -465,13 +465,22 @@ This property is used by the server.
 CreateClusterID` |  This taks creates an UID with Java functionality in the required format for the server.
 | *writeCartridgeFiles* | `org.gradle.api +
 Task`  | This task groups two tasks of a cartridge (`writeCartridgeDescriptor`, `writeCartridgeClasspath`)
+| *createMainPkg* | `com.intershop.gradle.icm.tasks +
+CreateMainPackage`  | This is preconfigured Tar task. It creates `<build dir>/packages/mainpkg.tgz` as base for container creation. It contains all components of the main appserver container. Cartridges will be added per default.
+| *createInitPkg* | `com.intershop.gradle.icm.tasks +
+CreateInitPackage`  | This is preconfigured Tar task. It creates `<build dir>/packages/initpkg.tgz` as base for container creation. It contains all files of the init container.
+| *createTestPkg* | `com.intershop.gradle.icm.tasks +
+CreateTestPackage`  | This is preconfigured Tar task. It creates `<build dir>/packages/testpkg.tgz` as base for container creation. It contains all components of the test container. Test cartridges will be added per default.
+| *createInitTestPkg* | `com.intershop.gradle.icm.tasks +
+CreateInitTestPackage`  | This is preonfigured Tar task. It creates `<build dir>/packages/inittestpkg.tgz` as base for container creation. It contains all files of the test init container.
 |===
 
 == Intershop Commerce Management Project Plugin
 
 This plugin applies the Intershop Commerce Management Base plugin to the project. It adds also additional tasks and
 configuration for projects that are based on an Intershop Commerce Management base project like Intershop Commerce Management B2X 7.11.
-A base project proivides a container with an installed server configuration.
+A base project provides a container with an installed server configuration. The configuration of tasks created by the base plugin is
+extended by this plugin. It adds files configured by the extension of this plugin to the container packages.
 
 === Plugin Configuration
 
