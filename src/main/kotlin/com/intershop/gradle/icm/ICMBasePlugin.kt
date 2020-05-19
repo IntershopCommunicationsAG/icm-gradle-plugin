@@ -175,13 +175,13 @@ open class ICMBasePlugin: Plugin<Project> {
                         cp.from(sub.tasks.getByName(DEFAULT_NAME).outputs.files) { cps ->
                             cps.into("cartridges/${sub.name}/release")
                         }
-
+/**
                         sub.plugins.withType(IsmlPlugin::class.java) {
                             cp.from(sub.tasks.getByName("isml2classMain").outputs.files) { cpt ->
                                cpt.into{"cartridges/${sub.name}/release"}
                             }
                         }
-
+**/
                         sub.plugins.withType(JavaPlugin::class.java) {
                             cp.from(sub.tasks.getByName("jar")) { cps ->
                                 cps.into("cartridges/${sub.name}/release/lib")
