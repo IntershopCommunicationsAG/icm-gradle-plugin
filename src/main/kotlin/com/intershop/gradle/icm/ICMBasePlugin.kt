@@ -176,10 +176,8 @@ open class ICMBasePlugin: Plugin<Project> {
                         }
 **/
                         sub.plugins.withType(IsmlPlugin::class.java) {
-                            //sub.tasks.withType(IsmlCompile::class.java) {
-                            //}
                             cp.from(sub.tasks.getByName("isml2classMain").outputs.files) { cpt ->
-                               cpt.into{"cartridges/${sub.name}/release"}
+                               cpt.into("cartridges/${sub.name}/release")
                             }
                         }
 
