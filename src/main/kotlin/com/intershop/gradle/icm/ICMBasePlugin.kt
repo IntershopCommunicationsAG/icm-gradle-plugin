@@ -27,7 +27,6 @@ import com.intershop.gradle.icm.tasks.CreateInitTestPackage
 import com.intershop.gradle.icm.tasks.CreateMainPackage
 import com.intershop.gradle.icm.tasks.CreateServerInfo
 import com.intershop.gradle.icm.tasks.CreateTestPackage
-import com.intershop.gradle.icm.tasks.WriteCartridgeDescriptor.Companion.DEFAULT_NAME
 import com.intershop.gradle.isml.IsmlPlugin
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -172,16 +171,18 @@ open class ICMBasePlugin: Plugin<Project> {
                             cps.into("cartridges/${sub.name}/release")
                         }
 
+                        /**
                         sub.plugins.withType(IsmlPlugin::class.java) {
+                            sub.logger.info("add isml files .... for {}", project.name)
                             cp.from(sub.tasks.getByName("isml2classMain")) { cpt ->
                                cpt.into{"cartridges/${sub.name}/release"}
                             }
                         }
 
+
                         cp.from(sub.tasks.getByName(DEFAULT_NAME)) { cps ->
                             cps.into("cartridges/${sub.name}/release")
-                        }
-
+                        }**/
                         sub.plugins.withType(JavaPlugin::class.java) {
                             cp.from(sub.tasks.getByName("jar")) { cps ->
                                 cps.into("cartridges/${sub.name}/release/lib")
