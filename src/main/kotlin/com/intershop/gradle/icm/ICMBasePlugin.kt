@@ -168,18 +168,21 @@ open class ICMBasePlugin: Plugin<Project> {
             subprojects {sub ->
                 sub.plugins.withType(CartridgePlugin::class.java) {
                     val cartridgefiles = project.copySpec { cp ->
-                        cp.from(sub.layout.projectDirectory.dir("staticfiles/cartridge")) { cps ->
-                            cps.into("cartridges/${sub.name}/release")
-                        }
 
-                        sub.plugins.withType(IsmlPlugin::class.java) {
-                            cp.from(sub.tasks.getByName("isml2classMain")) { cpt ->
-                               cpt.into{"cartridges/${sub.name}/release"}
+                        if(sub.layout.projectDirectory.dir("staticfiles/cartridge").asFile.exists()) {
+                            cp.from(sub.layout.projectDirectory.dir("staticfiles/cartridge")) { cps ->
+                                cps.into("cartridges/${sub.name}/release")
                             }
                         }
 
                         cp.from(sub.tasks.getByName(DEFAULT_NAME)) { cps ->
                             cps.into("cartridges/${sub.name}/release")
+                        }
+
+                        sub.plugins.withType(IsmlPlugin::class.java) {
+                            cp.from(sub.tasks.getByName("isml2classMain")) { cpt ->
+                               cpt.into("cartridges/${sub.name}/release")
+                            }
                         }
 
                         sub.plugins.withType(JavaPlugin::class.java) {
