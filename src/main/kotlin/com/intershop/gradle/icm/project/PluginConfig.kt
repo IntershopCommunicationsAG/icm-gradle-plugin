@@ -84,10 +84,10 @@ class PluginConfig(val project: Project,
                 provideDBprepareCartridges(projectConfig.dbprepareCartridges)
                 provideLibFilterFile(getLibFilterFile().outputFile)
 
-                projectDependency(projectConfig.base.dependency.getOrElse(""))
+                projectDependency(projectConfig.base.platform.getOrElse(""))
 
                 projectConfig.modules.all {
-                    projectDependency(it.dependency.getOrElse(""))
+                    projectDependency(it.platform.getOrElse(""))
                 }
 
                 environmentTypes.set(environmentTypesList)

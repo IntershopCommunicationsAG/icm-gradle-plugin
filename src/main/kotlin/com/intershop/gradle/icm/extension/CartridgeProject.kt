@@ -22,6 +22,7 @@ import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Nested
+import org.gradle.api.tasks.Optional
 import org.gradle.util.ConfigureUtil
 import javax.inject.Inject
 
@@ -40,6 +41,11 @@ open class CartridgeProject @Inject constructor(objectFactory: ObjectFactory) {
      */
     @get:Input
     val dependency: Property<String> = objectFactory.property(String::class.java)
+
+    @get:Optional
+    @get:Input
+    val platform: Property<String> = objectFactory.property(String::class.java)
+
 
     /**
      * Configuration for configuration package.
