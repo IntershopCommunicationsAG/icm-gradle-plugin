@@ -134,6 +134,7 @@ open class SetupCartridges @Inject constructor(
         dcfg.isTransitive = false
 
         val libsCS = project.copySpec()
+        val libFiles = mutableMapOf<File, String>()
 
         dcfg.allDependencies.forEach { dependency ->
             if( dependency is ExternalModuleDependency &&
@@ -159,17 +160,21 @@ open class SetupCartridges @Inject constructor(
                     }
                 }
 
-                val libFiles = getLibsFor(dependency, filter)
-                libFiles.forEach { lib ->
-                    project.logger.info("{}: Copy {} to {}.", dependency.name, lib.key, lib.value)
-                    libsCS.from(lib.key).rename(".*", lib.value)
-                }
-                fsOps.run {
-                    sync {
-                        it.with(libsCS)
-                        it.into(File(target, "libs"))
-                    }
-                }
+                libFiles.putAll(getLibsFor(dependency, filter))
+            }
+        }
+
+        libFiles.forEach { lib ->
+            project.logger.info("Add to copyspec {} to {}.", lib.key, lib.value)
+            libsCS.from(lib.key) {
+                it.rename(".*", lib.value)
+            }
+        }
+
+        fsOps.run {
+            sync {
+                it.with(libsCS)
+                it.into(File(target, "libs"))
             }
         }
     }

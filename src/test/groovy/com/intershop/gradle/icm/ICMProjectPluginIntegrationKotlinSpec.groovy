@@ -1506,7 +1506,7 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
         cartridgesDir.exists()
         cartridgesDir.listFiles().size() == 3
         cartridgesLibDir.exists()
-        cartridgesLibDir.listFiles().size() == 1
+        cartridgesLibDir.listFiles().size() == 2
         configDir.exists()
         configDir.listFiles().size() == 2
         configAppsDir.exists()
