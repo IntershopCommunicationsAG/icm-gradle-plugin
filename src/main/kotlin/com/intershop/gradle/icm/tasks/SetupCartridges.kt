@@ -158,7 +158,6 @@ open class SetupCartridges @Inject constructor(
 
         val dcfg = project.configurations.detachedConfiguration(*deps.toTypedArray())
         dcfg.isTransitive = false
-        configureUsage(dcfg)
 
         val libsCS = project.copySpec()
         val libFiles = mutableMapOf<File, String>()
@@ -246,6 +245,7 @@ open class SetupCartridges @Inject constructor(
 
         val dcfg = project.configurations.detachedConfiguration(*listDeps.toTypedArray())
         dcfg.isTransitive = true
+        configureUsage(dcfg)
 
         dcfg.resolvedConfiguration.resolvedArtifacts.forEach { artifact ->
             if (artifact.id is DefaultModuleComponentArtifactIdentifier) {
