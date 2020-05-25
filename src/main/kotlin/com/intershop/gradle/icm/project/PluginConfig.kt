@@ -83,6 +83,13 @@ class PluginConfig(val project: Project,
                 provideCartridges(projectConfig.cartridges)
                 provideDBprepareCartridges(projectConfig.dbprepareCartridges)
                 provideLibFilterFile(getLibFilterFile().outputFile)
+
+                projectDependency(projectConfig.base.dependency.getOrElse(""))
+
+                projectConfig.modules.all {
+                    projectDependency(it.dependency.getOrElse(""))
+                }
+
                 environmentTypes.set(environmentTypesList)
                 provideOutputDir(TargetConf.valueOf(type.name).cartridges(projectLayout))
             }

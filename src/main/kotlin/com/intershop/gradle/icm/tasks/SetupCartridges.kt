@@ -83,6 +83,16 @@ open class SetupCartridges @Inject constructor(
     @get:InputFile
     val libFilterFile: RegularFileProperty = objectFactory.fileProperty()
 
+    @get:Optional
+    @get:Input
+    val projectDependencies: SetProperty<String> = objectFactory.setProperty(String::class.java)
+
+    fun projectDependency(dependency: String) {
+        if(dependency.isNotEmpty()) {
+            projectDependencies.add(dependency)
+        }
+    }
+
     /**
      * Provides a file with a list of installed 3rd party libs in the base project container.
      * See also task ProvideLibFilter.
@@ -207,8 +217,16 @@ open class SetupCartridges @Inject constructor(
     private fun getLibsFor(dependency: ExternalModuleDependency, filter: List<String>): Map<File, String> {
         val files  = mutableMapOf<File, String>()
 
+        val listDeps = mutableListOf<Dependency>()
         val dep = dependency.copy()
-        val dcfg = project.configurations.detachedConfiguration(dep)
+
+        projectDependencies.get().forEach {
+            listDeps.add(project.dependencies.enforcedPlatform(it))
+        }
+
+        listDeps.add(dep)
+
+        val dcfg = project.configurations.detachedConfiguration(*listDeps.toTypedArray())
         dcfg.isTransitive = true
 
         dcfg.resolvedConfiguration.resolvedArtifacts.forEach { artifact ->
