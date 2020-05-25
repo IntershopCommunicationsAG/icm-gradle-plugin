@@ -21,8 +21,12 @@ import com.intershop.gradle.icm.utils.CartridgeUtil
 import com.intershop.gradle.icm.utils.EnvironmentType
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
+import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ExternalModuleDependency
+import org.gradle.api.attributes.Category
+import org.gradle.api.attributes.LibraryElements
+import org.gradle.api.attributes.Usage
 import org.gradle.api.file.Directory
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileSystemOperations
@@ -49,7 +53,7 @@ import javax.inject.Inject
  */
 open class SetupCartridges @Inject constructor(
         projectLayout: ProjectLayout,
-        objectFactory: ObjectFactory,
+        val objectFactory: ObjectFactory,
         private var fsOps: FileSystemOperations) : DefaultTask() {
 
     @get:Internal
@@ -131,10 +135,22 @@ open class SetupCartridges @Inject constructor(
         environmentTypes.convention(listOf(EnvironmentType.PRODUCTION))
     }
 
+    private fun configureUsage(conf: Configuration) {
+        conf.attributes {
+                it.attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage::class.java, Usage.JAVA_RUNTIME))
+                it.attribute(
+                    LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE,
+                    objectFactory.named(LibraryElements::class.java, LibraryElements.JAR)
+                )
+                it.attribute(Category.CATEGORY_ATTRIBUTE, objectFactory.named(Category::class.java, Category.LIBRARY))
+            }
+    }
+
     private fun createStructure(cartridges: List<String>,
                                   target: File,
                                   filter: List<String>,
                                   environmentTypes: List<EnvironmentType>) {
+
         val deps = mutableListOf<Dependency>()
         cartridges.forEach { cartridge ->
             deps.add(project.dependencies.create(cartridge))
@@ -142,11 +158,13 @@ open class SetupCartridges @Inject constructor(
 
         val dcfg = project.configurations.detachedConfiguration(*deps.toTypedArray())
         dcfg.isTransitive = false
+        configureUsage(dcfg)
 
         val libsCS = project.copySpec()
         val libFiles = mutableMapOf<File, String>()
 
         dcfg.allDependencies.forEach { dependency ->
+
             if( dependency is ExternalModuleDependency &&
                 CartridgeUtil.isCartridge(project, dependency, environmentTypes) ) {
 
