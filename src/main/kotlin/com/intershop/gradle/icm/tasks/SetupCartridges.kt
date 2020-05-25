@@ -53,8 +53,8 @@ import javax.inject.Inject
  */
 open class SetupCartridges @Inject constructor(
         projectLayout: ProjectLayout,
-        val objectFactory: ObjectFactory,
-        private var fsOps: FileSystemOperations) : DefaultTask() {
+        private val objectFactory: ObjectFactory,
+        private val fsOps: FileSystemOperations) : DefaultTask() {
 
     @get:Internal
     val outputDirProperty: DirectoryProperty = objectFactory.directoryProperty()
