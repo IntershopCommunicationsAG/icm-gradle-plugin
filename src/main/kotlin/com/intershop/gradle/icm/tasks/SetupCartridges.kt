@@ -211,14 +211,21 @@ open class SetupCartridges @Inject constructor(
                 val identifier = artifact.id
                 if(identifier is DefaultModuleComponentArtifactIdentifier) {
                     val id = CartridgeUtil.getFileIDFrom(identifier.componentIdentifier)
+
+                    logger.info("Check artifact id '{}'", id)
                     val name = "${id}.${artifact.type}"
 
                     if(! CartridgeUtil.isCartridge(project, identifier.componentIdentifier) && ! filter.contains(id)) {
+                        logger.info("Add artifact {} with name '{}'", artifact.file, name)
                         files[artifact.file] = name
+                    } else {
+                        logger.info("Add artifact {} with name '{}' was not added.", artifact.file, name)
                     }
                 } else {
                     throw GradleException("Artifact ID is not a module identifier.")
                 }
+            } else {
+                logger.info("Artifact id {} is not a DefaultModuleComponentArtifactIdentifier", artifact.id)
             }
         }
 
