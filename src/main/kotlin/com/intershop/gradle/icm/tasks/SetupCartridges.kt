@@ -236,13 +236,15 @@ open class SetupCartridges @Inject constructor(
     @Throws(GradleException::class)
     private fun getLibsFor(dependency: ExternalModuleDependency, filter: List<String>): Map<File, String> {
         val files  = mutableMapOf<File, String>()
-
         val dep = dependency.copy()
-
         val forceModules = mutableListOf<String>()
+
         platformDependencies.get().forEach {
+            project.logger.info("Add platform dependency for ${it}")
             forceModules.addAll(CartridgeUtil.getDepenendencySet(project, it))
         }
+
+        project.logger.info("Add platform modules ${forceModules}")
 
         val dcfg = project.configurations.detachedConfiguration(dep)
         dcfg.resolutionStrategy {
