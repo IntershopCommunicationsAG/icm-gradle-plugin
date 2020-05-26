@@ -28,6 +28,8 @@ import org.gradle.api.artifacts.result.ResolvedArtifactResult
 import org.gradle.maven.MavenModule
 import org.gradle.maven.MavenPomArtifact
 import org.w3c.dom.Document
+import org.w3c.dom.Element
+import org.w3c.dom.Node
 import org.w3c.dom.NodeList
 import org.xml.sax.InputSource
 import java.io.File
@@ -105,6 +107,89 @@ object CartridgeUtil {
                     environmentTypes: List<EnvironmentType>) : Boolean {
         var returnValue = false
 
+        val items = getNodeList(project, group, module, version, getXPath(environmentTypes.isNotEmpty()))
+
+        if(items != null && items.length > 0) {
+            returnValue = if (environmentTypes.isNotEmpty()) {
+                val style = CartridgeStyle.valueOf(
+                    items.item(0).firstChild.nodeValue.toUpperCase()
+                )
+                environmentTypes.contains(style.environmentType())
+            } else {
+                true
+            }
+        }
+        return returnValue
+    }
+
+    /**
+     * Returns a set of dependencies from a BOM file.
+     *
+     * @param project    the root project
+     * @param moduledep  external module dependency - short notation
+     */
+    fun getDepenendencySet(project: Project, moduledep: String) : Set<String> {
+        val d = moduledep.split(":")
+        if( d.size < 3 ) {
+            project.logger.warn("This is not a valid external module dependency: '{}'.", moduledep)
+        } else {
+            return getDepenendencySet(project, d[0], d[1], d[2])
+        }
+        return mutableSetOf()
+    }
+
+    /**
+     * Returns a set of dependencies from a BOM file.
+     *
+     * @param project    the root project
+     * @param group      module group of the BOM
+     * @param module     module name of the BOM
+     * @param version    version of the BOM
+     */
+    fun getDepenendencySet(project: Project,
+                           group: String, module: String, version: String): Set<String> {
+        val returnSet = mutableSetOf<String>()
+
+        val items = getNodeList(project, group, module, version,
+            "/project/dependencyManagement/dependencies/dependency")
+
+        if(items != null && items.length > 0) {
+            for (i in 0 until items.length) {
+                val m = getModuleFrom(items.item(i))
+                if(m.isNotEmpty()) {
+                    returnSet.add(m)
+                }
+            }
+        }
+
+        return returnSet
+    }
+
+    private fun getModuleFrom(node: Node): String {
+        if(node.nodeName == "dependency") {
+            val moduleNodes = node.childNodes as Element
+            val groupId = getContentFrom(moduleNodes.getElementsByTagName("groupId"))
+            val artifactId = getContentFrom(moduleNodes.getElementsByTagName("artifactId"))
+            val version = getContentFrom(moduleNodes.getElementsByTagName("version"))
+
+            if(groupId.isNotEmpty() && artifactId.isNotEmpty() && version.isNotEmpty()) {
+                return "${groupId}:${artifactId}:${version}"
+            }
+        }
+        return ""
+    }
+
+    private fun getContentFrom(nodeList: NodeList): String {
+        if(nodeList.length > 0) {
+            return nodeList.item(0).textContent
+        }
+        return ""
+    }
+
+    private fun getNodeList(project: Project,
+                            group: String, module: String, version: String,
+                            xpath: String): NodeList? {
+
         val query: ArtifactResolutionQuery = project.dependencies
             .createArtifactResolutionQuery()
             .forModule(group, module, version)
@@ -115,35 +200,23 @@ object CartridgeUtil {
         result.resolvedComponents.forEach { component ->
             val mavenPomArtifacts: Set<ArtifactResult> = component.getArtifacts(MavenPomArtifact::class.java)
             val pomArtifact = mavenPomArtifacts.find {
-                it is ResolvedArtifactResult &&it.file.name == "${module}-${version}.pom"}
+                it is ResolvedArtifactResult && it.file.name == "${module}-${version}.pom"
+            }
 
-            if(pomArtifact != null) {
+            if (pomArtifact != null) {
                 val modulePomArtifact = pomArtifact as ResolvedArtifactResult
                 try {
                     val doc = readXML(modulePomArtifact.file)
                     val xpFactory = XPathFactory.newInstance()
                     val xPath = xpFactory.newXPath()
 
-                    val items = xPath.evaluate(getXPath(environmentTypes.isNotEmpty()),
-                                    doc,
-                                    XPathConstants.NODESET) as NodeList
-
-                    if(items.length > 0) {
-                        returnValue = if (environmentTypes.isNotEmpty()) {
-                                            val style = CartridgeStyle.valueOf(
-                                                items.item(0).firstChild.nodeValue.toUpperCase()
-                                            )
-                                            environmentTypes.contains(style.environmentType())
-                                        } else {
-                                            true
-                                        }
-                    }
+                    return xPath.evaluate(xpath, doc, XPathConstants.NODESET) as NodeList
                 } catch (ex: Exception) {
                     project.logger.info("Pom file is not readable - {}:{}:{}", group, module, version)
                 }
             }
         }
-        return returnValue
+        return null
     }
 
     private fun getXPath(forStyle: Boolean): String {

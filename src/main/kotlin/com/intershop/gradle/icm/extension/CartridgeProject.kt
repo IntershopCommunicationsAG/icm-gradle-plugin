@@ -20,8 +20,10 @@ import groovy.lang.Closure
 import org.gradle.api.Action
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
+import org.gradle.api.provider.SetProperty
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Nested
+import org.gradle.api.tasks.Optional
 import org.gradle.util.ConfigureUtil
 import javax.inject.Inject
 
@@ -40,6 +42,24 @@ open class CartridgeProject @Inject constructor(objectFactory: ObjectFactory) {
      */
     @get:Input
     val dependency: Property<String> = objectFactory.property(String::class.java)
+
+    /**
+     * Dependency of version filters of the base project.
+     *
+     * @property platforms
+     */
+    @get:Optional
+    @get:Input
+    val platforms: SetProperty<String> = objectFactory.setProperty(String::class.java)
+
+    /**
+     * Add a dependency to the set of dependency filter dependencies.
+     *
+     * @param dependency external module dependency in a short notation
+     */
+    fun platform(dependency: String) {
+        platforms.add(dependency)
+    }
 
     /**
      * Configuration for configuration package.

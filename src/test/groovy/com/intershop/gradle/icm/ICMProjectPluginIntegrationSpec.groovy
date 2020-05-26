@@ -16,7 +16,6 @@
  */
 package com.intershop.gradle.icm
 
-
 import com.intershop.gradle.icm.tasks.CreateInitPackage
 import com.intershop.gradle.icm.tasks.CreateInitTestPackage
 import com.intershop.gradle.icm.tasks.CreateMainPackage
@@ -306,7 +305,7 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         when:
         def resultSC = getPreparedGradleRunner()
-                .withArguments("setupCartridges", "-s", "--warning-mode", "all")
+                .withArguments("setupCartridges", "-s", "-i", "--warning-mode", "all")
                 .withGradleVersion(gradleVersion)
                 .build()
 
@@ -440,6 +439,7 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
                     base {
                         dependency = "com.intershop.icm:icm-as:1.0.0"
+                        platforms = [ "com.intershop:libbom:1.0.0" ]
                     }
 
                     modules {
@@ -532,6 +532,7 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
             }
 
             ${repoConf}
+
         """.stripIndent()
 
         def prj1dir = createSubProject('prjCartridge_prod', """
@@ -1057,6 +1058,7 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
                     base {
                         dependency = "com.intershop.icm:icm-as:1.0.0"
+                        platforms = [ "com.intershop:libbom:1.0.0" ]
                     }
 
                     modules {
@@ -1904,6 +1906,7 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
                     base {
                         dependency = "com.intershop.icm:icm-as:1.0.0"
+                        platforms = [ "com.intershop:libbom:1.0.0" ]
                     }
 
                     modules {
@@ -2022,6 +2025,43 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         result.task(':zipConfiguration').outcome == NO_SOURCE
         ! repoConfigFile.exists()
         ! repoSitesFile.exists()
+
+        where:
+        gradleVersion << supportedGradleVersions
+    }
+
+
+    def "Create list from Dependency"() {
+        TestRepo repo = new TestRepo(new File(testProjectDir, "/repo"))
+        String repoConf = repo.getRepoConfig()
+
+        settingsFile << """
+        rootProject.name='rootproject'
+        """.stripIndent()
+
+        buildFile << """
+            plugins {
+                id 'com.intershop.gradle.icm.project'
+            }
+            
+            task getList(type: com.intershop.gradle.icm.tasks.GetDependencyList) { 
+                dependency = "com.intershop:libbom:1.0.0"
+            }
+            
+            ${repoConf}
+        """.stripIndent()
+
+        when:
+        def result = getPreparedGradleRunner()
+                .withArguments("getList", "-s")
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        result.task(':getList').outcome == SUCCESS
+        result.output.contains("com.other:library1:1.5.0")
+        result.output.contains("com.other:library2:1.5.0")
+        result.output.contains("com.other:library3:1.5.0")
 
         where:
         gradleVersion << supportedGradleVersions

@@ -371,9 +371,9 @@ intershop {
 
 The project information (`projectInfo`) is used in the display of the login dialog of the the ICM backoffice.
 
-==== [[ExtensionBasePlugin]]Extension 'intershop' for Base Plugin
+[[ExtensionBasePlugin]]=== Extension 'intershop' for Base Plugin
 
-===== Properties
+==== Properties
 
 [cols="25%,10%,10%,55%", width="99%, options="header"]
 |===
@@ -382,7 +382,7 @@ The project information (`projectInfo`) is used in the display of the login dial
 |`mavenPublicationName` | `String`  | `mvn` | The property is used for the publishing configuration.
 |===
 
-===== Methods
+==== Methods
 
 [cols="17%,17%,66%", width="99%, options="header"]
 |===
@@ -394,8 +394,8 @@ The project information (`projectInfo`) is used in the display of the login dial
 |`projectInfo` | `Closure<Any>` | Configures a project information from a closure.
 |===
 
-===== Object `DevelopmentConfiguration`
-====== Properties
+==== Object `DevelopmentConfiguration`
+===== Properties
 
 [cols="20%,10%,50%,30%", width="99%, options="header"]
 |===
@@ -422,8 +422,8 @@ configuration of a server, such as the database settings.
 
 NOTE: All properties are read only.
 
-===== Object `ProjectInfo`
-====== Properties
+==== Object `ProjectInfo`
+===== Properties
 
 [cols="20%,10%,5%,30%,45%", width="99%, options="header"]
 |===
@@ -518,6 +518,7 @@ intershop {
 
         base {
             dependency = "com.intershop.icm:icm-as:1.0.0"
+            platforms = [ "com.intershop.icm:versions:1.0.0" ]
         }
 
         modules {
@@ -590,6 +591,7 @@ intershop {
 
         base {
             dependency.set("com.intershop.icm:icm-as:1.0.0")
+            platforms("com.intershop.icm:versions:1.0.0")
         }
 
         modules {
@@ -701,6 +703,7 @@ Properties of `CartridgeProject`
 |Property               | Type | Default value | Description
 
 | `dependency` | `Property<String>` | | It contains the dependency of the base project. Only a short module dependency configuration (`group:module:version`) is allowed.
+| `platform`   | `SetProperty<String>` | | It contains the dependencies of BOM files to configure versions during the setup of external cartridges. Only short module dependency configurations (`group:module:version`) are allowed in this list.
 |===
 
 Methods of `CartridgeProject`

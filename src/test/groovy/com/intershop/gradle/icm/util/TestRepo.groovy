@@ -55,10 +55,10 @@ class TestRepo {
 
             String repostr = """
             repositories {
-                jcenter()
                 maven {
                     url=uri("${repoDir.toURI().toURL()}")
                 }
+                jcenter()
             }""".stripIndent()
 
             return repostr
