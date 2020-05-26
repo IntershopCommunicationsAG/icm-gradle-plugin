@@ -21,12 +21,8 @@ import com.intershop.gradle.icm.utils.CartridgeUtil
 import com.intershop.gradle.icm.utils.EnvironmentType
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
-import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ExternalModuleDependency
-import org.gradle.api.attributes.Category
-import org.gradle.api.attributes.LibraryElements
-import org.gradle.api.attributes.Usage
 import org.gradle.api.file.Directory
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileSystemOperations
@@ -53,7 +49,7 @@ import javax.inject.Inject
  */
 open class SetupCartridges @Inject constructor(
         projectLayout: ProjectLayout,
-        private val objectFactory: ObjectFactory,
+        objectFactory: ObjectFactory,
         private val fsOps: FileSystemOperations) : DefaultTask() {
 
     @get:Internal
@@ -89,11 +85,29 @@ open class SetupCartridges @Inject constructor(
 
     @get:Optional
     @get:Input
-    val projectDependencies: SetProperty<String> = objectFactory.setProperty(String::class.java)
+    val platformDependencies: SetProperty<String> = objectFactory.setProperty(String::class.java)
 
-    fun projectDependency(dependency: String) {
+    /**
+     * Add an external dependency in short notation to the list
+     * of dependencies for filtering versions.
+     *
+     * @param dependency
+     */
+    fun platformDependency(dependency: String) {
         if(dependency.isNotEmpty()) {
-            projectDependencies.add(dependency)
+            platformDependencies.add(dependency)
+        }
+    }
+
+    /**
+     * Add a list of external dependencies in short notation to the list
+     * of dependencies for filtering versions.
+     *
+     * @param dependencies
+     */
+    fun platformDependencies(dependencies: Provider<Set<String>>) {
+        dependencies.get().forEach {
+            platformDependencies.add(it)
         }
     }
 
@@ -133,17 +147,6 @@ open class SetupCartridges @Inject constructor(
         outputDirProperty.convention(projectLayout.buildDirectory.dir("server/cartridges"))
 
         environmentTypes.convention(listOf(EnvironmentType.PRODUCTION))
-    }
-
-    private fun configureUsage(conf: Configuration) {
-        conf.attributes {
-                it.attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage::class.java, Usage.JAVA_RUNTIME))
-                it.attribute(
-                    LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE,
-                    objectFactory.named(LibraryElements::class.java, LibraryElements.JAR)
-                )
-                it.attribute(Category.CATEGORY_ATTRIBUTE, objectFactory.named(Category::class.java, Category.LIBRARY))
-            }
     }
 
     private fun createStructure(cartridges: List<String>,
@@ -234,18 +237,19 @@ open class SetupCartridges @Inject constructor(
     private fun getLibsFor(dependency: ExternalModuleDependency, filter: List<String>): Map<File, String> {
         val files  = mutableMapOf<File, String>()
 
-        val listDeps = mutableListOf<Dependency>()
         val dep = dependency.copy()
 
-        projectDependencies.get().forEach {
-            listDeps.add(project.dependencies.enforcedPlatform(it))
+        val forceModules = mutableListOf<String>()
+        platformDependencies.get().forEach {
+            forceModules.addAll(CartridgeUtil.getDepenendencySet(project, it))
         }
 
-        listDeps.add(dep)
+        val dcfg = project.configurations.detachedConfiguration(dep)
+        dcfg.resolutionStrategy {
+            it.force(*forceModules.toTypedArray())
+        }
 
-        val dcfg = project.configurations.detachedConfiguration(*listDeps.toTypedArray())
         dcfg.isTransitive = true
-        configureUsage(dcfg)
 
         dcfg.resolvedConfiguration.resolvedArtifacts.forEach { artifact ->
             if (artifact.id is DefaultModuleComponentArtifactIdentifier) {

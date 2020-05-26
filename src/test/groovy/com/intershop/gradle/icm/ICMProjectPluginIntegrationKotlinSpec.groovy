@@ -1766,6 +1766,7 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
 
                     base {
                         dependency.set("com.intershop.icm:icm-as:1.0.0")
+                        platform("com.intershop:libbom:1.5.0")
                     }
 
                     modules {

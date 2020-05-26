@@ -90,7 +90,7 @@ complexity:
     threshold: 400
   LongMethod:
     active: true
-    threshold: 55
+    threshold: 60
   LongParameterList:
     active: true
     threshold: 10
