@@ -162,7 +162,6 @@ object CartridgeUtil {
             }
         }
 
-        project.logger.info("Dependency Set for ... ${returnSet}")
         return returnSet
     }
 

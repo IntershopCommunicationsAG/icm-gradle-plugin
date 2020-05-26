@@ -305,7 +305,7 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         when:
         def resultSC = getPreparedGradleRunner()
-                .withArguments("setupCartridges", "-s", "--warning-mode", "all")
+                .withArguments("setupCartridges", "-s", "-i", "--warning-mode", "all")
                 .withGradleVersion(gradleVersion)
                 .build()
 
@@ -439,6 +439,7 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
                     base {
                         dependency = "com.intershop.icm:icm-as:1.0.0"
+                        platforms = [ "com.intershop:libbom:1.0.0" ]
                     }
 
                     modules {
@@ -531,6 +532,7 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
             }
 
             ${repoConf}
+
         """.stripIndent()
 
         def prj1dir = createSubProject('prjCartridge_prod', """
@@ -1056,6 +1058,7 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
                     base {
                         dependency = "com.intershop.icm:icm-as:1.0.0"
+                        platforms = [ "com.intershop:libbom:1.0.0" ]
                     }
 
                     modules {
@@ -1903,7 +1906,7 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
                     base {
                         dependency = "com.intershop.icm:icm-as:1.0.0"
-                        platforms = [ "com.intershop:libbom:1.5.0" ]
+                        platforms = [ "com.intershop:libbom:1.0.0" ]
                     }
 
                     modules {

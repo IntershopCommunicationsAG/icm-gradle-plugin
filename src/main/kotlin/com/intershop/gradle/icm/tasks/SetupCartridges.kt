@@ -83,9 +83,19 @@ open class SetupCartridges @Inject constructor(
     @get:InputFile
     val libFilterFile: RegularFileProperty = objectFactory.fileProperty()
 
+    /**
+     * Provides a file with a list of installed 3rd party libs in the base project container.
+     * See also task ProvideLibFilter.
+     *
+     * @param libFilter regular file provider.
+     */
+    fun provideLibFilterFile(libFilter: Provider<RegularFile>) = libFilterFile.set(libFilter)
+
     @get:Optional
     @get:Input
     val platformDependencies: SetProperty<String> = objectFactory.setProperty(String::class.java)
+
+    fun providePlatformDependencies(list: Provider<Set<String>>) = platformDependencies.set(list)
 
     /**
      * Add an external dependency in short notation to the list
@@ -94,9 +104,7 @@ open class SetupCartridges @Inject constructor(
      * @param dependency
      */
     fun platformDependency(dependency: String) {
-        if(dependency.isNotEmpty()) {
-            platformDependencies.add(dependency)
-        }
+        platformDependencies.add(dependency)
     }
 
     /**
@@ -106,18 +114,8 @@ open class SetupCartridges @Inject constructor(
      * @param dependencies
      */
     fun platformDependencies(dependencies: Provider<Set<String>>) {
-        dependencies.get().forEach {
-            platformDependencies.add(it)
-        }
+        platformDependencies.addAll(dependencies)
     }
-
-    /**
-     * Provides a file with a list of installed 3rd party libs in the base project container.
-     * See also task ProvideLibFilter.
-     *
-     * @param libFilter regular file provider.
-     */
-    fun provideLibFilterFile(libFilter: Provider<RegularFile>) = libFilterFile.set(libFilter)
 
     @get:Optional
     @get:Input
