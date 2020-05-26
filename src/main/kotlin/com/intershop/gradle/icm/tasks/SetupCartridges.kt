@@ -247,9 +247,15 @@ open class SetupCartridges @Inject constructor(
         val dcfg = project.configurations.detachedConfiguration(dep)
         dcfg.resolutionStrategy {
             it.force(*forceModules.toTypedArray())
+
+            it.forcedModules.forEach {
+                println("- $dep --- ${it}")
+            }
         }
 
         dcfg.isTransitive = true
+
+        project.logger.info("Resolve dependencies ... for $dep")
 
         dcfg.resolvedConfiguration.resolvedArtifacts.forEach { artifact ->
             if (artifact.id is DefaultModuleComponentArtifactIdentifier) {
