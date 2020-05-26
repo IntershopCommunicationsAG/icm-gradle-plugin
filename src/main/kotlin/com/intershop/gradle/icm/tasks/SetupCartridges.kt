@@ -95,6 +95,11 @@ open class SetupCartridges @Inject constructor(
     @get:Input
     val platformDependencies: SetProperty<String> = objectFactory.setProperty(String::class.java)
 
+    /**
+     * Provides a list of dependencies for filtering versions.
+     *
+     * @param list list of dependencies
+     */
     fun providePlatformDependencies(list: Provider<Set<String>>) = platformDependencies.set(list)
 
     /**
@@ -170,8 +175,8 @@ open class SetupCartridges @Inject constructor(
 
                 project.logger.info("Process external cartridge '{}'.", dependency.name)
                 val staticFile = getStaticFileFor(dependency)
-                project.logger.info("{}: Process static file {}.", dependency.name, staticFile)
-                
+
+                project.logger.debug("{}: Process static file {}.", dependency.name, staticFile)
                 fsOps.run {
                     sync {
                         it.from(project.zipTree(staticFile))
@@ -180,7 +185,7 @@ open class SetupCartridges @Inject constructor(
                 }
 
                 val jarFile = getJarFileFor(dependency)
-                project.logger.info("{}: Process jar file {}.", dependency.name, jarFile)
+                project.logger.debug("{}: Process jar file {}.", dependency.name, jarFile)
                 fsOps.run {
                     sync {
                         it.from(jarFile)
@@ -193,7 +198,7 @@ open class SetupCartridges @Inject constructor(
         }
 
         libFiles.forEach { lib ->
-            project.logger.info("Add to copyspec {} to {}.", lib.key, lib.value)
+            project.logger.debug("Add to copyspec {} to {}.", lib.key, lib.value)
             libsCS.from(lib.key) {
                 it.rename(".*", lib.value)
             }
@@ -238,45 +243,36 @@ open class SetupCartridges @Inject constructor(
         val forceModules = mutableListOf<String>()
 
         platformDependencies.get().forEach {
-            project.logger.info("Add platform dependency for ${it}")
             forceModules.addAll(CartridgeUtil.getDepenendencySet(project, it))
         }
-
-        project.logger.info("Add platform modules ${forceModules}")
 
         val dcfg = project.configurations.detachedConfiguration(dep)
         dcfg.resolutionStrategy {
             it.force(*forceModules.toTypedArray())
-
-            it.forcedModules.forEach {
-                println("- $dep --- ${it}")
-            }
         }
 
         dcfg.isTransitive = true
 
-        project.logger.info("Resolve dependencies ... for $dep")
+        project.logger.debug("Resolve dependencies for $dep")
 
         dcfg.resolvedConfiguration.resolvedArtifacts.forEach { artifact ->
             if (artifact.id is DefaultModuleComponentArtifactIdentifier) {
                 val identifier = artifact.id
                 if(identifier is DefaultModuleComponentArtifactIdentifier) {
                     val id = CartridgeUtil.getFileIDFrom(identifier.componentIdentifier)
-
-                    logger.info("Check artifact id '{}'", id)
                     val name = "${id}.${artifact.type}"
 
                     if(! CartridgeUtil.isCartridge(project, identifier.componentIdentifier) && ! filter.contains(id)) {
-                        logger.info("Add artifact {} with name '{}'", artifact.file, name)
+                        logger.debug("Add artifact {} with name '{}'", artifact.file, name)
                         files[artifact.file] = name
                     } else {
-                        logger.info("Add artifact {} with name '{}' was not added.", artifact.file, name)
+                        logger.debug("Add artifact {} with name '{}' was not added.", artifact.file, name)
                     }
                 } else {
                     throw GradleException("Artifact ID is not a module identifier.")
                 }
             } else {
-                logger.info("Artifact id {} is not a DefaultModuleComponentArtifactIdentifier", artifact.id)
+                logger.warn("Artifact id {} is not a DefaultModuleComponentArtifactIdentifier", artifact.id)
             }
         }
 
