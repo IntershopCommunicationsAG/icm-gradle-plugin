@@ -36,6 +36,8 @@ import javax.inject.Inject
 open class DevelopmentConfiguration
     @Inject constructor(objectFactory: ObjectFactory, providerFactory: ProviderFactory) {
 
+    private val logger: Logger = LoggerFactory.getLogger(DevelopmentConfiguration::class.java)
+
     companion object {
         /**
          * Logger instance for logging.
@@ -101,7 +103,13 @@ open class DevelopmentConfiguration
 
         licenseDirectoryProperty.set(licDirPath)
         configDirectoryProperty.set(configDirPath)
-        configProperties.load(File(configDirectory, CONFIG_FILE_NAME).inputStream())
+
+        val configFile = File(configDirectory, CONFIG_FILE_NAME)
+        if(configFile.exists() && configFile.canRead()) {
+            configProperties.load(configFile.inputStream())
+        } else {
+            logger.warn("File '{}' does not exists!", configFile.absolutePath)
+        }
     }
 
 
