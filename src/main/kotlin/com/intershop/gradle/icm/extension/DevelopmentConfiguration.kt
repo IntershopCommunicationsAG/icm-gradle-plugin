@@ -24,6 +24,7 @@ import org.gradle.wrapper.GradleUserHomeLookup
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.io.File
+import java.util.*
 import javax.inject.Inject
 
 /**
@@ -34,6 +35,8 @@ import javax.inject.Inject
  */
 open class DevelopmentConfiguration
     @Inject constructor(objectFactory: ObjectFactory, providerFactory: ProviderFactory) {
+
+    private val logger: Logger = LoggerFactory.getLogger(DevelopmentConfiguration::class.java)
 
     companion object {
         /**
@@ -49,10 +52,14 @@ open class DevelopmentConfiguration
 
         const val DEFAULT_LIC_PATH = "icm-default/lic"
         const val DEFAULT_CONFIG_PATH = "icm-default/conf"
+
+        const val LICENSE_FILE_NAME = "license.xml"
+        const val CONFIG_FILE_NAME = "cluster.properties"
     }
 
     private val licenseDirectoryProperty: Property<String> = objectFactory.property(String::class.java)
     private val configDirectoryProperty: Property<String> = objectFactory.property(String::class.java)
+    private val configProperties: Properties = Properties()
 
     init {
         // read environment
@@ -96,7 +103,16 @@ open class DevelopmentConfiguration
 
         licenseDirectoryProperty.set(licDirPath)
         configDirectoryProperty.set(configDirPath)
+
+        val configFile = File(configDirectory, CONFIG_FILE_NAME)
+        if(configFile.exists() && configFile.canRead()) {
+            configProperties.load(configFile.inputStream())
+        } else {
+            logger.warn("File '{}' does not exists!", configFile.absolutePath)
+        }
     }
+
+
 
     /**
      * License directory path of the project.
@@ -105,7 +121,7 @@ open class DevelopmentConfiguration
         get() = licenseDirectoryProperty.get()
 
     val licenseFilePath: String
-        get() = File(licenseDirectory, "license.xml").absolutePath
+        get() = File(licenseDirectory, LICENSE_FILE_NAME).absolutePath
 
     /**
      * Local configuration path of the project.
@@ -114,5 +130,9 @@ open class DevelopmentConfiguration
         get() = configDirectoryProperty.get()
 
     val configFilePath: String
-        get() = File(configDirectory, "cluster.properties").absolutePath
+        get() = File(configDirectory, CONFIG_FILE_NAME).absolutePath
+
+    fun getConfigProperty(property: String): String {
+        return configProperties.getProperty(property, "")
+    }
 }
