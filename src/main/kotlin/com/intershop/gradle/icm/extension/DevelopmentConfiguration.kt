@@ -112,8 +112,6 @@ open class DevelopmentConfiguration
         }
     }
 
-
-
     /**
      * License directory path of the project.
      */
@@ -134,5 +132,9 @@ open class DevelopmentConfiguration
 
     fun getConfigProperty(property: String): String {
         return configProperties.getProperty(property, "")
+    }
+
+    fun getConfigProperty(property: String, defaultValue: String): String {
+        return configProperties.getProperty(property, defaultValue)
     }
 }
