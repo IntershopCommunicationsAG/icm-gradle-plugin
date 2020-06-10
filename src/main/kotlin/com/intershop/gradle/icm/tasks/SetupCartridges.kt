@@ -272,7 +272,7 @@ open class SetupCartridges @Inject constructor(
                     throw GradleException("Artifact ID is not a module identifier.")
                 }
             } else {
-                logger.warn("Artifact id {} is not a DefaultModuleComponentArtifactIdentifier", artifact.id)
+                logger.debug("Artifact id {} is not a DefaultModuleComponentArtifactIdentifier", artifact.id)
             }
         }
 
