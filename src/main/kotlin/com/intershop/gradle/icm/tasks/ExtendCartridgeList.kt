@@ -59,9 +59,9 @@ open class ExtendCartridgeList
         const val CARTRIDGES_PROPERTY = "cartridges"
 
         /**
-         * Property name for dbinit/dbprepare cartridges.
+         * Property name for dbprepare cartridges.
          */
-        const val CARTRIDGES_DBINIT_PROPERTY = "cartridges.dbinit"
+        const val CARTRIDGES_DB_PROPERTY = "cartridges.dbprepare"
     }
 
     @get:Input
@@ -159,7 +159,7 @@ open class ExtendCartridgeList
             if(cn != null) {
                 prjInitCartridgeSet.add(cn)
             } else {
-                project.logger.debug("{} is not part of the property '{}'", cartridge, CARTRIDGES_DBINIT_PROPERTY)
+                project.logger.debug("{} is not part of the property '{}'", cartridge, CARTRIDGES_DB_PROPERTY)
             }
         }
 
@@ -168,12 +168,12 @@ open class ExtendCartridgeList
             ?: throw GradleException(
                 "There is no list of cartridges in (" + templateFile.get().asFile.absolutePath +")")
 
-        val dbinitCartridgeProp = props.getProperty(CARTRIDGES_DBINIT_PROPERTY)
+        val dbCartridgeProp = props.getProperty(CARTRIDGES_DB_PROPERTY)
             ?: throw GradleException(
-                "There is no list of dbinit cartridges in (" + templateFile.get().asFile.absolutePath +")")
+                "There is no list of db cartridges in (" + templateFile.get().asFile.absolutePath +")")
 
         val cartridgeSet: MutableSet<String> = cartridgeProp.split(" ").toMutableSet()
-        val initCartridgeSet: MutableSet<String> =  dbinitCartridgeProp.split(" ").toMutableSet()
+        val initCartridgeSet: MutableSet<String> =  dbCartridgeProp.split(" ").toMutableSet()
 
         cartridgeSet.addAll(prjCartridgeSet)
         initCartridgeSet.addAll(prjInitCartridgeSet)
@@ -240,7 +240,7 @@ open class ExtendCartridgeList
                 }
             }
             out.println("")
-            out.println("$CARTRIDGES_DBINIT_PROPERTY = \\")
+            out.println("$CARTRIDGES_DB_PROPERTY = \\")
             initCartridgeSet.forEach {
                 if(it == initCartridgeSet.last()) {
                     out.println("\t${it}")
