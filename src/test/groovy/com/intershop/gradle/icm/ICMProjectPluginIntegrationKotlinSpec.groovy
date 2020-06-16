@@ -191,7 +191,7 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
 
         then:
         properties.getProperty(com.intershop.gradle.icm.tasks.ExtendCartridgeList.CARTRIDGES_PROPERTY) == PROD_CARTRIDGES
-        properties.getProperty(com.intershop.gradle.icm.tasks.ExtendCartridgeList.CARTRIDGES_DBINIT_PROPERTY) == PROD_DB_CARTRIDGES
+        properties.getProperty(com.intershop.gradle.icm.tasks.ExtendCartridgeList.CARTRIDGES_DB_PROPERTY) == PROD_DB_CARTRIDGES
 
         when:
         def resultSC = getPreparedGradleRunner()
@@ -248,7 +248,7 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
 
         then:
         properties.getProperty(com.intershop.gradle.icm.tasks.ExtendCartridgeList.CARTRIDGES_PROPERTY) == TEST_CARTRIDGES
-        properties.getProperty(com.intershop.gradle.icm.tasks.ExtendCartridgeList.CARTRIDGES_DBINIT_PROPERTY) == TEST_DB_CARTRIDGES
+        properties.getProperty(com.intershop.gradle.icm.tasks.ExtendCartridgeList.CARTRIDGES_DB_PROPERTY) == TEST_DB_CARTRIDGES
 
         when:
         def resultSC = getPreparedGradleRunner()
@@ -295,7 +295,7 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
 
         then:
         properties.getProperty(com.intershop.gradle.icm.tasks.ExtendCartridgeList.CARTRIDGES_PROPERTY) == CARTRIDGES
-        properties.getProperty(com.intershop.gradle.icm.tasks.ExtendCartridgeList.CARTRIDGES_DBINIT_PROPERTY) == DB_CARTRIDGES
+        properties.getProperty(com.intershop.gradle.icm.tasks.ExtendCartridgeList.CARTRIDGES_DB_PROPERTY) == DB_CARTRIDGES
 
         when:
         def resultSC = getPreparedGradleRunner()
@@ -651,7 +651,7 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
         resultProdConf.task(":createConfigProd").outcome == SUCCESS
 
         properties.getProperty(com.intershop.gradle.icm.tasks.ExtendCartridgeList.CARTRIDGES_PROPERTY) == PROD_CARTRIDGES
-        properties.getProperty(com.intershop.gradle.icm.tasks.ExtendCartridgeList.CARTRIDGES_DBINIT_PROPERTY) == PROD_DB_CARTRIDGES
+        properties.getProperty(com.intershop.gradle.icm.tasks.ExtendCartridgeList.CARTRIDGES_DB_PROPERTY) == PROD_DB_CARTRIDGES
 
         versionFile.exists()
         versionFile.text.contains("version.information.version=10.0.0")
@@ -716,7 +716,7 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
         resultProdConf.task(":createConfigTest").outcome == SUCCESS
 
         properties.getProperty(com.intershop.gradle.icm.tasks.ExtendCartridgeList.CARTRIDGES_PROPERTY) == TEST_CARTRIDGES
-        properties.getProperty(com.intershop.gradle.icm.tasks.ExtendCartridgeList.CARTRIDGES_DBINIT_PROPERTY) == TEST_DB_CARTRIDGES
+        properties.getProperty(com.intershop.gradle.icm.tasks.ExtendCartridgeList.CARTRIDGES_DB_PROPERTY) == TEST_DB_CARTRIDGES
 
         versionFile.exists()
         versionFile.text.contains("version.information.version=10.0.0")
@@ -781,7 +781,7 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
         resultProdConf.task(":createConfig").outcome == SUCCESS
 
         properties.getProperty(com.intershop.gradle.icm.tasks.ExtendCartridgeList.CARTRIDGES_PROPERTY) == CARTRIDGES
-        properties.getProperty(com.intershop.gradle.icm.tasks.ExtendCartridgeList.CARTRIDGES_DBINIT_PROPERTY) == DB_CARTRIDGES
+        properties.getProperty(com.intershop.gradle.icm.tasks.ExtendCartridgeList.CARTRIDGES_DB_PROPERTY) == DB_CARTRIDGES
 
         versionFile.exists()
         versionFile.text.contains("version.information.version=10.0.0")
