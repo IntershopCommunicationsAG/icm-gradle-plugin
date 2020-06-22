@@ -247,8 +247,13 @@ open class SetupCartridges @Inject constructor(
         }
 
         val dcfg = project.configurations.detachedConfiguration(dep)
-        dcfg.resolutionStrategy {
-            it.force(*forceModules.toTypedArray())
+
+        if (forceModules.isNotEmpty()) {
+            dcfg.resolutionStrategy {
+                it.force(*forceModules.toTypedArray())
+            }
+        } else {
+            project.logger.info("There are no additional platform dependencies defined.")
         }
 
         dcfg.isTransitive = true

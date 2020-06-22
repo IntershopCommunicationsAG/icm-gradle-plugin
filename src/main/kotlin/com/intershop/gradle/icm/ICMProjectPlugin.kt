@@ -277,7 +277,6 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
     private fun configureBasePublishingTasks(project: Project, extension: IntershopExtension) {
         project.afterEvaluate {
 
-
             val configTask = project.tasks.findByName(TaskName.PRODUCTION.config())
             val sitesTask = project.tasks.findByName(TaskName.PRODUCTION.sites())
 
