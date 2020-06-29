@@ -240,7 +240,7 @@ class PluginConfig(val project: Project,
                 cps.exclude("**/**/.git*")
             }
             cp.from(cartridgesTask.outputs) { cps ->
-                cps.into("libs")
+                cps.into("lib")
                 cps.include("libs/**")
                 cps.exclude("**/**/.git*")
                 cps.includeEmptyDirs = false
