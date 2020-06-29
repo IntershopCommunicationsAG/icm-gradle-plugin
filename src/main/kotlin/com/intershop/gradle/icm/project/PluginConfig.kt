@@ -237,10 +237,12 @@ class PluginConfig(val project: Project,
             cp.from(cartridgesTask.outputs) { cps ->
                 cps.into("cartridges")
                 cps.exclude("libs/**")
+                cps.exclude("**/**/.git*")
             }
             cp.from(cartridgesTask.outputs) { cps ->
                 cps.into("libs")
                 cps.include("libs/**")
+                cps.exclude("**/**/.git*")
                 cps.includeEmptyDirs = false
                 cps.eachFile { details ->
                     val targetPath = details.path.replaceFirst("libs/", "")
@@ -249,7 +251,7 @@ class PluginConfig(val project: Project,
             }
             cp.from(configTask.outputs)
             cp.from(copyLibs.outputs) { cps ->
-                cps.into("libs")
+                cps.into("lib")
             }
         }
     }
