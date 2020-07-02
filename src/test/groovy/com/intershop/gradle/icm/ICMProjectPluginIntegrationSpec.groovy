@@ -132,7 +132,7 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         then:
         result.task(':showConfPath').outcome == SUCCESS
-        result.output.contains(".gradle/icm-default/conf/cluster.properties")
+        result.output.contains(".gradle/icm-default/conf/icm.properties")
 
         when:
         def result1 = getPreparedGradleRunner()
@@ -142,7 +142,7 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         then:
         result1.task(':showConfPath').outcome == SUCCESS
-        result1.output.contains("/home/user/conf/cluster.properties")
+        result1.output.contains("/home/user/conf/icm.properties")
 
         when:
         def result2 = getPreparedGradleRunner()
@@ -152,7 +152,7 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         then:
         result2.task(':showConfPath').outcome == SUCCESS
-        result2.output.contains("/home/otheruser/conf/cluster.properties")
+        result2.output.contains("/home/otheruser/conf/icm.properties")
 
         when:
         def result3 = getPreparedGradleRunner()
@@ -163,7 +163,7 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         then:
         result3.task(':showConfPath').outcome == SUCCESS
-        result3.output.contains("/home/other/conf/cluster.properties")
+        result3.output.contains("/home/other/conf/icm.properties")
 
         where:
         gradleVersion << supportedGradleVersions

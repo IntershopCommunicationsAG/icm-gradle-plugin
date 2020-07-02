@@ -417,7 +417,7 @@ One of these values in the following order: +
 4. default value `$GRADLE_USER_HOME/icm-default/conf` |Path of a directory with an
 local environment specific configuration file. This is necessary to overwrite an existing
 configuration of a server, such as the database settings.
-|`configFilePath`   | `String` | `<configDirectory>/cluster.properties` | The absolute path of the configuration file.
+|`configFilePath`   | `String` | `<configDirectory>/icm.properties` | The absolute path of the configuration file.
 |===
 
 NOTE: All properties are read only.
