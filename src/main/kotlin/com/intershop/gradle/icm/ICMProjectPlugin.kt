@@ -39,12 +39,13 @@ import com.intershop.gradle.isml.IsmlPlugin
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.gradle.api.file.FileCollection
+import org.gradle.api.UnknownTaskException
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
 import org.gradle.api.tasks.Sync
+import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.bundling.Zip
 import javax.inject.Inject
@@ -69,7 +70,6 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
 
     override fun apply(project: Project) {
         with(project.rootProject) {
-
             plugins.apply(ICMBasePlugin::class.java)
 
             val extension = extensions.findByType(
@@ -78,7 +78,7 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
 
             val pluginConfig = PluginConfig(this, projectLayout)
 
-            configureProjectTasks(pluginConfig)
+            configureProjectTasks(this, pluginConfig)
 
             if(extension.projectConfig.newBaseProject.get()) {
                 configureBasePublishingTasks(this, extension)
@@ -88,29 +88,31 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
         }
     }
 
-    private fun configureProjectTasks(pluginConfig: PluginConfig) {
-
-        val infoTask = pluginConfig.getTask(CreateServerInfo.DEFAULT_NAME) as CreateServerInfo
-        val writeCartridgeFile = pluginConfig.getTask(TASK_WRITECARTRIDGEFILES)
+    private fun configureProjectTasks(project: Project, pluginConfig: PluginConfig) {
+        val infoTask = project.tasks.named(CreateServerInfo.DEFAULT_NAME) as TaskProvider<CreateServerInfo>
+        val writeCartridgeFile = project.tasks.named(TASK_WRITECARTRIDGEFILES)
+        pluginConfig.getCartridgeListTemplate()
 
         val copyLibsProd = pluginConfig.get3rdPartyCopyTask(TaskConfCopyLib.PRODUCTION)
         val prepareContainer = prepareContainer(pluginConfig, infoTask, copyLibsProd)
-        prepareContainer.dependsOn(copyLibsProd, writeCartridgeFile)
+        prepareContainer.configure { task -> task.dependsOn(copyLibsProd, writeCartridgeFile) }
 
         val copyLibsTest = pluginConfig.get3rdPartyCopyTask(TaskConfCopyLib.TEST)
         val prepareTestContainer = prepareTestContainer(pluginConfig, infoTask, copyLibsTest)
-        prepareTestContainer.dependsOn(copyLibsTest, writeCartridgeFile)
+        prepareTestContainer.configure { task -> task.dependsOn(copyLibsTest, writeCartridgeFile) }
 
         val copyLibs = pluginConfig.get3rdPartyCopyTask(TaskConfCopyLib.DEVELOPMENT)
-        val prepareServer = prepareServer(pluginConfig, infoTask)
-        prepareServer.dependsOn(copyLibs, writeCartridgeFile)
+        val prepareServer = prepareServer(project, pluginConfig, infoTask)
+        prepareServer.configure { task -> task.dependsOn(copyLibs, writeCartridgeFile) }
 
         configurePrepareTasks(pluginConfig, prepareServer, prepareTestContainer, prepareContainer)
         configureCopyLibsTasks(pluginConfig, copyLibs, copyLibsTest, copyLibsProd)
     }
 
     private fun configurePrepareTasks(pluginConfig: PluginConfig,
-                              prepareServer: Task, prepareTestContainer: Task, prepareContainer: Task) {
+                                      prepareServer: TaskProvider<Task>,
+                                      prepareTestContainer: TaskProvider<Task>,
+                                      prepareContainer: TaskProvider<Task>) {
         pluginConfig.project.subprojects { sub ->
             sub.tasks.withType(Jar::class.java) { jarTask ->
                 val styleValue =
@@ -124,26 +126,28 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
                 val style = valueOf(styleValue.toUpperCase())
 
                 if (style == ALL || DEVELOPMENT_ENVS.contains(style.environmentType())) {
-                    prepareServer.dependsOn(jarTask)
+                    prepareServer.configure { task -> task.dependsOn(jarTask) }
                 }
                 if (style == ALL || TEST_ONLY_ENVS.contains(style.environmentType())) {
-                    prepareTestContainer.dependsOn(jarTask)
+                    prepareTestContainer.configure { task -> task.dependsOn(jarTask) }
                 }
                 if (style == ALL || PROD_ENVS.contains(style.environmentType())) {
-                    prepareContainer.dependsOn(jarTask)
+                    prepareContainer.configure { task -> task.dependsOn(jarTask) }
                 }
             }
             sub.plugins.withType(IsmlPlugin::class.java) {
                 val ismlTask = sub.tasks.getByName("isml2classMain")
-                prepareServer.dependsOn(ismlTask)
-                prepareTestContainer.dependsOn(ismlTask)
-                prepareContainer.dependsOn(ismlTask)
+                prepareServer.configure { task -> task.dependsOn(ismlTask) }
+                prepareTestContainer.configure { task -> task.dependsOn(ismlTask) }
+                prepareContainer.configure { task -> task.dependsOn(ismlTask) }
             }
         }
     }
 
     private fun configureCopyLibsTasks(pluginConfig: PluginConfig,
-                                       copyLibs: Sync, copyLibsTest: Sync, copyLibsProd: Sync) {
+                                       copyLibs: TaskProvider<Sync>,
+                                       copyLibsTest: TaskProvider<Sync>,
+                                       copyLibsProd: TaskProvider<Sync>) {
         pluginConfig.project.subprojects { sub ->
             sub.tasks.withType(CopyThirdpartyLibs::class.java) { ctlTask ->
 
@@ -160,21 +164,21 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
                 ctlTask.provideLibFilterFile(pluginConfig.getLibFilterFile().outputFile)
 
                 if (style == ALL || DEVELOPMENT_ENVS.contains(style.environmentType())) {
-                    copyLibs.from(ctlTask.outputs.files)
+                    copyLibs.configure { task -> task.from(ctlTask.outputs.files) }
                 }
                 if (style == ALL || TEST_ONLY_ENVS.contains(style.environmentType())) {
-                    copyLibsTest.from(ctlTask.outputs.files)
+                    copyLibsTest.configure { task -> task.from(ctlTask.outputs.files) }
                 }
                 if (style == ALL || PROD_ENVS.contains(style.environmentType())) {
-                    copyLibsProd.from(ctlTask.outputs.files)
+                    copyLibsProd.configure { task -> task.from(ctlTask.outputs.files) }
                 }
             }
         }
     }
 
     private fun prepareContainer(pluginConfig: PluginConfig,
-                                 versionInfoTask: CreateServerInfo,
-                                 copyLibs: Sync): Task {
+                                 versionInfoTask: TaskProvider<CreateServerInfo>,
+                                 copyLibs: TaskProvider<Sync>): TaskProvider<Task> {
 
         val prodSetupCartridgeTask = pluginConfig.getSetupCartridgesTask(PRODUCTION, PROD_ENVS)
         val createSitesProd = pluginConfig.getSitesTask(PRODUCTION)
@@ -185,14 +189,15 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
             createConfigProd, prodSetupCartridgeTask, copyLibs, CreateMainPackage.DEFAULT_NAME)
 
         val prepareTask = pluginConfig.configurePrepareTask(PRODUCTION)
-        prepareTask.dependsOn(prodSetupCartridgeTask, createSitesProd, createConfigProd)
-
+        prepareTask.configure { task ->
+            task.dependsOn(prodSetupCartridgeTask, createSitesProd, createConfigProd)
+        }
         return prepareTask
     }
 
     private fun prepareTestContainer(pluginConfig: PluginConfig,
-                                     versionInfoTask: CreateServerInfo,
-                                     copyLibs: Sync): Task {
+                                     versionInfoTask: TaskProvider<CreateServerInfo>,
+                                     copyLibs: TaskProvider<Sync>): TaskProvider<Task> {
 
         val testSetupCartridgeTask = pluginConfig.getSetupCartridgesTask(TEST, TEST_ONLY_ENVS)
         val createSitesTest = pluginConfig.getSitesTask(TEST)
@@ -203,90 +208,100 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
             createConfigTest, testSetupCartridgeTask, copyLibs, CreateTestPackage.DEFAULT_NAME)
 
         val prepareTask = pluginConfig.configurePrepareTask(TEST)
-        prepareTask.dependsOn(testSetupCartridgeTask, createSitesTest, createConfigTest)
-
+        prepareTask.configure { task ->
+            task.dependsOn(testSetupCartridgeTask, createSitesTest, createConfigTest)
+        }
         return prepareTask
     }
 
-    private fun prepareServer(pluginConfig: PluginConfig,
-                              versionInfoTask: CreateServerInfo): Task {
+    private fun prepareServer(project: Project, pluginConfig: PluginConfig,
+                                      versionInfoTask: TaskProvider<CreateServerInfo>): TaskProvider<Task> {
 
         val setupCartridgeTask = pluginConfig.getSetupCartridgesTask(DEVELOPMENT, DEVELOPMENT_ENVS)
         val createSites = pluginConfig.getSitesTask(DEVELOPMENT)
         val createConfig = pluginConfig.getConfigTask(versionInfoTask, DEVELOPMENT, DEVELOPMENT_ENVS)
 
-        val createClusterID = pluginConfig.getTask(CreateClusterID.DEFAULT_NAME)
+        val createClusterID = project.tasks.named(CreateClusterID.DEFAULT_NAME)
 
         val prepareTask = pluginConfig.configurePrepareTask(DEVELOPMENT)
-        prepareTask.dependsOn(setupCartridgeTask, createSites, createConfig, createClusterID)
-
+        prepareTask.configure { task ->
+            task.dependsOn(setupCartridgeTask, createSites, createConfig, createClusterID)
+        }
         return prepareTask
     }
 
     private fun configureAdapterPublishingTasks(project: Project, extension: IntershopExtension) {
-        val configZipTask = getZipTasks(project = project,
+        val configZipTask = getZipTasks(
+            project = project,
             baseDir = extension.projectConfig.serverDirConfig.base.config,
             prodDir = extension.projectConfig.serverDirConfig.prod.config,
-            type = "configuration")
+            type = "configuration"
+        )
 
-        val sitesZipTask = getZipTasks(project = project,
+        val sitesZipTask = getZipTasks(
+            project = project,
             baseDir = extension.projectConfig.serverDirConfig.base.sites,
             prodDir = extension.projectConfig.serverDirConfig.prod.sites,
-            type = "sites")
+            type = "sites"
+        )
 
         project.afterEvaluate {
-                with(project.extensions) {
-                    project.plugins.withType(MavenPublishPlugin::class.java) {
-                        configure(PublishingExtension::class.java) { publishing ->
-                            publishing.publications.maybeCreate(
-                                extension.mavenPublicationName.get(),
-                                MavenPublication::class.java
-                            ).apply {
-                                artifact(configZipTask)
-                                artifact(sitesZipTask)
-                            }
+            with(project.extensions) {
+                project.plugins.withType(MavenPublishPlugin::class.java) {
+                    configure(PublishingExtension::class.java) { publishing ->
+                        publishing.publications.maybeCreate(
+                            extension.mavenPublicationName.get(),
+                            MavenPublication::class.java
+                        ).apply {
+                            artifact(configZipTask.get())
+                            artifact(sitesZipTask.get())
                         }
-                        project.tasks.getByName("publish").dependsOn(configZipTask)
-                        project.tasks.getByName("publish").dependsOn(sitesZipTask)
+                    }
+                    project.tasks.named("publish").configure {
+                            task -> task.dependsOn(configZipTask, sitesZipTask)
                     }
                 }
-
+            }
         }
     }
 
-    private fun getZipTasks(project: Project, baseDir: ServerDir, prodDir: ServerDir, type: String): Zip {
-        with(project) {
-            val preparePubTask =
-                tasks.maybeCreate("preparePub${type.capitalize()}", PreparePublishDir::class.java).apply {
-                    this.baseDirConfig.set(baseDir)
-                    this.extraDirConfig.set(prodDir)
+    private fun getZipTasks(project: Project, baseDir: ServerDir, prodDir: ServerDir, type: String): TaskProvider<Zip> {
+        val preparePubTask =
+            project.tasks.register("preparePub${type.capitalize()}", PreparePublishDir::class.java) { task ->
+                task.baseDirConfig.set(baseDir)
+                task.extraDirConfig.set(prodDir)
 
-                    this.outputDirectory.set(project.layout.buildDirectory.dir("publish/predir${type}"))
-                }
-
-            return tasks.maybeCreate("zip${type.capitalize()}", Zip::class.java).apply {
-                this.from(preparePubTask.outputs)
-
-                this.archiveBaseName.set(type)
-                this.archiveClassifier.set(type)
-                this.destinationDirectory.set(project.layout.buildDirectory.dir("publish/${type}"))
+                task.outputDirectory.set(project.layout.buildDirectory.dir("publish/predir${type}"))
             }
+
+        return project.tasks.register("zip${type.capitalize()}", Zip::class.java) { task ->
+            task.from(preparePubTask.get().outputs)
+
+            task.archiveBaseName.set(type)
+            task.archiveClassifier.set(type)
+            task.destinationDirectory.set(project.layout.buildDirectory.dir("publish/${type}"))
         }
     }
 
     private fun configureBasePublishingTasks(project: Project, extension: IntershopExtension) {
         project.afterEvaluate {
 
-            val configTask = project.tasks.findByName(TaskName.PRODUCTION.config())
-            val sitesTask = project.tasks.findByName(TaskName.PRODUCTION.sites())
+            var configTask: TaskProvider<Sync>? = null
+            try {
+                configTask = project.tasks.named(TaskName.PRODUCTION.config()) as TaskProvider<Sync>
+            } catch(ex: UnknownTaskException) {}
+            var sitesTask: TaskProvider<Sync>? = null
+            try {
+                sitesTask = project.tasks.named(TaskName.PRODUCTION.sites()) as TaskProvider<Sync>
+            } catch(ex: UnknownTaskException) {}
 
             val confZipTask = if(configTask != null ) {
-                                    getZipFolder(project, configTask.outputs.files, "configuration")
+                                    getZipFolder(project, configTask, "configuration")
                                 } else {
                                     null
                                 }
             val sitesZipTask = if(sitesTask != null) {
-                                    getZipFolder(project, sitesTask.outputs.files, "sites")
+                                    getZipFolder(project, sitesTask, "sites")
                                 } else {
                                     null
                                 }
@@ -300,18 +315,18 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
                                 MavenPublication::class.java
                             ).apply {
                                 if(confZipTask != null) {
-                                    artifact(confZipTask)
+                                    artifact(confZipTask.get())
                                 }
                                 if(sitesZipTask != null) {
-                                    artifact(sitesZipTask)
+                                    artifact(sitesZipTask.get())
                                 }
                             }
                         }
                         if(configTask != null) {
-                            project.tasks.getByName("publish").dependsOn(configTask)
+                            project.tasks.named("publish").configure { task -> task.dependsOn(configTask) }
                         }
                         if(sitesTask != null) {
-                            project.tasks.getByName("publish").dependsOn(sitesTask)
+                            project.tasks.named("publish").configure { task -> task.dependsOn(sitesTask) }
                         }
                     }
                 }
@@ -319,21 +334,17 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
         }
     }
 
-    private fun getZipFolder(project: Project, fc: FileCollection, type: String) : Task? {
-        with(project) {
-            if (! fc.isEmpty) {
-                return tasks.maybeCreate("zip${type.capitalize()}", Zip::class.java).apply {
-                    this.from(fc)
+    private fun getZipFolder(project: Project, sync: TaskProvider<Sync>, type: String) : TaskProvider<Zip>? {
+        return if (! sync.get().outputs.files.isEmpty) {
+                project.tasks.register("zip${type.capitalize()}", Zip::class.java) { zip ->
+                        zip.from(sync.get().outputs.files)
 
-                    this.includeEmptyDirs = false
+                        zip.includeEmptyDirs = false
 
-                    this.archiveFileName.set("${type}.zip")
-                    this.archiveClassifier.set(type)
-                    this.destinationDirectory.set(project.layout.buildDirectory.dir("publish/${type}"))
-                }
-            }
-        }
-        return null
+                        zip.archiveFileName.set("${type}.zip")
+                        zip.archiveClassifier.set(type)
+                        zip.destinationDirectory.set(project.layout.buildDirectory.dir("publish/${type}"))
+                    }
+                } else { null }
     }
-
 }

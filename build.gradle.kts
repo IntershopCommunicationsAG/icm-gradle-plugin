@@ -326,7 +326,7 @@ dependencies {
     compileOnly("org.apache.ant:ant:1.10.7")
     implementation("com.intershop.gradle.isml:isml-gradle-plugin:3.1.0")
 
-    testImplementation("com.intershop.gradle.test:test-gradle-plugin:3.5.0")
+    testImplementation("com.intershop.gradle.test:test-gradle-plugin:3.7.0")
     testImplementation(gradleTestKit())
 }
 

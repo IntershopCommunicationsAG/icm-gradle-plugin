@@ -27,13 +27,15 @@ import com.intershop.gradle.icm.tasks.CreateInitTestPackage
 import com.intershop.gradle.icm.tasks.CreateMainPackage
 import com.intershop.gradle.icm.tasks.CreateServerInfo
 import com.intershop.gradle.icm.tasks.CreateTestPackage
-import com.intershop.gradle.icm.tasks.WriteCartridgeDescriptor.Companion.DEFAULT_NAME
+import com.intershop.gradle.icm.tasks.WriteCartridgeDescriptor
 import com.intershop.gradle.isml.IsmlPlugin
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.file.CopySpec
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
 import org.gradle.api.tasks.TaskContainer
+import org.gradle.api.tasks.bundling.Tar
 import org.gradle.api.tasks.diagnostics.DependencyReportTask
 
 /**
@@ -83,7 +85,7 @@ open class ICMBasePlugin: Plugin<Project> {
                 }
 
                 configureClusterIdTask(this)
-                configureCreateServerInfoPropertiesTask(this, extension)
+                configureCreateServerInfoPropertiesTask(extension)
 
                 if(! checkForTask(tasks, TASK_ALLDEPENDENCIESREPORT)) {
                     tasks.register(TASK_ALLDEPENDENCIESREPORT, DependencyReportTask::class.java)
@@ -116,99 +118,73 @@ open class ICMBasePlugin: Plugin<Project> {
         }
     }
 
-    private fun configureCreateServerInfoPropertiesTask(project: Project, extension: IntershopExtension) {
-        with(project) {
-            if(! checkForTask(tasks, CreateServerInfo.DEFAULT_NAME)) {
-                tasks.register(
-                    CreateServerInfo.DEFAULT_NAME,
-                    CreateServerInfo::class.java
-                ) { task ->
-                    task.provideProductId(extension.projectInfo.productIDProvider)
-                    task.provideProductName(extension.projectInfo.productNameProvider)
-                    task.provideCopyrightOwner(extension.projectInfo.copyrightOwnerProvider)
-                    task.provideCopyrightFrom(extension.projectInfo.copyrightFromProvider)
-                    task.provideOrganization(extension.projectInfo.organizationProvider)
+    private fun Project.configureCreateServerInfoPropertiesTask(extension: IntershopExtension) {
+        tasks.register( CreateServerInfo.DEFAULT_NAME, CreateServerInfo::class.java ) { task ->
+            task.provideProductId(extension.projectInfo.productIDProvider)
+            task.provideProductName(extension.projectInfo.productNameProvider)
+            task.provideCopyrightOwner(extension.projectInfo.copyrightOwnerProvider)
+            task.provideCopyrightFrom(extension.projectInfo.copyrightFromProvider)
+            task.provideOrganization(extension.projectInfo.organizationProvider)
+        }
+    }
+
+    private fun Project.configureClusterIdTask(project: Project) {
+        tasks.register( CreateClusterID.DEFAULT_NAME, CreateClusterID::class.java )
+    }
+
+    private fun Project.createPackageTasks(project: Project) {
+        tasks.register(CreateInitPackage.DEFAULT_NAME, CreateInitPackage::class.java)
+        tasks.register(CreateInitTestPackage.DEFAULT_NAME, CreateInitTestPackage::class.java)
+        val createMainPackage = tasks.register(CreateMainPackage.DEFAULT_NAME, CreateMainPackage::class.java)
+        val createTestPackage = tasks.register(CreateTestPackage.DEFAULT_NAME, CreateTestPackage::class.java)
+
+        subprojects {sub ->
+            sub.plugins.withType(CartridgePlugin::class.java) {
+                val cartridgefiles = project.copySpec { cp ->
+                    if(sub.layout.projectDirectory.dir("staticfiles/cartridge").asFile.exists()) {
+                        cp.from(sub.layout.projectDirectory.dir("staticfiles/cartridge")) { cps ->
+                            intoRelease(cps, sub)
+                        }
+                    }
+
+                    cp.from(sub.tasks.getByName(WriteCartridgeDescriptor.DEFAULT_NAME)) { cps ->
+                        intoRelease(cps, sub)
+                    }
+
+                    sub.plugins.withType(IsmlPlugin::class.java) {
+                        cp.from(sub.tasks.getByName("isml2classMain")) { cpt ->
+                            intoRelease(cpt, sub)
+                        }
+                    }
+
+                    sub.plugins.withType(JavaPlugin::class.java) {
+                        cp.from(sub.tasks.getByName("jar")) { cps ->
+                            cps.into("cartridges/${sub.name}/release/lib")
+                        }
+                    }
+                }
+
+                sub.plugins.withType(ProductPlugin::class.java) {
+                    sub.plugins.withType(IsmlPlugin::class.java) {
+                        createMainPackage.configure { mainpkg -> pkgDependsOn(mainpkg, sub) }
+                    }
+                    createMainPackage.configure { mainpkg -> mainpkg.with(cartridgefiles) }
+                }
+
+                sub.plugins.withType(TestPlugin::class.java) {
+                    sub.plugins.withType(IsmlPlugin::class.java) {
+                        createTestPackage.configure { testpkg -> pkgDependsOn(testpkg, sub) }
+                    }
+                    createTestPackage.configure { testpkg -> testpkg.with(cartridgefiles) }
                 }
             }
         }
     }
 
-    private fun configureClusterIdTask(project: Project) {
-        with(project) {
-            if (!checkForTask(tasks, CreateClusterID.DEFAULT_NAME)) {
-                tasks.register(
-                    CreateClusterID.DEFAULT_NAME,
-                    CreateClusterID::class.java
-                )
-            }
-        }
-    }
+    fun intoRelease(cpsp: CopySpec, prj: Project) = cpsp.into("cartridges/${prj.name}/release")
 
-    private fun createPackageTasks(project: Project) {
-        with(project) {
-            if(!checkForTask(tasks, CreateInitPackage.DEFAULT_NAME)) {
-                tasks.register(CreateInitPackage.DEFAULT_NAME, CreateInitPackage::class.java)
-            }
-
-            if(!checkForTask(tasks, CreateInitTestPackage.DEFAULT_NAME)) {
-                tasks.register(CreateInitTestPackage.DEFAULT_NAME, CreateInitTestPackage::class.java)
-            }
-
-            if(!checkForTask(tasks, CreateMainPackage.DEFAULT_NAME)) {
-                tasks.register(CreateMainPackage.DEFAULT_NAME, CreateMainPackage::class.java).get()
-            }
-
-            if(!checkForTask(tasks, CreateTestPackage.DEFAULT_NAME)) {
-                tasks.register(CreateTestPackage.DEFAULT_NAME, CreateTestPackage::class.java)
-            }
-
-            val createMainPackage = tasks.getByName(CreateMainPackage.DEFAULT_NAME) as CreateMainPackage
-            val createTestPackage = tasks.getByName(CreateTestPackage.DEFAULT_NAME) as CreateTestPackage
-
-            subprojects {sub ->
-                sub.plugins.withType(CartridgePlugin::class.java) {
-                    val cartridgefiles = project.copySpec { cp ->
-
-                        if(sub.layout.projectDirectory.dir("staticfiles/cartridge").asFile.exists()) {
-                            cp.from(sub.layout.projectDirectory.dir("staticfiles/cartridge")) { cps ->
-                                cps.into("cartridges/${sub.name}/release")
-                            }
-                        }
-
-                        cp.from(sub.tasks.getByName(DEFAULT_NAME)) { cps ->
-                            cps.into("cartridges/${sub.name}/release")
-                        }
-
-                        sub.plugins.withType(IsmlPlugin::class.java) {
-                            cp.from(sub.tasks.getByName("isml2classMain")) { cpt ->
-                               cpt.into("cartridges/${sub.name}/release")
-                            }
-                        }
-
-                        sub.plugins.withType(JavaPlugin::class.java) {
-                            cp.from(sub.tasks.getByName("jar")) { cps ->
-                                cps.into("cartridges/${sub.name}/release/lib")
-                            }
-                        }
-                    }
-
-                    sub.plugins.withType(ProductPlugin::class.java) {
-                        sub.plugins.withType(IsmlPlugin::class.java) {
-                            createMainPackage.dependsOn(sub.tasks.getByName("isml2classMain"))
-                            createMainPackage.dependsOn(sub.tasks.getByName("jar"))
-                        }
-                        createMainPackage.with(cartridgefiles)
-                    }
-
-                    sub.plugins.withType(TestPlugin::class.java) {
-                        sub.plugins.withType(IsmlPlugin::class.java) {
-                            createTestPackage.dependsOn(sub.tasks.getByName("isml2classMain"))
-                            createTestPackage.dependsOn(sub.tasks.getByName("jar"))
-                        }
-                        createTestPackage.with(cartridgefiles)
-                    }
-                }
-            }
-        }
+    fun pkgDependsOn(tar: Tar, prj: Project) {
+        tar.dependsOn(prj.tasks.named("isml2classMain"))
+        tar.dependsOn(prj.tasks.named("jar"))
     }
 }

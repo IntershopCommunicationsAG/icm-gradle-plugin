@@ -492,7 +492,7 @@ extended by this plugin. It adds files configured by the extension of this plugi
 [source,groovy]
 ----
 plugins {
-    id 'com.intershop.gradle.icm.base' version '{latestRevision}'
+    id 'com.intershop.gradle.icm.project' version '{latestRevision}'
 }
 
 intershop {
@@ -565,7 +565,7 @@ intershop {
 [source,kotlin]
 ----
 plugins {
-    id("com.intershop.gradle.icm.base") version "{latestRevision}"
+    id("com.intershop.gradle.icm.project") version "{latestRevision}"
 }
 
 intershop {
