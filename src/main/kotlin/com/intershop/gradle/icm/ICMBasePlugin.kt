@@ -181,9 +181,9 @@ open class ICMBasePlugin: Plugin<Project> {
         }
     }
 
-    fun intoRelease(cpsp: CopySpec, prj: Project) = cpsp.into("cartridges/${prj.name}/release")
+    private fun intoRelease(cpsp: CopySpec, prj: Project) = cpsp.into("cartridges/${prj.name}/release")
 
-    fun pkgDependsOn(tar: Tar, prj: Project) {
+    private fun pkgDependsOn(tar: Tar, prj: Project) {
         tar.dependsOn(prj.tasks.named("isml2classMain"))
         tar.dependsOn(prj.tasks.named("jar"))
     }

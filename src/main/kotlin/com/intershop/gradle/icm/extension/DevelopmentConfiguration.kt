@@ -127,13 +127,27 @@ open class DevelopmentConfiguration
     val configDirectory: String
         get() = configDirectoryProperty.get()
 
+    /**
+     * Get file path for configuration property.
+     */
     val configFilePath: String
         get() = File(configDirectory, CONFIG_FILE_NAME).absolutePath
 
+    /**
+     * Get access to properties in configuration property file.
+     *
+     * @param property  key of the properties file
+     */
     fun getConfigProperty(property: String): String {
         return configProperties.getProperty(property, "")
     }
 
+    /**
+     * Get access to properties in configuration property file.
+     *
+     * @param property  key of the properties file
+     * @param defaultValue if key not available the default value is used.
+     */
     fun getConfigProperty(property: String, defaultValue: String): String {
         return configProperties.getProperty(property, defaultValue)
     }

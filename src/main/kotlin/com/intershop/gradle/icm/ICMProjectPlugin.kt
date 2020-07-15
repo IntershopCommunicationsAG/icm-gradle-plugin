@@ -89,7 +89,7 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
     }
 
     private fun configureProjectTasks(project: Project, pluginConfig: PluginConfig) {
-        val infoTask = project.tasks.named(CreateServerInfo.DEFAULT_NAME) as TaskProvider<CreateServerInfo>
+        val infoTask = project.tasks.named(CreateServerInfo.DEFAULT_NAME, CreateServerInfo::class.java)
         val writeCartridgeFile = project.tasks.named(TASK_WRITECARTRIDGEFILES)
         pluginConfig.getCartridgeListTemplate()
 
@@ -288,12 +288,17 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
 
             var configTask: TaskProvider<Sync>? = null
             try {
-                configTask = project.tasks.named(TaskName.PRODUCTION.config()) as TaskProvider<Sync>
-            } catch(ex: UnknownTaskException) {}
+                configTask = project.tasks.named(TaskName.PRODUCTION.config(), Sync::class.java)
+            } catch(ex: UnknownTaskException) {
+                project.logger.debug("No configuration task available.")
+            }
+
             var sitesTask: TaskProvider<Sync>? = null
             try {
-                sitesTask = project.tasks.named(TaskName.PRODUCTION.sites()) as TaskProvider<Sync>
-            } catch(ex: UnknownTaskException) {}
+                sitesTask = project.tasks.named(TaskName.PRODUCTION.sites(), Sync::class.java)
+            } catch(ex: UnknownTaskException) {
+                project.logger.debug("No sites folder task available.")
+            }
 
             val confZipTask = if(configTask != null ) {
                                     getZipFolder(project, configTask, "configuration")

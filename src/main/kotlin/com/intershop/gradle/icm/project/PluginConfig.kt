@@ -75,7 +75,8 @@ class PluginConfig(val project: Project,
      * @param type environment type
      * @param environmentTypesList List of environment types
      */
-    fun getSetupCartridgesTask(type: EnvironmentType, environmentTypesList: List<EnvironmentType> ): TaskProvider<SetupCartridges> {
+    fun getSetupCartridgesTask(type: EnvironmentType,
+                               environmentTypesList: List<EnvironmentType> ): TaskProvider<SetupCartridges> {
         return with(project) {
             tasks.register ( TaskName.valueOf(type.name).cartridges(), SetupCartridges::class.java) { task ->
                 task.provideCartridges(projectConfig.cartridges)
@@ -245,6 +246,10 @@ class PluginConfig(val project: Project,
         }
     }
 
+    /**
+     * Configures task for the preparation of
+     * the cartridge list properties template.
+     */
     fun getCartridgeListTemplate() {
         with(project) {
             tasks.register(
