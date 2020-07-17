@@ -30,6 +30,7 @@ import com.intershop.gradle.icm.tasks.CreateMainPackage
 import com.intershop.gradle.icm.tasks.CreateServerInfo
 import com.intershop.gradle.icm.tasks.CreateTestPackage
 import com.intershop.gradle.icm.tasks.PreparePublishDir
+import com.intershop.gradle.icm.tasks.ProvideLibFilter
 import com.intershop.gradle.icm.utils.CartridgeStyle.ALL
 import com.intershop.gradle.icm.utils.CartridgeStyle.valueOf
 import com.intershop.gradle.icm.utils.EnvironmentType.DEVELOPMENT
@@ -78,6 +79,7 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
 
             val pluginConfig = PluginConfig(this, projectLayout)
 
+            pluginConfig.createLibFilterFile()
             configureProjectTasks(this, pluginConfig)
 
             if(extension.projectConfig.newBaseProject.get()) {
@@ -149,7 +151,11 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
                                        copyLibsTest: TaskProvider<Sync>,
                                        copyLibsProd: TaskProvider<Sync>) {
         pluginConfig.project.subprojects { sub ->
+            val libfilter = pluginConfig.project.tasks.named(PROVIDE_LIBFILTER, ProvideLibFilter::class.java)
+
             sub.tasks.withType(CopyThirdpartyLibs::class.java) { ctlTask ->
+                ctlTask.provideLibFilterFile(sub.provider { libfilter.get().outputFile.get() })
+                ctlTask.dependsOn(libfilter)
 
                 val styleValue =
                     with(sub.extensions.extraProperties) {
@@ -160,8 +166,6 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
                         }
                     }
                 val style = valueOf(styleValue.toUpperCase())
-
-                ctlTask.provideLibFilterFile(pluginConfig.getLibFilterFile().outputFile)
 
                 if (style == ALL || DEVELOPMENT_ENVS.contains(style.environmentType())) {
                     copyLibs.configure { task -> task.from(ctlTask.outputs.files) }

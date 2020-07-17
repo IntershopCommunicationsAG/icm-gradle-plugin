@@ -23,7 +23,7 @@ import com.intershop.gradle.icm.tasks.WriteCartridgeClasspath
 import com.intershop.gradle.icm.tasks.WriteCartridgeDescriptor
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.Task
+import org.gradle.api.UnknownTaskException
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.TaskContainer
 
@@ -63,9 +63,7 @@ open class CartridgePlugin : Plugin<Project> {
 
             configureAddFileCreation( this)
 
-            if (!checkForTask( tasks, CopyThirdpartyLibs.DEFAULT_NAME ) ) {
-                tasks.register( CopyThirdpartyLibs.DEFAULT_NAME, CopyThirdpartyLibs::class.java)
-            }
+            tasks.register( CopyThirdpartyLibs.DEFAULT_NAME, CopyThirdpartyLibs::class.java)
         }
     }
 
@@ -82,17 +80,20 @@ open class CartridgePlugin : Plugin<Project> {
             cartridgeRuntime.extendsFrom(cartridge)
             cartridgeRuntime.isTransitive = true
 
-            val tasksWriteFiles = HashSet<Task>()
-
-            if (!checkForTask( project.tasks, WriteCartridgeDescriptor.DEFAULT_NAME ) ) {
-                val taskWriteCartridgeDescriptor = project.tasks.register(
-                    WriteCartridgeDescriptor.DEFAULT_NAME, WriteCartridgeDescriptor::class.java
+            val taskWriteCartridgeDescriptor = project.tasks.register(
+                WriteCartridgeDescriptor.DEFAULT_NAME,
+                WriteCartridgeDescriptor::class.java
                 ) {
                     it.dependsOn(cartridge, cartridgeRuntime)
                 }
-                tasksWriteFiles.add(taskWriteCartridgeDescriptor.get())
-            }
 
+            try {
+                project.rootProject.tasks.named(ICMBasePlugin.TASK_WRITECARTRIDGEFILES).configure { task ->
+                    task.dependsOn(taskWriteCartridgeDescriptor)
+                }
+            } catch(ex: UnknownTaskException) {
+                project.logger.info("Task {} is not available.", ICMBasePlugin.TASK_WRITECARTRIDGEFILES)
+            }
             if(project.hasProperty("classpath.file.enabled") && project.property("classpath.file.enabled") == "true") {
                 if (!checkForTask(project.tasks, WriteCartridgeClasspath.DEFAULT_NAME)) {
                     val taskWriteCartridgeClasspath = project.tasks.register(
@@ -100,11 +101,15 @@ open class CartridgePlugin : Plugin<Project> {
                     ) {
                         it.dependsOn(cartridgeRuntime, runtime)
                     }
-                    tasksWriteFiles.add(taskWriteCartridgeClasspath.get())
+                    try {
+                        project.rootProject.tasks.named(ICMBasePlugin.TASK_WRITECARTRIDGEFILES).configure { task ->
+                            task.dependsOn(taskWriteCartridgeClasspath)
+                        }
+                    } catch(ex: UnknownTaskException) {
+                        project.logger.info("Task {} is not available.", ICMBasePlugin.TASK_WRITECARTRIDGEFILES)
+                    }
                 }
             }
-
-            project.rootProject.tasks.findByName(ICMBasePlugin.TASK_WRITECARTRIDGEFILES)?.dependsOn(tasksWriteFiles)
         }
     }
 }
