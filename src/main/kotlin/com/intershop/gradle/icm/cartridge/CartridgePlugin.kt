@@ -88,8 +88,7 @@ open class CartridgePlugin : Plugin<Project> {
                 }
 
             try {
-                val cartridgeWriter = project.rootProject.tasks.named(ICMBasePlugin.TASK_WRITECARTRIDGEFILES)
-                cartridgeWriter.configure { task ->
+                project.rootProject.tasks.named(ICMBasePlugin.TASK_WRITECARTRIDGEFILES).configure { task ->
                     task.dependsOn(taskWriteCartridgeDescriptor)
                 }
             } catch(ex: UnknownTaskException) {
@@ -103,8 +102,7 @@ open class CartridgePlugin : Plugin<Project> {
                         it.dependsOn(cartridgeRuntime, runtime)
                     }
                     try {
-                        val cartridgeWriter = project.rootProject.tasks.named(ICMBasePlugin.TASK_WRITECARTRIDGEFILES)
-                        cartridgeWriter.configure { task ->
+                        project.rootProject.tasks.named(ICMBasePlugin.TASK_WRITECARTRIDGEFILES).configure { task ->
                             task.dependsOn(taskWriteCartridgeClasspath)
                         }
                     } catch(ex: UnknownTaskException) {
