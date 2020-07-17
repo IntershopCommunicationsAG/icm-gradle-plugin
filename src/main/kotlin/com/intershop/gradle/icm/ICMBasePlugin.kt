@@ -91,9 +91,9 @@ open class ICMBasePlugin: Plugin<Project> {
                     tasks.register(TASK_ALLDEPENDENCIESREPORT, DependencyReportTask::class.java)
                 }
 
-                tasks.maybeCreate(TASK_WRITECARTRIDGEFILES).apply {
+                tasks.register(TASK_WRITECARTRIDGEFILES) { task ->
                     group = "ICM cartridge build"
-                    description = "Lifecycle task for ICM cartridge build"
+                    task.description = "Lifecycle task for ICM cartridge build"
                 }
 
                 createPackageTasks(this)

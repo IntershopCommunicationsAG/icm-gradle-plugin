@@ -57,17 +57,14 @@ class PluginConfig(val project: Project,
      * @param taskconf enumeration with all necessary parameters
      * @return Sync task
      */
-    fun get3rdPartyCopyTask(taskconf: TaskConfCopyLib): TaskProvider<Sync> {
-        return with(project) {
-             tasks.register( taskconf.taskname(), Sync::class.java ) { sync ->
-                sync.group = IntershopExtension.INTERSHOP_GROUP_NAME
-                sync.description = taskconf.description()
+    fun get3rdPartyCopyTask(taskconf: TaskConfCopyLib): TaskProvider<Sync> =
+        project.tasks.register( taskconf.taskname(), Sync::class.java ) { sync ->
+            sync.group = IntershopExtension.INTERSHOP_GROUP_NAME
+            sync.description = taskconf.description()
 
-                sync.into(taskconf.targetpath(projectLayout))
-                sync.duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-            }
+            sync.into(taskconf.targetpath(projectLayout))
+            sync.duplicatesStrategy = DuplicatesStrategy.EXCLUDE
         }
-    }
 
     /**
      * Configures the task for the setup of external cartridges.
@@ -77,21 +74,22 @@ class PluginConfig(val project: Project,
      */
     fun getSetupCartridgesTask(type: EnvironmentType,
                                environmentTypesList: List<EnvironmentType> ): TaskProvider<SetupCartridges> {
-        return with(project) {
-            tasks.register ( TaskName.valueOf(type.name).cartridges(), SetupCartridges::class.java) { task ->
-                task.provideCartridges(projectConfig.cartridges)
-                task.provideDBprepareCartridges(projectConfig.dbprepareCartridges)
-                task.provideLibFilterFile(getLibFilterFile().outputFile)
+        val plTask = project.tasks.named(ICMProjectPlugin.PROVIDE_LIBFILTER, ProvideLibFilter::class.java)
 
-                task.platformDependencies(projectConfig.base.platforms)
+        return project.tasks.register(TaskName.valueOf(type.name).cartridges(), SetupCartridges::class.java) { task ->
+            task.provideCartridges(projectConfig.cartridges)
+            task.provideDBprepareCartridges(projectConfig.dbprepareCartridges)
+            task.provideLibFilterFile( project.provider { plTask.get().outputFile.get() } )
 
-                projectConfig.modules.all {
-                    task.platformDependencies(it.platforms)
-                }
+            task.platformDependencies(projectConfig.base.platforms)
 
-                task.environmentTypes.set(environmentTypesList)
-                task.provideOutputDir(TargetConf.valueOf(type.name).cartridges(projectLayout))
+            projectConfig.modules.all {
+                task.platformDependencies(it.platforms)
             }
+
+            task.environmentTypes.set(environmentTypesList)
+            task.provideOutputDir(TargetConf.valueOf(type.name).cartridges(projectLayout))
+            task.dependsOn(plTask)
         }
     }
 
@@ -100,22 +98,19 @@ class PluginConfig(val project: Project,
      *
      * @param type environment type
      */
-    fun getSitesTask(type: EnvironmentType): TaskProvider<CreateSitesFolder> {
-        return with(project) {
-             tasks.register( TaskName.valueOf(type.name).sites(), CreateSitesFolder::class.java ) { task ->
-                 task.baseProject.set(projectConfig.base)
+    fun getSitesTask(type: EnvironmentType): TaskProvider<CreateSitesFolder> =
+        project.tasks.register( TaskName.valueOf(type.name).sites(), CreateSitesFolder::class.java ) { task ->
+            task.baseProject.set(projectConfig.base)
 
-                projectConfig.modules.all {
-                    task.module(it)
-                }
-
-                 task.baseDirConfig.set(projectConfig.serverDirConfig.base.sites)
-                 task.extraDirConfig.set(projectConfig.serverDirConfig.getServerDirSet(type).sites)
-
-                 task.provideOutputDir(TargetConf.valueOf(type.name).sites(projectLayout))
+            projectConfig.modules.all {
+                task.module(it)
             }
+
+            task.baseDirConfig.set(projectConfig.serverDirConfig.base.sites)
+            task.extraDirConfig.set(projectConfig.serverDirConfig.getServerDirSet(type).sites)
+
+            task.provideOutputDir(TargetConf.valueOf(type.name).sites(projectLayout))
         }
-    }
 
     /**
      * Configures the task for the configuration folder creation.
@@ -173,18 +168,13 @@ class PluginConfig(val project: Project,
      * @param sitesFolderTask creates the sites folder
      * @param taskname specify the task name of the package folder
      */
-    fun configureInitTask(sitesFolderTask: TaskProvider<CreateSitesFolder>, taskname: String) {
-        with(project) {
-            tasks.named(taskname, Tar::class.java) { pkg ->
-                pkg.with(
-                    project.copySpec { cp ->
-                        cp.from(project.provider { sitesFolderTask.get().outputs })
-                    }
-                )
-                pkg.dependsOn(sitesFolderTask)
-            }
+    fun configureInitTask(sitesFolderTask: TaskProvider<CreateSitesFolder>, taskname: String): TaskProvider<Tar> =
+        project.tasks.named(taskname, Tar::class.java) { pkg ->
+            pkg.with(
+                project.copySpec { cp -> cp.from(project.provider { sitesFolderTask.get().outputs }) }
+            )
+            pkg.dependsOn(sitesFolderTask)
         }
-    }
 
     /**
      * Configures an existing package task package.
@@ -197,33 +187,27 @@ class PluginConfig(val project: Project,
     fun configurePackageTask(configTask: TaskProvider<CreateConfigFolder>,
                              cartridgesTask: TaskProvider<SetupCartridges>,
                              copyLibs: TaskProvider<Sync>,
-                             taskname: String) {
-
-        with(project) {
-
-            tasks.named(taskname, Tar::class.java) { pkg ->
-                pkg.with( getCopySpecFor(configTask, cartridgesTask, copyLibs) )
-                pkg.dependsOn(cartridgesTask, configTask, copyLibs)
-            }
+                             taskname: String): TaskProvider<Tar> =
+        project.tasks.named(taskname, Tar::class.java) { pkg ->
+            pkg.with( getCopySpecFor(configTask, cartridgesTask, copyLibs) )
+            pkg.dependsOn(cartridgesTask, configTask, copyLibs)
         }
-    }
 
     /**
      * Configures the main task for the preparation.
      *
      * @param type environment type
      */
-    fun configurePrepareTask(type: EnvironmentType): TaskProvider<Task> {
-        return project.tasks.register(TaskName.valueOf(type.name).prepare()) { task ->
+    fun configurePrepareTask(type: EnvironmentType): TaskProvider<Task> =
+        project.tasks.register(TaskName.valueOf(type.name).prepare()) { task ->
             task.group = IntershopExtension.INTERSHOP_GROUP_NAME
             task.description = "starts all tasks for the preparation of a '${type}' build dir"
         }
-    }
 
     private fun getCopySpecFor(configTask: TaskProvider<CreateConfigFolder>,
                                cartridgesTask: TaskProvider<SetupCartridges>,
-                               copyLibs: TaskProvider<Sync>): CopySpec {
-        return project.copySpec { cp ->
+                               copyLibs: TaskProvider<Sync>): CopySpec =
+        project.copySpec { cp ->
             cp.from( project.provider { cartridgesTask.get().outputs } ) { cps ->
                 cps.into("cartridges")
                 cps.exclude("libs/**")
@@ -244,36 +228,26 @@ class PluginConfig(val project: Project,
                 cps.into("lib")
             }
         }
-    }
 
     /**
      * Configures task for the preparation of
      * the cartridge list properties template.
      */
-    fun getCartridgeListTemplate() {
-        with(project) {
-            tasks.register(
-                ICMProjectPlugin.PROVIDE_CARTRIDGELIST_TEMPLATE,
-                ProvideCartridgeListTemplate::class.java
-            ) { task ->
-                task.provideBaseDependency(projectConfig.base.dependency)
-                task.provideFileDependency(projectConfig.cartridgeListDependency)
-            }
+    fun getCartridgeListTemplate(): TaskProvider<ProvideCartridgeListTemplate> =
+        project.tasks.register(
+            ICMProjectPlugin.PROVIDE_CARTRIDGELIST_TEMPLATE,
+            ProvideCartridgeListTemplate::class.java
+        ) { task ->
+            task.provideBaseDependency(projectConfig.base.dependency)
+            task.provideFileDependency(projectConfig.cartridgeListDependency)
         }
-    }
 
     /**
      * Get lib filter file task.
      */
-    fun getLibFilterFile(): ProvideLibFilter {
-        with(project) {
-            return tasks.maybeCreate(
-                ICMProjectPlugin.PROVIDE_LIBFILTER,
-                ProvideLibFilter::class.java
-            ).apply {
-                provideBaseDependency(projectConfig.base.dependency)
-                provideFileDependency(projectConfig.libFilterFileDependency)
-            }
+    fun createLibFilterFile() =
+        project.tasks.register( ICMProjectPlugin.PROVIDE_LIBFILTER, ProvideLibFilter::class.java ) {task ->
+            task.provideBaseDependency(projectConfig.base.dependency)
+            task.provideFileDependency(projectConfig.libFilterFileDependency)
         }
-    }
 }
