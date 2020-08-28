@@ -27,7 +27,7 @@ import javax.inject.Inject
 /**
  * Extension for ICM properties.
  */
-abstract class IntershopExtension @Inject constructor(objectFactory: ObjectFactory)  {
+open class IntershopExtension @Inject constructor(objectFactory: ObjectFactory)  {
 
     companion object {
         // names for the plugin

@@ -27,7 +27,7 @@ import javax.inject.Inject
 /**
  * Object to configure a simple file object to copy.
  */
-abstract class FilePackage @Inject constructor(objectFactory: ObjectFactory ) {
+open class FilePackage @Inject constructor(objectFactory: ObjectFactory ) {
 
     /**
      * This list contains includes for file list.

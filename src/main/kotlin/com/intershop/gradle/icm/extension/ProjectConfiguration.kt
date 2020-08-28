@@ -34,7 +34,7 @@ import javax.inject.Inject
  *
  * @constructor creates the extension of a project configuration.
  */
-abstract class ProjectConfiguration @Inject constructor(objectFactory: ObjectFactory, projectLayout: ProjectLayout) {
+open class ProjectConfiguration @Inject constructor(objectFactory: ObjectFactory, projectLayout: ProjectLayout) {
 
     val containerConfig: File = TargetConf.PRODUCTION.config(projectLayout).get().asFile
 
