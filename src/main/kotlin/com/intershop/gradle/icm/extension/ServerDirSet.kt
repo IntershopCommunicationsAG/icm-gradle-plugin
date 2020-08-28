@@ -33,7 +33,7 @@ import javax.inject.Inject
  *
  * @constructor creates a configuration of a simple copyspec.
  */
-abstract class ServerDirSet @Inject constructor(objectFactory: ObjectFactory ) {
+open class ServerDirSet @Inject constructor(objectFactory: ObjectFactory ) {
 
     val sites: ServerDir = objectFactory.newInstance(
         ServerDir::class.java, "sites",

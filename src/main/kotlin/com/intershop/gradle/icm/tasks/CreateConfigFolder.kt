@@ -102,7 +102,7 @@ open class CreateConfigFolder
      * the configuration folder structure for the server.
      */
     @TaskAction
-    fun createConfigFolder() {
+    fun executeTask() {
         createFolder()
     }
 }

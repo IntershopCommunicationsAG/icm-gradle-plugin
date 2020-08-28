@@ -124,7 +124,7 @@ open class CreateCartridgeList @Inject constructor(
      * This function represents the logic of this task.
      */
     @TaskAction
-    fun createCartridgeList() {
+    fun executeTask() {
         val baseFile = templateFile.get().asFile
         if(! baseFile.exists()) {
             throw GradleException("File '" + baseFile.absolutePath + "' does not exists.")
