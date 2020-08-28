@@ -84,7 +84,7 @@ open class ICMBasePlugin: Plugin<Project> {
                     }
                 }
 
-                configureClusterIdTask(this)
+                configureClusterIdTask()
                 configureCreateServerInfoPropertiesTask(extension)
 
                 if(! checkForTask(tasks, TASK_ALLDEPENDENCIESREPORT)) {
@@ -128,7 +128,7 @@ open class ICMBasePlugin: Plugin<Project> {
         }
     }
 
-    private fun Project.configureClusterIdTask(project: Project) {
+    private fun Project.configureClusterIdTask() {
         tasks.register( CreateClusterID.DEFAULT_NAME, CreateClusterID::class.java )
     }
 

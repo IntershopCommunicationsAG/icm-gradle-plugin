@@ -26,7 +26,7 @@ plugins {
     // project plugins
     `java-gradle-plugin`
     groovy
-    id("nebula.kotlin") version "1.3.50"
+    kotlin("jvm") version "1.3.72"
 
     // test coverage
     jacoco
@@ -38,22 +38,22 @@ plugins {
     `maven-publish`
 
     // intershop version plugin
-    id("com.intershop.gradle.scmversion") version "6.0.0"
+    id("com.intershop.gradle.scmversion") version "6.2.0"
 
     // plugin for documentation
-    id("org.asciidoctor.jvm.convert") version "2.3.0"
+    id("org.asciidoctor.jvm.convert") version "3.2.0"
 
     // documentation
-    id("org.jetbrains.dokka") version "0.10.0"
+    id("org.jetbrains.dokka") version "0.10.1"
 
     // code analysis for kotlin
-    id("io.gitlab.arturbosch.detekt") version "1.1.1"
+    id("io.gitlab.arturbosch.detekt") version "1.11.0"
 
     // plugin for publishing to Gradle Portal
-    id("com.gradle.plugin-publish") version "0.11.0"
+    id("com.gradle.plugin-publish") version "0.12.0"
 
     // plugin for publishing to jcenter
-    id("com.jfrog.bintray") version "1.8.4"
+    id("com.jfrog.bintray") version "1.8.5"
 }
 
 scm {
@@ -224,7 +224,7 @@ tasks {
     getByName("jar").dependsOn("asciidoctor")
 
     val compileKotlin by getting(KotlinCompile::class) {
-        kotlinOptions.jvmTarget = "1.8"
+        kotlinOptions.jvmTarget = JavaVersion.VERSION_1_8.toString()
     }
 
     val dokka by existing(DokkaTask::class) {
@@ -324,7 +324,7 @@ dependencies {
     implementation(localGroovy())
 
     compileOnly("org.apache.ant:ant:1.10.7")
-    implementation("com.intershop.gradle.isml:isml-gradle-plugin:4.0.0")
+    implementation("com.intershop.gradle.isml:isml-gradle-plugin:4.0.1")
 
     testImplementation("com.intershop.gradle.test:test-gradle-plugin:3.7.0")
     testImplementation(gradleTestKit())
