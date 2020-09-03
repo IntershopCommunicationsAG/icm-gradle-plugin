@@ -92,7 +92,7 @@ open class ICMBasePlugin: Plugin<Project> {
                 }
 
                 tasks.register(TASK_WRITECARTRIDGEFILES) { task ->
-                    group = "ICM cartridge build"
+                    task.group = "ICM cartridge build"
                     task.description = "Lifecycle task for ICM cartridge build"
                 }
 
