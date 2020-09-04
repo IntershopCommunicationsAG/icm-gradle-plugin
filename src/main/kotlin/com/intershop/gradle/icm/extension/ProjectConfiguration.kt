@@ -139,13 +139,13 @@ open class ProjectConfiguration @Inject constructor(objectFactory: ObjectFactory
     init {
         newBaseProject.set(false)
 
-        val configMain = serverDirConfig.base.config.dirs.maybeCreate("main")
-        configMain.dir.convention( projectLayout.projectDirectory.dir("config/base") )
-        configMain.target.convention("system-conf")
+        serverDirConfig.base.config.dirs.register("main") {
+            it.dir.convention( projectLayout.projectDirectory.dir("config/base") )
+        }
 
-        val sitesMain = serverDirConfig.base.sites.dirs.maybeCreate("main")
-        sitesMain.dir.convention( projectLayout.projectDirectory.dir("sites/base") )
-        sitesMain.target.convention("sites")
+        serverDirConfig.base.sites.dirs.register("main") {
+            it.dir.convention(projectLayout.projectDirectory.dir("sites/base"))
+        }
     }
 }
 

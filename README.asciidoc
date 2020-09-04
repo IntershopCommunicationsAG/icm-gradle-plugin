@@ -534,14 +534,14 @@ intershop {
                 sites {
                     dirs {
                         main {
-                            dir.set(file("sites/base"))
+                            dir.set(file("sites/altbase"))
                         }
                     }
                 }
                 config {
                     dirs {
                         main {
-                            dir.set(file("config/base"))
+                            dir.set(file("config/altbase"))
                         }
                     }
                 }
@@ -606,15 +606,15 @@ intershop {
             base {
                 sites {
                     dirs {
-                        register("main") {
-                            dir.set(file("sites/base"))
+                        named("main") {
+                            dir.set(file("sites/altbase"))
                         }
                     }
                 }
                 config {
                     dirs {
-                        register("main") {
-                            dir.set(file("config/base"))
+                        named("main") {
+                            dir.set(file("config/altbase"))
                         }
                     }
                 }
@@ -764,6 +764,9 @@ Methods of `ProjectServerDirs`
 | `dev` | `Closure<ServerDirSet> | This configures development (server) directories and files of the project from a closure.
 |===
 
+There is one preconfigured base configuration "main". The pathe for the configuration is 'configuration/base' and for sites it is 'sites/base'.
+*Both directories must be available in a project.*
+
 ====== Object `ServerDirSet`
 
 This configuration prepares a https://docs.gradle.org/current/javadoc/org/gradle/api/file/CopySpec.html[CopySpec] for the directories of the project.
@@ -774,7 +777,7 @@ Properties of `ServerDirSet`
 [cols="20%,10%,30%,49%", width="99%, options="header"]
 |===
 |Property               | Type | Default value | Description
-
+| `dir`| `SetProperty<String>` | *Required* | Path in the project structure.
 | `includes` | `SetProperty<String>` | *Optional* | This is a set Ant based exclude patterns.
 | `excludes` | `SetProperty<String>` | *Optional* | This is a set Ant based include patterns.
 | `targetPath` | `Property<String>` | *Optional* | The target path of this package.

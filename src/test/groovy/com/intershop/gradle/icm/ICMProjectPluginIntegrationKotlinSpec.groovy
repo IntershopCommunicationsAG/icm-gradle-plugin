@@ -17,13 +17,11 @@
 
 package com.intershop.gradle.icm
 
-
 import com.intershop.gradle.icm.util.TestRepo
 import com.intershop.gradle.test.AbstractIntegrationKotlinSpec
 
 import java.util.zip.ZipFile
 
-import static org.gradle.testkit.runner.TaskOutcome.NO_SOURCE
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpec {
@@ -453,7 +451,7 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
                         base {
                             sites {
                                 dirs {
-                                    register("main") {
+                                    named("main") {
                                         dir.set(file("sites/base"))
                                         exclude("**/test-site1/units/test.properties")
                                     }
@@ -461,7 +459,7 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
                             }
                             config {
                                 dirs {
-                                    register("main") {
+                                    named("main") {
                                         dir.set(file("config/base"))
                                         exclude("**/cluster/test.properties")
                                     }
@@ -1077,7 +1075,7 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
                         base {
                             sites {
                                 dirs {
-                                    register("main") {
+                                    named("main") {
                                         dir.set(file("sites/base"))
                                         exclude("**/test-site1/units/test.properties")
                                     }
@@ -1085,7 +1083,7 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
                             }
                             config {
                                 dirs {
-                                    register("main") {
+                                    named("main") {
                                         dir.set(file("config/base"))
                                         exclude("**/cluster/test.properties")
                                     }
@@ -1327,7 +1325,7 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
                         base {
                             sites {
                                 dirs {
-                                    register("main") {
+                                    named("main") {
                                         dir.set(file("sites/base"))
                                         exclude("**/test-site1/units/test.properties")
                                     }
@@ -1335,7 +1333,7 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
                             }
                             config {
                                 dirs {
-                                    register("main") {
+                                    named("main") {
                                         dir.set(file("config/base"))
                                         exclude("**/cluster/test.properties")
                                     }
@@ -1543,6 +1541,8 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
         createLocalFile("config/dev/cluster/test.properties", "dev_test = 1")
         createLocalFile("config/prod/cluster/test.properties", "test.properties = prod_dir")
 
+        createLocalFile("sites/base/.empty", "do not delete")
+
         buildFile << """
             plugins {
                 `java`
@@ -1585,7 +1585,7 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
                         base {
                             config {
                                 dirs {
-                                    register("main") {
+                                    named("main") {
                                         dir.set(file("config/base"))
                                         exclude("**/cluster/test.properties")
                                     }
@@ -1728,10 +1728,10 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
 
         then:
         result.task(':publish').outcome == SUCCESS
-        result.task(':zipSites').outcome == NO_SOURCE
+        result.task(':zipSites').outcome == SUCCESS
         result.task(':zipConfiguration').outcome == SUCCESS
         repoConfigFile.exists()
-        ! repoSitesFile.exists()
+        repoSitesFile.exists()
         new ZipFile(repoConfigFile).entries().toList().size() == 3
 
         where:
@@ -1745,6 +1745,9 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
         settingsFile << """
         rootProject.name="rootproject"
         """.stripIndent()
+
+        createLocalFile("sites/base/.empty", "do not delete")
+        createLocalFile("config/base/.empty", "do not delete")
 
         buildFile << """
             plugins {
@@ -1888,10 +1891,10 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
 
         then:
         result.task(':publish').outcome == SUCCESS
-        result.task(':zipSites').outcome == NO_SOURCE
-        result.task(':zipConfiguration').outcome == NO_SOURCE
-        ! repoConfigFile.exists()
-        ! repoSitesFile.exists()
+        result.task(':zipSites').outcome == SUCCESS
+        result.task(':zipConfiguration').outcome == SUCCESS
+        repoConfigFile.exists()
+        repoSitesFile.exists()
 
         where:
         gradleVersion << supportedGradleVersions
