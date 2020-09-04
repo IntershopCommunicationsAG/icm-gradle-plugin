@@ -138,6 +138,14 @@ open class ProjectConfiguration @Inject constructor(objectFactory: ObjectFactory
 
     init {
         newBaseProject.set(false)
+
+        serverDirConfig.base.config.dirs.register("main") {
+            it.dir.convention( projectLayout.projectDirectory.dir("config/base") )
+        }
+
+        serverDirConfig.base.sites.dirs.register("main") {
+            it.dir.convention(projectLayout.projectDirectory.dir("sites/base"))
+        }
     }
 }
 
