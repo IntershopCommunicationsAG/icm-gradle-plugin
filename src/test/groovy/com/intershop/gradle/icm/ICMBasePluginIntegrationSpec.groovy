@@ -23,6 +23,7 @@ import com.intershop.gradle.icm.tasks.CreateTestPackage
 import com.intershop.gradle.icm.tasks.CreateServerInfo
 import com.intershop.gradle.test.AbstractIntegrationGroovySpec
 import org.gradle.testkit.runner.TaskOutcome
+import spock.lang.Ignore
 
 import static org.gradle.testkit.runner.TaskOutcome.*
 
@@ -741,6 +742,7 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
     }
 
+    @Ignore
     def 'Extended test of WriteCartridgeDescriptor with platform dependencies'() {
         given:
         settingsFile << """
