@@ -499,6 +499,8 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                 id 'com.intershop.icm.cartridge'
             }
             
+            description = "Test cartridge implementation"    
+            
             buildDir = new File(projectDir, 'target')
             
             dependencies {
@@ -516,7 +518,7 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
             plugins {
                 id 'java-library'
                 id 'com.intershop.icm.cartridge'
-            }
+            } 
             
             buildDir = new File(projectDir, 'target')
             
@@ -538,6 +540,11 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                 id 'com.intershop.icm.cartridge'
             }
             
+            description = \"""\\
+            Test cartridge implementation first line
+            Test cartridge implementation second line   
+            \"""
+
             buildDir = new File(projectDir, 'target')
              
             dependencies {
@@ -554,7 +561,7 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         when:
         def result = getPreparedGradleRunner()
-                .withArguments("writeCartridgeDescriptor")
+                .withArguments("writeCartridgeDescriptor", "-s")
                 .withGradleVersion(gradleVersion)
                 .build()
 
@@ -933,6 +940,8 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
             id 'com.intershop.icm.cartridge.product'
         }
         
+        description = "Test cartridge implementation"    
+
         dependencies {
             implementation 'com.google.inject:guice:4.0'
             implementation 'com.google.inject.extensions:guice-servlet:3.0'
@@ -963,6 +972,8 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
             id 'com.intershop.icm.cartridge.test'
         }
         
+        description = "Test cartridge implementation"    
+                
         dependencies {
             implementation 'org.codehaus.janino:janino:2.5.16'
             implementation 'org.codehaus.janino:commons-compiler:3.0.6'
@@ -982,6 +993,8 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
             id 'com.intershop.icm.cartridge.development'
         }
         
+        description = "Test cartridge implementation"    
+
         repositories {
             jcenter()
         }    
@@ -1001,7 +1014,9 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
             id 'java'
             id 'com.intershop.icm.cartridge.adapter'
         }
-        
+
+        description = "Test cartridge implementation"        
+
         dependencies {
             implementation 'ch.qos.logback:logback-core:1.2.3'
             implementation 'ch.qos.logback:logback-classic:1.2.3'
