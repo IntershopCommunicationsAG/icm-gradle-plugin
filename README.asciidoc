@@ -371,7 +371,7 @@ intershop {
 
 The project information (`projectInfo`) is used in the display of the login dialog of the the ICM backoffice.
 
-[[ExtensionBasePlugin]]=== Extension 'intershop' for Base Plugin
+=== Extension 'intershop' for Base Plugin [[ExtensionBasePlugin]]
 
 ==== Properties
 

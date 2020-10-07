@@ -33,6 +33,7 @@ import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import org.gradle.internal.util.PropertiesUtils
@@ -69,13 +70,7 @@ open class WriteCartridgeDescriptor @Inject constructor(
 
         nameProperty.convention(project.name)
 
-        val description = if (! project.description.isNullOrEmpty())
-                                    project.description
-                                else
-                                    project.name
-
         outputFileProperty.convention(projectLayout.buildDirectory.file(CARTRIDGE_DESCRIPTOR))
-        descriptionProperty.convention(description ?: "")
         displayNameProperty.convention(project.name)
     }
 
@@ -112,8 +107,11 @@ open class WriteCartridgeDescriptor @Inject constructor(
     fun provideCartridgeDescription(cartridgeDescription: Provider<String>) =
         descriptionProperty.set(cartridgeDescription)
 
+    @get:Optional
     @get:Input
-    var cartridgeDescription by descriptionProperty
+    var cartridgeDescription: String
+        get() = descriptionProperty.getOrElse("")
+        set(value) = descriptionProperty.set(value)
 
     /**
      * Set provider for descriptor display name property.
@@ -200,7 +198,11 @@ open class WriteCartridgeDescriptor @Inject constructor(
         props["cartridge.name"] = cartridgeName
         props["cartridge.version"] = cartridgeVersion
         props["cartridge.displayName"] = displayName
-        props["cartridge.description"] = cartridgeDescription
+        if(! descriptionProperty.isPresent || descriptionProperty.getOrElse("") == "") {
+            if(project.description != "") {
+                props["cartridge.description"] = project.description ?: project.name
+            }
+        }
 
         val propsObject = Properties()
         propsObject.putAll(props)
