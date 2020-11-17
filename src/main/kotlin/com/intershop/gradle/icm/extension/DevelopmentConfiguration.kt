@@ -46,9 +46,11 @@ open class DevelopmentConfiguration
 
         const val LICENSE_DIR_ENV = "LICENSEDIR"
         const val CONFIG_DIR_ENV = "CONFIGDIR"
+        const val CONFIG_DIR_SEC_ENV = "CONFIGDIR"
 
         const val LICENSE_DIR_SYS = "licenseDir"
         const val CONFIG_DIR_SYS = "configDir"
+        const val CONFIG_DIR_SEC_SYS = "configDir"
 
         const val DEFAULT_LIC_PATH = "icm-default/lic"
         const val DEFAULT_CONFIG_PATH = "icm-default/conf"
@@ -60,7 +62,9 @@ open class DevelopmentConfiguration
 
     private val licenseDirectoryProperty: Property<String> = objectFactory.property(String::class.java)
     private val configDirectoryProperty: Property<String> = objectFactory.property(String::class.java)
+    private val configDirectorySecProperty: Property<String> = objectFactory.property(String::class.java)
     private val configProperties: Properties = Properties()
+    private val configPropertiesSec: Properties = Properties()
 
     init {
         // read environment
@@ -68,6 +72,7 @@ open class DevelopmentConfiguration
 
         var licDirPath = providerFactory.environmentVariable(LICENSE_DIR_ENV).forUseAtConfigurationTime().orNull
         var configDirPath = providerFactory.environmentVariable(CONFIG_DIR_ENV).forUseAtConfigurationTime().orNull
+        var configDirSecPath = providerFactory.environmentVariable(CONFIG_DIR_SEC_ENV).forUseAtConfigurationTime().orNull
 
         // read system if necessary
         if(licDirPath == null) {
@@ -76,6 +81,9 @@ open class DevelopmentConfiguration
 
         if(configDirPath == null) {
             configDirPath = providerFactory.systemProperty(CONFIG_DIR_SYS).forUseAtConfigurationTime().orNull
+        }
+        if(configDirSecPath == null) {
+            configDirSecPath = providerFactory.systemProperty(CONFIG_DIR_SEC_SYS).forUseAtConfigurationTime().orNull
         }
 
         if(licDirPath == null) {
@@ -93,6 +101,13 @@ open class DevelopmentConfiguration
                 log.error(ise.message)
             }
         }
+        if(configDirSecPath == null) {
+            try {
+                configDirSecPath = providerFactory.gradleProperty(CONFIG_DIR_SEC_SYS).forUseAtConfigurationTime().orNull
+            } catch (ise: IllegalStateException) {
+                log.info(ise.message)
+            }
+        }
 
         if(licDirPath == null) {
             licDirPath = File(File(gradleUserHomePath), DEFAULT_LIC_PATH).absolutePath
@@ -104,6 +119,17 @@ open class DevelopmentConfiguration
 
         licenseDirectoryProperty.set(licDirPath)
         configDirectoryProperty.set(configDirPath)
+
+        if(configDirSecPath != null) {
+            configDirectorySecProperty.set(configDirSecPath)
+
+            val configFile = File(configDirectorySec, CONFIG_FILE_NAME)
+            if(configFile.exists() && configFile.canRead()) {
+                configPropertiesSec.load(configFile.inputStream())
+            } else {
+                logger.warn("File for second configuration '{}' does not exists!", configFile.absolutePath)
+            }
+        }
 
         val configFile = File(configDirectory, CONFIG_FILE_NAME)
         if(configFile.exists() && configFile.canRead()) {
@@ -129,10 +155,27 @@ open class DevelopmentConfiguration
         get() = configDirectoryProperty.get()
 
     /**
+     * Local configuration path of the project.
+     */
+    val configDirectorySec: String?
+        get() = configDirectoryProperty.orNull
+
+
+    /**
      * Get file path for configuration property.
      */
     val configFilePath: String
         get() = File(configDirectory, CONFIG_FILE_NAME).absolutePath
+
+    /**
+     * Get file path for configuration property.
+     */
+    val configFilePathSec: String?
+        get() = if(configDirectorySec != null) {
+                    File(configDirectory, CONFIG_FILE_NAME).absolutePath
+                } else {
+                    null
+                }
 
     /**
      * Get access to properties in configuration property file.
@@ -144,6 +187,15 @@ open class DevelopmentConfiguration
     }
 
     /**
+     * Get access to properties in second configuration property file.
+     *
+     * @param property  key of the properties file
+     */
+    fun getConfigPropertySec(property: String): String {
+        return configPropertiesSec.getProperty(property, "")
+    }
+
+    /**
      * Get access to properties in configuration property file.
      *
      * @param property  key of the properties file
@@ -151,5 +203,15 @@ open class DevelopmentConfiguration
      */
     fun getConfigProperty(property: String, defaultValue: String): String {
         return configProperties.getProperty(property, defaultValue)
+    }
+
+    /**
+     * Get access to properties in second configuration property file.
+     *
+     * @param property  key of the properties file
+     * @param defaultValue if key not available the default value is used.
+     */
+    fun getConfigPropertySec(property: String, defaultValue: String): String {
+        return configPropertiesSec.getProperty(property, defaultValue)
     }
 }
