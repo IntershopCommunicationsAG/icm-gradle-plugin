@@ -70,72 +70,74 @@ open class DevelopmentConfiguration
         // read environment
         val gradleUserHomePath = GradleUserHomeLookup.gradleUserHome().absolutePath
 
-        var licDirPath = providerFactory.environmentVariable(LICENSE_DIR_ENV).forUseAtConfigurationTime().orNull
-        var configDirPath = providerFactory.environmentVariable(CONFIG_DIR_ENV).forUseAtConfigurationTime().orNull
-        var configDirSecPath = providerFactory.environmentVariable(CONFIG_DIR_SEC_ENV).forUseAtConfigurationTime().orNull
+        with(providerFactory) {
+            var licDirPath = environmentVariable(LICENSE_DIR_ENV).forUseAtConfigurationTime().orNull
+            var configDirPath = environmentVariable(CONFIG_DIR_ENV).forUseAtConfigurationTime().orNull
+            var configDirSecPath = environmentVariable(CONFIG_DIR_SEC_ENV).forUseAtConfigurationTime().orNull
 
-        // read system if necessary
-        if(licDirPath == null) {
-            licDirPath = providerFactory.systemProperty(LICENSE_DIR_SYS).forUseAtConfigurationTime().orNull
-        }
-
-        if(configDirPath == null) {
-            configDirPath = providerFactory.systemProperty(CONFIG_DIR_SYS).forUseAtConfigurationTime().orNull
-        }
-        if(configDirSecPath == null) {
-            configDirSecPath = providerFactory.systemProperty(CONFIG_DIR_SEC_SYS).forUseAtConfigurationTime().orNull
-        }
-
-        if(licDirPath == null) {
-            try {
-                licDirPath = providerFactory.gradleProperty(LICENSE_DIR_SYS).forUseAtConfigurationTime().orNull
-            } catch ( ise: IllegalStateException ) {
-                log.error(ise.message)
+            // read system if necessary
+            if (licDirPath == null) {
+                licDirPath = systemProperty(LICENSE_DIR_SYS).forUseAtConfigurationTime().orNull
             }
-        }
 
-        if(configDirPath == null) {
-            try {
-                configDirPath = providerFactory.gradleProperty(CONFIG_DIR_SYS).forUseAtConfigurationTime().orNull
-            } catch ( ise: IllegalStateException ) {
-                log.error(ise.message)
+            if (configDirPath == null) {
+                configDirPath = systemProperty(CONFIG_DIR_SYS).forUseAtConfigurationTime().orNull
             }
-        }
-        if(configDirSecPath == null) {
-            try {
-                configDirSecPath = providerFactory.gradleProperty(CONFIG_DIR_SEC_SYS).forUseAtConfigurationTime().orNull
-            } catch (ise: IllegalStateException) {
-                log.info(ise.message)
+            if (configDirSecPath == null) {
+                configDirSecPath = systemProperty(CONFIG_DIR_SEC_SYS).forUseAtConfigurationTime().orNull
             }
-        }
 
-        if(licDirPath == null) {
-            licDirPath = File(File(gradleUserHomePath), DEFAULT_LIC_PATH).absolutePath
-        }
+            if (licDirPath == null) {
+                try {
+                    licDirPath = gradleProperty(LICENSE_DIR_SYS).forUseAtConfigurationTime().orNull
+                } catch (ise: IllegalStateException) {
+                    log.error(ise.message)
+                }
+            }
 
-        if(configDirPath == null) {
-            configDirPath = File(File(gradleUserHomePath), DEFAULT_CONFIG_PATH).absolutePath
-        }
+            if (configDirPath == null) {
+                try {
+                    configDirPath = gradleProperty(CONFIG_DIR_SYS).forUseAtConfigurationTime().orNull
+                } catch (ise: IllegalStateException) {
+                    log.error(ise.message)
+                }
+            }
+            if (configDirSecPath == null) {
+                try {
+                    configDirSecPath = gradleProperty(CONFIG_DIR_SEC_SYS).forUseAtConfigurationTime().orNull
+                } catch (ise: IllegalStateException) {
+                    log.info(ise.message)
+                }
+            }
 
-        licenseDirectoryProperty.set(licDirPath)
-        configDirectoryProperty.set(configDirPath)
+            if (licDirPath == null) {
+                licDirPath = File(File(gradleUserHomePath), DEFAULT_LIC_PATH).absolutePath
+            }
 
-        if(configDirSecPath != null) {
-            configDirectorySecProperty.set(configDirSecPath)
+            if (configDirPath == null) {
+                configDirPath = File(File(gradleUserHomePath), DEFAULT_CONFIG_PATH).absolutePath
+            }
 
-            val configFile = File(configDirectorySec, CONFIG_FILE_NAME)
-            if(configFile.exists() && configFile.canRead()) {
-                configPropertiesSec.load(configFile.inputStream())
+            licenseDirectoryProperty.set(licDirPath)
+            configDirectoryProperty.set(configDirPath)
+
+            if (configDirSecPath != null) {
+                configDirectorySecProperty.set(configDirSecPath)
+
+                val configFile = File(configDirectorySec, CONFIG_FILE_NAME)
+                if (configFile.exists() && configFile.canRead()) {
+                    configPropertiesSec.load(configFile.inputStream())
+                } else {
+                    logger.warn("File for second configuration '{}' does not exists!", configFile.absolutePath)
+                }
+            }
+
+            val configFile = File(configDirectory, CONFIG_FILE_NAME)
+            if (configFile.exists() && configFile.canRead()) {
+                configProperties.load(configFile.inputStream())
             } else {
-                logger.warn("File for second configuration '{}' does not exists!", configFile.absolutePath)
+                logger.warn("File '{}' does not exists!", configFile.absolutePath)
             }
-        }
-
-        val configFile = File(configDirectory, CONFIG_FILE_NAME)
-        if(configFile.exists() && configFile.canRead()) {
-            configProperties.load(configFile.inputStream())
-        } else {
-            logger.warn("File '{}' does not exists!", configFile.absolutePath)
         }
     }
 
