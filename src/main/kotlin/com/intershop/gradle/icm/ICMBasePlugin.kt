@@ -130,6 +130,7 @@ open class ICMBasePlugin: Plugin<Project> {
 
     private fun Project.configureClusterIdTask(extension: IntershopExtension) {
         tasks.register( CreateClusterID.DEFAULT_NAME, CreateClusterID::class.java )
+
         if(extension.developmentConfig.configDirectorySec != null) {
             tasks.register( "${CreateClusterID.DEFAULT_NAME}Sec", CreateClusterID::class.java ) {
                 it.outputDir.set( project.layout.buildDirectory.dir("clusterIDDirSec") )

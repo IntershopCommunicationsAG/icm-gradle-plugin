@@ -54,6 +54,7 @@ open class DevelopmentConfiguration
 
         const val DEFAULT_LIC_PATH = "icm-default/lic"
         const val DEFAULT_CONFIG_PATH = "icm-default/conf"
+        const val DEFAULT_CONFIGSEC_PATH = "icm-default/confSec"
 
         const val LICENSE_FILE_NAME = "license.xml"
         const val CONFIG_FILE_NAME = "icm.properties"
@@ -117,6 +118,12 @@ open class DevelopmentConfiguration
                 configDirPath = File(File(gradleUserHomePath), DEFAULT_CONFIG_PATH).absolutePath
             }
 
+            if (configDirSecPath == null) {
+                val tempConfigDirSecPath = File(File(gradleUserHomePath), DEFAULT_CONFIGSEC_PATH).absolutePath
+                configDirSecPath = if(File(tempConfigDirSecPath, CONFIG_FILE_NAME).exists()) {
+                                        tempConfigDirSecPath } else { null }
+            }
+
             licenseDirectoryProperty.set(licDirPath)
             configDirectoryProperty.set(configDirPath)
 
@@ -159,7 +166,7 @@ open class DevelopmentConfiguration
      * Local configuration path of the project.
      */
     val configDirectorySec: String?
-        get() = configDirectoryProperty.orNull
+        get() = configDirectorySecProperty.orNull
 
 
     /**
@@ -172,11 +179,7 @@ open class DevelopmentConfiguration
      * Get file path for configuration property.
      */
     val configFilePathSec: String?
-        get() = if(configDirectorySec != null) {
-                    File(configDirectory, CONFIG_FILE_NAME).absolutePath
-                } else {
-                    null
-                }
+        get() = configDirectorySecProperty.orNull
 
     /**
      * Get access to properties in configuration property file.
