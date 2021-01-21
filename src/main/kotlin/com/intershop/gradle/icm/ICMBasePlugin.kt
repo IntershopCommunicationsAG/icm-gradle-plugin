@@ -84,7 +84,7 @@ open class ICMBasePlugin: Plugin<Project> {
                     }
                 }
 
-                configureClusterIdTask()
+                configureClusterIdTask(extension)
                 configureCreateServerInfoPropertiesTask(extension)
 
                 if(! checkForTask(tasks, TASK_ALLDEPENDENCIESREPORT)) {
@@ -128,8 +128,14 @@ open class ICMBasePlugin: Plugin<Project> {
         }
     }
 
-    private fun Project.configureClusterIdTask() {
+    private fun Project.configureClusterIdTask(extension: IntershopExtension) {
         tasks.register( CreateClusterID.DEFAULT_NAME, CreateClusterID::class.java )
+
+        if(extension.developmentConfig.configDirectorySec != null) {
+            tasks.register( "${CreateClusterID.DEFAULT_NAME}Sec", CreateClusterID::class.java ) {
+                it.outputDir.set( project.layout.buildDirectory.dir("clusterIDDirSec") )
+            }
+        }
     }
 
     private fun Project.createPackageTasks(project: Project) {

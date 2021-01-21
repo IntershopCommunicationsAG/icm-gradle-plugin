@@ -255,7 +255,7 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         when:
         def result2 = getPreparedGradleRunner()
-                .withArguments("copyThirdpartyLibs")
+                .withArguments("copyThirdpartyLibs", "-s")
                 .withGradleVersion(gradleVersion)
                 .build()
 

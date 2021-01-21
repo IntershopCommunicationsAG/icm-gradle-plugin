@@ -18,8 +18,6 @@ package com.intershop.gradle.icm.tasks
 
 import com.intershop.gradle.icm.ICMBasePlugin.Companion.CONFIGURATION_CARTRIDGERUNTIME
 import com.intershop.gradle.icm.extension.IntershopExtension.Companion.INTERSHOP_GROUP_NAME
-import com.intershop.gradle.icm.utils.getValue
-import com.intershop.gradle.icm.utils.setValue
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.ProjectLayout
@@ -70,12 +68,14 @@ open class WriteCartridgeClasspath @Inject constructor(
      *
      * @param jarTaskName set provider for name of jar task.
      */
-    @Suppress( "unused")
+   @Suppress( "unused")
     fun provideJarTaskName(jarTaskName: Provider<String>) =
         jarTaskNameProperty.set(jarTaskName)
 
     @get:Input
-    var jarTaskName by jarTaskNameProperty
+    var jarTaskName: String
+        get() = jarTaskNameProperty.get()
+        set(value) = jarTaskNameProperty.set(value)
 
     /**
      * Set provider for using classes folder instead of jar files.
@@ -87,14 +87,16 @@ open class WriteCartridgeClasspath @Inject constructor(
         useClassesFolderProperty.set(useClassesFolder)
 
     @get:Input
-    var useClassesFolder by useClassesFolderProperty
+    var useClassesFolder: Boolean
+        get() = useClassesFolderProperty.getOrElse(false)
+        set(value) = useClassesFolderProperty.set(value)
 
     @get:InputFiles
     val jarFiles: FileCollection by lazy {
         val returnFiles = project.files()
 
         val jarTask = project.tasks.findByName(jarTaskName)
-        if(jarTask != null) {
+        if (jarTask != null) {
             returnFiles.setFrom(jarTask.outputs.files.singleFile)
         }
 

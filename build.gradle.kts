@@ -26,7 +26,7 @@ plugins {
     // project plugins
     `java-gradle-plugin`
     groovy
-    kotlin("jvm") version "1.3.72"
+    kotlin("jvm") version "1.4.20"
 
     // test coverage
     jacoco
@@ -41,13 +41,13 @@ plugins {
     id("com.intershop.gradle.scmversion") version "6.2.0"
 
     // plugin for documentation
-    id("org.asciidoctor.jvm.convert") version "3.2.0"
+    id("org.asciidoctor.jvm.convert") version "3.3.0"
 
     // documentation
     id("org.jetbrains.dokka") version "0.10.1"
 
     // code analysis for kotlin
-    id("io.gitlab.arturbosch.detekt") version "1.11.0"
+    id("io.gitlab.arturbosch.detekt") version "1.15.0"
 
     // plugin for publishing to Gradle Portal
     id("com.gradle.plugin-publish") version "0.12.0"
@@ -157,7 +157,7 @@ detekt {
 
 tasks {
     withType<Test>().configureEach {
-        systemProperty("intershop.gradle.versions", "6.6")
+        systemProperty("intershop.gradle.versions", "6.8")
 
         dependsOn("jar")
     }

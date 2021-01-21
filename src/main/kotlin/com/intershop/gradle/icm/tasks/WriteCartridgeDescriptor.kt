@@ -20,8 +20,6 @@ import com.intershop.gradle.icm.ICMBasePlugin.Companion.CONFIGURATION_CARTRIDGE
 import com.intershop.gradle.icm.ICMBasePlugin.Companion.CONFIGURATION_CARTRIDGERUNTIME
 import com.intershop.gradle.icm.extension.IntershopExtension.Companion.INTERSHOP_GROUP_NAME
 import com.intershop.gradle.icm.utils.CartridgeUtil
-import com.intershop.gradle.icm.utils.getValue
-import com.intershop.gradle.icm.utils.setValue
 import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
@@ -41,7 +39,6 @@ import java.io.File
 import java.nio.charset.Charset
 import java.util.*
 import javax.inject.Inject
-import kotlin.collections.HashSet
 
 /**
  * WriteCartridgeDescriptor Gradle task 'writeCartridgeDescriptor'
@@ -49,9 +46,9 @@ import kotlin.collections.HashSet
  * This task writes a cartridge descriptor file. This file
  * is used by the server startup and special tests.
  */
-open class WriteCartridgeDescriptor @Inject constructor(
-        projectLayout: ProjectLayout,
-        objectFactory: ObjectFactory) : DefaultTask() {
+open class WriteCartridgeDescriptor
+        @Inject constructor( projectLayout: ProjectLayout,
+                             objectFactory: ObjectFactory ) : DefaultTask() {
 
     private val outputFileProperty: RegularFileProperty = objectFactory.fileProperty()
     private val versionProperty: Property<String> = objectFactory.property(String::class.java)
@@ -68,10 +65,10 @@ open class WriteCartridgeDescriptor @Inject constructor(
         group = INTERSHOP_GROUP_NAME
         description = "Writes all necessary information of the cartridge to a file."
 
-        nameProperty.convention(project.name)
-
         outputFileProperty.convention(projectLayout.buildDirectory.file(CARTRIDGE_DESCRIPTOR))
-        displayNameProperty.convention(project.name)
+
+        nameProperty.convention(project.name)
+        displayNameProperty.convention(project.description ?: project.name)
     }
 
     /**
@@ -96,7 +93,9 @@ open class WriteCartridgeDescriptor @Inject constructor(
     fun provideCartridgeName(cartridgeName: Provider<String>) = nameProperty.set(cartridgeName)
 
     @get:Input
-    var cartridgeName by nameProperty
+    var cartridgeName: String
+        get() = nameProperty.get()
+        set(value) = nameProperty.set(value)
 
     /**
      * Set provider for descriptor cartridge description property.
@@ -122,7 +121,9 @@ open class WriteCartridgeDescriptor @Inject constructor(
     fun provideDisplayName(displayName: Provider<String>) = displayNameProperty.set(displayName)
 
     @get:Input
-    var displayName by displayNameProperty
+    var displayName: String
+        get() = displayNameProperty.get()
+        set(value) = displayNameProperty.set(value)
 
 
     @get:Input
@@ -148,8 +149,7 @@ open class WriteCartridgeDescriptor @Inject constructor(
      *
      * @param outputfile
      */
-    fun provideOutputfile(outputfile: Provider<RegularFile>)
-            = outputFileProperty.set(outputfile)
+    fun provideOutputfile(outputfile: Provider<RegularFile>) = outputFileProperty.set(outputfile)
 
     /**
      * Output file for generated cluster id.
@@ -164,7 +164,6 @@ open class WriteCartridgeDescriptor @Inject constructor(
     /**
      * Task method for the creation of a descriptor file.
      */
-    @Suppress("unused")
     @TaskAction
     fun runFileCreation() {
         if(! outputFile.parentFile.exists()) {

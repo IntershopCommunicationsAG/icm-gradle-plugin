@@ -18,10 +18,10 @@ package com.intershop.gradle.icm.tasks
 
 import com.intershop.gradle.icm.extension.IntershopExtension
 import org.gradle.api.DefaultTask
+import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.ProjectLayout
-import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.model.ObjectFactory
-import org.gradle.api.tasks.OutputFile
+import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import java.util.*
 import javax.inject.Inject
@@ -38,7 +38,7 @@ open class CreateClusterID @Inject constructor(
 
     companion object {
         const val DEFAULT_NAME = "createClusterID"
-        const val CLUSTER_ID = "clusterIDDir/cluster.id"
+        const val CLUSTER_ID_NAME = "cluster.id"
     }
 
     /**
@@ -46,14 +46,14 @@ open class CreateClusterID @Inject constructor(
      *
      * @property outputFile
      */
-    @get:OutputFile
-    val outputFile: RegularFileProperty = objectFactory.fileProperty()
+    @get:OutputDirectory
+    val outputDir: DirectoryProperty = objectFactory.directoryProperty()
 
     init {
         group = IntershopExtension.INTERSHOP_GROUP_NAME
         description = "Creates a cluster ID to start a server."
 
-        outputFile.convention(projectLayout.buildDirectory.file(CLUSTER_ID))
+        outputDir.convention(projectLayout.buildDirectory.dir("clusterIDDir"))
     }
 
     /**
@@ -63,7 +63,7 @@ open class CreateClusterID @Inject constructor(
     fun createID() {
         val uuid = UUID.randomUUID()
         val uuidStr = uuid.toString().replace("-", "")
-        val outputFile = outputFile.get().asFile
+        val outputFile = outputDir.get().file("cluster.id").asFile
 
         if(! outputFile.parentFile.exists()) {
             project.delete(outputFile.parentFile)

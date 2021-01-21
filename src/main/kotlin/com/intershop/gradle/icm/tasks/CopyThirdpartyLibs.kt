@@ -30,6 +30,7 @@ import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Classpath
+import org.gradle.api.tasks.IgnoreEmptyDirectories
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
@@ -80,6 +81,7 @@ open class CopyThirdpartyLibs @Inject constructor(
     fun provideLibFilterFile(file: Provider<RegularFile>) = libFilterFile.set(file)
 
     @get:Classpath
+    @get:IgnoreEmptyDirectories
     val configurationClasspath: FileCollection by lazy {
         val returnFiles = project.files()
         returnFiles.from(project.configurations.getByName(RUNTIME_CLASSPATH_CONFIGURATION_NAME).files)
