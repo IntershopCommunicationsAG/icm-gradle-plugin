@@ -197,7 +197,7 @@ class ICMBasePluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpec {
         resultpub.task(':prjCartridge_dev:publish').outcome == SUCCESS
 
         resultpub.task(':prjCartridge_prod:zipStaticFiles') == null
-        resultpub.task(':prjCartridge_prod:writeCartridgeDescriptor') == null
+        resultpub.task(':prjCartridge_prod:writeCartridgeDescriptor').outcome == SUCCESS
         resultpub.task(':prjCartridge_prod:generateMetadataFileForIshmvnPublication').outcome == SUCCESS
         resultpub.task(':prjCartridge_prod:generatePomFileForIshmvnPublication').outcome == SUCCESS
         resultpub.task(':prjCartridge_prod:publishIshmvnPublicationToMavenRepository').outcome == SUCCESS

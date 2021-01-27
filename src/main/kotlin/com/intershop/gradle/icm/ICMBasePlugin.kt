@@ -18,6 +18,7 @@
 package com.intershop.gradle.icm
 
 import com.intershop.gradle.icm.cartridge.CartridgePlugin
+import com.intershop.gradle.icm.cartridge.ContainerPlugin
 import com.intershop.gradle.icm.cartridge.ProductPlugin
 import com.intershop.gradle.icm.cartridge.TestPlugin
 import com.intershop.gradle.icm.extension.IntershopExtension
@@ -153,6 +154,7 @@ open class ICMBasePlugin: Plugin<Project> {
                         }
                     }
 
+                    // can be removed if appserver reads the file from ressources
                     cp.from(sub.tasks.getByName(WriteCartridgeDescriptor.DEFAULT_NAME)) { cps ->
                         intoRelease(cps, sub)
                     }
@@ -171,6 +173,13 @@ open class ICMBasePlugin: Plugin<Project> {
                 }
 
                 sub.plugins.withType(ProductPlugin::class.java) {
+                    sub.plugins.withType(IsmlPlugin::class.java) {
+                        createMainPackage.configure { mainpkg -> pkgDependsOn(mainpkg, sub) }
+                    }
+                    createMainPackage.configure { mainpkg -> mainpkg.with(cartridgefiles) }
+                }
+
+                sub.plugins.withType(ContainerPlugin::class.java) {
                     sub.plugins.withType(IsmlPlugin::class.java) {
                         createMainPackage.configure { mainpkg -> pkgDependsOn(mainpkg, sub) }
                     }

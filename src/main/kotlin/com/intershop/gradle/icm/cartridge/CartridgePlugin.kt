@@ -26,6 +26,7 @@ import org.gradle.api.Project
 import org.gradle.api.UnknownTaskException
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.TaskContainer
+import org.gradle.language.jvm.tasks.ProcessResources
 
 /**
  * The base cartridge plugin applies all basic
@@ -94,6 +95,14 @@ open class CartridgePlugin : Plugin<Project> {
             } catch(ex: UnknownTaskException) {
                 project.logger.info("Task {} is not available.", ICMBasePlugin.TASK_WRITECARTRIDGEFILES)
             }
+
+            project.tasks.withType(ProcessResources::class.java) {
+                it.dependsOn(taskWriteCartridgeDescriptor)
+
+                it.from(taskWriteCartridgeDescriptor.get().outputFile)
+                it.into("META-INF")
+            }
+
             if(project.hasProperty("classpath.file.enabled") && project.property("classpath.file.enabled") == "true") {
                 if (!checkForTask(project.tasks, WriteCartridgeClasspath.DEFAULT_NAME)) {
                     val taskWriteCartridgeClasspath = project.tasks.register(
