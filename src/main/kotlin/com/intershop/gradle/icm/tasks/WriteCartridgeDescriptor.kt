@@ -51,7 +51,6 @@ open class WriteCartridgeDescriptor
                              objectFactory: ObjectFactory ) : DefaultTask() {
 
     private val outputFileProperty: RegularFileProperty = objectFactory.fileProperty()
-    private val versionProperty: Property<String> = objectFactory.property(String::class.java)
     private val nameProperty: Property<String> = objectFactory.property(String::class.java)
     private val descriptionProperty: Property<String> = objectFactory.property(String::class.java)
     private val displayNameProperty: Property<String> = objectFactory.property(String::class.java)
@@ -70,19 +69,6 @@ open class WriteCartridgeDescriptor
         nameProperty.convention(project.name)
         displayNameProperty.convention(project.description ?: project.name)
     }
-
-    /**
-     * Set provider for descriptor version property.
-     *
-     * @param cartridgeVersion set provider for project version.
-     */
-    @Suppress( "unused")
-    fun provideCartridgeVersion(cartridgeVersion: Provider<String>) = versionProperty.set(cartridgeVersion)
-
-    @get:Input
-    var cartridgeVersion: String
-        get() = versionProperty.getOrElse(project.version.toString())
-        set(value) = versionProperty.set(value)
 
     /**
      * Set provider for descriptor cartridge name property.
@@ -195,7 +181,6 @@ open class WriteCartridgeDescriptor
         props["cartridge.dependsOn.transitive"] = cartridgesTransitive.toSortedSet().joinToString( separator = ";" )
 
         props["cartridge.name"] = cartridgeName
-        props["cartridge.version"] = cartridgeVersion
         props["cartridge.displayName"] = displayName
         if(! descriptionProperty.isPresent || descriptionProperty.getOrElse("") == "") {
             if(project.description != "") {
