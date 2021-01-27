@@ -34,5 +34,7 @@ jobs:
     - name: Build with Gradle
       run: ./gradlew test build -s --scan
     - name: Runs only if Git tag exists
-      run: ./gradlew -PrunOnCI=true test build :bintrayUpload :publishPlugins -s --scan
-      if:github.tag != ''
+      run: echo 'A tag name is available"
+      if: github.tag != ''
+        steps:
+          - run: ./gradlew -PrunOnCI=true test build :bintrayUpload :publishPlugins -s --scan
