@@ -6,6 +6,11 @@ name: Java CI with Gradle
 on:
   push:
     branches: [ master ]
+    tags:
+      - '*'
+  create:
+    tags:
+      - '*'
   pull_request:
     branches: [ master ]
 
@@ -22,5 +27,12 @@ jobs:
         java-version: 1.8
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
+    - name: Create gradle sproperties
+      run: echo -e "gradle.publish.key=$APIKEY\ngradle.publish.secret=$APISECRET" > $HOME/.gradle/gradle.properties
+    - name: Check if Git tag exists
+      run: echo "::set-env name=HEAD_TAG::$(git tag --points-at HEAD)"
     - name: Build with Gradle
-      run: ./gradlew build
+      run: ./gradlew test build -s --scan
+    - name: Runs only if Git tag exists
+      run: ./gradlew -PrunOnCI=true test build :bintrayUpload :publishPlugins -s --scan
+      if:github.tag != ''
