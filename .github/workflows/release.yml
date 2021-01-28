@@ -22,6 +22,9 @@ jobs:
         with:
           java-version: 1.8
       - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - run: git fetch --all --tag
       - name: Create gradle sproperties
         run: echo -e "gradle.publish.key=$APIKEY\ngradle.publish.secret=$APISECRET" > $HOME/.gradle/gradle.properties
       - name: Run gradle

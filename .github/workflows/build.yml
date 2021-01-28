@@ -20,5 +20,8 @@ jobs:
         with:
           java-version: 1.8
       - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - run: git fetch --all --tags
       - name: Build with Gradle
         run: ./gradlew test build -s --scan
