@@ -5,7 +5,8 @@ name: Java CI with Gradle
 
 on:
   push:
-    branches: [ master ]
+    branches:
+      - '*'
     tags:
       - '*'
   create:
@@ -46,5 +47,5 @@ jobs:
         run: chmod +x gradlew
       - name: Create gradle sproperties
         run: echo -e "gradle.publish.key=$APIKEY\ngradle.publish.secret=$APISECRET" > $HOME/.gradle/gradle.properties
-      - name: Check if Git tag exists
-        run: echo "::set-env name=HEAD_TAG::$(git tag --points-at HEAD)"
+      - name: Run gradle
+        run: ./gradlew -PrunOnCI=true test build :bintrayUpload :publishPlugins -s --scan
