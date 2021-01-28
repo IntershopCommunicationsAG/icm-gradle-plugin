@@ -84,21 +84,6 @@ open class WriteCartridgeDescriptor
         set(value) = nameProperty.set(value)
 
     /**
-     * Set provider for descriptor cartridge description property.
-     *
-     * @param cartridgeDescription set provider for cartridge description.
-     */
-    @Suppress( "unused")
-    fun provideCartridgeDescription(cartridgeDescription: Provider<String>) =
-        descriptionProperty.set(cartridgeDescription)
-
-    @get:Optional
-    @get:Input
-    var cartridgeDescription: String
-        get() = descriptionProperty.getOrElse("")
-        set(value) = descriptionProperty.set(value)
-
-    /**
      * Set provider for descriptor display name property.
      *
      * @param displayName set provider for display name.
@@ -182,11 +167,8 @@ open class WriteCartridgeDescriptor
 
         props["cartridge.name"] = cartridgeName
         props["cartridge.displayName"] = displayName
-        if(! descriptionProperty.isPresent || descriptionProperty.getOrElse("") == "") {
-            if(project.description != "") {
-                props["cartridge.description"] = project.description ?: project.name
-            }
-        }
+        props["cartridge.description"] = displayName
+        props["cartridge.version"] = project.version.toString()
 
         val propsObject = Properties()
         propsObject.putAll(props)
