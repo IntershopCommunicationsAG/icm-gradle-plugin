@@ -23,5 +23,7 @@ jobs:
         with:
           fetch-depth: 0
       - run: git fetch --all --tags
-      - name: Build with Gradle
+      - name: Run gradle 1
+        run: ./gradlew assemble
+      - name: Build with Gradle 2
         run: ./gradlew test build -s --scan

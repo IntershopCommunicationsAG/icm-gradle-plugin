@@ -25,7 +25,9 @@ jobs:
         with:
           fetch-depth: 0
       - run: git fetch --all --tag
+      - name: Run gradle 1
+        run: ./gradlew assemble
       - name: Create gradle sproperties
         run: echo -e "gradle.publish.key=$APIKEY\ngradle.publish.secret=$APISECRET" > $HOME/.gradle/gradle.properties
-      - name: Run gradle
+      - name: Run gradle 2
         run: ./gradlew -PrunOnCI=true test build :bintrayUpload :publishPlugins -s --scan
