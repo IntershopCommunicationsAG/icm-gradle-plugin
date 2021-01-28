@@ -27,7 +27,7 @@ jobs:
       - name: check env
         env:
           BINTRAY_USER: ${{ secrests.BINTRAY_USER }}
-          run: echo "${BINTRAY_USER}"
+        run: echo "${BINTRAY_USER}"
       - name: Create gradle sproperties
         run: echo -e "gradle.publish.key=$APIKEY\ngradle.publish.secret=$APISECRET" > $HOME/.gradle/gradle.properties
       - name: Run gradle 2
