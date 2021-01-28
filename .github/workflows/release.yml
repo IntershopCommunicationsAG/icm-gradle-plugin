@@ -7,9 +7,6 @@ on:
   push:
     tags:
       - '*'
-  create:
-    tags:
-      - '*'
 
 jobs:
   release:
