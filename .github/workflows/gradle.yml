@@ -17,8 +17,6 @@ on:
 
 jobs:
   build:
-    environment: CI
-
     if: github.tag == ''
 
     runs-on: ubuntu-latest
@@ -35,7 +33,7 @@ jobs:
       run: ./gradlew test build -s --scan
 
   release:
-    environment: CI
+    environment: CIRelease
 
     if: github.tag != ''
 
