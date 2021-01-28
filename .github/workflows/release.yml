@@ -29,6 +29,12 @@ jobs:
           BINTRAY_USER: ${{ secrets.BINTRAY_USER }}
         run: echo "${BINTRAY_USER}"
       - name: Create gradle sproperties
+        env:
+          APIKEY: ${{ secrets.APIKEY }}
+          APISECRET: ${{ secrets.APISECRET }}
         run: echo -e "gradle.publish.key=$APIKEY\ngradle.publish.secret=$APISECRET" > $HOME/.gradle/gradle.properties
       - name: Run gradle 2
+        env:
+          BINTRAY_USER: ${{ secrets.BINTRAY_USER }}
+          BINTRAY_KEY: ${{ secrets.BINTRAY_KEY }}
         run: ./gradlew -PrunOnCI=true test build :bintrayUpload :publishPlugins -s --scan
