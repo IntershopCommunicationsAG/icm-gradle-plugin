@@ -85,7 +85,7 @@ open class ICMBasePlugin: Plugin<Project> {
                     }
                 }
 
-                configureClusterIdTask(extension)
+                configureClusterIdTask()
                 configureCreateServerInfoPropertiesTask(extension)
 
                 if(! checkForTask(tasks, TASK_ALLDEPENDENCIESREPORT)) {
