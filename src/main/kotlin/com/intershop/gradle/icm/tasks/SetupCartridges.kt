@@ -187,7 +187,7 @@ open class SetupCartridges @Inject constructor(
                 val jarFile = getJarFileFor(dependency)
                 project.logger.debug("{}: Process jar file {}.", dependency.name, jarFile)
                 fsOps.run {
-                    sync {
+                    copy {
                         it.from(jarFile)
                         it.into(File(target, "${dependency.name}/release/lib/"))
                     }
