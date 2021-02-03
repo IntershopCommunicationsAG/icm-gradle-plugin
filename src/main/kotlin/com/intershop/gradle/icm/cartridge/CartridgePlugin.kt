@@ -98,7 +98,9 @@ open class CartridgePlugin : Plugin<Project> {
 
             project.tasks.withType(ProcessResources::class.java) {
                 it.dependsOn(taskWriteCartridgeDescriptor)
-                it.from(taskWriteCartridgeDescriptor.get().outputFile).into("META-INF/${project.name}")
+                it.from(taskWriteCartridgeDescriptor.get().outputFile) { cs ->
+                    cs.into("META-INF/${project.name}")
+                }
             }
 
             if(project.hasProperty("classpath.file.enabled") && project.property("classpath.file.enabled") == "true") {
