@@ -24,7 +24,10 @@ import com.intershop.gradle.icm.tasks.WriteCartridgeDescriptor
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.UnknownTaskException
+import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPlugin
+import org.gradle.api.plugins.JavaPluginConvention
+import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.language.jvm.tasks.ProcessResources
 
@@ -84,9 +87,16 @@ open class CartridgePlugin : Plugin<Project> {
             val taskWriteCartridgeDescriptor = project.tasks.register(
                 WriteCartridgeDescriptor.DEFAULT_NAME,
                 WriteCartridgeDescriptor::class.java
-                ) {
-                    it.dependsOn(cartridge, cartridgeRuntime)
+                ) { task ->
+                task.dependsOn(cartridge, cartridgeRuntime)
+
+                project.tasks.withType(ProcessResources::class.java) {
+                    it.dependsOn(task)
+                    it.from(task.outputFile) { cs ->
+                        cs.into("META-INF/${project.name}")
+                    }
                 }
+            }
 
             try {
                 project.rootProject.tasks.named(ICMBasePlugin.TASK_WRITECARTRIDGEFILES).configure { task ->
@@ -94,13 +104,6 @@ open class CartridgePlugin : Plugin<Project> {
                 }
             } catch(ex: UnknownTaskException) {
                 project.logger.info("Task {} is not available.", ICMBasePlugin.TASK_WRITECARTRIDGEFILES)
-            }
-
-            project.tasks.withType(ProcessResources::class.java) {
-                it.dependsOn(taskWriteCartridgeDescriptor)
-                it.from(taskWriteCartridgeDescriptor.get().outputFile) { cs ->
-                    cs.into("META-INF/${project.name}")
-                }
             }
 
             if(project.hasProperty("classpath.file.enabled") && project.property("classpath.file.enabled") == "true") {
