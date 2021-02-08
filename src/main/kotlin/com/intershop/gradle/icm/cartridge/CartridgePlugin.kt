@@ -26,6 +26,7 @@ import org.gradle.api.Project
 import org.gradle.api.UnknownTaskException
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPlugin
+import org.gradle.api.plugins.JavaPlugin.PROCESS_RESOURCES_TASK_NAME
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.TaskContainer
@@ -84,17 +85,19 @@ open class CartridgePlugin : Plugin<Project> {
             cartridgeRuntime.extendsFrom(cartridge)
             cartridgeRuntime.isTransitive = true
 
+            val prTask = project.tasks.named(PROCESS_RESOURCES_TASK_NAME, ProcessResources::class.java)
+
             val taskWriteCartridgeDescriptor = project.tasks.register(
                 WriteCartridgeDescriptor.DEFAULT_NAME,
                 WriteCartridgeDescriptor::class.java
                 ) { task ->
                 task.dependsOn(cartridge, cartridgeRuntime)
+            }
 
-                project.tasks.withType(ProcessResources::class.java) {
-                    it.dependsOn(task)
-                    it.from(task.outputFile) { cs ->
-                        cs.into("META-INF/${project.name}")
-                    }
+            prTask.configure {
+                it.dependsOn(taskWriteCartridgeDescriptor)
+                it.from(taskWriteCartridgeDescriptor) { cs ->
+                    cs.into("META-INF/${project.name}")
                 }
             }
 
