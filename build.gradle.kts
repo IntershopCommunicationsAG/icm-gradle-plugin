@@ -62,6 +62,9 @@ group = "com.intershop.gradle.icm"
 description = "Intershop Commerce Management Plugins"
 version = scm.version.version
 
+val sonatypeUsername: String by project
+val sonatypePassword: String? by project
+
 repositories {
     mavenCentral()
 }
@@ -290,6 +293,17 @@ publishing {
                     developerConnection.set("scm:git:ssh://example.com/my-library.git")
                     url.set("http://example.com/my-library/")
                 }
+            }
+        }
+    }
+    repositories {
+        maven {
+            val releasesRepoUrl = "https://oss.sonatype.org/service/local/staging/deploy/maven2"
+            val snapshotsRepoUrl = "https://oss.sonatype.org/content/repositories/snapshots"
+            url = uri(if (version.toString().endsWith("SNAPSHOT")) snapshotsRepoUrl else releasesRepoUrl)
+            credentials {
+                username = sonatypeUsername
+                password = sonatypePassword
             }
         }
     }
