@@ -12,6 +12,7 @@ on:
 
 jobs:
   build:
+    environment: CIRelease
     runs-on: ubuntu-latest
 
     steps:
@@ -23,7 +24,34 @@ jobs:
         with:
           fetch-depth: 0
       - run: git fetch --all --tags
-      - name: Run gradle 1
-        run: ./gradlew assemble
-      - name: Build with Gradle 2
-        run: ./gradlew test build -s --scan
+
+      - name: Create .gradle dir
+        run: mkdir -p $HOME/.gradle
+      - name: Install gpg secret key
+        env:
+          SIGNINGFILE: ${{ secrets.SIGNINGFILE }}
+        run: |
+          cat <(echo -e "${{ secrets.SIGNINGFILE }}") | gpg --batch --import
+          gpg --list-secret-keys --keyid-format LONG
+      - name: Export gpg file
+        env:
+          SIGNINGKEYID: ${{ secrets.SIGNINGKEYID }}
+          SIGNINGPASSWORD: ${{ secrets.SIGNINGPASSWORD }}
+        run: |
+          gpg --batch --passphrase="$SIGNINGPASSWORD" --pinentry-mode loopback --export-secret-keys $SIGNINGKEYID > $HOME/.gradle/secrets.gpg
+      - name: Create gradle sproperties
+        env:
+          APIKEY: ${{ secrets.APIKEY }}
+          APISECRET: ${{ secrets.APISECRET }}
+          SIGNINGKEYID: ${{ secrets.SIGNINGKEYID }}
+          SIGNINGPASSWORD: ${{ secrets.SIGNINGPASSWORD }}
+          SONATYPEPASSWORD: ${{ secrets.SONATYPEPASSWORD }}
+          SONATYPEUSER: ${{ secrets.SONATYPEUSER }}
+        run: echo -e "gradle.publish.key=$APIKEY\ngradle.publish.secret=$APISECRET\nsigning.keyId=$SIGNINGKEYID\nsigning.password=$SIGNINGPASSWORD\nsigning.secretKeyRingFile=$HOME/.gradle/secrets.gpg\nsonatypeUsername=$SONATYPEUSER\nsonatypePassword=$SONATYPEPASSWORD" > $HOME/.gradle/gradle.properties
+      - name: Build and test with Gradle
+        env:
+          JAVA_OPTS: "-Xmx1024M -XX:MaxPermSize=512M -XX:ReservedCodeCacheSize=512M"
+          GRADLE_OPTS: "-Dorg.gradle.daemon=true"
+        run: ./gradlew test build :publishIntershopMvnPublicationToMavenRepository -s --scan
+      - name: Post Build
+        run: rm -f $HOME/.gradle/gradle.properties && rm -f $HOME/.docker/config.json
