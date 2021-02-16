@@ -67,6 +67,7 @@ val sonatypePassword: String? by project
 
 repositories {
     mavenCentral()
+    jcenter()
 }
 
 gradlePlugin {
