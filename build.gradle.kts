@@ -290,9 +290,9 @@ publishing {
                     }
                 }
                 scm {
-                    connection.set("scm:git:git://example.com/my-library.git")
-                    developerConnection.set("scm:git:ssh://example.com/my-library.git")
-                    url.set("http://example.com/my-library/")
+                    connection.set("git@github.com:IntershopCommunicationsAG/${project.name}.git")
+                    developerConnection.set("git@github.com:IntershopCommunicationsAG/${project.name}.git")
+                    url.set("https://github.com/IntershopCommunicationsAG/${project.name}")
                 }
             }
         }
