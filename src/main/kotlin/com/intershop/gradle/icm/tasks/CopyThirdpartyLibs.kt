@@ -35,7 +35,7 @@ import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
-import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactIdentifier
+import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier
 import javax.inject.Inject
 
 /**
@@ -123,23 +123,18 @@ open class CopyThirdpartyLibs @Inject constructor(
 
         project.configurations.getByName(RUNTIME_CLASSPATH_CONFIGURATION_NAME)
             .resolvedConfiguration.resolvedArtifacts.forEach { artifact ->
-            if (artifact.id is DefaultModuleComponentArtifactIdentifier) {
+            if (artifact.id is ModuleComponentArtifactIdentifier) {
+                val identifier : ModuleComponentArtifactIdentifier = artifact.id as ModuleComponentArtifactIdentifier
+                val id = "${identifier.componentIdentifier.group}-" +
+                         "${identifier.componentIdentifier.module}-" +
+                         identifier.componentIdentifier.version
+                val name = "${id}.${artifact.type}"
 
-                val identifier = artifact.id
-                if(identifier is DefaultModuleComponentArtifactIdentifier) {
-                    val id = "${identifier.componentIdentifier.group}-" +
-                             "${identifier.componentIdentifier.module}-" +
-                             identifier.componentIdentifier.version
-                    val name = "${id}.${artifact.type}"
-
-                    if(! CartridgeUtil.isCartridge(project, identifier.componentIdentifier) && ! libs.contains(id)) {
-                        artifact.file.copyTo(
-                            outputDir.file(name).get().asFile,
-                            overwrite = true
-                        )
-                    }
-                } else {
-                    throw GradleException("Artifact ID is not a module identifier.")
+                if(! CartridgeUtil.isCartridge(project, identifier.componentIdentifier) && ! libs.contains(id)) {
+                    artifact.file.copyTo(
+                        outputDir.file(name).get().asFile,
+                        overwrite = true
+                    )
                 }
             }
         }

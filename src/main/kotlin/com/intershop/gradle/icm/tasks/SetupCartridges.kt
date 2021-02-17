@@ -39,7 +39,7 @@ import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
-import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactIdentifier
+import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier
 import java.io.File
 import javax.inject.Inject
 
@@ -261,23 +261,19 @@ open class SetupCartridges @Inject constructor(
         project.logger.debug("Resolve dependencies for $dep")
 
         dcfg.resolvedConfiguration.resolvedArtifacts.forEach { artifact ->
-            if (artifact.id is DefaultModuleComponentArtifactIdentifier) {
-                val identifier = artifact.id
-                if(identifier is DefaultModuleComponentArtifactIdentifier) {
-                    val id = CartridgeUtil.getFileIDFrom(identifier.componentIdentifier)
-                    val name = "${id}.${artifact.type}"
+            if (artifact.id is ModuleComponentArtifactIdentifier) {
+                val identifier : ModuleComponentArtifactIdentifier = artifact.id as ModuleComponentArtifactIdentifier
+                val id = CartridgeUtil.getFileIDFrom(identifier.componentIdentifier)
+                val name = "${id}.${artifact.type}"
 
-                    if(! CartridgeUtil.isCartridge(project, identifier.componentIdentifier) && ! filter.contains(id)) {
-                        logger.debug("Add artifact {} with name '{}'", artifact.file, name)
-                        files[artifact.file] = name
-                    } else {
-                        logger.debug("Add artifact {} with name '{}' was not added.", artifact.file, name)
-                    }
+                if(! CartridgeUtil.isCartridge(project, identifier.componentIdentifier) && ! filter.contains(id)) {
+                    logger.debug("Add artifact {} with name '{}'", artifact.file, name)
+                    files[artifact.file] = name
                 } else {
-                    throw GradleException("Artifact ID is not a module identifier.")
+                    logger.debug("Add artifact {} with name '{}' was not added.", artifact.file, name)
                 }
             } else {
-                logger.debug("Artifact id {} is not a DefaultModuleComponentArtifactIdentifier", artifact.id)
+                throw GradleException("Artifact ID is not a module identifier.")
             }
         }
 

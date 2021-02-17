@@ -193,7 +193,7 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
             }
             
             repositories {
-                jcenter()
+                mavenCentral()
             }
             """.stripIndent()
 
@@ -211,10 +211,18 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
             implementation 'io.prometheus:simpleclient:0.6.0'
             implementation 'io.prometheus:simpleclient_hotspot:0.6.0'
             implementation 'io.prometheus:simpleclient_servlet:0.6.0'
+            
+            implementation "junit:junit:4.13.1"
+            implementation "org.junit.jupiter:junit-jupiter:5.7.0"
+            implementation "org.junit.jupiter:junit-jupiter-api:5.7.0"
+            implementation "org.junit.jupiter:junit-jupiter-params:5.7.0"
+            implementation "org.junit.platform:junit-platform-commons:1.7.0"
+            implementation "org.junit.platform:junit-platform-runner:1.7.0"
+            implementation "org.junit.vintage:junit-vintage-engine:5.7.0"
         } 
         
         repositories {
-            jcenter()
+            mavenCentral()
         }
         """.stripIndent())
 
@@ -225,6 +233,7 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         }
         
         dependencies {
+            implementation project(":testCartridge1")
             implementation 'org.codehaus.janino:janino:2.5.16'
             implementation 'org.codehaus.janino:commons-compiler:3.0.6'
             implementation 'ch.qos.logback:logback-core:1.2.3'
@@ -233,7 +242,7 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         } 
         
         repositories {
-            jcenter()
+            mavenCentral()
         }        
         """.stripIndent())
 
@@ -250,8 +259,16 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         result.task(':testCartridge1:copyThirdpartyLibs').outcome == SUCCESS
         result.task(':testCartridge2:copyThirdpartyLibs').outcome == SUCCESS
 
-        file("testCartridge2/build/lib/ch.qos.logback-logback-classic-1.2.3.jar").exists()
-        file("testCartridge1/build/lib/com.google.inject-guice-4.0.jar").exists()
+        (new File(testProjectDir,"testCartridge2/build/lib/ch.qos.logback-logback-classic-1.2.3.jar")).exists()
+        (new File(testProjectDir,"testCartridge1/build/lib/com.google.inject-guice-4.0.jar")).exists()
+
+        (new File(testProjectDir,"testCartridge1/build/lib/junit-junit-4.13.1.jar")).exists()
+        (new File(testProjectDir,"testCartridge1/build/lib/org.junit.jupiter-junit-jupiter-5.7.0.jar")).exists()
+        (new File(testProjectDir,"testCartridge1/build/lib/org.junit.jupiter-junit-jupiter-api-5.7.0.jar")).exists()
+        (new File(testProjectDir,"testCartridge1/build/lib/org.junit.jupiter-junit-jupiter-params-5.7.0.jar")).exists()
+        (new File(testProjectDir,"testCartridge1/build/lib/org.junit.platform-junit-platform-commons-1.7.0.jar")).exists()
+        (new File(testProjectDir,"testCartridge1/build/lib/org.junit.platform-junit-platform-runner-1.7.0.jar")).exists()
+        (new File(testProjectDir,"testCartridge1/build/lib/org.junit.vintage-junit-vintage-engine-5.7.0.jar")).exists()
 
         when:
         def result2 = getPreparedGradleRunner()
@@ -282,7 +299,7 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
             version = "1.0.0"
             
             repositories {
-                jcenter()
+                mavenCentral()
             }
             """.stripIndent()
 
@@ -303,7 +320,7 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         } 
         
         repositories {
-            jcenter()
+            mavenCentral()
         }
         """.stripIndent())
 
@@ -319,7 +336,7 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         } 
         
         repositories {
-            jcenter()
+            mavenCentral()
         }        
         """.stripIndent())
 
@@ -394,7 +411,7 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
             version = "1.0.0"
             
             repositories {
-                jcenter()
+                mavenCentral()
             }
             """.stripIndent()
 
@@ -413,7 +430,7 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
             } 
             
             repositories {
-                jcenter()
+                mavenCentral()
             }
             """.stripIndent())
 
@@ -433,7 +450,7 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
             } 
                 
             repositories {
-                jcenter()
+                mavenCentral()
             }
             """.stripIndent())
 
@@ -453,7 +470,7 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
             } 
                 
             repositories {
-                jcenter()
+                mavenCentral()
             }
             """.stripIndent())
 
@@ -489,7 +506,7 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
             version = "1.0.0"
 
             repositories {
-                jcenter()
+                mavenCentral()
             }
             """.stripIndent()
 
@@ -510,7 +527,7 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
             } 
             
             repositories {
-                jcenter()
+                mavenCentral()
             }
             """.stripIndent())
 
@@ -530,7 +547,7 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
             } 
                 
             repositories {
-                jcenter()
+                mavenCentral()
             }
             """.stripIndent())
 
@@ -555,7 +572,7 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
             } 
                 
             repositories {
-                jcenter()
+                mavenCentral()
             }
             """.stripIndent())
 
@@ -595,7 +612,7 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
             version = "1.0.0"
 
             repositories {
-                jcenter()
+                mavenCentral()
             }
             """.stripIndent()
 
@@ -614,7 +631,7 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
             } 
             
             repositories {
-                jcenter()
+                mavenCentral()
             }
             """.stripIndent())
 
@@ -634,7 +651,7 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
             } 
                 
             repositories {
-                jcenter()
+                mavenCentral()
             }
             """.stripIndent())
 
@@ -654,7 +671,7 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
             } 
                 
             repositories {
-                jcenter()
+                mavenCentral()
             }
             """.stripIndent())
 
@@ -676,7 +693,7 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
             } 
                 
             repositories {
-                jcenter()
+                mavenCentral()
             }
             """.stripIndent())
 
@@ -700,7 +717,7 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
             } 
                 
             repositories {
-                jcenter()
+                mavenCentral()
             }
             """.stripIndent())
 
@@ -722,7 +739,7 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
             } 
                 
             repositories {
-                jcenter()
+                mavenCentral()
             }
             """.stripIndent())
 
@@ -953,7 +970,7 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         } 
         
         repositories {
-            jcenter()
+            mavenCentral()
         }
         
         publishing {
@@ -983,7 +1000,7 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         } 
         
         repositories {
-            jcenter()
+            mavenCentral()
         } 
         """.stripIndent())
 
@@ -996,7 +1013,7 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         description = "Test cartridge implementation"    
 
         repositories {
-            jcenter()
+            mavenCentral()
         }    
         
         publishing {
@@ -1023,7 +1040,7 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         } 
         
         repositories {
-            jcenter()
+            mavenCentral()
         }     
         
         publishing {
