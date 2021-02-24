@@ -23,6 +23,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ExternalModuleDependency
+import org.gradle.api.attributes.Usage
 import org.gradle.api.file.Directory
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileSystemOperations
@@ -257,8 +258,11 @@ open class SetupCartridges @Inject constructor(
         }
 
         dcfg.isTransitive = true
+        // deal with variants
+        dcfg.attributes.attribute(Usage.USAGE_ATTRIBUTE,
+            project.objects.named(Usage::class.java, Usage.JAVA_API))
 
-        project.logger.debug("Resolve dependencies for $dep")
+        project.logger.info("Resolve dependencies for {}", dep)
 
         dcfg.resolvedConfiguration.resolvedArtifacts.forEach { artifact ->
             if (artifact.id is ModuleComponentArtifactIdentifier) {
