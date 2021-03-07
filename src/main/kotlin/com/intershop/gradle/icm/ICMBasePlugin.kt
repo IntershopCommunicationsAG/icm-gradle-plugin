@@ -28,6 +28,7 @@ import com.intershop.gradle.icm.tasks.CreateInitTestPackage
 import com.intershop.gradle.icm.tasks.CreateMainPackage
 import com.intershop.gradle.icm.tasks.CreateServerInfo
 import com.intershop.gradle.icm.tasks.CreateTestPackage
+import com.intershop.gradle.icm.tasks.WriteCartridgeClasspath
 import com.intershop.gradle.icm.tasks.WriteCartridgeDescriptor
 import com.intershop.gradle.isml.IsmlPlugin
 import org.gradle.api.Plugin
@@ -90,6 +91,11 @@ open class ICMBasePlugin: Plugin<Project> {
 
                 if(! checkForTask(tasks, TASK_ALLDEPENDENCIESREPORT)) {
                     tasks.register(TASK_ALLDEPENDENCIESREPORT, DependencyReportTask::class.java)
+                }
+
+                tasks.register(WriteCartridgeClasspath.DEFAULT_NAME) { task ->
+                    task.group = "ICM cartridge build"
+                    task.description = "Lifecycle task for ICM cartridge build"
                 }
 
                 tasks.register(TASK_WRITECARTRIDGEFILES) { task ->

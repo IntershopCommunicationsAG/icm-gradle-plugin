@@ -132,6 +132,12 @@ gradlePlugin {
             displayName = "icm-external-cartridge"
             description = "The cartridge plugin applies all basic configurations and tasks of an public cartridge (published to Maven)."
         }
+        create("crossprojectICMPlugin") {
+            id = "com.intershop.icm.crossproject"
+            implementationClass = "com.intershop.gradle.icm.CrossProjectDevelopmentPlugin"
+            displayName = "icm-cross-project-development"
+            description = "Plugin for Intershop cross projekt development - necessary for integration development"
+        }
     }
 }
 

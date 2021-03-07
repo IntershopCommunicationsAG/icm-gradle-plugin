@@ -200,7 +200,7 @@ open class WriteCartridgeDescriptor
 
                 val identifier = artifact.id.componentIdentifier
                 if(identifier is ProjectComponentIdentifier) {
-                    cartridges.add(project.project( identifier.projectPath ).name)
+                    cartridges.add(identifier.projectName)
                 }
 
                 if(identifier is ModuleComponentIdentifier) {
