@@ -164,6 +164,7 @@ detekt {
 }
 
 tasks {
+
     withType<Test>().configureEach {
         systemProperty("intershop.gradle.versions", "6.8")
 

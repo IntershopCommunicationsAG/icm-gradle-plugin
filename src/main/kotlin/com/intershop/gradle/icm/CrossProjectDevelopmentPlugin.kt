@@ -16,9 +16,14 @@
  */
 package com.intershop.gradle.icm
 
+import com.intershop.gradle.icm.extension.IntershopExtension
+import com.intershop.gradle.icm.tasks.CreateCartridgeList
+import com.intershop.gradle.icm.tasks.ExtendCartridgeList
 import com.intershop.gradle.icm.tasks.crossproject.WriteMappingFile
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import java.io.File
+import java.util.Properties
 
 /**
  * Special plugin for Intershop internal development.
@@ -33,6 +38,34 @@ class CrossProjectDevelopmentPlugin: Plugin<Project> {
                 this.tasks.register("writeMapping", WriteMappingFile::class.java).configure {
                     group = "ICM Cross-Project Development"
                     description = "Writes settings.gradle.kts file for composite builds"
+                }
+
+                val projectConfig = project.extensions.getByType(IntershopExtension::class.java).projectConfig
+
+                // check for configuration file in main dir
+                val confFile = File(projectDir, "../icm-cross-project/conf/crossprjconfig.properties")
+                val confprops = Properties()
+                if(confFile.exists()) {
+                    confprops.load(confFile.inputStream())
+                }
+                val cartridglistFile = confprops.getProperty("cartridgelist", "")
+                if(cartridglistFile.isNotBlank()) {
+                    val templateFile = File(cartridglistFile)
+                    this.tasks.register("prepareCartridgeList", ExtendCartridgeList::class.java).configure {
+                        it.group = "ICM Cross-Project Development"
+                        it.description = "Generates an cartridgelist.properties file for cross project development"
+
+                        it.templateFile.set(templateFile)
+
+                        it.provideCartridges(projectConfig.cartridges)
+                        it.provideDBprepareCartridges(projectConfig.dbprepareCartridges)
+                        it.environmentTypes.set(ICMProjectPlugin.DEVELOPMENT_ENVS)
+
+                        it.outputFile.set(File(projectDir, "../icm-cross-project/conf/cartridgelist.properties"))
+                    }
+                } else {
+                    this.logger.quiet("There is currently no configuration for the" +
+                            "cartridges list properties file template!")
                 }
             }
         }

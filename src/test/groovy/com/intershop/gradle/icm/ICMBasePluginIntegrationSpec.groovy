@@ -21,6 +21,7 @@ import com.intershop.gradle.icm.tasks.CreateInitTestPackage
 import com.intershop.gradle.icm.tasks.CreateMainPackage
 import com.intershop.gradle.icm.tasks.CreateTestPackage
 import com.intershop.gradle.icm.tasks.CreateServerInfo
+
 import com.intershop.gradle.test.AbstractIntegrationGroovySpec
 import org.gradle.testkit.runner.TaskOutcome
 import spock.lang.Ignore
@@ -122,6 +123,7 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
             intershop {
             }
+            
         """.stripIndent()
 
         when:
