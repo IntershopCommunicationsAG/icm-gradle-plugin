@@ -16,6 +16,7 @@
  */
 package com.intershop.gradle.icm.tasks.crossproject
 
+import com.intershop.gradle.icm.CrossProjectDevelopmentPlugin.Companion.CROSSPRJ_CONFPATH
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.ProjectLayout
@@ -25,9 +26,9 @@ import org.gradle.api.tasks.TaskAction
 import java.io.File
 import javax.inject.Inject
 
-open class WriteMappingFile @Inject constructor(
-    projectLayout: ProjectLayout,
-    objectFactory: ObjectFactory): DefaultTask() {
+open class WriteMappingFile
+    @Inject constructor(projectLayout: ProjectLayout,
+                        objectFactory: ObjectFactory): DefaultTask() {
 
     /**
      * Output file for generated cluster id.
@@ -41,7 +42,7 @@ open class WriteMappingFile @Inject constructor(
         group = "ICM Cross-Project Development"
         description = "Creates mappings files, like settings.gradle.kts include files."
 
-        outputDir.convention(projectLayout.projectDirectory.dir("../icm-cross-project/conf/${project.name}"))
+        outputDir.convention(projectLayout.projectDirectory.dir("${CROSSPRJ_CONFPATH}/${project.name}"))
     }
 
     @TaskAction
