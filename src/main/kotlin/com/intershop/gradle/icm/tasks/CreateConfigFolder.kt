@@ -78,7 +78,8 @@ open class CreateConfigFolder
             classifier = "configuration",
             copySpec = cs,
             filePackage = baseProject.get().configPackage,
-            excludes = listOf("**/cluster/${CARTRIDGELIST_FILENAME}", "**/cluster/${VERSIONINFO_FILENAME}"))
+            excludes = listOf("**/cluster/${CARTRIDGELIST_FILENAME}", "**/cluster/${VERSIONINFO_FILENAME}"),
+            fileBase = null)
         modules.get().forEach { prj ->
             PackageUtil.addPackageToCS(
                 project = project,
@@ -86,7 +87,8 @@ open class CreateConfigFolder
                 classifier = "configuration",
                 copySpec = cs,
                 filePackage = prj.configPackage,
-                excludes = listOf("**/cluster/${CARTRIDGELIST_FILENAME}", "**/cluster/${VERSIONINFO_FILENAME}"))
+                excludes = listOf("**/cluster/${CARTRIDGELIST_FILENAME}", "**/cluster/${VERSIONINFO_FILENAME}"),
+                fileBase = null)
         }
 
         val fileCS = project.copySpec()
