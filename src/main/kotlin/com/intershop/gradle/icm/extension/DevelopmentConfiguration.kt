@@ -111,10 +111,14 @@ open class DevelopmentConfiguration
             }
 
             if (licDirPath == null) {
+                logger.warn("The default value is used for license directory, because there is no " +
+                        "other value specified.")
                 licDirPath = File(File(gradleUserHomePath), DEFAULT_LIC_PATH).absolutePath
             }
 
             if (configDirPath == null) {
+                logger.warn("The default value is used for configuration directory, because there is no " +
+                        "other value specified.")
                 configDirPath = File(File(gradleUserHomePath), DEFAULT_CONFIG_PATH).absolutePath
             }
 
@@ -138,11 +142,20 @@ open class DevelopmentConfiguration
                 }
             }
 
+            val licFile = File(licenseDirectory, LICENSE_FILE_NAME)
+            if (! licFile.exists() && ! licFile.canRead()) {
+                logger.error("The File {} does not exists." +
+                        "Please specify the directory with the license file with LICENSEDIR environment or" +
+                        "with 'licenseDir' Gradle Property or system variable.", licFile.absolutePath)
+            }
+
             val configFile = File(configDirectory, CONFIG_FILE_NAME)
             if (configFile.exists() && configFile.canRead()) {
                 configProperties.load(configFile.inputStream())
             } else {
-                logger.warn("File '{}' does not exists!", configFile.absolutePath)
+                logger.error("The file {} does not exists." +
+                        "Please specify the configuration directory with CONFIGDIR environment or" +
+                        "with 'configDir' Gradle Property or system variable.", configFile.absolutePath)
             }
         }
     }

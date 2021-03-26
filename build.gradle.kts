@@ -3,7 +3,7 @@ import org.jetbrains.dokka.gradle.DokkaTask
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 /*
- * Copyright 2019 Intershop Communications AG.
+ * Copyright 2021 Intershop Communications AG.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -164,6 +164,7 @@ detekt {
 }
 
 tasks {
+
     withType<Test>().configureEach {
         systemProperty("intershop.gradle.versions", "6.8")
 

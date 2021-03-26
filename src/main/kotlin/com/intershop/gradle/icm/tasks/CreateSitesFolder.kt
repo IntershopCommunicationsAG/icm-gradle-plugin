@@ -50,7 +50,8 @@ open class CreateSitesFolder
             classifier = "sites",
             copySpec = cs,
             filePackage = baseProject.get().sitesPackage,
-            excludes = listOf())
+            excludes = listOf(),
+            fileBase = null)
         modules.get().forEach { prj ->
             PackageUtil.addPackageToCS(
                 project = project,
@@ -58,7 +59,8 @@ open class CreateSitesFolder
                 classifier = "sites",
                 copySpec = cs,
                 filePackage = prj.sitesPackage,
-                excludes = listOf())
+                excludes = listOf(),
+                fileBase = null)
         }
     }
 

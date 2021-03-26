@@ -81,11 +81,18 @@ object PackageUtil {
                        classifier: String,
                        copySpec: CopySpec,
                        filePackage: FilePackage,
-                       excludes: List<String>) {
-        val file = downloadPackage(project, dependency, classifier)
+                       excludes: List<String>,
+                       fileBase: File?) {
+
+        val file = fileBase ?: downloadPackage(project, dependency, classifier)
+
         if(file != null) {
             val pkgCS = project.copySpec()
-            pkgCS.from(project.zipTree(file))
+            if(file.isDirectory) {
+                pkgCS.from(file)
+            } else {
+                pkgCS.from(project.zipTree(file))
+            }
             addSpecConfig(pkgCS, filePackage)
             if(excludes.isNotEmpty()) {
                 pkgCS.exclude(*excludes.toTypedArray())

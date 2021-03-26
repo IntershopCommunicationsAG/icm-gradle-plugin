@@ -16,17 +16,19 @@
  */
 package com.intershop.gradle.icm.tasks.crossproject
 
+import com.intershop.gradle.icm.CrossProjectDevelopmentPlugin.Companion.CROSSPRJ_CONFPATH
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
+import java.io.File
 import javax.inject.Inject
 
-open class WriteMappingFile @Inject constructor(
-    projectLayout: ProjectLayout,
-    objectFactory: ObjectFactory): DefaultTask() {
+open class WriteMappingFile
+    @Inject constructor(projectLayout: ProjectLayout,
+                        objectFactory: ObjectFactory): DefaultTask() {
 
     /**
      * Output file for generated cluster id.
@@ -38,23 +40,22 @@ open class WriteMappingFile @Inject constructor(
 
     init {
         group = "ICM Cross-Project Development"
-        description = "Creates a settings.gradle.kts include file."
+        description = "Creates mappings files, like settings.gradle.kts include files."
 
-        outputDir.convention(projectLayout.projectDirectory.dir("../icm-cross-project/conf/${project.name}"))
+        outputDir.convention(projectLayout.projectDirectory.dir("${CROSSPRJ_CONFPATH}/${project.name}"))
     }
 
     @TaskAction
     fun writeFile() {
         val file = outputDir.get().file("mapping.gradle.kts").asFile
+        val prjFile = outputDir.get().file("projectmapping.conf").asFile
 
         if(! file.parentFile.exists()) {
             file.parentFile.mkdirs()
         }
-        if(file.exists()) {
-            file.delete()
-        } else {
-            file.createNewFile()
-        }
+
+        recreateFile(file)
+        recreateFile(prjFile)
 
         file.appendText(
             """
@@ -73,5 +74,15 @@ open class WriteMappingFile @Inject constructor(
                 }
             }
             """.trimIndent(), Charsets.UTF_8)
+
+        prjFile.appendText("${project.name} = ${project.group}_${project.name}")
+    }
+
+    private fun recreateFile(file: File) {
+        if(file.exists()) {
+            file.delete()
+        } else {
+            file.createNewFile()
+        }
     }
 }

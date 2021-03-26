@@ -22,6 +22,7 @@ import com.intershop.gradle.test.AbstractIntegrationKotlinSpec
 
 import java.util.zip.ZipFile
 
+import static org.gradle.testkit.runner.TaskOutcome.FAILED
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpec {
@@ -46,6 +47,12 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
             plugins {
                 `java`
                 id("com.intershop.gradle.icm.base")
+            }
+            
+            val sfile = File(project.gradle.gradleUserHomeDir, "icm-default/lic/license.xml")
+            if(! sfile.exists()) {
+                sfile.parentFile.mkdirs()
+                sfile.createNewFile()
             }
             
             tasks.register("showLicPath") { 
@@ -129,7 +136,6 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
                 .build()
 
         then:
-        result.task(':showConfPath').outcome == SUCCESS
         result.output.contains(".gradle/icm-default/conf/icm.properties")
 
         when:
