@@ -16,7 +16,7 @@
  */
 package com.intershop.gradle.icm.tasks.crossproject
 
-import com.intershop.gradle.icm.CrossProjectDevelopmentPlugin.Companion.CROSSPRJ_FOLDER
+import com.intershop.gradle.icm.CrossProjectDevelopmentPlugin.Companion.CROSSPRJ_FOLDERPATH
 import com.intershop.gradle.icm.tasks.CreateSitesFolder
 import com.intershop.gradle.icm.utils.PackageUtil
 import org.gradle.api.file.CopySpec
@@ -38,7 +38,7 @@ open class PrepareSitesFolder
                         fsOps: FileSystemOperations): CreateSitesFolder(projectLayout, objectFactory, fsOps) {
 
     init {
-        outputDir.set(File(project.projectDir, "${CROSSPRJ_FOLDER}/storefront/sites"))
+        outputDir.set(File(project.projectDir, "${CROSSPRJ_FOLDERPATH}/storefront/sites"))
     }
 
     fun provideMainBaseDir(baseDir: Provider<Directory>) = mainBaseDir.set(baseDir)

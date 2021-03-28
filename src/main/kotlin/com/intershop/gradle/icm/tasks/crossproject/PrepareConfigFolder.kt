@@ -16,7 +16,7 @@
  */
 package com.intershop.gradle.icm.tasks.crossproject
 
-import com.intershop.gradle.icm.CrossProjectDevelopmentPlugin.Companion.CROSSPRJ_FOLDER
+import com.intershop.gradle.icm.CrossProjectDevelopmentPlugin.Companion.CROSSPRJ_FOLDERPATH
 import com.intershop.gradle.icm.ICMProjectPlugin
 import com.intershop.gradle.icm.tasks.CreateConfigFolder
 import com.intershop.gradle.icm.tasks.CreateServerInfo
@@ -41,7 +41,7 @@ open class PrepareConfigFolder
         fsOps: FileSystemOperations): CreateConfigFolder(projectLayout, objectFactory, fsOps) {
 
     init {
-        outputDir.set(File(project.projectDir, "${CROSSPRJ_FOLDER}/storefront/config"))
+        outputDir.set(File(project.projectDir, "${CROSSPRJ_FOLDERPATH}/storefront/config"))
     }
 
     fun provideMainBaseDir(baseDir: Provider<Directory>) = mainBaseDir.set(baseDir)
