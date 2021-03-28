@@ -152,7 +152,7 @@ class CrossProjectDevelopmentPlugin: Plugin<Project> {
                     "${CROSSPRJ_CONFPATH}/cartridgelist.properties"))
             }
 
-            val baseDir = File(projectDir, ".${CROSSPRJ_FOLDERPATH}")
+            val baseDir = File(projectDir, CROSSPRJ_FOLDERPATH)
 
             val moduleConfDirs = mutableMapOf<String, File>()
             val moduleSiteDirs = mutableMapOf<String, File>()
