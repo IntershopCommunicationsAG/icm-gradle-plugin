@@ -41,7 +41,7 @@ open class PrepareConfigFolder
         fsOps: FileSystemOperations): CreateConfigFolder(projectLayout, objectFactory, fsOps) {
 
     init {
-        outputDir.set(File(project.projectDir, "${CROSSPRJ_FOLDERPATH}/storefront/config"))
+        outputDir.set(File(project.projectDir, "${CROSSPRJ_FOLDERPATH}/storefront/conf"))
     }
 
     fun provideMainBaseDir(baseDir: Provider<Directory>) = mainBaseDir.set(baseDir)
