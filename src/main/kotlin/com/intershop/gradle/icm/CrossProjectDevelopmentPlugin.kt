@@ -176,6 +176,11 @@ class CrossProjectDevelopmentPlugin: Plugin<Project> {
                 it.extraDirConfig.set(
                     projectConfig.serverDirConfig.getServerDirSet(EnvironmentType.DEVELOPMENT).sites)
                 it.mainBaseDir.set(File(baseDir, "${mainPrj}/sites"))
+
+                projectConfig.modules.all { ncp ->
+                    it.module(ncp)
+                }
+
                 it.moduleDirectories.set(moduleSiteDirs)
             }
 
@@ -191,6 +196,11 @@ class CrossProjectDevelopmentPlugin: Plugin<Project> {
                 it.extraDirConfig.set(projectConfig.serverDirConfig.
                 getServerDirSet(EnvironmentType.DEVELOPMENT).config)
                 it.mainBaseDir.set(File(baseDir, "${mainPrj}/${CROSSPRJ_CONF}"))
+
+                projectConfig.modules.all { ncp ->
+                    it.module(ncp)
+                }
+
                 it.moduleDirectories.set(moduleConfDirs)
                 it.provideCartridgeListFile( project.provider { prepareCartridgeList.get().outputFile.get() } )
                 it.provideVersionInfoFile( project.provider { versionInfoTask.get().outputFile.get() } )

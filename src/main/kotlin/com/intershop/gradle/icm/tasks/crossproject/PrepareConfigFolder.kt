@@ -66,7 +66,6 @@ open class PrepareConfigFolder
             fileBase = mainBaseDir.get().asFile)
 
         modules.get().forEach { prj ->
-
             val dep = prj.dependency.get()
             var key = ""
             if(dep.isNotBlank()) {

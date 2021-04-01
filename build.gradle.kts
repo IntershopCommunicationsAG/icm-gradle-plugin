@@ -62,7 +62,7 @@ group = "com.intershop.gradle.icm"
 description = "Intershop Commerce Management Plugins"
 version = scm.version.version
 
-val sonatypeUsername: String by project
+val sonatypeUsername: String? by project
 val sonatypePassword: String? by project
 
 repositories {
