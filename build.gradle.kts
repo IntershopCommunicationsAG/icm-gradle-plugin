@@ -326,7 +326,7 @@ dependencies {
     implementation(localGroovy())
 
     compileOnly("org.apache.ant:ant:1.10.7")
-    implementation("com.intershop.gradle.isml:isml-gradle-plugin:4.0.2")
+    implementation("com.intershop.gradle.isml:isml-gradle-plugin:4.1.1")
 
     testImplementation("com.intershop.gradle.test:test-gradle-plugin:3.7.0")
     testImplementation(gradleTestKit())
