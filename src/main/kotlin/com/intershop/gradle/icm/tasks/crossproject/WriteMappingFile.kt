@@ -66,7 +66,9 @@ open class WriteMappingFile
         file.appendText("\n", Charsets.UTF_8)
 
         project.rootProject.subprojects {
-            file.appendText("        substitute(module(\"${it.group}:${it.name}\")).with(project(\"${it.path}\"))\n")
+            file.appendText(
+                "        substitute(module(\"${it.group}:${it.name}\"))"+
+                                            ".with(project(\"${normalizePath(it.path)}\"))\n")
         }
 
         file.appendText(
@@ -84,5 +86,9 @@ open class WriteMappingFile
         } else {
             file.createNewFile()
         }
+    }
+
+    private fun normalizePath(path: String): String {
+        return path.replace("\\", "/")
     }
 }
