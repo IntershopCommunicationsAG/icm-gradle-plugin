@@ -59,7 +59,7 @@ open class WriteMappingFile
 
         file.appendText(
             """
-            includeBuild("${project.projectDir.absolutePath}") {
+            includeBuild("${normalizePath(project.projectDir.absolutePath)}") {
                 dependencySubstitution {
             """.trimIndent(), Charsets.UTF_8)
 
