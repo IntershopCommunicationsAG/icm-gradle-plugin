@@ -51,7 +51,7 @@ plugins {
     id("io.gitlab.arturbosch.detekt") version "1.15.0"
 
     // plugin for publishing to Gradle Portal
-    id("com.gradle.plugin-publish") version "0.12.0"
+    id("com.gradle.plugin-publish") version "0.13.0"
 }
 
 scm {
@@ -326,7 +326,7 @@ dependencies {
     implementation(localGroovy())
 
     compileOnly("org.apache.ant:ant:1.10.7")
-    implementation("com.intershop.gradle.isml:isml-gradle-plugin:4.1.2")
+    implementation("com.intershop.gradle.isml:isml-gradle-plugin:4.1.3")
 
     testImplementation("com.intershop.gradle.test:test-gradle-plugin:3.7.0")
     testImplementation(gradleTestKit())
