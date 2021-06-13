@@ -549,7 +549,7 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
         } 
         
         repositories {
-            jcenter()
+            mavenCentral()
         }
         """.stripIndent())
 
@@ -568,7 +568,7 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
         } 
         
         repositories {
-            jcenter()
+            mavenCentral()
         }        
         """.stripIndent())
 
@@ -579,7 +579,7 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
         }
         
         repositories {
-            jcenter()
+            mavenCentral()
         }        
         """.stripIndent())
 
@@ -595,7 +595,7 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
         } 
         
         repositories {
-            jcenter()
+            mavenCentral()
         }        
         """.stripIndent())
 

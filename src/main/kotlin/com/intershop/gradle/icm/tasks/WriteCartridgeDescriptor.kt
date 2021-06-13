@@ -17,7 +17,7 @@
 package com.intershop.gradle.icm.tasks
 
 import com.intershop.gradle.icm.ICMBasePlugin.Companion.CONFIGURATION_CARTRIDGE
-import com.intershop.gradle.icm.ICMBasePlugin.Companion.CONFIGURATION_CARTRIDGERUNTIME
+import com.intershop.gradle.icm.ICMBasePlugin.Companion.CONFIGURATION_CARTRIDGE_RUNTIME
 import com.intershop.gradle.icm.extension.IntershopExtension.Companion.INTERSHOP_GROUP_NAME
 import com.intershop.gradle.icm.utils.CartridgeUtil
 import org.gradle.api.DefaultTask
@@ -108,7 +108,7 @@ open class WriteCartridgeDescriptor
     @get:Input
     val cartridgeRuntimeDependencies: List<String> by lazy {
         val returnDeps = mutableListOf<String>()
-        project.configurations.getByName(CONFIGURATION_CARTRIDGERUNTIME).dependencies.forEach {
+        project.configurations.getByName(CONFIGURATION_CARTRIDGE_RUNTIME).dependencies.forEach {
             returnDeps.add(it.toString())
         }
         returnDeps
@@ -148,9 +148,9 @@ open class WriteCartridgeDescriptor
         val cartridgesTransitive = HashSet<String>()
 
         addCartridges(CONFIGURATION_CARTRIDGE, cartridges)
-        addCartridges(CONFIGURATION_CARTRIDGERUNTIME, cartridges)
+        addCartridges(CONFIGURATION_CARTRIDGE_RUNTIME, cartridges)
 
-        addTransitiveCartridges(CONFIGURATION_CARTRIDGERUNTIME, cartridgesTransitive)
+        addTransitiveCartridges(CONFIGURATION_CARTRIDGE_RUNTIME, cartridgesTransitive)
 
         cartridges.forEach {
             if(! cartridgesTransitive.contains(it)) {

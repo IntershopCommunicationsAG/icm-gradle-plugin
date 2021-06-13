@@ -42,16 +42,16 @@ plugins {
     id("com.intershop.gradle.scmversion") version "6.2.0"
 
     // plugin for documentation
-    id("org.asciidoctor.jvm.convert") version "3.3.0"
+    id("org.asciidoctor.jvm.convert") version "3.3.2"
 
     // documentation
-    id("org.jetbrains.dokka") version "0.10.1"
+    id("org.jetbrains.dokka") version "1.4.32"
 
     // code analysis for kotlin
-    id("io.gitlab.arturbosch.detekt") version "1.15.0"
+    id("io.gitlab.arturbosch.detekt") version "1.17.1"
 
     // plugin for publishing to Gradle Portal
-    id("com.gradle.plugin-publish") version "0.13.0"
+    id("com.gradle.plugin-publish") version "0.15.0"
 }
 
 scm {
@@ -67,7 +67,6 @@ val sonatypePassword: String? by project
 
 repositories {
     mavenCentral()
-    jcenter()
 }
 
 gradlePlugin {
@@ -166,7 +165,8 @@ detekt {
 tasks {
 
     withType<Test>().configureEach {
-        systemProperty("intershop.gradle.versions", "6.8")
+        systemProperty("intershop.gradle.versions", "6.8,7.0")
+        useJUnitPlatform()
 
         dependsOn("jar")
     }
@@ -235,13 +235,8 @@ tasks {
         kotlinOptions.jvmTarget = JavaVersion.VERSION_1_8.toString()
     }
 
-    val dokka by existing(DokkaTask::class) {
-        outputFormat = "javadoc"
-        outputDirectory = "$buildDir/javadoc"
-
-        // Java 8 is only version supported both by Oracle/OpenJDK and Dokka itself
-        // https://github.com/Kotlin/dokka/issues/294
-        enabled = JavaVersion.current().isJava8
+    dokkaJavadoc.configure {
+        outputDirectory.set(buildDir.resolve("dokka"))
     }
 
     register<Jar>("sourceJar") {
@@ -252,8 +247,8 @@ tasks {
     }
 
     register<Jar>("javaDoc") {
-        dependsOn(dokka)
-        from(dokka)
+        dependsOn(dokkaJavadoc)
+        from(dokkaJavadoc)
         archiveClassifier.set("javadoc")
     }
 }
@@ -328,6 +323,6 @@ dependencies {
     compileOnly("org.apache.ant:ant:1.10.7")
     implementation("com.intershop.gradle.isml:isml-gradle-plugin:4.1.4")
 
-    testImplementation("com.intershop.gradle.test:test-gradle-plugin:3.7.0")
+    testImplementation("com.intershop.gradle.test:test-gradle-plugin:4.1.1")
     testImplementation(gradleTestKit())
 }
