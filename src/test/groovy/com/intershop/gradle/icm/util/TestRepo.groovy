@@ -38,7 +38,7 @@ class TestRepo {
 
             String repostr = """
             repositories {
-                jcenter()
+                mavenCentral()
                 maven {
                     url "${repoDir.toURI().toURL()}"
                 }
@@ -58,7 +58,7 @@ class TestRepo {
                 maven {
                     url=uri("${repoDir.toURI().toURL()}")
                 }
-                jcenter()
+                mavenCentral()
             }""".stripIndent()
 
             return repostr
@@ -73,6 +73,14 @@ class TestRepo {
 
         new TestMavenRepoBuilder().repository {
             project(groupId: 'com.intershop', artifactId: 'libbom', version: '1.0.0') {
+                dependencyManagement {
+                    dependency groupId: 'com.other', artifactId: 'library1', version: '1.5.0'
+                    dependency groupId: 'com.other', artifactId: 'library2', version: '1.5.0'
+                    dependency groupId: 'com.other', artifactId: 'library3', version: '1.5.0'
+                }
+            }
+
+            project(groupId: 'com.intershop', artifactId: 'libbom', version: '1.5.0') {
                 dependencyManagement {
                     dependency groupId: 'com.other', artifactId: 'library1', version: '1.5.0'
                     dependency groupId: 'com.other', artifactId: 'library2', version: '1.5.0'

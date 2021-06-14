@@ -108,7 +108,7 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         gradleVersion << supportedGradleVersions
     }
 
-    def 'CreateServerInfo is configured and works with default'() {
+    def 'Plugin creates additional configurations'() {
         given:
         settingsFile << """
         rootProject.name='rootproject'
@@ -124,6 +124,158 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
             intershop {
             }
             
+            task showconfigs {
+                println project.configurations
+                project.configurations.each() { 
+                    println "name: \${it.name}, transitive: \${it.transitive}, visible: \${it.visible}, description: \${it.description}, state: \${it.state}"
+                }
+            }
+
+        """.stripIndent()
+
+        def prj1dir = createSubProject('testCartridge1', """
+            plugins {
+                id 'java-library'
+                id 'com.intershop.icm.cartridge'
+            }
+            
+            buildDir = new File(projectDir, 'target')
+            
+            task showconfigs {
+                println project.configurations
+                project.configurations.each() { 
+                    println "name: \${it.name}, transitive: \${it.transitive}, visible: \${it.visible}, description: \${it.description}, state: \${it.state}"
+                }
+            }
+            
+            dependencies {
+                implementation "com.google.inject:guice:4.0"
+                implementation 'com.google.inject.extensions:guice-servlet:3.0'
+                implementation 'javax.servlet:javax.servlet-api:3.1.0'
+            } 
+            
+            repositories {
+                mavenCentral()
+            }
+            """.stripIndent())
+
+        def prj2dir = createSubProject('testCartridge2', """
+            plugins {
+                id 'java-library'
+                id 'com.intershop.icm.cartridge'
+            }
+                
+            buildDir = new File(projectDir, 'target')
+            
+            task showconfigs {
+                println project.configurations
+                project.configurations.each() { 
+                    println "name: \${it.name}, transitive: \${it.transitive}, visible: \${it.visible}, description: \${it.description}, state: \${it.state}"
+                }
+            }
+            
+            dependencies {
+                cartridge project(':testCartridge1')
+                implementation "com.google.inject:guice:4.0"
+                implementation 'com.google.inject.extensions:guice-servlet:3.0'
+                implementation 'javax.servlet:javax.servlet-api:3.1.0'
+            } 
+                
+            repositories {
+                mavenCentral()
+            }
+            """.stripIndent())
+
+        def prj3dir = createSubProject('testCartridge3', """
+            plugins {
+                id 'java-library'
+                id 'com.intershop.icm.cartridge'
+            }
+
+            buildDir = new File(projectDir, 'target')
+
+            task showconfigs {
+                println project.configurations
+                project.configurations.each() { 
+                    println "name: \${it.name}, transitive: \${it.transitive}, visible: \${it.visible}, description: \${it.description}, state: \${it.state}"
+                }
+            }
+            
+            dependencies {
+                cartridge project(':testCartridge2')
+                implementation "com.google.inject:guice:4.0"
+                implementation 'com.google.inject.extensions:guice-servlet:3.0'
+                implementation 'javax.servlet:javax.servlet-api:3.1.0'
+                
+                cartridgeRuntime project(':testCartridge1')
+            } 
+                
+            repositories {
+                mavenCentral()
+            }
+            """.stripIndent())
+
+        def prj4dir = createSubProject('testCartridge4', """
+            plugins {
+                id 'java-library'
+                id 'com.intershop.icm.cartridge'
+            }
+
+            buildDir = new File(projectDir, 'target')
+            
+            task showconfigs {
+                println project.configurations
+                project.configurations.each() { 
+                    println "name: \${it.name}, transitive: \${it.transitive}, visible: \${it.visible}, description: \${it.description}, state: \${it.state}"
+                }
+            }
+            
+            dependencies {
+                cartridgeApi project(':testCartridge2')
+                
+                implementation "com.google.inject:guice:4.0"
+                implementation 'com.google.inject.extensions:guice-servlet:3.0'
+                implementation 'javax.servlet:javax.servlet-api:3.1.0'
+                
+                cartridgeRuntime project(':testCartridge1')
+            } 
+                
+            repositories {
+                mavenCentral()
+            }
+            """.stripIndent())
+
+        when:
+        def result = getPreparedGradleRunner()
+                .withArguments("showconfigs")
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        result.task(':showconfigs').outcome == UP_TO_DATE
+        result.output.contains("cartridge")
+        result.output.contains("cartridgeApi")
+        result.output.contains("cartridgeRuntime")
+
+        where:
+        gradleVersion << supportedGradleVersions
+    }
+
+    def 'CreateServerInfo is configured and works with default'() {
+        given:
+        settingsFile << """
+        rootProject.name='rootproject'
+        """.stripIndent()
+
+        buildFile << """
+            plugins {
+                id 'com.intershop.gradle.icm.base'
+            }
+            
+            version = '1.0.0'
+
+            intershop {
+            }
         """.stripIndent()
 
         when:
@@ -691,7 +843,7 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                 implementation 'com.google.inject.extensions:guice-servlet:3.0'
                 implementation 'javax.servlet:javax.servlet-api:3.1.0'
 
-                runtime 'net.logstash.logback:logstash-logback-encoder:4.11'
+                runtimeOnly 'net.logstash.logback:logstash-logback-encoder:4.11'
             } 
                 
             repositories {

@@ -16,7 +16,7 @@
  */
 package com.intershop.gradle.icm.tasks
 
-import com.intershop.gradle.icm.ICMBasePlugin.Companion.CONFIGURATION_CARTRIDGERUNTIME
+import com.intershop.gradle.icm.ICMBasePlugin.Companion.CONFIGURATION_CARTRIDGE_RUNTIME
 import com.intershop.gradle.icm.extension.IntershopExtension.Companion.INTERSHOP_GROUP_NAME
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.FileCollection
@@ -116,7 +116,7 @@ open class WriteCartridgeClasspath @Inject constructor(
     @get:Input
     val cartridgeRuntimeDependencies: List<String> by lazy {
         val returnDeps = mutableListOf<String>()
-        project.configurations.getByName(CONFIGURATION_CARTRIDGERUNTIME).dependencies.forEach {
+        project.configurations.getByName(CONFIGURATION_CARTRIDGE_RUNTIME).dependencies.forEach {
             returnDeps.add(it.toString())
         }
         returnDeps
@@ -151,7 +151,7 @@ open class WriteCartridgeClasspath @Inject constructor(
         }
 
         val runtimeFiles = if (project.convention.findPlugin(JavaPluginConvention::class.java) != null) {
-            project.configurations.getByName(CONFIGURATION_CARTRIDGERUNTIME).resolvedConfiguration.files
+            project.configurations.getByName(CONFIGURATION_CARTRIDGE_RUNTIME).resolvedConfiguration.files
         } else {
             project.files()
         }

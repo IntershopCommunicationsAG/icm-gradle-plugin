@@ -29,7 +29,6 @@ import com.intershop.gradle.icm.tasks.CreateMainPackage
 import com.intershop.gradle.icm.tasks.CreateServerInfo
 import com.intershop.gradle.icm.tasks.CreateTestPackage
 import com.intershop.gradle.icm.tasks.WriteCartridgeClasspath
-import com.intershop.gradle.icm.tasks.WriteCartridgeDescriptor
 import com.intershop.gradle.isml.IsmlPlugin
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -50,7 +49,8 @@ open class ICMBasePlugin: Plugin<Project> {
         const val TASK_WRITECARTRIDGEFILES = "writeCartridgeFiles"
 
         const val CONFIGURATION_CARTRIDGE = "cartridge"
-        const val CONFIGURATION_CARTRIDGERUNTIME = "cartridgeRuntime"
+        const val CONFIGURATION_CARTRIDGE_API = "cartridgeApi"
+        const val CONFIGURATION_CARTRIDGE_RUNTIME = "cartridgeRuntime"
 
         /**
          * checks if the specified name is available in the list of tasks.
@@ -114,14 +114,21 @@ open class ICMBasePlugin: Plugin<Project> {
     private fun configureBaseConfigurations(project: Project) {
         with(project.configurations) {
             val implementation = findByName(JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME)
+            val api = findByName(JavaPlugin.API_CONFIGURATION_NAME)
+            val runtimeOnly = findByName(JavaPlugin.RUNTIME_ONLY_CONFIGURATION_NAME)
 
             val cartridge = maybeCreate(CONFIGURATION_CARTRIDGE)
-            cartridge.isTransitive = false
-            implementation?.extendsFrom(cartridge)
+            cartridge.description = "Cartridge Implementation only dependencies for source set 'main'."
+            val cartridgeApi = maybeCreate(CONFIGURATION_CARTRIDGE_API)
+            cartridgeApi.description = "Cartridge API dependencies for source set 'main'."
+            val cartridgeRuntime = maybeCreate(CONFIGURATION_CARTRIDGE_RUNTIME)
+            cartridgeRuntime.description = "Cartridge Runtime only dependencies for source set 'main'."
 
-            val cartridgeRuntime = maybeCreate(CONFIGURATION_CARTRIDGERUNTIME)
-            cartridgeRuntime.extendsFrom(cartridge)
-            cartridgeRuntime.isTransitive = true
+            implementation?.extendsFrom(cartridge)
+            api?.extendsFrom(cartridgeApi)
+            cartridgeApi.extendsFrom(cartridge)
+            runtimeOnly?.extendsFrom(cartridgeRuntime)
+            cartridgeRuntime.extendsFrom(cartridgeApi)
         }
     }
 
@@ -152,11 +159,6 @@ open class ICMBasePlugin: Plugin<Project> {
                         cp.from(sub.layout.projectDirectory.dir("staticfiles/cartridge")) { cps ->
                             intoRelease(cps, sub)
                         }
-                    }
-
-                    // can be removed if appserver reads the file from ressources
-                    cp.from(sub.tasks.getByName(WriteCartridgeDescriptor.DEFAULT_NAME)) { cps ->
-                        intoRelease(cps, sub)
                     }
 
                     sub.plugins.withType(IsmlPlugin::class.java) {
