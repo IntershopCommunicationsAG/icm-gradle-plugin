@@ -144,25 +144,10 @@ open class WriteCartridgeDescriptor
         val comment = "Intershop descriptor file"
 
         val cartridges = HashSet<String>()
-        val noCartridges = HashSet<String>()
-        val cartridgesTransitive = HashSet<String>()
 
-        addCartridges(CONFIGURATION_CARTRIDGE, cartridges)
         addCartridges(CONFIGURATION_CARTRIDGE_RUNTIME, cartridges)
 
-        addTransitiveCartridges(CONFIGURATION_CARTRIDGE_RUNTIME, cartridgesTransitive)
-
-        cartridges.forEach {
-            if(! cartridgesTransitive.contains(it)) {
-                logger.info("It seems, that {} is not a cartridge!", it)
-                noCartridges.add(it)
-            }
-        }
-
-        cartridges.removeAll(noCartridges)
-
         props["cartridge.dependsOn"] = cartridges.toSortedSet().joinToString( separator = ";" )
-        props["cartridge.dependsOn.transitive"] = cartridgesTransitive.toSortedSet().joinToString( separator = ";" )
 
         props["cartridge.name"] = cartridgeName
         props["cartridge.displayName"] = displayName
@@ -185,27 +170,18 @@ open class WriteCartridgeDescriptor
     }
 
     private fun addCartridges(confName: String, cartridges: HashSet<String>) {
-        project.configurations.getByName(confName).allDependencies.forEach { dependency ->
-            if(dependency is ModuleDependency) {
-                cartridges.add(dependency.name)
-            }
-        }
-    }
-
-    private fun addTransitiveCartridges(confName: String, cartridges: HashSet<String>) {
         project.configurations.getByName(confName).
         resolvedConfiguration.lenientConfiguration.allModuleDependencies.forEach { dependency ->
             dependency.moduleArtifacts.forEach { artifact ->
-
                 val identifier = artifact.id.componentIdentifier
-                if(identifier is ProjectComponentIdentifier) {
-                    cartridges.add(identifier.projectName)
-                }
 
-                if(identifier is ModuleComponentIdentifier) {
-                    if(CartridgeUtil.isCartridge(project, identifier)) {
-                        cartridges.add(identifier.module)
-                    }
+                when(identifier) {
+                    is ProjectComponentIdentifier ->
+                        cartridges.add(identifier.projectName)
+                    is ModuleComponentIdentifier ->
+                        if(CartridgeUtil.isCartridge(project, identifier)) {
+                            cartridges.add(identifier.module)
+                        }
                 }
             }
         }

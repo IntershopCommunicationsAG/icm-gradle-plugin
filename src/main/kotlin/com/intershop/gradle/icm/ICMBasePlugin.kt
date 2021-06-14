@@ -29,7 +29,6 @@ import com.intershop.gradle.icm.tasks.CreateMainPackage
 import com.intershop.gradle.icm.tasks.CreateServerInfo
 import com.intershop.gradle.icm.tasks.CreateTestPackage
 import com.intershop.gradle.icm.tasks.WriteCartridgeClasspath
-import com.intershop.gradle.icm.tasks.WriteCartridgeDescriptor
 import com.intershop.gradle.isml.IsmlPlugin
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -127,7 +126,9 @@ open class ICMBasePlugin: Plugin<Project> {
 
             implementation?.extendsFrom(cartridge)
             api?.extendsFrom(cartridgeApi)
+            cartridgeApi.extendsFrom(cartridge)
             runtimeOnly?.extendsFrom(cartridgeRuntime)
+            cartridgeRuntime.extendsFrom(cartridgeApi)
         }
     }
 
