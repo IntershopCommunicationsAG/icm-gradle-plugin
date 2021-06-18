@@ -531,13 +531,6 @@ intershop {
         }
         serverDirConfig {
             base {
-                sites {
-                    dirs {
-                        main {
-                            dir.set(file("sites/altbase"))
-                        }
-                    }
-                }
                 config {
                     dirs {
                         main {
@@ -604,13 +597,6 @@ intershop {
         }
         serverDirConfig {
             base {
-                sites {
-                    dirs {
-                        named("main") {
-                            dir.set(file("sites/altbase"))
-                        }
-                    }
-                }
                 config {
                     dirs {
                         named("main") {
@@ -660,18 +646,12 @@ container/config_folder` | Contains the complete configuration of a project cont
 testcontainer/config_folder` | Contains the test configuration only for a special test container of the project.
 | `config`             | `File` | `$BUILDDIR/ +
 server/config_folder` | Contains the complete configuration of a development server. It contains test as well development configuration.
-| `containerSites`     | `File` | `$BUILDDIR/ +
-container/sites_folder` | Contains the complete sites directory structure of a project container.
-| `testContainerSites` | `File` | `$BUILDDIR/ +
-testcontainer/sites_folder` | Contains the test sites directory structure only for a special test container of the project.
-| `sites`              | `File` | `$BUILDDIR/ +
-server/sites_folder` | Contains the complete sites directory structure of a development server. It contains test as well development sites.
 |===
 
 [cols="20%,10%,30%,49%", width="99%, options="header"]
 |===
 |Property               | Type | Default value | Description
-| `newBaseProject` | `boolean` | `false` | If this property is true, the configuration and the sites release can be used as a new base project.
+| `newBaseProject` | `boolean` | `false` | If this property is true, the configuration release can be used as a new base project.
 | `cartridgeListDependency` | `Property<String>` | *optional* | If the base cartridge list configuration should not taken from the base project, it is necessary to specify a separate configuration.
 | `libFilterFileDependency` | `Property<String>` | *optional* | If the base library filter configuration should not taken from the base project, it is necessary to specify a separate configuration.
 | `cartridges` | `SetProperty<String>` |  | This configuration is used to extend the base cartridge list for the project. It contains a set of cartridge dependencies and project names.
@@ -688,8 +668,8 @@ server/sites_folder` | Contains the complete sites directory structure of a deve
 | `dbprepareCartridge` | `String` | Add a cartridge to the list of cartridges for Database preparation. This can be a project name or a short module dependency configuration (`group:module:version`).
 | `base`| Action<in CartridgeProject> | Configures the base project dependencies from an action.
 | `base`| Closure<CartridgeProject> | Configures the base project dependencies from a closure.
-| `serverDirConfig` | Action<in ProjectServerDirs> | Configures the usage of project directories for configuration and sites from an action.
-| `serverDirConfig` | Closure<ProjectServerDirs> | Configures the usage of project directories for configuration and sites from a closure.
+| `serverDirConfig` | Action<in ProjectServerDirs> | Configures the usage of project directories for configuration from an action.
+| `serverDirConfig` | Closure<ProjectServerDirs> | Configures the usage of project directories for configuration from a closure.
 |===
 
 `modules` is a `NamedDomainObjectContainer` of `CartridgeProject` a configuration is possible in a `Closure` or in a `Action`.
@@ -713,8 +693,6 @@ Methods of `CartridgeProject`
 
 | `configPackage` | `Action<in FilePackage>` | Configures the configuration package of the cartridge project from an action.
 | `configPackage` | `Closure<FilePackage>` | Configures the configuration package of the cartridge project from a closure.
-| `sitesPackage` | `Action<in FilePackage>` | Configures the sites package of the cartridge project from an action.
-| `sitesPackage` | `Closure<FilePackage>` | Configures the sites package of the cartridge project from a closure.
 |===
 
 ====== Object `FilePackage`
@@ -764,8 +742,8 @@ Methods of `ProjectServerDirs`
 | `dev` | `Closure<ServerDirSet> | This configures development (server) directories and files of the project from a closure.
 |===
 
-There is one preconfigured base configuration "main". The pathe for the configuration is 'configuration/base' and for sites it is 'sites/base'.
-*Both directories must be available in a project.*
+There is one preconfigured base configuration "main". The path for the configuration is 'configuration/base'.
+*The directory must be available in a project.*
 
 ====== Object `ServerDirSet`
 
@@ -823,7 +801,7 @@ Methods of `DirConfig`
 === Tasks
 
 The Intershop Commerce Management Project Plugin add the following tasks to existing project. It configures the root
-project and sub projects. The main goal of all tasks is the preparation of configuration and sites directories of
+project and sub projects. The main goal of all tasks is the preparation of a configuration directory of
 a development server, a container and a test container. Other tasks will prepare all external cartridges for the
 different server configurations.
 
@@ -837,12 +815,6 @@ Task` | Start all tasks to prepare a complete server file structure for developm
 Task` | Start all tasks to prepare a file structure to create a test container based on the container of the project.
 |`prepareContainer`     | `org.gradle.api +
 Task` | Start all tasks to prepare a complete file structure to create a container for the project.
-|`createSitesProd`      | `com.intershop.gradle.icm.tasks +
-CreateSitesFolder` | Creates the complete sites file structure for the container creation.
-|`createSitesTest`      | `com.intershop.gradle.icm.tasks +
-CreateSitesFolder` | Creates the sites file structure for the test container creation.
-|`createSites`          | `com.intershop.gradle.icm.tasks +
-CreateSitesFolder` | Creates the complete sites file structure of a development server.
 |`createConfigProd`     | `com.intershop.gradle.icm.tasks +
 CreateConfigFolder` | Creates the complete configuration file structure for the container creation.
 |`createConfigTest`     | `com.intershop.gradle.icm.tasks +
@@ -875,10 +847,6 @@ Sync` | Sync libraries from all cartridges to a single libraries directory of a 
 Zip` | Creates a zip file of configuration files for publishing. The content depends on the property `newBaseProject`.
 |`preparePubConfiguration` | `com.intershop.gradle.icm.tasks +
 PreparePublishDir` | Prepares the directory for publishing of a configuration package from the extension configuration.
-|`zipSites`        | `org.gradle.api.tasks.bundling +
-Zip` | Creates a zip file of sites files for publishing. The content depends on the property `newBaseProject`.
-|`preparePubSites` | `com.intershop.gradle.icm.tasks +
-PreparePublishDir` | Prepares the directory for publishing of a sites package from the extension configuration.
 |===
 
 === Build Directory Overview for Further Usage
@@ -908,25 +876,17 @@ PreparePublishDir` | Prepares the directory for publishing of a sites package fr
     |  |  |
     |  |  ...
     |  |
-    |  +- sites_folder    <target of all sites folder files>
-    |  |  |
-    |  |  +- sites
-    |  |     |
-    |  |     +- SLDSystem
-    |  |     ...
     +- container          <necessary directories and files of a container>
     |  |
     |  +- cartridges
     |  +- config_folder
     |  +- prjlibs
-    |  +- sites_folder
     |
     +- testcontainer      <necessary directories and files of a test container>
        |
        +- cartridges
        +- config_folder
        +- prjlibs
-       +- sites_folder
 ----
 
 

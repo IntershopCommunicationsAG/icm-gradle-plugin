@@ -23,8 +23,6 @@ import com.intershop.gradle.icm.cartridge.ProductPlugin
 import com.intershop.gradle.icm.cartridge.TestPlugin
 import com.intershop.gradle.icm.extension.IntershopExtension
 import com.intershop.gradle.icm.tasks.CreateClusterID
-import com.intershop.gradle.icm.tasks.CreateInitPackage
-import com.intershop.gradle.icm.tasks.CreateInitTestPackage
 import com.intershop.gradle.icm.tasks.CreateMainPackage
 import com.intershop.gradle.icm.tasks.CreateServerInfo
 import com.intershop.gradle.icm.tasks.CreateTestPackage
@@ -147,8 +145,6 @@ open class ICMBasePlugin: Plugin<Project> {
     }
 
     private fun Project.createPackageTasks(project: Project) {
-        tasks.register(CreateInitPackage.DEFAULT_NAME, CreateInitPackage::class.java)
-        tasks.register(CreateInitTestPackage.DEFAULT_NAME, CreateInitTestPackage::class.java)
         val createMainPackage = tasks.register(CreateMainPackage.DEFAULT_NAME, CreateMainPackage::class.java)
         val createTestPackage = tasks.register(CreateTestPackage.DEFAULT_NAME, CreateTestPackage::class.java)
 

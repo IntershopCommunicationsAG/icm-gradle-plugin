@@ -27,38 +27,13 @@ import javax.inject.Inject
 
 /**
  * This is part of the project extension and describes a set
- * of directory configurations for sites and configuration folders.
+ * of directory configurations for configuration folders.
  * The task that uses this configuration transforms this
  * to copyspec configuration.
  *
  * @constructor creates a configuration of a simple copyspec.
  */
 open class ServerDirSet @Inject constructor(objectFactory: ObjectFactory ) {
-
-    val sites: ServerDir = objectFactory.newInstance(
-        ServerDir::class.java, "sites",
-        listOf<String>(),
-        listOf<String>())
-
-    /**
-     * Configures a directory configuration
-     * of the sites server folder.
-     *
-     * @parm action Action to configures a ServerDir
-     */
-    fun sites(action: Action<in ServerDir>) {
-        action.execute(sites)
-    }
-
-    /**
-     * Configures a directory configuration
-     * of the sites server folder.
-     *
-     * @parm action Closure to configures a ServerDir
-     */
-    fun sites(c: Closure<ServerDir>) {
-        ConfigureUtil.configure(c, sites)
-    }
 
     val config: ServerDir = objectFactory.newInstance(
         ServerDir::class.java,

@@ -16,8 +16,6 @@
  */
 package com.intershop.gradle.icm
 
-import com.intershop.gradle.icm.tasks.CreateInitPackage
-import com.intershop.gradle.icm.tasks.CreateInitTestPackage
 import com.intershop.gradle.icm.tasks.CreateMainPackage
 import com.intershop.gradle.icm.tasks.CreateTestPackage
 import com.intershop.gradle.icm.util.TestRepo
@@ -406,12 +404,6 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         createLocalFile("config/dev/cluster/test.properties", "dev_test = 1")
         createLocalFile("config/prod/cluster/test.properties", "test.properties = prod_dir")
 
-        createLocalFile("sites/base/test-site1/units/test.properties", "test-site1-sites = base")
-        createLocalFile("sites/base/test-site2/units/test.properties", "test-site2-sites = 2")
-        createLocalFile("sites/prod/test-site1/units/test.properties", "test-site1-sites = prod")
-        createLocalFile("sites/test/test-site1/units/test.properties", "test-site1-sites = test")
-        createLocalFile("sites/dev/test-site1/units/test.properties", "test-site1-sites = dev")
-
         buildFile << """
             plugins {
                 id 'java'
@@ -452,14 +444,6 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
                     serverDirConfig {
                         base {
-                            sites {
-                                dirs {
-                                    main {
-                                        dir.set(file("sites/base"))
-                                        exclude("**/test-site1/units/test.properties")
-                                    }
-                                }
-                            }
                             config {
                                 dirs {
                                     main {
@@ -478,22 +462,8 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                                     }
                                 }
                             }
-                            sites {
-                                dirs {
-                                    main {
-                                        dir.set(file("sites/prod"))
-                                    }
-                                }
-                            }
                         }
                         test {
-                            sites {
-                                dirs {
-                                    main {
-                                        dir.set(file("sites/test"))
-                                    }
-                                }
-                            }
                             config {
                                 dirs {
                                     main {
@@ -503,17 +473,6 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                             }
                         }
                         dev {
-                            sites {
-                                dirs {
-                                    main {
-                                        dir.set(file("sites/dev"))
-                                    }
-                                    test {
-                                        dir.set(file("sites/test"))
-                                        exclude("**/units/test.properties")
-                                    }
-                                }
-                            }
                             config {
                                 dirs {
                                     main {
@@ -801,69 +760,6 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         gradleVersion << supportedGradleVersions
     }
 
-    def "test of prod tasks for sites folder creation"() {
-        prepareDefaultBuildConfig(testProjectDir, settingsFile, buildFile)
-
-        when:
-        def resultDevSites = getPreparedGradleRunner()
-                .withArguments("createSitesProd", "-s")
-                .withGradleVersion(gradleVersion)
-                .build()
-
-        def sitesFolder = new File(testProjectDir,"build/container/sites_folder/sites")
-
-        then:
-        resultDevSites.task(":createSitesProd").outcome == SUCCESS
-        sitesFolder.exists()
-        sitesFolder.listFiles().size() == 8
-        new File(sitesFolder, "test-site1/units/test.properties").text.contains("test-site1-sites = prod")
-
-        where:
-        gradleVersion << supportedGradleVersions
-    }
-
-    def "test of test tasks for sites folder creation"() {
-        prepareDefaultBuildConfig(testProjectDir, settingsFile, buildFile)
-
-        when:
-        def resultDevSites = getPreparedGradleRunner()
-                .withArguments("createSitesTest", "-s")
-                .withGradleVersion(gradleVersion)
-                .build()
-
-        def sitesFolder = new File(testProjectDir,"build/testcontainer/sites_folder/sites")
-
-        then:
-        resultDevSites.task(":createSitesTest").outcome == SUCCESS
-        sitesFolder.exists()
-        sitesFolder.listFiles().size() == 8
-        new File(sitesFolder, "test-site1/units/test.properties").text.contains("test-site1-sites = test")
-
-        where:
-        gradleVersion << supportedGradleVersions
-    }
-
-    def "test of development tasks for sites folder creation"() {
-        prepareDefaultBuildConfig(testProjectDir, settingsFile, buildFile)
-
-        when:
-        def resultDevSites = getPreparedGradleRunner()
-                .withArguments("createSites", "-s")
-                .withGradleVersion(gradleVersion)
-                .build()
-
-        def sitesFolder = new File(testProjectDir,"build/server/sites_folder/sites")
-
-        then:
-        resultDevSites.task(":createSites").outcome == SUCCESS
-        sitesFolder.exists()
-        sitesFolder.listFiles().size() == 8
-        new File(sitesFolder, "test-site1/units/test.properties").text.contains("test-site1-sites = dev")
-
-        where:
-        gradleVersion << supportedGradleVersions
-    }
-
     def "test cartridge.properties from dependency"() {
         TestRepo repo = new TestRepo(new File(testProjectDir, "/repo"))
         String repoConf = repo.getRepoConfig()
@@ -948,7 +844,6 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         def configAppsDir = new File(configDir, "apps")
         def configClusterDir = new File(configDir, "cluster")
         def prjLibsDir = new File(testProjectDir, "build/container/prjlibs")
-        def sitesDir = new File(testProjectDir, "build/container/sites_folder/sites")
 
         then:
         result.task(':prepareContainer').outcome == SUCCESS
@@ -964,8 +859,6 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         configClusterDir.listFiles().size() == 3
         prjLibsDir.exists()
         prjLibsDir.listFiles().size() == 2
-        sitesDir.exists()
-        sitesDir.listFiles().size() == 8
 
         where:
         gradleVersion << supportedGradleVersions
@@ -986,7 +879,6 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         def configAppsDir = new File(configDir, "apps")
         def configClusterDir = new File(configDir, "cluster")
         def prjLibsDir = new File(testProjectDir, "build/server/prjlibs")
-        def sitesDir = new File(testProjectDir, "build/server/sites_folder/sites")
 
         then:
         result.task(':prepareServer').outcome == SUCCESS
@@ -1002,8 +894,6 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         configClusterDir.listFiles().size() == 3
         prjLibsDir.exists()
         prjLibsDir.listFiles().size() == 3
-        sitesDir.exists()
-        sitesDir.listFiles().size() == 8
 
         where:
         gradleVersion << supportedGradleVersions
@@ -1022,13 +912,6 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         createLocalFile("config/test/cluster/test.properties", "test_test = 1")
         createLocalFile("config/dev/cluster/test.properties", "dev_test = 1")
         createLocalFile("config/prod/cluster/test.properties", "test.properties = prod_dir")
-
-        createLocalFile("sites/base/test-site1/units/test.properties", "test-site1-sites = base")
-        createLocalFile("sites/base/test-site2/units/test.properties", "test-site2-sites = 2")
-        createLocalFile("sites/base/test-site3/units/test.properties", "test-site3-sites = 3")
-        createLocalFile("sites/prod/test-site1/units/test.properties", "test-site1-sites = prod")
-        createLocalFile("sites/test/test-site1/units/test.properties", "test-site1-sites = test")
-        createLocalFile("sites/dev/test-site1/units/test.properties", "test-site1-sites = dev")
 
         buildFile << """
             plugins {
@@ -1071,14 +954,6 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
                     serverDirConfig {
                         base {
-                            sites {
-                                dirs {
-                                    main {
-                                        dir.set(file("sites/base"))
-                                        exclude("**/test-site1/units/test.properties")
-                                    }
-                                }
-                            }
                             config {
                                 dirs {
                                     main {
@@ -1097,22 +972,8 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                                     }
                                 }
                             }
-                            sites {
-                                dirs {
-                                    main {
-                                        dir.set(file("sites/prod"))
-                                    }
-                                }
-                            }
                         }
                         test {
-                            sites {
-                                dirs {
-                                    main {
-                                        dir.set(file("sites/test"))
-                                    }
-                                }
-                            }
                             config {
                                 dirs {
                                     main {
@@ -1122,17 +983,6 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                             }
                         }
                         dev {
-                            sites {
-                                dirs {
-                                    main {
-                                        dir.set(file("sites/dev"))
-                                    }
-                                    test {
-                                        dir.set(file("sites/test"))
-                                        exclude("**/units/test.properties")
-                                    }
-                                }
-                            }
                             config {
                                 dirs {
                                     main {
@@ -1328,20 +1178,16 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                 .build()
 
         def repoConfigFile = new File(testProjectDir, "build/pubrepo/com/intershop/test/rootproject/10.0.0/rootproject-10.0.0-configuration.zip")
-        def repoSitesFile = new File(testProjectDir, "build/pubrepo/com/intershop/test/rootproject/10.0.0/rootproject-10.0.0-sites.zip")
         def pomfile = new File(testProjectDir, "build/pubrepo/com/intershop/test/prjCartridge_testext/10.0.0/prjCartridge_testext-10.0.0.pom")
 
         then:
         result.task(':publish').outcome == SUCCESS
-        result.task(':zipSites').outcome == SUCCESS
         result.task(':zipConfiguration').outcome == SUCCESS
         result.task(':prjCartridge_container:writeCartridgeDescriptor') == null
         pomfile.exists()
         pomfile.text.contains("<cartridge.style>test</cartridge.style>")
         repoConfigFile.exists()
-        repoSitesFile.exists()
         new ZipFile(repoConfigFile).entries().toList().size() == 3
-        new ZipFile(repoSitesFile).entries().toList().size() == 10
 
         when:
         def resultDev = getPreparedGradleRunner()
@@ -1372,25 +1218,6 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         resultPkgTest.task(":${CreateTestPackage.DEFAULT_NAME}").outcome == SUCCESS
         file("build/packages/testpkg.tgz").exists()
 
-        when:
-        def resultPkgInit = getPreparedGradleRunner()
-                .withArguments(CreateInitPackage.DEFAULT_NAME)
-                .withGradleVersion(gradleVersion)
-                .build()
-
-        then:
-        resultPkgInit.task(":${CreateInitPackage.DEFAULT_NAME}").outcome == SUCCESS
-
-        when:
-        def resultPkgTestInit = getPreparedGradleRunner()
-                .withArguments(CreateInitTestPackage.DEFAULT_NAME)
-                .withGradleVersion(gradleVersion)
-                .build()
-
-        then:
-        resultPkgTestInit.task(":${CreateInitTestPackage.DEFAULT_NAME}").outcome == SUCCESS
-
-
         where:
         gradleVersion << supportedGradleVersions
     }
@@ -1408,13 +1235,6 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         createLocalFile("config/test/cluster/test.properties", "test_test = 1")
         createLocalFile("config/dev/cluster/test.properties", "dev_test = 1")
         createLocalFile("config/prod/cluster/test.properties", "test.properties = prod_dir")
-
-        createLocalFile("sites/base/test-site1/units/test.properties", "test-site1-sites = base")
-        createLocalFile("sites/base/test-site2/units/test.properties", "test-site2-sites = 2")
-        createLocalFile("sites/base/test-site3/units/test.properties", "test-site3-sites = 3")
-        createLocalFile("sites/prod/test-site1/units/test.properties", "test-site1-sites = prod")
-        createLocalFile("sites/test/test-site1/units/test.properties", "test-site1-sites = test")
-        createLocalFile("sites/dev/test-site1/units/test.properties", "test-site1-sites = dev")
 
         buildFile << """
             plugins {
@@ -1456,14 +1276,6 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
                     serverDirConfig {
                         base {
-                            sites {
-                                dirs {
-                                    main {
-                                        dir.set(file("sites/base"))
-                                        exclude("**/test-site1/units/test.properties")
-                                    }
-                                }
-                            }
                             config {
                                 dirs {
                                     main {
@@ -1482,22 +1294,8 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                                     }
                                 }
                             }
-                            sites {
-                                dirs {
-                                    main {
-                                        dir.set(file("sites/prod"))
-                                    }
-                                }
-                            }
                         }
                         test {
-                            sites {
-                                dirs {
-                                    main {
-                                        dir.set(file("sites/test"))
-                                    }
-                                }
-                            }
                             config {
                                 dirs {
                                     main {
@@ -1507,17 +1305,6 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                             }
                         }
                         dev {
-                            sites {
-                                dirs {
-                                    main {
-                                        dir.set(file("sites/dev"))
-                                    }
-                                    test {
-                                        dir.set(file("sites/test"))
-                                        exclude("**/units/test.properties")
-                                    }
-                                }
-                            }
                             config {
                                 dirs {
                                     main {
@@ -1636,7 +1423,6 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         def configAppsDir = new File(configDir, "apps")
         def configClusterDir = new File(configDir, "cluster")
         def prjLibsDir = new File(testProjectDir, "build/container/prjlibs")
-        def sitesDir = new File(testProjectDir, "build/container/sites_folder/sites")
 
         then:
         result.task(':prepareContainer').outcome == SUCCESS
@@ -1653,8 +1439,6 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         configClusterDir.listFiles().size() == 3
         prjLibsDir.exists()
         prjLibsDir.listFiles().size() == 13
-        sitesDir.exists()
-        sitesDir.listFiles().size() == 9
 
         where:
         gradleVersion << supportedGradleVersions
@@ -1858,14 +1642,11 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                 .build()
 
         def repoConfigFile = new File(testProjectDir, "build/pubrepo/com/intershop/test/rootproject/10.0.0/rootproject-10.0.0-configuration.zip")
-        def repoSitesFile = new File(testProjectDir, "build/pubrepo/com/intershop/test/rootproject/10.0.0/rootproject-10.0.0-sites.zip")
 
         then:
         result.task(':publish').outcome == SUCCESS
-        result.task(':zipSites').outcome == SUCCESS
         result.task(':zipConfiguration').outcome == SUCCESS
         repoConfigFile.exists()
-        repoSitesFile.exists()
         new ZipFile(repoConfigFile).entries().toList().size() == 3
 
         where:
@@ -1880,7 +1661,6 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         rootProject.name='rootproject'
         """.stripIndent()
 
-        createLocalFile("sites/base/.empty", "do not delete")
         createLocalFile("config/base/.empty", "do not delete")
 
         buildFile << """
@@ -2021,14 +1801,11 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                 .build()
 
         def repoConfigFile = new File(testProjectDir, "build/pubrepo/com/intershop/test/rootproject/10.0.0/rootproject-10.0.0-configuration.zip")
-        def repoSitesFile = new File(testProjectDir, "build/pubrepo/com/intershop/test/rootproject/10.0.0/rootproject-10.0.0-sites.zip")
 
         then:
         result.task(':publish').outcome == SUCCESS
-        result.task(':zipSites').outcome == SUCCESS
         result.task(':zipConfiguration').outcome == SUCCESS
         repoConfigFile.exists()
-        repoSitesFile.exists()
 
         where:
         gradleVersion << supportedGradleVersions

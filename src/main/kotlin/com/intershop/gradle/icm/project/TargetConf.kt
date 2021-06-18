@@ -35,9 +35,6 @@ enum class TargetConf(val value: String) {
         override fun libs(projectLayout: ProjectLayout): Provider<Directory> =
             projectLayout.buildDirectory.dir("container/prjlibs")
 
-        override fun sites(projectLayout: ProjectLayout): Provider<Directory> =
-            projectLayout.buildDirectory.dir("container/sites_folder")
-
         override fun config(projectLayout: ProjectLayout): Provider<Directory> =
             projectLayout.buildDirectory.dir("container/config_folder")
 
@@ -51,9 +48,6 @@ enum class TargetConf(val value: String) {
         override fun libs(projectLayout: ProjectLayout): Provider<Directory> =
             projectLayout.buildDirectory.dir("testcontainer/prjlibs")
 
-        override fun sites(projectLayout: ProjectLayout): Provider<Directory> =
-            projectLayout.buildDirectory.dir("testcontainer/sites_folder")
-
         override fun config(projectLayout: ProjectLayout): Provider<Directory> =
             projectLayout.buildDirectory.dir("testcontainer/config_folder")
 
@@ -66,9 +60,6 @@ enum class TargetConf(val value: String) {
 
         override fun libs(projectLayout: ProjectLayout): Provider<Directory> =
             projectLayout.buildDirectory.dir("server/prjlibs")
-
-        override fun sites(projectLayout: ProjectLayout): Provider<Directory> =
-            projectLayout.buildDirectory.dir("server/sites_folder")
 
         override fun config(projectLayout: ProjectLayout): Provider<Directory> =
             projectLayout.buildDirectory.dir("server/config_folder")
@@ -92,14 +83,6 @@ enum class TargetConf(val value: String) {
      * @return Provider<Directory>
      */
     abstract fun libs(projectLayout: ProjectLayout): Provider<Directory>
-
-    /**
-     * Returns the the provider of a directory
-     * for sites folders.
-     *
-     * @return Provider<Directory>
-     */
-    abstract fun sites(projectLayout: ProjectLayout): Provider<Directory>
 
     /**
      * Returns the the provider of a directory

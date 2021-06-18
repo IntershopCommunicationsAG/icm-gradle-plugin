@@ -16,8 +16,6 @@
  */
 package com.intershop.gradle.icm
 
-import com.intershop.gradle.icm.tasks.CreateInitPackage
-import com.intershop.gradle.icm.tasks.CreateInitTestPackage
 import com.intershop.gradle.icm.tasks.CreateMainPackage
 import com.intershop.gradle.icm.tasks.CreateTestPackage
 import com.intershop.gradle.icm.tasks.CreateServerInfo
@@ -1276,24 +1274,6 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         then:
         resultPkgTest.task(":${CreateTestPackage.DEFAULT_NAME}").outcome == SUCCESS
         file("build/packages/testpkg.tgz").exists()
-
-        when:
-        def resultPkgInit = getPreparedGradleRunner()
-                .withArguments(CreateInitPackage.DEFAULT_NAME)
-                .withGradleVersion(gradleVersion)
-                .build()
-
-        then:
-        resultPkgInit.task(":${CreateInitPackage.DEFAULT_NAME}").outcome == NO_SOURCE
-
-        when:
-        def resultPkgTestInit = getPreparedGradleRunner()
-                .withArguments(CreateInitTestPackage.DEFAULT_NAME)
-                .withGradleVersion(gradleVersion)
-                .build()
-
-        then:
-        resultPkgTestInit.task(":${CreateInitTestPackage.DEFAULT_NAME}").outcome == NO_SOURCE
 
         where:
         gradleVersion << supportedGradleVersions
