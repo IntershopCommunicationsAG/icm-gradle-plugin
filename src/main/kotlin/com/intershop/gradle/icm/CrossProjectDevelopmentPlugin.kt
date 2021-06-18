@@ -143,7 +143,6 @@ class CrossProjectDevelopmentPlugin: Plugin<Project> {
             val baseDir = File(projectDir, CROSSPRJ_FOLDERPATH)
 
             val moduleConfDirs = mutableMapOf<String, File>()
-            val moduleSiteDirs = mutableMapOf<String, File>()
             modules.forEach { module ->
                 val dep = confprops[module].toString()
                 if(dep.isNotBlank()) {
