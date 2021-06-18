@@ -22,7 +22,6 @@ import com.intershop.gradle.icm.extension.IntershopExtension
 import com.intershop.gradle.icm.extension.ProjectConfiguration
 import com.intershop.gradle.icm.tasks.CreateConfigFolder
 import com.intershop.gradle.icm.tasks.CreateServerInfo
-import com.intershop.gradle.icm.tasks.CreateSitesFolder
 import com.intershop.gradle.icm.tasks.ExtendCartridgeList
 import com.intershop.gradle.icm.tasks.ProvideCartridgeListTemplate
 import com.intershop.gradle.icm.tasks.ProvideLibFilter
@@ -94,25 +93,6 @@ class PluginConfig(val project: Project,
     }
 
     /**
-     * Configures the task for the sites folder creation.
-     *
-     * @param type environment type
-     */
-    fun getSitesTask(type: EnvironmentType): TaskProvider<CreateSitesFolder> =
-        project.tasks.register( TaskName.valueOf(type.name).sites(), CreateSitesFolder::class.java ) { task ->
-            task.baseProject.set(projectConfig.base)
-
-            projectConfig.modules.all {
-                task.module(it)
-            }
-
-            task.baseDirConfig.set(projectConfig.serverDirConfig.base.sites)
-            task.extraDirConfig.set(projectConfig.serverDirConfig.getServerDirSet(type).sites)
-
-            task.provideOutputDir(TargetConf.valueOf(type.name).sites(projectLayout))
-        }
-
-    /**
      * Configures the task for the configuration folder creation.
      *
      * @param versionInfoTask task that creates the server info
@@ -161,20 +141,6 @@ class PluginConfig(val project: Project,
             }
         }
     }
-
-    /**
-     * Configures an existing package task - initalization package.
-     *
-     * @param sitesFolderTask creates the sites folder
-     * @param taskname specify the task name of the package folder
-     */
-    fun configureInitTask(sitesFolderTask: TaskProvider<CreateSitesFolder>, taskname: String): TaskProvider<Tar> =
-        project.tasks.named(taskname, Tar::class.java) { pkg ->
-            pkg.with(
-                project.copySpec { cp -> cp.from(project.provider { sitesFolderTask.get().outputs }) }
-            )
-            pkg.dependsOn(sitesFolderTask)
-        }
 
     /**
      * Configures an existing package task package.
