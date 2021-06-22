@@ -435,10 +435,10 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
                     modules {
                         solrExt {
-                            dependency = "com.intershop.search:solrcloud:1.0.0"
+                            dependency.set("com.intershop.search:solrcloud:1.0.0")
                         }
                         paymentExt {
-                            dependency = "com.intershop.payment:paymenttest:1.0.0"
+                            dependency.set("com.intershop.payment:paymenttest:1.0.0")
                         }
                     }
 
@@ -800,10 +800,10 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
                     modules {
                         solrExt {
-                            dependency = "com.intershop.search:solrcloud:1.0.0"
+                            dependency.set("com.intershop.search:solrcloud:1.0.0")
                         }
                         paymentExt {
-                            dependency = "com.intershop.payment:paymenttest:1.0.0"
+                            dependency.set("com.intershop.payment:paymenttest:1.0.0")
                         }
                     }
                 }
@@ -945,10 +945,10 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
                     modules {
                         solrExt {
-                            dependency = "com.intershop.search:solrcloud:1.0.0"
+                            dependency.set("com.intershop.search:solrcloud:1.0.0")
                         }
                         paymentExt {
-                            dependency = "com.intershop.payment:paymenttest:1.0.0"
+                            dependency.set("com.intershop.payment:paymenttest:1.0.0")
                         }
                     }
 
@@ -1267,10 +1267,10 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
                     modules {
                         solrExt {
-                            dependency = "com.intershop.search:solrcloud:1.0.0"
+                            dependency.set("com.intershop.search:solrcloud:1.0.0")
                         }
                         paymentExt {
-                            dependency = "com.intershop.payment:paymenttest:1.0.0"
+                            dependency.set("com.intershop.payment:paymenttest:1.0.0")
                         }
                     }
 
@@ -1486,15 +1486,15 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                                             'prjCartridge_test' ] 
 
                     base {
-                        dependency = "com.intershop.icm:icm-as:1.0.0"
+                        dependency.set("com.intershop.icm:icm-as:1.0.0")
                     }
 
                     modules {
                         solrExt {
-                            dependency = "com.intershop.search:solrcloud:1.0.0"
+                            dependency.set("com.intershop.search:solrcloud:1.0.0")
                         }
                         paymentExt {
-                            dependency = "com.intershop.payment:paymenttest:1.0.0"
+                            dependency.set("com.intershop.payment:paymenttest:1.0.0")
                         }
                     }
 
@@ -1695,10 +1695,10 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
                     modules {
                         solrExt {
-                            dependency = "com.intershop.search:solrcloud:1.0.0"
+                            dependency.set("com.intershop.search:solrcloud:1.0.0")
                         }
                         paymentExt {
-                            dependency = "com.intershop.payment:paymenttest:1.0.0"
+                            dependency.set("com.intershop.payment:paymenttest:1.0.0")
                         }
                     }
                 }

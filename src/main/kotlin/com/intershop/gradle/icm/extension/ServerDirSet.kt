@@ -21,6 +21,7 @@ import com.intershop.gradle.icm.ICMProjectPlugin.Companion.CARTRIDGELIST_FILENAM
 import com.intershop.gradle.icm.tasks.CreateServerInfo.Companion.VERSIONINFO_FILENAME
 import groovy.lang.Closure
 import org.gradle.api.Action
+import org.gradle.api.Project
 import org.gradle.api.model.ObjectFactory
 import org.gradle.util.ConfigureUtil
 import javax.inject.Inject
@@ -33,7 +34,7 @@ import javax.inject.Inject
  *
  * @constructor creates a configuration of a simple copyspec.
  */
-open class ServerDirSet @Inject constructor(objectFactory: ObjectFactory ) {
+open class ServerDirSet @Inject constructor(val project: Project, objectFactory: ObjectFactory ) {
 
     val config: ServerDir = objectFactory.newInstance(
         ServerDir::class.java,
@@ -58,6 +59,6 @@ open class ServerDirSet @Inject constructor(objectFactory: ObjectFactory ) {
      * @parm action Closure to configures a ServerDir
      */
     fun config(c: Closure<ServerDir>) {
-        ConfigureUtil.configure(c, config)
+        project.configure(config, c)
     }
 }

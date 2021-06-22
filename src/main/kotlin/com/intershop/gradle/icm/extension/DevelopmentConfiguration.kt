@@ -14,7 +14,6 @@
  * limitations under the License.
  *
  */
-
 package com.intershop.gradle.icm.extension
 
 import org.gradle.api.model.ObjectFactory

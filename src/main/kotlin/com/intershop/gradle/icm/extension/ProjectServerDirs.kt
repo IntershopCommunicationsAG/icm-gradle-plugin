@@ -21,6 +21,7 @@ import com.intershop.gradle.icm.utils.EnvironmentType
 import groovy.lang.Closure
 import org.gradle.api.Action
 import org.gradle.api.GradleException
+import org.gradle.api.Project
 import org.gradle.api.model.ObjectFactory
 import org.gradle.util.ConfigureUtil
 import javax.inject.Inject
@@ -32,9 +33,9 @@ import javax.inject.Inject
  *
  * @constructor creates a configuration of a set of ServerDirs.
  */
-open class ProjectServerDirs @Inject constructor(objectFactory: ObjectFactory ) {
+open class ProjectServerDirs @Inject constructor(val project: Project, objectFactory: ObjectFactory ) {
 
-    val base: ServerDirSet = objectFactory.newInstance(ServerDirSet::class.java)
+    val base: ServerDirSet = objectFactory.newInstance(ServerDirSet::class.java, project)
 
     /**
      * Configures a ServerDirSet from an action
@@ -53,10 +54,10 @@ open class ProjectServerDirs @Inject constructor(objectFactory: ObjectFactory ) 
      * @param c ServerDirSet closure
      */
     fun base(c: Closure<ServerDirSet>) {
-        ConfigureUtil.configure(c, base)
+        project.configure(base, c)
     }
 
-    val prod: ServerDirSet = objectFactory.newInstance(ServerDirSet::class.java)
+    val prod: ServerDirSet = objectFactory.newInstance(ServerDirSet::class.java, project)
 
     /**
      * Configures a ServerDirSet from an action
@@ -75,10 +76,10 @@ open class ProjectServerDirs @Inject constructor(objectFactory: ObjectFactory ) 
      * @param c ServerDirSet closure
      */
     fun prod(c: Closure<ServerDirSet>) {
-        ConfigureUtil.configure(c, prod)
+        project.configure(prod, c)
     }
 
-    val test: ServerDirSet = objectFactory.newInstance(ServerDirSet::class.java)
+    val test: ServerDirSet = objectFactory.newInstance(ServerDirSet::class.java, project)
 
     /**
      * Configures a ServerDirSet from an action
@@ -97,10 +98,10 @@ open class ProjectServerDirs @Inject constructor(objectFactory: ObjectFactory ) 
      * @param c ServerDirSet closure
      */
     fun test(c: Closure<ServerDirSet>) {
-        ConfigureUtil.configure(c, test)
+        project.configure(test, c)
     }
 
-    val dev: ServerDirSet = objectFactory.newInstance(ServerDirSet::class.java)
+    val dev: ServerDirSet = objectFactory.newInstance(ServerDirSet::class.java, project)
 
     /**
      * Configures a ServerDirSet from an action
@@ -119,7 +120,7 @@ open class ProjectServerDirs @Inject constructor(objectFactory: ObjectFactory ) 
      * @param c ServerDirSet closure
      */
     fun dev(c: Closure<ServerDirSet>) {
-        ConfigureUtil.configure(c, dev)
+        project.configure(dev, c)
     }
 
     /**
