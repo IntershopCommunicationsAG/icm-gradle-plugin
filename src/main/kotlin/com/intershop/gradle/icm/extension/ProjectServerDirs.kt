@@ -17,13 +17,14 @@
 
 package com.intershop.gradle.icm.extension
 
+import com.intershop.gradle.icm.ICMProjectPlugin
+import com.intershop.gradle.icm.tasks.CreateServerInfo
 import com.intershop.gradle.icm.utils.EnvironmentType
 import groovy.lang.Closure
 import org.gradle.api.Action
 import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.model.ObjectFactory
-import org.gradle.util.ConfigureUtil
 import javax.inject.Inject
 
 /**
@@ -35,7 +36,12 @@ import javax.inject.Inject
  */
 open class ProjectServerDirs @Inject constructor(val project: Project, objectFactory: ObjectFactory ) {
 
-    val base: ServerDirSet = objectFactory.newInstance(ServerDirSet::class.java, project)
+    val base: ServerDir = objectFactory.newInstance(
+        ServerDir::class.java,
+        "system-conf",
+        listOf("**/cluster/${ICMProjectPlugin.CARTRIDGELIST_FILENAME}",
+            "**/cluster/${CreateServerInfo.VERSIONINFO_FILENAME}"),
+        listOf<String>())
 
     /**
      * Configures a ServerDirSet from an action
@@ -43,7 +49,7 @@ open class ProjectServerDirs @Inject constructor(val project: Project, objectFac
      *
      * @param action ServerDirSet configuration
      */
-    fun base(action: Action<in ServerDirSet>) {
+    fun base(action: Action<in ServerDir>) {
         action.execute(base)
     }
 
@@ -53,11 +59,16 @@ open class ProjectServerDirs @Inject constructor(val project: Project, objectFac
      *
      * @param c ServerDirSet closure
      */
-    fun base(c: Closure<ServerDirSet>) {
+    fun base(c: Closure<ServerDir>) {
         project.configure(base, c)
     }
 
-    val prod: ServerDirSet = objectFactory.newInstance(ServerDirSet::class.java, project)
+    val prod: ServerDir = objectFactory.newInstance(
+        ServerDir::class.java,
+        "system-conf",
+        listOf("**/cluster/${ICMProjectPlugin.CARTRIDGELIST_FILENAME}",
+            "**/cluster/${CreateServerInfo.VERSIONINFO_FILENAME}"),
+        listOf<String>())
 
     /**
      * Configures a ServerDirSet from an action
@@ -65,7 +76,7 @@ open class ProjectServerDirs @Inject constructor(val project: Project, objectFac
      *
      * @param action ServerDirSet configuration
      */
-    fun prod(action: Action<in ServerDirSet>) {
+    fun prod(action: Action<in ServerDir>) {
         action.execute(prod)
     }
 
@@ -75,11 +86,16 @@ open class ProjectServerDirs @Inject constructor(val project: Project, objectFac
      *
      * @param c ServerDirSet closure
      */
-    fun prod(c: Closure<ServerDirSet>) {
+    fun prod(c: Closure<ServerDir>) {
         project.configure(prod, c)
     }
 
-    val test: ServerDirSet = objectFactory.newInstance(ServerDirSet::class.java, project)
+    val test: ServerDir = objectFactory.newInstance(
+        ServerDir::class.java,
+        "system-conf",
+        listOf("**/cluster/${ICMProjectPlugin.CARTRIDGELIST_FILENAME}",
+            "**/cluster/${CreateServerInfo.VERSIONINFO_FILENAME}"),
+        listOf<String>())
 
     /**
      * Configures a ServerDirSet from an action
@@ -87,7 +103,7 @@ open class ProjectServerDirs @Inject constructor(val project: Project, objectFac
      *
      * @param action ServerDirSet configuration
      */
-    fun test(action: Action<in ServerDirSet>) {
+    fun test(action: Action<in ServerDir>) {
         action.execute(test)
     }
 
@@ -97,11 +113,16 @@ open class ProjectServerDirs @Inject constructor(val project: Project, objectFac
      *
      * @param c ServerDirSet closure
      */
-    fun test(c: Closure<ServerDirSet>) {
+    fun test(c: Closure<ServerDir>) {
         project.configure(test, c)
     }
 
-    val dev: ServerDirSet = objectFactory.newInstance(ServerDirSet::class.java, project)
+    val dev: ServerDir = objectFactory.newInstance(
+        ServerDir::class.java,
+        "system-conf",
+        listOf("**/cluster/${ICMProjectPlugin.CARTRIDGELIST_FILENAME}",
+            "**/cluster/${CreateServerInfo.VERSIONINFO_FILENAME}"),
+        listOf<String>())
 
     /**
      * Configures a ServerDirSet from an action
@@ -109,7 +130,7 @@ open class ProjectServerDirs @Inject constructor(val project: Project, objectFac
      *
      * @param action ServerDirSet configuration
      */
-    fun dev(action: Action<in ServerDirSet>) {
+    fun dev(action: Action<in ServerDir>) {
         action.execute(dev)
     }
 
@@ -119,7 +140,7 @@ open class ProjectServerDirs @Inject constructor(val project: Project, objectFac
      *
      * @param c ServerDirSet closure
      */
-    fun dev(c: Closure<ServerDirSet>) {
+    fun dev(c: Closure<ServerDir>) {
         project.configure(dev, c)
     }
 
@@ -128,7 +149,7 @@ open class ProjectServerDirs @Inject constructor(val project: Project, objectFac
      *
      * @param type environment type
      */
-    fun getServerDirSet(type: EnvironmentType): ServerDirSet {
+    fun getServerDir(type: EnvironmentType): ServerDir {
         return when (type) {
             EnvironmentType.PRODUCTION    -> prod
             EnvironmentType.DEVELOPMENT   -> dev

@@ -20,14 +20,11 @@ import com.intershop.gradle.icm.project.TargetConf
 import groovy.lang.Closure
 import org.gradle.api.Action
 import org.gradle.api.NamedDomainObjectContainer
-import org.gradle.api.NamedDomainObjectFactory
 import org.gradle.api.Project
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.SetProperty
-import org.gradle.api.tasks.Internal
-import org.gradle.util.ConfigureUtil
 import java.io.File
 import javax.inject.Inject
 
@@ -139,7 +136,7 @@ open class ProjectConfiguration
     init {
         newBaseProject.set(false)
 
-        serverDirConfig.base.config.dirs.register("main") {
+        serverDirConfig.base.dirs.register("main") {
             it.dir.convention( projectLayout.projectDirectory.dir("config/base") )
         }
     }

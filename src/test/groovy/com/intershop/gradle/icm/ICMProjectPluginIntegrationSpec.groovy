@@ -444,44 +444,36 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
                     serverDirConfig {
                         base {
-                            config {
-                                dirs {
-                                    main {
-                                        dir.set(file("config/base"))
-                                        exclude("**/cluster/test.properties")
-                                    }
+                            dirs {
+                                main {
+                                    dir.set(file("config/base"))
+                                    exclude("**/cluster/test.properties")
                                 }
-                                exclude("**/cluster/cartridgelist.properties")
                             }
+                            exclude("**/cluster/cartridgelist.properties")
                         }
                         prod {
-                            config {
-                                dirs {
-                                    main {
-                                        dir.set(file("config/prod"))
-                                    }
+                            dirs {
+                                main {
+                                    dir.set(file("config/prod"))
                                 }
                             }
                         }
                         test {
-                            config {
-                                dirs {
-                                    main {
-                                        dir.set(file("config/test"))
-                                    }
+                            dirs {
+                                main {
+                                    dir.set(file("config/test"))
                                 }
                             }
                         }
                         dev {
-                            config {
-                                dirs {
-                                    main {
-                                        dir.set(file("config/dev"))
-                                    }
-                                    test {
-                                        dir.set(file("config/test"))
-                                        exclude("**/cluster/test.properties")
-                                    }
+                            dirs {
+                                main {
+                                    dir.set(file("config/dev"))
+                                }
+                                test {
+                                    dir.set(file("config/test"))
+                                    exclude("**/cluster/test.properties")
                                 }
                             }
                         }
@@ -954,44 +946,36 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
                     serverDirConfig {
                         base {
-                            config {
-                                dirs {
-                                    main {
-                                        dir.set(file("config/base"))
-                                        exclude("**/cluster/test.properties")
-                                    }
+                            dirs {
+                                main {
+                                    dir.set(file("config/base"))
+                                    exclude("**/cluster/test.properties")
                                 }
-                                exclude("**/cluster/cartridgelist.properties")
                             }
+                            exclude("**/cluster/cartridgelist.properties")
                         }
                         prod {
-                            config {
-                                dirs {
-                                    main {
-                                        dir.set(file("config/prod"))
-                                    }
+                            dirs {
+                                main {
+                                    dir.set(file("config/prod"))
                                 }
                             }
                         }
                         test {
-                            config {
-                                dirs {
-                                    main {
-                                        dir.set(file("config/test"))
-                                    }
+                            dirs {
+                                main {
+                                    dir.set(file("config/test"))
                                 }
                             }
                         }
                         dev {
-                            config {
-                                dirs {
-                                    main {
-                                        dir.set(file("config/dev"))
-                                    }
-                                    test {
-                                        dir.set(file("config/test"))
-                                        exclude("**/cluster/test.properties")
-                                    }
+                            dirs {
+                                main {
+                                    dir.set(file("config/dev"))
+                                }
+                                test {
+                                    dir.set(file("config/test"))
+                                    exclude("**/cluster/test.properties")
                                 }
                             }
                         }
@@ -1276,44 +1260,36 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
                     serverDirConfig {
                         base {
-                            config {
-                                dirs {
-                                    main {
-                                        dir.set(file("config/base"))
-                                        exclude("**/cluster/test.properties")
-                                    }
+                            dirs {
+                                main {
+                                    dir.set(file("config/base"))
+                                    exclude("**/cluster/test.properties")
                                 }
-                                exclude("**/cluster/cartridgelist.properties")
                             }
+                            exclude("**/cluster/cartridgelist.properties")
                         }
                         prod {
-                            config {
-                                dirs {
-                                    main {
-                                        dir.set(file("config/prod"))
-                                    }
+                            dirs {
+                                main {
+                                    dir.set(file("config/prod"))
                                 }
                             }
                         }
                         test {
-                            config {
-                                dirs {
-                                    main {
-                                        dir.set(file("config/test"))
-                                    }
+                            dirs {
+                                main {
+                                    dir.set(file("config/test"))
                                 }
                             }
                         }
                         dev {
-                            config {
-                                dirs {
-                                    main {
-                                        dir.set(file("config/dev"))
-                                    }
-                                    test {
-                                        dir.set(file("config/test"))
-                                        exclude("**/cluster/test.properties")
-                                    }
+                            dirs {
+                                main {
+                                    dir.set(file("config/dev"))
+                                }
+                                test {
+                                    dir.set(file("config/test"))
+                                    exclude("**/cluster/test.properties")
                                 }
                             }
                         }
@@ -1500,44 +1476,36 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
                     serverDirConfig {
                         base {
-                            config {
-                                dirs {
-                                    main {
-                                        dir.set(file("config/base"))
-                                        exclude("**/cluster/test.properties")
-                                    }
+                            dirs {
+                                main {
+                                    dir.set(file("config/base"))
+                                    exclude("**/cluster/test.properties")
                                 }
-                                exclude("**/cluster/cartridgelist.properties")
                             }
+                            exclude("**/cluster/cartridgelist.properties")
                         }
                         prod {
-                            config {
-                                dirs {
-                                    main {
-                                        dir.set(file("config/prod"))
-                                    }
+                            dirs {
+                                main {
+                                    dir.set(file("config/prod"))
                                 }
                             }
                         }
                         test {
-                            config {
-                                dirs {
-                                    main {
-                                        dir.set(file("config/test"))
-                                    }
+                            dirs {
+                                main {
+                                    dir.set(file("config/test"))
                                 }
                             }
                         }
                         dev {
-                            config {
-                                dirs {
-                                    main {
-                                        dir.set(file("config/dev"))
-                                    }
-                                    test {
-                                        dir.set(file("config/test"))
-                                        exclude("**/cluster/test.properties")
-                                    }
+                            dirs {
+                                main {
+                                    dir.set(file("config/dev"))
+                                }
+                                test {
+                                    dir.set(file("config/test"))
+                                    exclude("**/cluster/test.properties")
                                 }
                             }
                         }
