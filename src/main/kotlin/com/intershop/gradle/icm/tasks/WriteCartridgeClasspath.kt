@@ -23,7 +23,7 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.model.ObjectFactory
-import org.gradle.api.plugins.JavaPluginConvention
+import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Classpath
@@ -127,9 +127,9 @@ open class WriteCartridgeClasspath @Inject constructor(
         val returnFiles = project.files()
 
         // search all files for classpath
-        if(project.convention.findPlugin(JavaPluginConvention::class.java) != null) {
-            val javaConvention = project.convention.getPlugin(JavaPluginConvention::class.java)
-            val mainSourceSet = javaConvention.sourceSets.getByName("main")
+        if(project.extensions.findByType(JavaPluginExtension::class.java) != null) {
+            val javaExtension = project.extensions.getByType(JavaPluginExtension::class.java)
+            val mainSourceSet = javaExtension.sourceSets.getByName("main")
 
             returnFiles.from(mainSourceSet.runtimeClasspath)
         }
@@ -150,7 +150,7 @@ open class WriteCartridgeClasspath @Inject constructor(
             outputFile.delete()
         }
 
-        val runtimeFiles = if (project.convention.findPlugin(JavaPluginConvention::class.java) != null) {
+        val runtimeFiles = if (project.extensions.findByType(JavaPluginExtension::class.java) != null) {
             project.configurations.getByName(CONFIGURATION_CARTRIDGE_RUNTIME).resolvedConfiguration.files
         } else {
             project.files()
