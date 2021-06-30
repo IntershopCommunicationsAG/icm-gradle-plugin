@@ -16,7 +16,7 @@
  */
 package com.intershop.gradle.icm.tasks.crossproject
 
-import com.intershop.gradle.icm.CrossProjectDevelopmentPlugin.Companion.CROSSPRJ_CONFPATH
+import com.intershop.gradle.icm.CrossProjectDevelopmentPlugin.Companion.CROSSPRJ_BUILD_DIR
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.ProjectLayout
@@ -42,7 +42,7 @@ open class WriteMappingFile
         group = "ICM Cross-Project Development"
         description = "Creates mappings files, like settings.gradle.kts include files."
 
-        outputDir.convention(projectLayout.projectDirectory.dir("${CROSSPRJ_CONFPATH}/${project.name}"))
+        outputDir.convention(projectLayout.buildDirectory.dir(CROSSPRJ_BUILD_DIR))
     }
 
     @TaskAction

@@ -21,7 +21,6 @@ import com.intershop.gradle.icm.extension.ProjectConfiguration
 import com.intershop.gradle.icm.tasks.CreateServerInfo
 import com.intershop.gradle.icm.tasks.ExtendCartridgeList
 import com.intershop.gradle.icm.tasks.crossproject.PrepareConfigFolder
-import com.intershop.gradle.icm.tasks.crossproject.PrepareSitesFolder
 import com.intershop.gradle.icm.tasks.crossproject.WriteMappingFile
 import com.intershop.gradle.icm.utils.CopySpecUtil
 import com.intershop.gradle.icm.utils.EnvironmentType
@@ -38,20 +37,17 @@ class CrossProjectDevelopmentPlugin: Plugin<Project> {
 
     companion object {
         const val TASK_GROUP = "ICM Cross-Project Development"
-        const val CROSSPRJ_PATH = "../icm-cross-project"
-        const val CROSSPRJ_PROPERTIES = "crossprjconfig.properties"
-        const val CROSSPRJ_FOLDER = "folder"
         const val CROSSPRJ_CONF = "conf"
 
-        const val CROSSPRJ_FOLDERPATH = "${CROSSPRJ_PATH}/${CROSSPRJ_FOLDER}"
-        const val CROSSPRJ_CONFPATH = "${CROSSPRJ_PATH}/${CROSSPRJ_CONF}"
+        const val CROSSPRJ_BUILD_DIR = "combinedbuild"
 
         const val TASK_WRITEMAPPINGFILES = "writeMappingFiles"
 
-        const val TASK_PREPAREPRJ_SITES = "prepareCrossProjectSites"
-        const val TASK_PREPAREPRJ_CONFIG = "prepareCrossProjectConfig"
+        const val TASK_PREPARE_SITES = "prepareCrossProjectSites"
+        const val TASK_PREPARE_CONFIG = "prepareCrossProjectConfig"
+        const val TASK_PREPARE_CARTRIDGELIST = "prepareCrossProjectCartridgeList"
+
         const val TASK_PREPAREPRJ = "prepareCrossProject"
-        const val TASK_PREPARE_CARTRIDGELIST = "prepareCrossCartridgeList"
     }
 
     override fun apply(project: Project) {
