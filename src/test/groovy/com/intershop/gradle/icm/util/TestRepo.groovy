@@ -130,7 +130,6 @@ class TestRepo {
         addSecondBaseProject('com.intershop.search', 'solrcloud', '1.0.0')
         addThirdBaseProject('com.intershop.payment', 'paymenttest', '1.0.0')
         addBaseProjectWithoutLibsTxt('icm-as', '2.0.0')
-        addBaseProjectWithoutSites('icm-as', '3.0.0')
     }
 
     private void addCartridgeList(String group, String artifactID, String version) {

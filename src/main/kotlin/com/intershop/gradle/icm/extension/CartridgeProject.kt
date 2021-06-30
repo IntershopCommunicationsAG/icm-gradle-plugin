@@ -87,29 +87,4 @@ open class CartridgeProject @Inject constructor(objectFactory: ObjectFactory) {
         ConfigureUtil.configure(c, configPackage)
     }
 
-    /**
-     * Configuration for sites package.
-     *
-     * @property sitesPackage
-     */
-    @get:Nested
-    val sitesPackage : FilePackage = objectFactory.newInstance(FilePackage::class.java)
-
-    /**
-     * Provides the configuration of a packes with ICM sites files.
-     *
-     * @param action action to configure a file package.
-     */
-    fun sitesPackage(action: Action<in FilePackage>) {
-        action.execute(sitesPackage)
-    }
-
-    /**
-     * Provides the configuration of a package with ICM sites files.
-     *
-     * @param c closure to configure a file package.
-     */
-    fun sitesPackage(c: Closure<FilePackage>) {
-        ConfigureUtil.configure(c, sitesPackage)
-    }
 }

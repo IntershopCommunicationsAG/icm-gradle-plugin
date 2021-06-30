@@ -43,7 +43,7 @@ class CrossProjectDevelopmentPlugin: Plugin<Project> {
 
         const val TASK_WRITEMAPPINGFILES = "writeMappingFiles"
 
-        const val TASK_PREPARE_SITES = "prepareCrossProjectSites"
+        const val TASK_PREPAREPRJ_CONFIG = "prepareCrossProjectConfig"
         const val TASK_PREPARE_CONFIG = "prepareCrossProjectConfig"
         const val TASK_PREPARE_CARTRIDGELIST = "prepareCrossProjectCartridgeList"
 
@@ -91,18 +91,8 @@ class CrossProjectDevelopmentPlugin: Plugin<Project> {
 
     private fun prepareModulesTasks(project: Project, projectConfig: ProjectConfiguration) {
         with(project) {
-            val sitesCopySpec =
-                CopySpecUtil.getCSForServerDir(this, projectConfig.serverDirConfig.base.sites)
             val configCopySpec =
                 CopySpecUtil.getCSForServerDir(this, projectConfig.serverDirConfig.base.config)
-
-            val crossPrjSites = tasks.register(TASK_PREPAREPRJ_SITES, Copy::class.java) {
-                it.group = TASK_GROUP
-                it.description = "Copy all module files for sites folder"
-
-                it.with(sitesCopySpec)
-                it.into(File(projectDir, "${CROSSPRJ_FOLDERPATH}/${name}/sites"))
-            }
 
             val crossPrjConf = tasks.register(TASK_PREPAREPRJ_CONFIG, Copy::class.java) {
                 it.group = TASK_GROUP
@@ -116,7 +106,7 @@ class CrossProjectDevelopmentPlugin: Plugin<Project> {
                 it.group = TASK_GROUP
                 it.description = "Start all copy tasks for modules"
 
-                it.dependsOn(crossPrjConf, crossPrjSites)
+                it.dependsOn(crossPrjConf)
             }
         }
     }
@@ -151,34 +141,15 @@ class CrossProjectDevelopmentPlugin: Plugin<Project> {
             val baseDir = File(projectDir, CROSSPRJ_FOLDERPATH)
 
             val moduleConfDirs = mutableMapOf<String, File>()
-            val moduleSiteDirs = mutableMapOf<String, File>()
             modules.forEach { module ->
                 val dep = confprops[module].toString()
                 if(dep.isNotBlank()) {
                     moduleConfDirs[dep] = File(baseDir, "${module}/conf")
-                    moduleSiteDirs[dep] = File(baseDir, "${module}/sites")
                 }
             }
 
             // create mapping dependency -> filesystem
             val mainPrj = confprops.getProperty("mainproject", "")
-
-            val crossPrjSites = tasks.register(TASK_PREPAREPRJ_SITES, PrepareSitesFolder::class.java) {
-                it.group = TASK_GROUP
-                it.description = "Copy all files for server sites folder for storefront project"
-
-                it.baseProject.set(projectConfig.base)
-                it.baseDirConfig.set(projectConfig.serverDirConfig.base.sites)
-                it.extraDirConfig.set(
-                    projectConfig.serverDirConfig.getServerDirSet(EnvironmentType.DEVELOPMENT).sites)
-                it.mainBaseDir.set(File(baseDir, "${mainPrj}/sites"))
-
-                projectConfig.modules.all { ncp ->
-                    it.module(ncp)
-                }
-
-                it.moduleDirectories.set(moduleSiteDirs)
-            }
 
             val versionInfoTask = tasks.named(CreateServerInfo.DEFAULT_NAME, CreateServerInfo::class.java)
 
@@ -208,7 +179,7 @@ class CrossProjectDevelopmentPlugin: Plugin<Project> {
                 it.group = TASK_GROUP
                 it.description = "Copy all files for server folder for storefront project"
 
-                it.dependsOn(crossPrjConf, crossPrjSites)
+                it.dependsOn(crossPrjConf)
             }
         }
     }

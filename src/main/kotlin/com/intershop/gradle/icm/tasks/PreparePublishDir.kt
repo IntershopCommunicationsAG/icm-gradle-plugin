@@ -33,7 +33,7 @@ import org.gradle.api.tasks.TaskAction
 import javax.inject.Inject
 
 /**
- * This task copy the files (configuration / sites) for publishing of ICM projects.
+ * This task copy the files (configuration) for publishing of ICM projects.
  * There is a configuration for new base projects like ICM or adapter cartridges like (solr).
  *
  * @constructor Creates a task for file copienf from extension.

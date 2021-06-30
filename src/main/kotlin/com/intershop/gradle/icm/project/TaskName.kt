@@ -23,34 +23,23 @@ package com.intershop.gradle.icm.project
 enum class TaskName(val value: String) {
 
     PRODUCTION("production") {
-        override fun sites() = "createSitesProd"
         override fun config() = "createConfigProd"
         override fun cartridgelist() = "extendCartridgeListProd"
         override fun cartridges() = "setupCartridgesProd"
         override fun prepare() = "prepareContainer"
     },
     TEST("test") {
-        override fun sites() = "createSitesTest"
         override fun config() = "createConfigTest"
         override fun cartridgelist() = "extendCartridgeListTest"
         override fun cartridges() = "setupCartridgesTest"
         override fun prepare() = "prepareTestContainer"
     },
     DEVELOPMENT("development") {
-        override fun sites() = "createSites"
         override fun config() = "createConfig"
         override fun cartridgelist() = "extendCartridgeList"
         override fun cartridges() = "setupCartridges"
         override fun prepare() = "prepareServer"
     };
-
-    /**
-     * Returns the task name for the creation of
-     * the necessary sites folder.
-     *
-     * @return String
-     */
-    abstract fun sites(): String
 
     /**
      * Returns the task name for the creation of

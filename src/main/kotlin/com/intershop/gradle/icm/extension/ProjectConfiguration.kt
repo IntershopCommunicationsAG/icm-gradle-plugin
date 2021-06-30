@@ -39,11 +39,7 @@ open class ProjectConfiguration @Inject constructor(objectFactory: ObjectFactory
     val containerConfig: File = TargetConf.PRODUCTION.config(projectLayout).get().asFile
     val testcontainerConfig: File = TargetConf.TEST.config(projectLayout).get().asFile
 
-    val containerSites: File = TargetConf.PRODUCTION.sites(projectLayout).get().asFile
-    val testcontainerSites: File = TargetConf.TEST.sites(projectLayout).get().asFile
-
     val config: File = TargetConf.DEVELOPMENT.config(projectLayout).get().asFile
-    val sites: File = TargetConf.DEVELOPMENT.sites(projectLayout).get().asFile
     val newBaseProject: Property<Boolean> = objectFactory.property(Boolean::class.java)
 
     /**
@@ -137,10 +133,6 @@ open class ProjectConfiguration @Inject constructor(objectFactory: ObjectFactory
 
         serverDirConfig.base.config.dirs.register("main") {
             it.dir.convention( projectLayout.projectDirectory.dir("config/base") )
-        }
-
-        serverDirConfig.base.sites.dirs.register("main") {
-            it.dir.convention(projectLayout.projectDirectory.dir("sites/base"))
         }
     }
 }

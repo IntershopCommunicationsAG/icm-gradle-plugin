@@ -24,8 +24,6 @@ import com.intershop.gradle.icm.project.TaskConfCopyLib
 import com.intershop.gradle.icm.project.TaskName
 import com.intershop.gradle.icm.tasks.CopyThirdpartyLibs
 import com.intershop.gradle.icm.tasks.CreateClusterID
-import com.intershop.gradle.icm.tasks.CreateInitPackage
-import com.intershop.gradle.icm.tasks.CreateInitTestPackage
 import com.intershop.gradle.icm.tasks.CreateMainPackage
 import com.intershop.gradle.icm.tasks.CreateServerInfo
 import com.intershop.gradle.icm.tasks.CreateTestPackage
@@ -185,16 +183,14 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
                                  copyLibs: TaskProvider<Sync>): TaskProvider<Task> {
 
         val prodSetupCartridgeTask = pluginConfig.getSetupCartridgesTask(PRODUCTION, PROD_ENVS)
-        val createSitesProd = pluginConfig.getSitesTask(PRODUCTION)
         val createConfigProd = pluginConfig.getConfigTask(versionInfoTask, PRODUCTION, PROD_ENVS)
 
-        pluginConfig.configureInitTask(createSitesProd, CreateInitPackage.DEFAULT_NAME)
         pluginConfig.configurePackageTask(
             createConfigProd, prodSetupCartridgeTask, copyLibs, CreateMainPackage.DEFAULT_NAME)
 
         val prepareTask = pluginConfig.configurePrepareTask(PRODUCTION)
         prepareTask.configure { task ->
-            task.dependsOn(prodSetupCartridgeTask, createSitesProd, createConfigProd)
+            task.dependsOn(prodSetupCartridgeTask, createConfigProd)
         }
         return prepareTask
     }
@@ -204,16 +200,14 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
                                      copyLibs: TaskProvider<Sync>): TaskProvider<Task> {
 
         val testSetupCartridgeTask = pluginConfig.getSetupCartridgesTask(TEST, TEST_ONLY_ENVS)
-        val createSitesTest = pluginConfig.getSitesTask(TEST)
         val createConfigTest = pluginConfig.getConfigTask(versionInfoTask, TEST, TEST_ENVS)
 
-        pluginConfig.configureInitTask(createSitesTest, CreateInitTestPackage.DEFAULT_NAME)
         pluginConfig.configurePackageTask(
             createConfigTest, testSetupCartridgeTask, copyLibs, CreateTestPackage.DEFAULT_NAME)
 
         val prepareTask = pluginConfig.configurePrepareTask(TEST)
         prepareTask.configure { task ->
-            task.dependsOn(testSetupCartridgeTask, createSitesTest, createConfigTest)
+            task.dependsOn(testSetupCartridgeTask, createConfigTest)
         }
         return prepareTask
     }
@@ -222,14 +216,13 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
                                       versionInfoTask: TaskProvider<CreateServerInfo>): TaskProvider<Task> {
 
         val setupCartridgeTask = pluginConfig.getSetupCartridgesTask(DEVELOPMENT, DEVELOPMENT_ENVS)
-        val createSites = pluginConfig.getSitesTask(DEVELOPMENT)
         val createConfig = pluginConfig.getConfigTask(versionInfoTask, DEVELOPMENT, DEVELOPMENT_ENVS)
 
         val createClusterID = project.tasks.named(CreateClusterID.DEFAULT_NAME)
 
         val prepareTask = pluginConfig.configurePrepareTask(DEVELOPMENT)
         prepareTask.configure { task ->
-            task.dependsOn(setupCartridgeTask, createSites, createConfig, createClusterID)
+            task.dependsOn(setupCartridgeTask, createConfig, createClusterID)
         }
         return prepareTask
     }
@@ -242,13 +235,6 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
             type = "configuration"
         )
 
-        val sitesZipTask = getZipTasks(
-            project = project,
-            baseDir = extension.projectConfig.serverDirConfig.base.sites,
-            prodDir = extension.projectConfig.serverDirConfig.prod.sites,
-            type = "sites"
-        )
-
         project.afterEvaluate {
             with(project.extensions) {
                 project.plugins.withType(MavenPublishPlugin::class.java) {
@@ -258,11 +244,10 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
                             MavenPublication::class.java
                         ).apply {
                             artifact(configZipTask.get())
-                            artifact(sitesZipTask.get())
                         }
                     }
                     project.tasks.named("publish").configure {
-                            task -> task.dependsOn(configZipTask, sitesZipTask)
+                            task -> task.dependsOn(configZipTask)
                     }
                 }
             }
@@ -297,25 +282,13 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
                 project.logger.debug("No configuration task available.")
             }
 
-            var sitesTask: TaskProvider<Sync>? = null
-            try {
-                sitesTask = project.tasks.named(TaskName.PRODUCTION.sites(), Sync::class.java)
-            } catch(ex: UnknownTaskException) {
-                project.logger.debug("No sites folder task available.")
-            }
-
             val confZipTask = if(configTask != null ) {
                                     getZipFolder(project, configTask, "configuration")
                                 } else {
                                     null
                                 }
-            val sitesZipTask = if(sitesTask != null) {
-                                    getZipFolder(project, sitesTask, "sites")
-                                } else {
-                                    null
-                                }
 
-            if(confZipTask != null || sitesZipTask != null) {
+            if(confZipTask != null) {
                 with(project.extensions) {
                     project.plugins.withType(MavenPublishPlugin::class.java) {
                         configure(PublishingExtension::class.java) { publishing ->
@@ -326,16 +299,10 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
                                 if(confZipTask != null) {
                                     artifact(confZipTask.get())
                                 }
-                                if(sitesZipTask != null) {
-                                    artifact(sitesZipTask.get())
-                                }
                             }
                         }
                         if(configTask != null) {
                             project.tasks.named("publish").configure { task -> task.dependsOn(configTask) }
-                        }
-                        if(sitesTask != null) {
-                            project.tasks.named("publish").configure { task -> task.dependsOn(sitesTask) }
                         }
                     }
                 }

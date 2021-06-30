@@ -405,12 +405,6 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
         createLocalFile("config/dev/cluster/test.properties", "dev_test = 1")
         createLocalFile("config/prod/cluster/test.properties", "test.properties = prod_dir")
 
-        createLocalFile("sites/base/test-site1/units/test.properties", "test-site1-sites = base")
-        createLocalFile("sites/base/test-site2/units/test.properties", "test-site2-sites = 2")
-        createLocalFile("sites/prod/test-site1/units/test.properties", "test-site1-sites = prod")
-        createLocalFile("sites/test/test-site1/units/test.properties", "test-site1-sites = test")
-        createLocalFile("sites/dev/test-site1/units/test.properties", "test-site1-sites = dev")
-
         buildFile << """
             plugins {
                 `java`
@@ -451,14 +445,6 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
 
                     serverDirConfig {
                         base {
-                            sites {
-                                dirs {
-                                    named("main") {
-                                        dir.set(file("sites/base"))
-                                        exclude("**/test-site1/units/test.properties")
-                                    }
-                                }
-                            }
                             config {
                                 dirs {
                                     named("main") {
@@ -477,22 +463,8 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
                                     }
                                 }
                             }
-                            sites {
-                                dirs {
-                                    register("main") {
-                                        dir.set(file("sites/prod"))
-                                    }
-                                }
-                            }
                         }
                         test {
-                            sites {
-                                dirs {
-                                    register("main") {
-                                        dir.set(file("sites/test"))
-                                    }
-                                }
-                            }
                             config {
                                 dirs {
                                     register("main") {
@@ -502,17 +474,6 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
                             }
                         }
                         dev {
-                            sites {
-                                dirs {
-                                    register("main") {
-                                        dir.set(file("sites/dev"))
-                                    }
-                                    register("test") {
-                                        dir.set(file("sites/test"))
-                                        exclude("**/units/test.properties")
-                                    }
-                                }
-                            }
                             config {
                                 dirs {
                                     register("main") {
@@ -802,69 +763,6 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
         gradleVersion << supportedGradleVersions
     }
 
-    def "test of prod tasks for sites folder creation"() {
-        prepareDefaultBuildConfig(testProjectDir, settingsFile, buildFile)
-
-        when:
-        def resultDevSites = getPreparedGradleRunner()
-                .withArguments("createSitesProd", "-s")
-                .withGradleVersion(gradleVersion)
-                .build()
-
-        def sitesFolder = new File(testProjectDir,"build/container/sites_folder/sites")
-
-        then:
-        resultDevSites.task(":createSitesProd").outcome == SUCCESS
-        sitesFolder.exists()
-        sitesFolder.listFiles().size() == 8
-        new File(sitesFolder, "test-site1/units/test.properties").text.contains("test-site1-sites = prod")
-
-        where:
-        gradleVersion << supportedGradleVersions
-    }
-
-    def "test of test tasks for sites folder creation"() {
-        prepareDefaultBuildConfig(testProjectDir, settingsFile, buildFile)
-
-        when:
-        def resultDevSites = getPreparedGradleRunner()
-                .withArguments("createSitesTest", "-s")
-                .withGradleVersion(gradleVersion)
-                .build()
-
-        def sitesFolder = new File(testProjectDir,"build/testcontainer/sites_folder/sites")
-
-        then:
-        resultDevSites.task(":createSitesTest").outcome == SUCCESS
-        sitesFolder.exists()
-        sitesFolder.listFiles().size() == 8
-        new File(sitesFolder, "test-site1/units/test.properties").text.contains("test-site1-sites = test")
-
-        where:
-        gradleVersion << supportedGradleVersions
-    }
-
-    def "test of development tasks for sites folder creation"() {
-        prepareDefaultBuildConfig(testProjectDir, settingsFile, buildFile)
-
-        when:
-        def resultDevSites = getPreparedGradleRunner()
-                .withArguments("createSites", "-s")
-                .withGradleVersion(gradleVersion)
-                .build()
-
-        def sitesFolder = new File(testProjectDir,"build/server/sites_folder/sites")
-
-        then:
-        resultDevSites.task(":createSites").outcome == SUCCESS
-        sitesFolder.exists()
-        sitesFolder.listFiles().size() == 8
-        new File(sitesFolder, "test-site1/units/test.properties").text.contains("test-site1-sites = dev")
-
-        where:
-        gradleVersion << supportedGradleVersions
-    }
-
     def "test cartridge.properties from dependency"() {
         TestRepo repo = new TestRepo(new File(testProjectDir, "/repo"))
         String repoConf = repo.getRepoKtsConfig()
@@ -950,7 +848,6 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
         def configAppsDir = new File(configDir, "apps")
         def configClusterDir = new File(configDir, "cluster")
         def prjLibsDir = new File(testProjectDir, "build/container/prjlibs")
-        def sitesDir = new File(testProjectDir, "build/container/sites_folder/sites")
 
         then:
         result.task(':prepareContainer').outcome == SUCCESS
@@ -968,8 +865,6 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
         configClusterDir.listFiles().size() == 3
         prjLibsDir.exists()
         prjLibsDir.listFiles().size() == 2
-        sitesDir.exists()
-        sitesDir.listFiles().size() == 8
 
         where:
         gradleVersion << supportedGradleVersions
@@ -990,7 +885,6 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
         def configAppsDir = new File(configDir, "apps")
         def configClusterDir = new File(configDir, "cluster")
         def prjLibsDir = new File(testProjectDir, "build/server/prjlibs")
-        def sitesDir = new File(testProjectDir, "build/server/sites_folder/sites")
 
         then:
         result.task(':prepareServer').outcome == SUCCESS
@@ -1006,8 +900,6 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
         configClusterDir.listFiles().size() == 3
         prjLibsDir.exists()
         prjLibsDir.listFiles().size() == 3
-        sitesDir.exists()
-        sitesDir.listFiles().size() == 8
 
         where:
         gradleVersion << supportedGradleVersions
@@ -1026,13 +918,6 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
         createLocalFile("config/test/cluster/test.properties", "test_test = 1")
         createLocalFile("config/dev/cluster/test.properties", "dev_test = 1")
         createLocalFile("config/prod/cluster/test.properties", "test.properties = prod_dir")
-
-        createLocalFile("sites/base/test-site1/units/test.properties", "test-site1-sites = base")
-        createLocalFile("sites/base/test-site2/units/test.properties", "test-site2-sites = 2")
-        createLocalFile("sites/base/test-site3/units/test.properties", "test-site3-sites = 3")
-        createLocalFile("sites/prod/test-site1/units/test.properties", "test-site1-sites = prod")
-        createLocalFile("sites/test/test-site1/units/test.properties", "test-site1-sites = test")
-        createLocalFile("sites/dev/test-site1/units/test.properties", "test-site1-sites = dev")
 
         buildFile << """
             plugins {
@@ -1075,14 +960,6 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
 
                     serverDirConfig {
                         base {
-                            sites {
-                                dirs {
-                                    named("main") {
-                                        dir.set(file("sites/base"))
-                                        exclude("**/test-site1/units/test.properties")
-                                    }
-                                }
-                            }
                             config {
                                 dirs {
                                     named("main") {
@@ -1101,22 +978,8 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
                                     }
                                 }
                             }
-                            sites {
-                                dirs {
-                                    register("main") {
-                                        dir.set(file("sites/prod"))
-                                    }
-                                }
-                            }
                         }
                         test {
-                            sites {
-                                dirs {
-                                    register("main") {
-                                        dir.set(file("sites/test"))
-                                    }
-                                }
-                            }
                             config {
                                 dirs {
                                     register("main") {
@@ -1126,17 +989,6 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
                             }
                         }
                         dev {
-                            sites {
-                                dirs {
-                                    register("main") {
-                                        dir.set(file("sites/dev"))
-                                    }
-                                    register("test") {
-                                        dir.set(file("sites/test"))
-                                        exclude("**/units/test.properties")
-                                    }
-                                }
-                            }
                             config {
                                 dirs {
                                     register("main") {
@@ -1249,16 +1101,12 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
                 .build()
 
         def repoConfigFile = new File(testProjectDir, "build/pubrepo/com/intershop/test/rootproject/10.0.0/rootproject-10.0.0-configuration.zip")
-        def repoSitesFile = new File(testProjectDir, "build/pubrepo/com/intershop/test/rootproject/10.0.0/rootproject-10.0.0-sites.zip")
 
         then:
         result.task(':publish').outcome == SUCCESS
-        result.task(':zipSites').outcome == SUCCESS
         result.task(':zipConfiguration').outcome == SUCCESS
         repoConfigFile.exists()
-        repoSitesFile.exists()
         new ZipFile(repoConfigFile).entries().toList().size() == 3
-        new ZipFile(repoSitesFile).entries().toList().size() == 10
 
         where:
         gradleVersion << supportedGradleVersions
@@ -1277,13 +1125,6 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
         createLocalFile("config/test/cluster/test.properties", "test_test = 1")
         createLocalFile("config/dev/cluster/test.properties", "dev_test = 1")
         createLocalFile("config/prod/cluster/test.properties", "test.properties = prod_dir")
-
-        createLocalFile("sites/base/test-site1/units/test.properties", "test-site1-sites = base")
-        createLocalFile("sites/base/test-site2/units/test.properties", "test-site2-sites = 2")
-        createLocalFile("sites/base/test-site3/units/test.properties", "test-site3-sites = 3")
-        createLocalFile("sites/prod/test-site1/units/test.properties", "test-site1-sites = prod")
-        createLocalFile("sites/test/test-site1/units/test.properties", "test-site1-sites = test")
-        createLocalFile("sites/dev/test-site1/units/test.properties", "test-site1-sites = dev")
 
         buildFile << """
             plugins {
@@ -1325,14 +1166,6 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
 
                     serverDirConfig {
                         base {
-                            sites {
-                                dirs {
-                                    named("main") {
-                                        dir.set(file("sites/base"))
-                                        exclude("**/test-site1/units/test.properties")
-                                    }
-                                }
-                            }
                             config {
                                 dirs {
                                     named("main") {
@@ -1351,22 +1184,8 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
                                     }
                                 }
                             }
-                            sites {
-                                dirs {
-                                    register("main") {
-                                        dir.set(file("sites/prod"))
-                                    }
-                                }
-                            }
                         }
                         test {
-                            sites {
-                                dirs {
-                                    register("main") {
-                                        dir.set(file("sites/test"))
-                                    }
-                                }
-                            }
                             config {
                                 dirs {
                                     register("main") {
@@ -1376,17 +1195,6 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
                             }
                         }
                         dev {
-                            sites {
-                                dirs {
-                                    register("main") {
-                                        dir.set(file("sites/dev"))
-                                    }
-                                    register("test") {
-                                        dir.set(file("sites/test"))
-                                        exclude("**/units/test.properties")
-                                    }
-                                }
-                            }
                             config {
                                 dirs {
                                     register("main") {
@@ -1505,7 +1313,6 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
         def configAppsDir = new File(configDir, "apps")
         def configClusterDir = new File(configDir, "cluster")
         def prjLibsDir = new File(testProjectDir, "build/container/prjlibs")
-        def sitesDir = new File(testProjectDir, "build/container/sites_folder/sites")
 
         then:
         result.task(':prepareContainer').outcome == SUCCESS
@@ -1522,8 +1329,6 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
         configClusterDir.listFiles().size() == 3
         prjLibsDir.exists()
         prjLibsDir.listFiles().size() == 13
-        sitesDir.exists()
-        sitesDir.listFiles().size() == 9
 
         where:
         gradleVersion << supportedGradleVersions
@@ -1726,14 +1531,10 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
                 .build()
 
         def repoConfigFile = new File(testProjectDir, "build/pubrepo/com/intershop/test/rootproject/10.0.0/rootproject-10.0.0-configuration.zip")
-        def repoSitesFile = new File(testProjectDir, "build/pubrepo/com/intershop/test/rootproject/10.0.0/rootproject-10.0.0-sites.zip")
-
         then:
         result.task(':publish').outcome == SUCCESS
-        result.task(':zipSites').outcome == SUCCESS
         result.task(':zipConfiguration').outcome == SUCCESS
         repoConfigFile.exists()
-        repoSitesFile.exists()
         new ZipFile(repoConfigFile).entries().toList().size() == 3
 
         where:
@@ -1889,14 +1690,11 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
                 .build()
 
         def repoConfigFile = new File(testProjectDir, "build/pubrepo/com/intershop/test/rootproject/10.0.0/rootproject-10.0.0-configuration.zip")
-        def repoSitesFile = new File(testProjectDir, "build/pubrepo/com/intershop/test/rootproject/10.0.0/rootproject-10.0.0-sites.zip")
 
         then:
         result.task(':publish').outcome == SUCCESS
-        result.task(':zipSites').outcome == SUCCESS
         result.task(':zipConfiguration').outcome == SUCCESS
         repoConfigFile.exists()
-        repoSitesFile.exists()
 
         where:
         gradleVersion << supportedGradleVersions
