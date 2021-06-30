@@ -63,7 +63,7 @@ open class CreateClusterID @Inject constructor(
     fun createID() {
         val uuid = UUID.randomUUID()
         val uuidStr = uuid.toString().replace("-", "")
-        val outputFile = outputDir.get().file("cluster.id").asFile
+        val outputFile = outputDir.get().file(CLUSTER_ID_NAME).asFile
 
         if(! outputFile.parentFile.exists()) {
             project.delete(outputFile.parentFile)

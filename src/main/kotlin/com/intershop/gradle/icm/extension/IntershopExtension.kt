@@ -18,6 +18,7 @@ package com.intershop.gradle.icm.extension
 
 import groovy.lang.Closure
 import org.gradle.api.Action
+import org.gradle.api.Project
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
@@ -27,7 +28,8 @@ import javax.inject.Inject
 /**
  * Extension for ICM properties.
  */
-open class IntershopExtension @Inject constructor(objectFactory: ObjectFactory)  {
+open class IntershopExtension
+     @Inject constructor(val project: Project, objectFactory: ObjectFactory)  {
 
     companion object {
         // names for the plugin
@@ -44,7 +46,7 @@ open class IntershopExtension @Inject constructor(objectFactory: ObjectFactory) 
      */
     @Suppress("unused")
     fun developmentConfig(closure: Closure<Any>) {
-        ConfigureUtil.configure(closure, developmentConfig)
+        project.configure(developmentConfig, closure)
     }
 
     /**
@@ -65,7 +67,7 @@ open class IntershopExtension @Inject constructor(objectFactory: ObjectFactory) 
      */
     @Suppress("unused")
     fun projectInfo(closure: Closure<Any>) {
-        ConfigureUtil.configure(closure, projectInfo)
+        project.configure(projectInfo, closure)
     }
 
     /**
@@ -86,7 +88,7 @@ open class IntershopExtension @Inject constructor(objectFactory: ObjectFactory) 
      */
     @Suppress("unused")
     fun projectConfig(closure: Closure<ProjectConfiguration>) {
-        ConfigureUtil.configure(closure, projectConfig)
+        project.configure(projectConfig, closure)
     }
 
     /**

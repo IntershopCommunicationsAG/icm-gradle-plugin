@@ -16,7 +16,6 @@
  */
 package com.intershop.gradle.icm.tasks.crossproject
 
-import com.intershop.gradle.icm.CrossProjectDevelopmentPlugin.Companion.CROSSPRJ_FOLDERPATH
 import com.intershop.gradle.icm.ICMProjectPlugin
 import com.intershop.gradle.icm.tasks.CreateConfigFolder
 import com.intershop.gradle.icm.tasks.CreateServerInfo

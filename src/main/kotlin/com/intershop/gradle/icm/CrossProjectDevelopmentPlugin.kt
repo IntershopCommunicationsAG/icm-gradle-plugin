@@ -20,10 +20,12 @@ import com.intershop.gradle.icm.extension.IntershopExtension
 import com.intershop.gradle.icm.extension.ProjectConfiguration
 import com.intershop.gradle.icm.tasks.CreateServerInfo
 import com.intershop.gradle.icm.tasks.ExtendCartridgeList
+import com.intershop.gradle.icm.tasks.crossproject.IncludedBuild
 import com.intershop.gradle.icm.tasks.crossproject.PrepareConfigFolder
 import com.intershop.gradle.icm.tasks.crossproject.WriteMappingFile
 import com.intershop.gradle.icm.utils.CopySpecUtil
 import com.intershop.gradle.icm.utils.EnvironmentType
+import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.tasks.Copy
@@ -37,17 +39,20 @@ class CrossProjectDevelopmentPlugin: Plugin<Project> {
 
     companion object {
         const val TASK_GROUP = "ICM Cross-Project Development"
-        const val CROSSPRJ_CONF = "conf"
 
-        const val CROSSPRJ_BUILD_DIR = "combinedbuild"
+        const val TASK_PREPAREPRJ = "prepareCrossProject"
 
         const val TASK_WRITEMAPPINGFILES = "writeMappingFiles"
-
-        const val TASK_PREPAREPRJ_CONFIG = "prepareCrossProjectConfig"
         const val TASK_PREPARE_CONFIG = "prepareCrossProjectConfig"
         const val TASK_PREPARE_CARTRIDGELIST = "prepareCrossProjectCartridgeList"
 
-        const val TASK_PREPAREPRJ = "prepareCrossProject"
+        const val CROSSPRJ_BUILD_DIR = "combinedbuild"
+
+        const val CROSSPRJ_MODULES = "cross.project.modules"
+        const val CROSSPRJ_FINALPROJECT = "cross.project.finalproject"
+        const val CROSSPRJ_BASEPROJECT = "cross.project.baseproject"
+
+        const val CROSSPRJ_PATH = "cross.project.path"
     }
 
     override fun apply(project: Project) {
@@ -55,36 +60,42 @@ class CrossProjectDevelopmentPlugin: Plugin<Project> {
             if (project.rootProject == this) {
                 logger.info("ICM Cross-Project Development plugin will be initialized")
 
-                val projectConfig = extensions.getByType(IntershopExtension::class.java).projectConfig
+                val intershopExtension = extensions.getByType(IntershopExtension::class.java)
+                val developmentConfig = intershopExtension.developmentConfig
+                val projectConfig = intershopExtension.projectConfig
 
                 this.tasks.register(TASK_WRITEMAPPINGFILES, WriteMappingFile::class.java).configure {
                     it.group = TASK_GROUP
                     it.description = "Writes mapping files like settings.gradle.kts file for composite builds"
                 }
 
-                // read configuration file from project
-                val confFile = File(projectDir, "${CROSSPRJ_CONFPATH}/${CROSSPRJ_PROPERTIES}")
-                val confprops = Properties()
-                if(confFile.exists()) {
-                    confprops.load(confFile.inputStream())
-                }
+                val modulesStr = developmentConfig.getConfigProperty(CROSSPRJ_MODULES)
+                val finalProjectName = developmentConfig.getConfigProperty(CROSSPRJ_FINALPROJECT)
 
-                val modulesStr = confprops.getProperty( "modules", "")
-                val modules = mutableListOf<String>()
+                val modules = mutableMapOf<String, IncludedBuild>()
                 if(modulesStr.isNotBlank()) {
                     val ml = modulesStr.split(";")
                     ml.forEach {
-                        modules.add(it.trim())
+                        val ib = it.split(":")
+                        if(ib.size > 1) {
+                            modules.put(ib[0], IncludedBuild(ib[0], ib[1]))
+                        } else {
+                            throw GradleException("Check your development configuration! (" + CROSSPRJ_MODULES + ").")
+                        }
                     }
                 }
 
-                if(modules.contains(project.name)) {
-                    prepareModulesTasks(this, projectConfig)
+                val crossProjPath = developmentConfig.getConfigProperty(CROSSPRJ_PATH)
+
+                if(modules.keys.contains(project.name)) {
+                    prepareModulesTasks(this, crossProjPath, projectConfig)
                 }
 
-                if(project.name == confprops.getProperty("storefrontproject")) {
-                    prepareStoreFrontTasks(this, projectConfig, confprops, modules)
+                if(project.name == finalProjectName) {
+                    prepareStoreFrontTasks(this, crossProjPath, projectConfig, modules)
                 }
+
+
             }
         }
     }
@@ -94,7 +105,7 @@ class CrossProjectDevelopmentPlugin: Plugin<Project> {
             val configCopySpec =
                 CopySpecUtil.getCSForServerDir(this, projectConfig.serverDirConfig.base.config)
 
-            val crossPrjConf = tasks.register(TASK_PREPAREPRJ_CONFIG, Copy::class.java) {
+            val crossPrjConf = tasks.register(TASK_PREPARE_CONFIG, Copy::class.java) {
                 it.group = TASK_GROUP
                 it.description = "Copy all module files for conf folder"
 
