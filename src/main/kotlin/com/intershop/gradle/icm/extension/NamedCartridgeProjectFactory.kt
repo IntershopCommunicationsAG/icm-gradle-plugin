@@ -16,18 +16,15 @@
  */
 package com.intershop.gradle.icm.extension
 
+import org.gradle.api.NamedDomainObjectFactory
 import org.gradle.api.Project
 import org.gradle.api.model.ObjectFactory
-import org.gradle.api.tasks.Internal
-import javax.inject.Inject
 
-/**
- * Extension to configure sub projects, like connectors,
- * payment provider etc.
- *
- * @property name only for internal use in a named container.
- * @constructor provides a sub project configuration.
- */
-open class NamedCartridgeProject
-    @Inject constructor(@Internal val name: String, project: Project, objectFactory: ObjectFactory):
-    CartridgeProject(project, objectFactory)
+
+class NamedCartridgeProjectFactory(val project: Project, val objectFactory: ObjectFactory) :
+    NamedDomainObjectFactory<NamedCartridgeProject> {
+
+    override fun create(name: String) : NamedCartridgeProject {
+        return NamedCartridgeProject(name, project, objectFactory)
+    }
+}

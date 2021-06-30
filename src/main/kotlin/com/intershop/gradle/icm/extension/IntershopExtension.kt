@@ -22,14 +22,12 @@ import org.gradle.api.Project
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
-import org.gradle.util.ConfigureUtil
 import javax.inject.Inject
 
 /**
  * Extension for ICM properties.
  */
-open class IntershopExtension
-     @Inject constructor(val project: Project, objectFactory: ObjectFactory)  {
+open class IntershopExtension @Inject constructor(val project: Project, objectFactory: ObjectFactory) {
 
     companion object {
         // names for the plugin
@@ -37,7 +35,8 @@ open class IntershopExtension
         const val INTERSHOP_GROUP_NAME = "Intershop Commerce Management"
     }
 
-    val developmentConfig: DevelopmentConfiguration = objectFactory.newInstance(DevelopmentConfiguration::class.java)
+    val developmentConfig: DevelopmentConfiguration =
+        objectFactory.newInstance(DevelopmentConfiguration::class.java)
 
     /**
      * Configures the development information configuration.
@@ -45,7 +44,7 @@ open class IntershopExtension
      * @param closure closure with project information configuration
      */
     @Suppress("unused")
-    fun developmentConfig(closure: Closure<Any>) {
+    fun developmentConfig(closure: Closure<DevelopmentConfiguration>) {
         project.configure(developmentConfig, closure)
     }
 
@@ -66,7 +65,7 @@ open class IntershopExtension
      * @param closure closure with project information configuration
      */
     @Suppress("unused")
-    fun projectInfo(closure: Closure<Any>) {
+    fun projectInfo(closure: Closure<ProjectInfo>) {
         project.configure(projectInfo, closure)
     }
 
@@ -79,7 +78,7 @@ open class IntershopExtension
         action.execute(projectInfo)
     }
 
-    val projectConfig: ProjectConfiguration = objectFactory.newInstance(ProjectConfiguration::class.java)
+    val projectConfig: ProjectConfiguration = objectFactory.newInstance(ProjectConfiguration::class.java, project)
 
     /**
      * Configures the base project of Intershop Commerce Management.

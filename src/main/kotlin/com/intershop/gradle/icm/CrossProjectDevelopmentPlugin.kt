@@ -103,7 +103,7 @@ class CrossProjectDevelopmentPlugin: Plugin<Project> {
     private fun prepareModulesTasks(project: Project, projectConfig: ProjectConfiguration) {
         with(project) {
             val configCopySpec =
-                CopySpecUtil.getCSForServerDir(this, projectConfig.serverDirConfig.base.config)
+                CopySpecUtil.getCSForServerDir(this, projectConfig.serverDirConfig.base)
 
             val crossPrjConf = tasks.register(TASK_PREPARE_CONFIG, Copy::class.java) {
                 it.group = TASK_GROUP
@@ -170,9 +170,9 @@ class CrossProjectDevelopmentPlugin: Plugin<Project> {
 
                 project.provider { prepareCartridgeList.get().outputFile.get() }
                 it.baseProject.set(projectConfig.base)
-                it.baseDirConfig.set(projectConfig.serverDirConfig.base.config)
+                it.baseDirConfig.set(projectConfig.serverDirConfig.base)
                 it.extraDirConfig.set(projectConfig.serverDirConfig.
-                getServerDirSet(EnvironmentType.DEVELOPMENT).config)
+                getServerDir(EnvironmentType.DEVELOPMENT))
                 it.mainBaseDir.set(File(baseDir, "${mainPrj}/${CROSSPRJ_CONF}"))
 
                 projectConfig.modules.all { ncp ->

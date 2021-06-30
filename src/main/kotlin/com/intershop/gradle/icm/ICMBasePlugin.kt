@@ -25,6 +25,7 @@ import com.intershop.gradle.icm.extension.IntershopExtension
 import com.intershop.gradle.icm.tasks.CreateClusterID
 import com.intershop.gradle.icm.tasks.CreateMainPackage
 import com.intershop.gradle.icm.tasks.CreateServerInfo
+import com.intershop.gradle.icm.tasks.CreateSitesFolder
 import com.intershop.gradle.icm.tasks.CreateTestPackage
 import com.intershop.gradle.icm.tasks.WriteCartridgeClasspath
 import com.intershop.gradle.isml.IsmlPlugin
@@ -72,7 +73,10 @@ open class ICMBasePlugin: Plugin<Project> {
 
                 val extension = extensions.findByType(
                     IntershopExtension::class.java
-                ) ?: extensions.create(IntershopExtension.INTERSHOP_EXTENSION_NAME, IntershopExtension::class.java)
+                ) ?: extensions.create(
+                        IntershopExtension.INTERSHOP_EXTENSION_NAME,
+                        IntershopExtension::class.java,
+                        project)
 
                 plugins.withType(JavaPlugin::class.java) {
                     configureBaseConfigurations(this)
@@ -85,6 +89,7 @@ open class ICMBasePlugin: Plugin<Project> {
                 }
 
                 configureClusterIdTask()
+                configureSitesFolderTask()
                 configureCreateServerInfoPropertiesTask(extension)
 
                 if(! checkForTask(tasks, TASK_ALLDEPENDENCIESREPORT)) {
@@ -128,6 +133,10 @@ open class ICMBasePlugin: Plugin<Project> {
             runtimeOnly?.extendsFrom(cartridgeRuntime)
             cartridgeRuntime.extendsFrom(cartridgeApi)
         }
+    }
+
+    private fun Project.configureSitesFolderTask() {
+        tasks.register( CreateSitesFolder.DEFAULT_NAME, CreateSitesFolder::class.java)
     }
 
     private fun Project.configureCreateServerInfoPropertiesTask(extension: IntershopExtension) {
