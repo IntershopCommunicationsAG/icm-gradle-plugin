@@ -230,8 +230,8 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
     private fun configureAdapterPublishingTasks(project: Project, extension: IntershopExtension) {
         val configZipTask = getZipTasks(
             project = project,
-            baseDir = extension.projectConfig.serverDirConfig.base.config,
-            prodDir = extension.projectConfig.serverDirConfig.prod.config,
+            baseDir = extension.projectConfig.serverDirConfig.base,
+            prodDir = extension.projectConfig.serverDirConfig.prod,
             type = "configuration"
         )
 
@@ -296,9 +296,7 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
                                 extension.mavenPublicationName.get(),
                                 MavenPublication::class.java
                             ).apply {
-                                if(confZipTask != null) {
-                                    artifact(confZipTask.get())
-                                }
+                                artifact(confZipTask.get())
                             }
                         }
                         if(configTask != null) {

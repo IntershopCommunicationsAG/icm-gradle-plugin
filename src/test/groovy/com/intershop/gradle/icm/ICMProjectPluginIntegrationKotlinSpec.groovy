@@ -445,44 +445,36 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
 
                     serverDirConfig {
                         base {
-                            config {
-                                dirs {
-                                    named("main") {
-                                        dir.set(file("config/base"))
-                                        exclude("**/cluster/test.properties")
-                                    }
+                            dirs {
+                                named("main") {
+                                    dir.set(file("config/base"))
+                                    exclude("**/cluster/test.properties")
                                 }
-                                exclude("**/cluster/cartridgelist.properties")
                             }
+                            exclude("**/cluster/cartridgelist.properties")
                         }
                         prod {
-                            config {
-                                dirs {
-                                    register("main") {
-                                        dir.set(file("config/prod"))
-                                    }
+                            dirs {
+                                register("main") {
+                                    dir.set(file("config/prod"))
                                 }
                             }
                         }
                         test {
-                            config {
-                                dirs {
-                                    register("main") {
-                                        dir.set(file("config/test"))
-                                    }
+                            dirs {
+                                register("main") {
+                                    dir.set(file("config/test"))
                                 }
                             }
                         }
                         dev {
-                            config {
-                                dirs {
-                                    register("main") {
-                                        dir.set(file("config/dev"))
-                                    }
-                                    register("test") {
-                                        dir.set(file("config/test"))
-                                        exclude("**/cluster/test.properties")
-                                    }
+                            dirs {
+                                register("main") {
+                                    dir.set(file("config/dev"))
+                                }
+                                register("test") {
+                                    dir.set(file("config/test"))
+                                    exclude("**/cluster/test.properties")
                                 }
                             }
                         }
@@ -960,44 +952,36 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
 
                     serverDirConfig {
                         base {
-                            config {
-                                dirs {
-                                    named("main") {
-                                        dir.set(file("config/base"))
-                                        exclude("**/cluster/test.properties")
-                                    }
+                            dirs {
+                                named("main") {
+                                    dir.set(file("config/base"))
+                                    exclude("**/cluster/test.properties")
                                 }
-                                exclude("**/cluster/cartridgelist.properties")
                             }
+                            exclude("**/cluster/cartridgelist.properties")
                         }
                         prod {
-                            config {
-                                dirs {
-                                    register("main") {
-                                        dir.set(file("config/prod"))
-                                    }
+                            dirs {
+                                register("main") {
+                                    dir.set(file("config/prod"))
                                 }
                             }
                         }
                         test {
-                            config {
-                                dirs {
-                                    register("main") {
-                                        dir.set(file("config/test"))
-                                    }
+                            dirs {
+                                register("main") {
+                                    dir.set(file("config/test"))
                                 }
                             }
                         }
                         dev {
-                            config {
-                                dirs {
-                                    register("main") {
-                                        dir.set(file("config/dev"))
-                                    }
-                                    register("test") {
-                                        dir.set(file("config/test"))
-                                        exclude("**/cluster/test.properties")
-                                    }
+                            dirs {
+                                register("main") {
+                                    dir.set(file("config/dev"))
+                                }
+                                register("test") {
+                                    dir.set(file("config/test"))
+                                    exclude("**/cluster/test.properties")
                                 }
                             }
                         }
@@ -1166,44 +1150,36 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
 
                     serverDirConfig {
                         base {
-                            config {
-                                dirs {
-                                    named("main") {
-                                        dir.set(file("config/base"))
-                                        exclude("**/cluster/test.properties")
-                                    }
+                            dirs {
+                                named("main") {
+                                    dir.set(file("config/base"))
+                                    exclude("**/cluster/test.properties")
                                 }
-                                exclude("**/cluster/cartridgelist.properties")
                             }
+                            exclude("**/cluster/cartridgelist.properties")
                         }
                         prod {
-                            config {
-                                dirs {
-                                    register("main") {
-                                        dir.set(file("config/prod"))
-                                    }
+                            dirs {
+                                register("main") {
+                                    dir.set(file("config/prod"))
                                 }
                             }
                         }
                         test {
-                            config {
-                                dirs {
-                                    register("main") {
-                                        dir.set(file("config/test"))
-                                    }
+                            dirs {
+                                register("main") {
+                                    dir.set(file("config/test"))
                                 }
                             }
                         }
                         dev {
-                            config {
-                                dirs {
-                                    register("main") {
-                                        dir.set(file("config/dev"))
-                                    }
-                                    register("test") {
-                                        dir.set(file("config/test"))
-                                        exclude("**/cluster/test.properties")
-                                    }
+                            dirs {
+                                register("main") {
+                                    dir.set(file("config/dev"))
+                                }
+                                register("test") {
+                                    dir.set(file("config/test"))
+                                    exclude("**/cluster/test.properties")
                                 }
                             }
                         }
@@ -1390,44 +1366,36 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
 
                     serverDirConfig {
                         base {
-                            config {
-                                dirs {
-                                    named("main") {
-                                        dir.set(file("config/base"))
-                                        exclude("**/cluster/test.properties")
-                                    }
+                            dirs {
+                                named("main") {
+                                    dir.set(file("config/base"))
+                                    exclude("**/cluster/test.properties")
                                 }
-                                exclude("**/cluster/cartridgelist.properties")
                             }
+                            exclude("**/cluster/cartridgelist.properties")
                         }
                         prod {
-                            config {
-                                dirs {
-                                    register("main") {
-                                        dir.set(file("config/prod"))
-                                    }
+                            dirs {
+                                register("main") {
+                                    dir.set(file("config/prod"))
                                 }
                             }
                         }
                         test {
-                            config {
-                                dirs {
-                                    register("main") {
-                                        dir.set(file("config/test"))
-                                    }
+                            dirs {
+                                register("main") {
+                                    dir.set(file("config/test"))
                                 }
                             }
                         }
                         dev {
-                            config {
-                                dirs {
-                                    register("main") {
-                                        dir.set(file("config/dev"))
-                                    }
-                                    register("test") {
-                                        dir.set(file("config/test"))
-                                        exclude("**/cluster/test.properties")
-                                    }
+                            dirs {
+                                register("main") {
+                                    dir.set(file("config/dev"))
+                                }
+                                register("test") {
+                                    dir.set(file("config/test"))
+                                    exclude("**/cluster/test.properties")
                                 }
                             }
                         }

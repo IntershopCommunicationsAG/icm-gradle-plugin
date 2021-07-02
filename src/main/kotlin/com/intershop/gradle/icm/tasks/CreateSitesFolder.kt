@@ -16,30 +16,29 @@
  */
 package com.intershop.gradle.icm.tasks
 
-import com.intershop.gradle.icm.extension.IntershopExtension
 import org.gradle.api.DefaultTask
+import org.gradle.api.GradleException
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.provider.Property
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
-import java.util.*
 import javax.inject.Inject
 
-/**
- * Gradle task to create an ID for ICM cluster.
- *
- * This taks creates an UID with Java functionality
- * in the required format.
- */
-open class CreateClusterID @Inject constructor(
-        projectLayout: ProjectLayout,
-        objectFactory: ObjectFactory) : DefaultTask() {
+open class CreateSitesFolder @Inject constructor(
+    @Internal val projectLayout: ProjectLayout,
+    objectFactory: ObjectFactory) : DefaultTask() {
 
     companion object {
-        const val DEFAULT_NAME = "createClusterID"
-        const val CLUSTER_ID_NAME = "cluster.id"
+        const val DEFAULT_NAME = "createSitesFolder"
+        const val DEFAULT_DIR_NAME = "sites_folder"
     }
+
+    @get:Input
+    val foldername: Property<String> = objectFactory.property(String::class.java)
 
     /**
      * Output file for generated cluster id.
@@ -50,27 +49,20 @@ open class CreateClusterID @Inject constructor(
     val outputDir: DirectoryProperty = objectFactory.directoryProperty()
 
     init {
-        group = IntershopExtension.INTERSHOP_GROUP_NAME
-        description = "Creates a cluster ID to start a server."
-
-        outputDir.convention(projectLayout.buildDirectory.dir("clusterIDDir"))
+        group = "ICM server build"
+        description = "Creates the folder for the local sites folder"
+        foldername.convention(DEFAULT_DIR_NAME)
+        outputDir.convention(projectLayout.buildDirectory.dir(foldername.get()))
     }
 
-    /**
-     * This function represents the logic of this task.
-     */
     @TaskAction
-    fun createID() {
-        val uuid = UUID.randomUUID()
-        val uuidStr = uuid.toString().replace("-", "")
-        val outputFile = outputDir.get().file(CLUSTER_ID_NAME).asFile
-
-        if(! outputFile.parentFile.exists()) {
-            project.delete(outputFile.parentFile)
-            outputFile.parentFile.mkdirs()
+    fun createsFolder() {
+        val sd = outputDir.get().asFile
+        if(sd.exists() && sd.isFile) {
+            throw GradleException("There is file '" + sd.absolutePath + "'. The directory is not created.")
         }
-
-        outputFile.writeText(uuidStr)
+        if(! sd.exists()) {
+            sd.mkdirs()
+        }
     }
-
 }

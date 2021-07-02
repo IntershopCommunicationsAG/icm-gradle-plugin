@@ -467,12 +467,8 @@ CreateClusterID` |  This taks creates an UID with Java functionality in the requ
 Task`  | This task groups two tasks of a cartridge (`writeCartridgeDescriptor`, `writeCartridgeClasspath`)
 | *createMainPkg* | `com.intershop.gradle.icm.tasks +
 CreateMainPackage`  | This is preconfigured Tar task. It creates `<build dir>/packages/mainpkg.tgz` as base for container creation. It contains all components of the main appserver container. Cartridges will be added per default.
-| *createInitPkg* | `com.intershop.gradle.icm.tasks +
-CreateInitPackage`  | This is preconfigured Tar task. It creates `<build dir>/packages/initpkg.tgz` as base for container creation. It contains all files of the init container.
 | *createTestPkg* | `com.intershop.gradle.icm.tasks +
 CreateTestPackage`  | This is preconfigured Tar task. It creates `<build dir>/packages/testpkg.tgz` as base for container creation. It contains all components of the test container. Test cartridges will be added per default.
-| *createInitTestPkg* | `com.intershop.gradle.icm.tasks +
-CreateInitTestPackage`  | This is preonfigured Tar task. It creates `<build dir>/packages/inittestpkg.tgz` as base for container creation. It contains all files of the test init container.
 |===
 
 == Intershop Commerce Management Project Plugin
@@ -531,11 +527,9 @@ intershop {
         }
         serverDirConfig {
             base {
-                config {
-                    dirs {
-                        main {
-                            dir.set(file("config/altbase"))
-                        }
+                dirs {
+                    main {
+                        dir.set(file("config/altbase"))
                     }
                 }
             }
@@ -597,11 +591,9 @@ intershop {
         }
         serverDirConfig {
             base {
-                config {
-                    dirs {
-                        named("main") {
-                            dir.set(file("config/altbase"))
-                        }
+                dirs {
+                    named("main") {
+                        dir.set(file("config/altbase"))
                     }
                 }
             }
@@ -666,8 +658,6 @@ server/config_folder` | Contains the complete configuration of a development ser
 
 | `cartridge` | `String` | Add a cartridge to the list of cartridges. This can be a project name or a short module dependency configuration (`group:module:version`).
 | `dbprepareCartridge` | `String` | Add a cartridge to the list of cartridges for Database preparation. This can be a project name or a short module dependency configuration (`group:module:version`).
-| `base`| Action<in CartridgeProject> | Configures the base project dependencies from an action.
-| `base`| Closure<CartridgeProject> | Configures the base project dependencies from a closure.
 | `serverDirConfig` | Action<in ProjectServerDirs> | Configures the usage of project directories for configuration from an action.
 | `serverDirConfig` | Closure<ProjectServerDirs> | Configures the usage of project directories for configuration from a closure.
 |===
@@ -732,14 +722,14 @@ Methods of `ProjectServerDirs`
 |===
 |Method | Parameter | Description
 
-| `base` | `Action<in ServerDirSet>` | This configures basically directories and files of the project from an action.
+| `base` | `Action<in ServerDir>` | This configures basically directories and files of the project from an action.
 | `base` | `Closure<ServerDirSet> | This configures basically directories and files of the project from a closure.
-| `prod` | `Action<in ServerDirSet>` | This configures production (container) directories and files of the project from an action.
-| `prod` | `Closure<ServerDirSet> | This configures production (container) directories and files of the project from a closure.
-| `test` | `Action<in ServerDirSet>` | This configures test (testcontainer) directories and files of the project from an action.
-| `test` | `Closure<ServerDirSet> | This configures test (testcontainer) directories and files of the project from a closure.
-| `dev` | `Action<in ServerDirSet>` | This configures development (server) directories and files of the project from an action.
-| `dev` | `Closure<ServerDirSet> | This configures development (server) directories and files of the project from a closure.
+| `prod` | `Action<in ServerDir>` | This configures production (container) directories and files of the project from an action.
+| `prod` | `Closure<ServerDir> | This configures production (container) directories and files of the project from a closure.
+| `test` | `Action<in ServerDir>` | This configures test (testcontainer) directories and files of the project from an action.
+| `test` | `Closure<ServerDir> | This configures test (testcontainer) directories and files of the project from a closure.
+| `dev` | `Action<in ServerDir>` | This configures development (server) directories and files of the project from an action.
+| `dev` | `Closure<ServerDir> | This configures development (server) directories and files of the project from a closure.
 |===
 
 There is one preconfigured base configuration "main". The path for the configuration is 'configuration/base'.

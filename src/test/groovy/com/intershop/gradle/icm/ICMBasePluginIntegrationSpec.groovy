@@ -897,7 +897,7 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         when:
         def result = getPreparedGradleRunner()
-                .withArguments("writeCartridgeDescriptor", "writeCartridgeClasspath")
+                .withArguments("writeCartridgeDescriptor", "writeCartridgeClasspath", "-s")
                 .withGradleVersion(gradleVersion)
                 .build()
 

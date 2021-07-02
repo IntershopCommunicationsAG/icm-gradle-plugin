@@ -16,7 +16,7 @@
  */
 package com.intershop.gradle.icm.tasks.crossproject
 
-import com.intershop.gradle.icm.CrossProjectDevelopmentPlugin.Companion.CROSSPRJ_CONFPATH
+import com.intershop.gradle.icm.CrossProjectDevelopmentPlugin.Companion.CROSSPRJ_BUILD_DIR
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.ProjectLayout
@@ -33,7 +33,7 @@ open class WriteMappingFile
     /**
      * Output file for generated cluster id.
      *
-     * @property outputFile
+     * @property outputDir
      */
     @get:OutputDirectory
     val outputDir: DirectoryProperty = objectFactory.directoryProperty()
@@ -42,20 +42,18 @@ open class WriteMappingFile
         group = "ICM Cross-Project Development"
         description = "Creates mappings files, like settings.gradle.kts include files."
 
-        outputDir.convention(projectLayout.projectDirectory.dir("${CROSSPRJ_CONFPATH}/${project.name}"))
+        outputDir.convention(projectLayout.buildDirectory.dir(CROSSPRJ_BUILD_DIR))
     }
 
     @TaskAction
     fun writeFile() {
         val file = outputDir.get().file("mapping.gradle.kts").asFile
-        val prjFile = outputDir.get().file("projectmapping.conf").asFile
 
         if(! file.parentFile.exists()) {
             file.parentFile.mkdirs()
         }
 
         recreateFile(file)
-        recreateFile(prjFile)
 
         file.appendText(
             """
@@ -76,8 +74,6 @@ open class WriteMappingFile
                 }
             }
             """.trimIndent(), Charsets.UTF_8)
-
-        prjFile.appendText("${project.name} = ${project.group}_${project.name}")
     }
 
     private fun recreateFile(file: File) {

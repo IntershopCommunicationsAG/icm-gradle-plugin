@@ -18,13 +18,14 @@ package com.intershop.gradle.icm.extension
 
 import groovy.lang.Closure
 import org.gradle.api.Action
+import org.gradle.api.Project
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.SetProperty
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.Optional
-import org.gradle.util.ConfigureUtil
 import javax.inject.Inject
 
 /**
@@ -33,7 +34,7 @@ import javax.inject.Inject
  *
  * @constructor provides a sub project configuration.
  */
-open class CartridgeProject @Inject constructor(objectFactory: ObjectFactory) {
+open class CartridgeProject @Inject constructor(@Internal val project: Project, objectFactory: ObjectFactory) {
 
     /**
      * Dependency of the base project.
@@ -84,7 +85,7 @@ open class CartridgeProject @Inject constructor(objectFactory: ObjectFactory) {
      * @param c closure to configure a file package.
      */
     fun configPackage(c: Closure<FilePackage>) {
-        ConfigureUtil.configure(c, configPackage)
+        project.configure(configPackage, c)
     }
 
 }

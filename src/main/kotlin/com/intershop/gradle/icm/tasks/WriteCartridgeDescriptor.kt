@@ -21,7 +21,6 @@ import com.intershop.gradle.icm.ICMBasePlugin.Companion.CONFIGURATION_CARTRIDGE_
 import com.intershop.gradle.icm.extension.IntershopExtension.Companion.INTERSHOP_GROUP_NAME
 import com.intershop.gradle.icm.utils.CartridgeUtil
 import org.gradle.api.DefaultTask
-import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import org.gradle.api.file.ProjectLayout
@@ -173,9 +172,8 @@ open class WriteCartridgeDescriptor
         project.configurations.getByName(confName).
         resolvedConfiguration.lenientConfiguration.allModuleDependencies.forEach { dependency ->
             dependency.moduleArtifacts.forEach { artifact ->
-                val identifier = artifact.id.componentIdentifier
 
-                when(identifier) {
+                when(val identifier = artifact.id.componentIdentifier) {
                     is ProjectComponentIdentifier ->
                         cartridges.add(identifier.projectName)
                     is ModuleComponentIdentifier ->

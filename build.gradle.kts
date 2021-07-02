@@ -23,7 +23,7 @@ plugins {
     // project plugins
     `java-gradle-plugin`
     groovy
-    kotlin("jvm") version "1.4.20"
+    kotlin("jvm") version "1.4.31"
 
     // test coverage
     jacoco
@@ -164,7 +164,7 @@ detekt {
 tasks {
 
     withType<Test>().configureEach {
-        systemProperty("intershop.gradle.versions", "6.8,7.0")
+        systemProperty("intershop.gradle.versions", "7.1")
         useJUnitPlatform()
 
         dependsOn("jar")

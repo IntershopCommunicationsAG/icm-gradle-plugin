@@ -129,8 +129,8 @@ class PluginConfig(val project: Project,
                     cfgTask.module(it)
                 }
 
-                cfgTask.baseDirConfig.set(projectConfig.serverDirConfig.base.config)
-                cfgTask.extraDirConfig.set(projectConfig.serverDirConfig.getServerDirSet(type).config)
+                cfgTask.baseDirConfig.set(projectConfig.serverDirConfig.base)
+                cfgTask.extraDirConfig.set(projectConfig.serverDirConfig.getServerDir(type))
 
                 cfgTask.provideCartridgeListFile( project.provider { cartridgeListTask.get().outputFile.get() } )
                 cfgTask.provideVersionInfoFile( project.provider { versionInfoTask.get().outputFile.get() } )

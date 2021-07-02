@@ -26,6 +26,7 @@ import org.gradle.api.Project
 import org.gradle.api.UnknownTaskException
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.JavaPlugin.PROCESS_RESOURCES_TASK_NAME
+import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.language.jvm.tasks.ProcessResources
 
@@ -109,7 +110,7 @@ open class CartridgePlugin : Plugin<Project> {
             if (!checkForTask(project.tasks, WriteCartridgeClasspath.DEFAULT_NAME)) {
                 val writeCartridgeClasspath = project.tasks.register(
                     WriteCartridgeClasspath.DEFAULT_NAME, WriteCartridgeClasspath::class.java) {
-                    it.dependsOn(cartridgeRuntime, runtime)
+                    it.dependsOn(cartridgeRuntime, runtime, project.tasks.named("jar", Jar::class.java))
                 }
 
                 try {

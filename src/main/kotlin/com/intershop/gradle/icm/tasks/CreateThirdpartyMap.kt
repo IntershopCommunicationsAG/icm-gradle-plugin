@@ -143,7 +143,7 @@ open class CreateThirdpartyMap @Inject constructor(
         val outputFile = outputDir.file(FILENAME).get().asFile
 
         outputFile.bufferedWriter().use { out ->
-            resultMap.forEach { name, file ->
+            resultMap.forEach { (name, _) ->
                 out.write("$name = ${getNormalizedFilePath(File(path))}")
                 out.newLine()
             }
