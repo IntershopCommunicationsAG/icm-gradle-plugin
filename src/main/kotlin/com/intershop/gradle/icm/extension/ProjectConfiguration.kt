@@ -66,7 +66,7 @@ open class ProjectConfiguration
      * Configures a binary base project (This is also connected to
      * a Docker image.).
      *
-     * @param c Closure to configure Cartridge project (ICM)
+     * @param closure Closure to configure Cartridge project (ICM)
      */
     fun base(closure: Closure<CartridgeProject>) {
         project.configure(base, closure)
@@ -127,7 +127,7 @@ open class ProjectConfiguration
     /**
      * Configures the directory configuration of the project.
      *
-     * @param c Closure to configure project server dirs
+     * @param closure Closure to configure project server dirs
      */
     fun serverDirConfig(closure: Closure<ProjectServerDirs>) {
         project.configure(serverDirConfig, closure)

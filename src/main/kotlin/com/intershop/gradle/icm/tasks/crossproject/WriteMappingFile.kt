@@ -33,7 +33,7 @@ open class WriteMappingFile
     /**
      * Output file for generated cluster id.
      *
-     * @property outputFile
+     * @property outputDir
      */
     @get:OutputDirectory
     val outputDir: DirectoryProperty = objectFactory.directoryProperty()

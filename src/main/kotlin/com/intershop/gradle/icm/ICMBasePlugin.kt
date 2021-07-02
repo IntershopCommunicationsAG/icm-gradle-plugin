@@ -64,7 +64,7 @@ open class ICMBasePlugin: Plugin<Project> {
 
     override fun apply(project: Project) {
         with(project) {
-            if (project.rootProject == this) {
+            if (rootProject == this) {
 
                 logger.info("ICM build plugin will be initialized")
 

@@ -97,7 +97,7 @@ class CrossProjectDevelopmentPlugin: Plugin<Project> {
                         if(ib.size > 1) {
                             modules.put(ib[0], IncludedBuild(ib[0], ib[1]))
                         } else {
-                            throw GradleException("Check your development configuration! (" + CROSSPRJ_MODULES + ").")
+                            throw GradleException("Check your development configuration! ($CROSSPRJ_MODULES).")
                         }
                     }
                 }
