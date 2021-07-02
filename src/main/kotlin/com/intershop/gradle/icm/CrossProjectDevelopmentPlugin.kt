@@ -43,7 +43,7 @@ class CrossProjectDevelopmentPlugin: Plugin<Project> {
         const val TASK_PREPARE_CONFIG = "prepareCrossProject"
         const val TASK_PREPARE_CARTRIDGELIST = "prepareCrossProjectCartridgeList"
 
-        const val CROSSPRJ_BUILD_DIR = "combinedbuild"
+        const val CROSSPRJ_BUILD_DIR = "compositebuild"
 
         const val CROSSPRJ_MODULES = "cross.project.modules"
         const val CROSSPRJ_FINALPROJECT = "cross.project.finalproject"
