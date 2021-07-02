@@ -48,14 +48,12 @@ open class WriteMappingFile
     @TaskAction
     fun writeFile() {
         val file = outputDir.get().file("mapping.gradle.kts").asFile
-        val prjFile = outputDir.get().file("projectmapping.conf").asFile
 
         if(! file.parentFile.exists()) {
             file.parentFile.mkdirs()
         }
 
         recreateFile(file)
-        recreateFile(prjFile)
 
         file.appendText(
             """
@@ -76,8 +74,6 @@ open class WriteMappingFile
                 }
             }
             """.trimIndent(), Charsets.UTF_8)
-
-        prjFile.appendText("${project.name} = ${project.group}_${project.name}")
     }
 
     private fun recreateFile(file: File) {

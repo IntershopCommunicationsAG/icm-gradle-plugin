@@ -40,7 +40,7 @@ open class PrepareConfigFolder
         fsOps: FileSystemOperations): CreateConfigFolder(projectLayout, objectFactory, fsOps) {
 
     init {
-        outputDir.set(File(project.projectDir, "${CROSSPRJ_FOLDERPATH}/storefront/conf"))
+        outputDir.set(File(project.buildDir, "compositeserver/conf"))
     }
 
     fun provideMainBaseDir(baseDir: Provider<Directory>) = mainBaseDir.set(baseDir)

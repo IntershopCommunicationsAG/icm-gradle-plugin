@@ -30,7 +30,6 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.tasks.Copy
 import java.io.File
-import java.util.Properties
 
 /**
  * Special plugin for Intershop internal development.
@@ -40,19 +39,19 @@ class CrossProjectDevelopmentPlugin: Plugin<Project> {
     companion object {
         const val TASK_GROUP = "ICM Cross-Project Development"
 
-        const val TASK_PREPAREPRJ = "prepareCrossProject"
-
         const val TASK_WRITEMAPPINGFILES = "writeMappingFiles"
-        const val TASK_PREPARE_CONFIG = "prepareCrossProjectConfig"
+        const val TASK_PREPARE_CONFIG = "prepareCrossProject"
         const val TASK_PREPARE_CARTRIDGELIST = "prepareCrossProjectCartridgeList"
 
         const val CROSSPRJ_BUILD_DIR = "combinedbuild"
 
         const val CROSSPRJ_MODULES = "cross.project.modules"
         const val CROSSPRJ_FINALPROJECT = "cross.project.finalproject"
+        const val CROSSPRJ_CARTRIDGELISTPATH = "cross.project.cartridgelist.path"
+
         const val CROSSPRJ_BASEPROJECT = "cross.project.baseproject"
 
-        const val CROSSPRJ_PATH = "cross.project.path"
+        const val CROSSPRJ_CARTRIDGELISTPATH_DEFVALUE = "icm_config/cartridgelist/cartridgelist.properties"
     }
 
     override fun apply(project: Project) {
@@ -69,8 +68,26 @@ class CrossProjectDevelopmentPlugin: Plugin<Project> {
                     it.description = "Writes mapping files like settings.gradle.kts file for composite builds"
                 }
 
-                val modulesStr = developmentConfig.getConfigProperty(CROSSPRJ_MODULES)
-                val finalProjectName = developmentConfig.getConfigProperty(CROSSPRJ_FINALPROJECT)
+                val modulesStr = developmentConfig.getConfigProperty(CROSSPRJ_MODULES, "")
+                val finalProjectStr = developmentConfig.getConfigProperty(CROSSPRJ_FINALPROJECT, "")
+                val baseProjectStr = developmentConfig.getConfigProperty(CROSSPRJ_BASEPROJECT, "")
+                val cartridgeListPath = developmentConfig.getConfigProperty(
+                    CROSSPRJ_CARTRIDGELISTPATH,
+                    CROSSPRJ_CARTRIDGELISTPATH_DEFVALUE)
+
+                var finalPrj: IncludedBuild?  = null
+
+                val finalProjectList = finalProjectStr.split(":")
+                if(finalProjectList.size == 2){
+                    finalPrj = IncludedBuild(finalProjectList[0], finalProjectList[1])
+                }
+
+                var basePrj: IncludedBuild?  = null
+
+                val baseProjectList = baseProjectStr.split(":")
+                if(baseProjectList.size == 2){
+                    basePrj = IncludedBuild(baseProjectList[0], baseProjectList[1])
+                }
 
                 val modules = mutableMapOf<String, IncludedBuild>()
                 if(modulesStr.isNotBlank()) {
@@ -85,54 +102,47 @@ class CrossProjectDevelopmentPlugin: Plugin<Project> {
                     }
                 }
 
-                val crossProjPath = developmentConfig.getConfigProperty(CROSSPRJ_PATH)
-
                 if(modules.keys.contains(project.name)) {
-                    prepareModulesTasks(this, crossProjPath, projectConfig)
+                    prepareModulesTasks(this, projectConfig, basePrj)
                 }
 
-                if(project.name == finalProjectName) {
-                    prepareStoreFrontTasks(this, crossProjPath, projectConfig, modules)
+                if(project.name == finalPrj?.projectName) {
+                    prepareStoreFrontTasks(this, projectConfig, cartridgeListPath, basePrj)
                 }
-
-
             }
         }
     }
 
-    private fun prepareModulesTasks(project: Project, projectConfig: ProjectConfiguration) {
+    private fun prepareModulesTasks(project: Project,
+                                    projectConfig: ProjectConfiguration,
+                                    basePrj: IncludedBuild?) {
         with(project) {
             val configCopySpec =
                 CopySpecUtil.getCSForServerDir(this, projectConfig.serverDirConfig.base)
 
-            val crossPrjConf = tasks.register(TASK_PREPARE_CONFIG, Copy::class.java) {
+            tasks.register(TASK_PREPARE_CONFIG, Copy::class.java) {
                 it.group = TASK_GROUP
                 it.description = "Copy all module files for conf folder"
 
                 it.with(configCopySpec)
-                it.into(File(projectDir, "${CROSSPRJ_FOLDERPATH}/${name}/conf"))
-            }
-
-            tasks.register(TASK_PREPAREPRJ).configure {
-                it.group = TASK_GROUP
-                it.description = "Start all copy tasks for modules"
-
-                it.dependsOn(crossPrjConf)
+                it.into(File("${basePrj?.projectPath}/build/compositeserver/${name}/conf"))
             }
         }
     }
 
-    private fun prepareStoreFrontTasks(project: Project, projectConfig: ProjectConfiguration,
-                                       confprops: Properties, modules: List<String>) {
+    private fun prepareStoreFrontTasks(project: Project,
+                                       projectConfig: ProjectConfiguration,
+                                       cartridgelistPath: String,
+                                       basePrj: IncludedBuild?) {
         with(project) {
-            val cartridgelistFile = confprops.getProperty("cartridgelist", "")
-            if(cartridgelistFile.isBlank()) {
-                this.logger.error(
-                    "There is currently no configuration for the" +
-                            "cartridges list properties file template!"
+
+            val templateFile = File("${basePrj?.projectPath}/${cartridgelistPath}")
+            if(! templateFile.exists()) {
+                logger.error(
+                    "There is currently no configuration for the " +
+                            "cartridges list properties file template! ({})", templateFile
                 )
             }
-            val templateFile = File(cartridgelistFile)
 
             val prepareCartridgeList = tasks.register(TASK_PREPARE_CARTRIDGELIST,
                         ExtendCartridgeList::class.java) {
@@ -145,26 +155,14 @@ class CrossProjectDevelopmentPlugin: Plugin<Project> {
                 it.provideDBprepareCartridges(projectConfig.dbprepareCartridges)
                 it.environmentTypes.set(ICMProjectPlugin.DEVELOPMENT_ENVS)
 
-                it.outputFile.set(File(projectDir,
-                    "${CROSSPRJ_CONFPATH}/cartridgelist.properties"))
+                it.outputFile.set(
+                    File(
+                        "${basePrj?.projectPath}/build/compositeserver/${name}/conf/cartridgelist.properties"))
             }
-
-            val baseDir = File(projectDir, CROSSPRJ_FOLDERPATH)
-
-            val moduleConfDirs = mutableMapOf<String, File>()
-            modules.forEach { module ->
-                val dep = confprops[module].toString()
-                if(dep.isNotBlank()) {
-                    moduleConfDirs[dep] = File(baseDir, "${module}/conf")
-                }
-            }
-
-            // create mapping dependency -> filesystem
-            val mainPrj = confprops.getProperty("mainproject", "")
 
             val versionInfoTask = tasks.named(CreateServerInfo.DEFAULT_NAME, CreateServerInfo::class.java)
 
-            val crossPrjConf = tasks.register(TASK_PREPAREPRJ_CONFIG, PrepareConfigFolder::class.java) {
+            tasks.register(TASK_PREPARE_CONFIG, PrepareConfigFolder::class.java) {
                 it.group = TASK_GROUP
                 it.description = "Copy all files for server conf folder for storefront project"
 
@@ -173,24 +171,18 @@ class CrossProjectDevelopmentPlugin: Plugin<Project> {
                 it.baseDirConfig.set(projectConfig.serverDirConfig.base)
                 it.extraDirConfig.set(projectConfig.serverDirConfig.
                 getServerDir(EnvironmentType.DEVELOPMENT))
-                it.mainBaseDir.set(File(baseDir, "${mainPrj}/${CROSSPRJ_CONF}"))
+                it.mainBaseDir.set(File("${basePrj?.projectPath}/build/compositeserver/${basePrj?.projectName}/conf"))
 
+                it.outputDir.set(File("${basePrj?.projectPath}/build/compositeserver/server/conf"))
                 projectConfig.modules.all { ncp ->
                     it.module(ncp)
                 }
 
-                it.moduleDirectories.set(moduleConfDirs)
+                it.moduleDirectories.set(mutableMapOf<String, File>())
                 it.provideCartridgeListFile( project.provider { prepareCartridgeList.get().outputFile.get() } )
                 it.provideVersionInfoFile( project.provider { versionInfoTask.get().outputFile.get() } )
 
                 it.dependsOn(prepareCartridgeList, versionInfoTask)
-            }
-
-            tasks.register(TASK_PREPAREPRJ).configure {
-                it.group = TASK_GROUP
-                it.description = "Copy all files for server folder for storefront project"
-
-                it.dependsOn(crossPrjConf)
             }
         }
     }
