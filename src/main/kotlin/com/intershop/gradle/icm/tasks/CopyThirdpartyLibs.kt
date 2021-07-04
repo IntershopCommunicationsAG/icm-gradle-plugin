@@ -20,6 +20,8 @@ import com.intershop.gradle.icm.extension.IntershopExtension.Companion.INTERSHOP
 import com.intershop.gradle.icm.utils.CartridgeUtil
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import org.gradle.api.file.Directory
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileCollection
@@ -36,6 +38,7 @@ import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier
+import java.io.File
 import javax.inject.Inject
 
 /**
@@ -83,9 +86,34 @@ open class CopyThirdpartyLibs @Inject constructor(
     @get:Classpath
     @get:IgnoreEmptyDirectories
     val configurationClasspath: FileCollection by lazy {
-        val returnFiles = project.files()
-        returnFiles.from(project.configurations.getByName(RUNTIME_CLASSPATH_CONFIGURATION_NAME).files)
-        returnFiles
+        val libs = mutableListOf<String>()
+
+        if(libFilterFile.isPresent && libFilterFile.get().asFile.exists()) {
+            libs.addAll(libFilterFile.get().asFile.readLines())
+        }
+
+        if(libs.isEmpty()) {
+            project.logger.debug("No lib filter entries available.")
+        }
+
+        val deplibs = mutableListOf<File>()
+
+        project.configurations.getByName(RUNTIME_CLASSPATH_CONFIGURATION_NAME)
+            .resolvedConfiguration.lenientConfiguration.allModuleDependencies.forEach { dependency ->
+                dependency.moduleArtifacts.forEach { artifact ->
+                    when(val identifier = artifact.id.componentIdentifier) {
+                        is ModuleComponentIdentifier ->
+                            if(! CartridgeUtil.isCartridge(project, identifier)) {
+                                val id = "${identifier.group}-${identifier.module}-${identifier.version}"
+                                if(! libs.contains(id)) {
+                                    deplibs.add(artifact.file)
+                                }
+                            }
+                    }
+                }
+            }
+
+        project.files(deplibs)
     }
 
     init {
@@ -122,21 +150,23 @@ open class CopyThirdpartyLibs @Inject constructor(
         configurationClasspath
 
         project.configurations.getByName(RUNTIME_CLASSPATH_CONFIGURATION_NAME)
-            .resolvedConfiguration.resolvedArtifacts.forEach { artifact ->
-            if (artifact.id is ModuleComponentArtifactIdentifier) {
-                val identifier : ModuleComponentArtifactIdentifier = artifact.id as ModuleComponentArtifactIdentifier
-                val id = "${identifier.componentIdentifier.group}-" +
-                         "${identifier.componentIdentifier.module}-" +
-                         identifier.componentIdentifier.version
-                val name = "${id}.${artifact.type}"
+            .resolvedConfiguration.lenientConfiguration.allModuleDependencies.forEach { dependency ->
+                dependency.moduleArtifacts.forEach { artifact ->
+                    when(val identifier = artifact.id.componentIdentifier) {
+                        is ModuleComponentIdentifier ->
+                            if(! CartridgeUtil.isCartridge(project, identifier)) {
+                                val id = "${identifier.group}-${identifier.module}-${identifier.version}"
+                                val name = "${id}.${artifact.type}"
+                                if(! libs.contains(id)) {
+                                    artifact.file.copyTo(
+                                        outputDir.file(name).get().asFile,
+                                        overwrite = true
+                                    )
+                                }
+                            }
 
-                if(! CartridgeUtil.isCartridge(project, identifier.componentIdentifier) && ! libs.contains(id)) {
-                    artifact.file.copyTo(
-                        outputDir.file(name).get().asFile,
-                        overwrite = true
-                    )
+                    }
                 }
             }
-        }
     }
 }
