@@ -20,6 +20,8 @@ import com.intershop.gradle.icm.extension.IntershopExtension.Companion.INTERSHOP
 import com.intershop.gradle.icm.utils.CartridgeUtil
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import org.gradle.api.file.Directory
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileCollection
@@ -122,21 +124,23 @@ open class CopyThirdpartyLibs @Inject constructor(
         configurationClasspath
 
         project.configurations.getByName(RUNTIME_CLASSPATH_CONFIGURATION_NAME)
-            .resolvedConfiguration.resolvedArtifacts.forEach { artifact ->
-            if (artifact.id is ModuleComponentArtifactIdentifier) {
-                val identifier : ModuleComponentArtifactIdentifier = artifact.id as ModuleComponentArtifactIdentifier
-                val id = "${identifier.componentIdentifier.group}-" +
-                         "${identifier.componentIdentifier.module}-" +
-                         identifier.componentIdentifier.version
-                val name = "${id}.${artifact.type}"
+            .resolvedConfiguration.lenientConfiguration.allModuleDependencies.forEach { dependency ->
+                dependency.moduleArtifacts.forEach { artifact ->
+                    when(val identifier = artifact.id.componentIdentifier) {
+                        is ModuleComponentIdentifier ->
+                            if(! CartridgeUtil.isCartridge(project, identifier)) {
+                                val id = "${identifier.group}-${identifier.module}-${identifier.version}"
+                                val name = "${id}.${artifact.type}"
+                                if(! libs.contains(id)) {
+                                    artifact.file.copyTo(
+                                        outputDir.file(name).get().asFile,
+                                        overwrite = true
+                                    )
+                                }
+                            }
 
-                if(! CartridgeUtil.isCartridge(project, identifier.componentIdentifier) && ! libs.contains(id)) {
-                    artifact.file.copyTo(
-                        outputDir.file(name).get().asFile,
-                        overwrite = true
-                    )
+                    }
                 }
             }
-        }
     }
 }
