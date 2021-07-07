@@ -66,11 +66,12 @@ open class CreateClusterID @Inject constructor(
         val outputFile = outputDir.get().file(CLUSTER_ID_NAME).asFile
 
         if(! outputFile.parentFile.exists()) {
-            project.delete(outputFile.parentFile)
             outputFile.parentFile.mkdirs()
         }
 
-        outputFile.writeText(uuidStr)
+        if(! outputFile.exists()) {
+            outputFile.writeText(uuidStr)
+        }
     }
 
 }
