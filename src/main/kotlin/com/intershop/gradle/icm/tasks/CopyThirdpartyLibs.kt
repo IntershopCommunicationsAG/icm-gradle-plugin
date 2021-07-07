@@ -38,6 +38,7 @@ import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier
+import java.io.File
 import javax.inject.Inject
 
 /**
@@ -85,9 +86,34 @@ open class CopyThirdpartyLibs @Inject constructor(
     @get:Classpath
     @get:IgnoreEmptyDirectories
     val configurationClasspath: FileCollection by lazy {
-        val returnFiles = project.files()
-        returnFiles.from(project.configurations.getByName(RUNTIME_CLASSPATH_CONFIGURATION_NAME).files)
-        returnFiles
+        val libs = mutableListOf<String>()
+
+        if(libFilterFile.isPresent && libFilterFile.get().asFile.exists()) {
+            libs.addAll(libFilterFile.get().asFile.readLines())
+        }
+
+        if(libs.isEmpty()) {
+            project.logger.debug("No lib filter entries available.")
+        }
+
+        val deplibs = mutableListOf<File>()
+
+        project.configurations.getByName(RUNTIME_CLASSPATH_CONFIGURATION_NAME)
+            .resolvedConfiguration.lenientConfiguration.allModuleDependencies.forEach { dependency ->
+                dependency.moduleArtifacts.forEach { artifact ->
+                    when(val identifier = artifact.id.componentIdentifier) {
+                        is ModuleComponentIdentifier ->
+                            if(! CartridgeUtil.isCartridge(project, identifier)) {
+                                val id = "${identifier.group}-${identifier.module}-${identifier.version}"
+                                if(! libs.contains(id)) {
+                                    deplibs.add(artifact.file)
+                                }
+                            }
+                    }
+                }
+            }
+
+        project.files(deplibs)
     }
 
     init {
