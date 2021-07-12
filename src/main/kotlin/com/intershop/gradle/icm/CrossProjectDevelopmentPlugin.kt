@@ -77,14 +77,14 @@ class CrossProjectDevelopmentPlugin: Plugin<Project> {
 
                 var finalPrj: IncludedBuild?  = null
 
-                val finalProjectList = finalProjectStr.split(":")
+                val finalProjectList = finalProjectStr.split(":".toRegex(), 2)
                 if(finalProjectList.size == 2){
                     finalPrj = IncludedBuild(finalProjectList[0], finalProjectList[1])
                 }
 
                 var basePrj: IncludedBuild?  = null
 
-                val baseProjectList = baseProjectStr.split(":")
+                val baseProjectList = baseProjectStr.split(":".toRegex(), 2)
                 if(baseProjectList.size == 2){
                     basePrj = IncludedBuild(baseProjectList[0], baseProjectList[1])
                 }
@@ -93,7 +93,7 @@ class CrossProjectDevelopmentPlugin: Plugin<Project> {
                 if(modulesStr.isNotBlank()) {
                     val ml = modulesStr.split(";")
                     ml.forEach {
-                        val ib = it.split(":")
+                        val ib = it.split(":".toRegex(), 2)
                         if(ib.size > 1) {
                             modules.put(ib[0], IncludedBuild(ib[0], ib[1]))
                         } else {
