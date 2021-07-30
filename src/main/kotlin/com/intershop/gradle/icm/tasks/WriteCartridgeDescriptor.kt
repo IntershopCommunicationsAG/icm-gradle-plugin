@@ -203,9 +203,11 @@ open class WriteCartridgeDescriptor
 
                 when (val identifier = artifact.id.componentIdentifier) {
                     is ModuleComponentIdentifier -> {
-                        val id = "${identifier.group}-${identifier.module}-${identifier.version}"
-                        val name = "${id}.${artifact.type}"
-                        libs.add(name)
+                        if (!CartridgeUtil.isCartridge(project, identifier)) {
+                            val id = "${identifier.group}-${identifier.module}-${identifier.version}"
+                            val name = "${id}.${artifact.type}"
+                            libs.add(name)
+                        }
                     }
                 }
             }
