@@ -29,7 +29,7 @@ import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
 /**
  * The external cartridge plugin applies all basic configurations
  * and tasks for a cartridge project, that can be provided as
- * module dependendcy to other projects.
+ * module dependency to other projects.
  */
 open class ExternalPlugin : Plugin<Project> {
 
