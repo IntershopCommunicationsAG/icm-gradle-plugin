@@ -91,16 +91,14 @@ open class WriteCartridgeClasspath @Inject constructor(
         get() = useClassesFolderProperty.getOrElse(false)
         set(value) = useClassesFolderProperty.set(value)
 
-    @get:InputFiles
-    val jarFiles: FileCollection by lazy {
-        val returnFiles = project.files()
-
+    @get:Input
+    val jarFilePath: String by lazy {
+        var path = ""
         val jarTask = project.tasks.findByName(jarTaskName)
         if (jarTask != null) {
-            returnFiles.setFrom(jarTask.outputs.files.singleFile)
+            path = getNormalizedFilePath(jarTask.outputs.files.singleFile)
         }
-
-        returnFiles
+        path
     }
 
     /**
@@ -119,6 +117,7 @@ open class WriteCartridgeClasspath @Inject constructor(
         project.configurations.getByName(CONFIGURATION_CARTRIDGE_RUNTIME).dependencies.forEach {
             returnDeps.add(it.toString())
         }
+        returnDeps.sort()
         returnDeps
     }
 
@@ -180,10 +179,8 @@ open class WriteCartridgeClasspath @Inject constructor(
                     }
                 }
             }
-            if(!useClassesFolderProperty.get()) {
-                jarFiles.files.forEach { jarFile ->
-                    out.println(getNormalizedFilePath(jarFile))
-                }
+            if(! useClassesFolderProperty.get()) {
+                out.println(jarFilePath)
             }
         }
     }

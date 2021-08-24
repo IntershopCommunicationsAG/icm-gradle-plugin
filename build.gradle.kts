@@ -23,7 +23,7 @@ plugins {
     // project plugins
     `java-gradle-plugin`
     groovy
-    kotlin("jvm") version "1.4.31"
+    kotlin("jvm") version "1.5.21"
 
     // test coverage
     jacoco
@@ -44,10 +44,10 @@ plugins {
     id("org.asciidoctor.jvm.convert") version "3.3.2"
 
     // documentation
-    id("org.jetbrains.dokka") version "1.4.32"
+    id("org.jetbrains.dokka") version "1.5.0"
 
     // code analysis for kotlin
-    id("io.gitlab.arturbosch.detekt") version "1.17.1"
+    id("io.gitlab.arturbosch.detekt") version "1.18.0"
 
     // plugin for publishing to Gradle Portal
     id("com.gradle.plugin-publish") version "0.15.0"
@@ -157,14 +157,14 @@ if (project.version.toString().endsWith("-SNAPSHOT")) {
 }
 
 detekt {
-    input = files("src/main/kotlin")
+    source = files("src/main/kotlin")
     config = files("detekt.yml")
 }
 
 tasks {
 
     withType<Test>().configureEach {
-        systemProperty("intershop.gradle.versions", "7.1")
+        systemProperty("intershop.gradle.versions", "7.2")
         useJUnitPlatform()
 
         dependsOn("jar")
@@ -218,10 +218,10 @@ tasks {
 
     withType<JacocoReport> {
         reports {
-            xml.isEnabled = true
-            html.isEnabled = true
+            xml.getRequired().set(true)
+            html.getRequired().set(true)
 
-            html.destination = File(project.buildDir, "jacocoHtml")
+            html.getOutputLocation().set( File(project.buildDir, "jacocoHtml") )
         }
 
         val jacocoTestReport by tasks
