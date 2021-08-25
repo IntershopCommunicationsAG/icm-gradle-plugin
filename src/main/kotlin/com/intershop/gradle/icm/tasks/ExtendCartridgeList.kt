@@ -154,7 +154,7 @@ open class ExtendCartridgeList
             val cn = if(prjCartridgeSet.contains(cartridgeName)) {
                         cartridgeName
                      } else {
-                         getCartridgeNameFrom(cartridge, projectCartridgeMap)
+                        getCartridgeNameFrom(cartridge, projectCartridgeMap)
                      }
             if(cn != null) {
                 prjInitCartridgeSet.add(cn)
@@ -173,7 +173,12 @@ open class ExtendCartridgeList
                 "There is no list of db cartridges in (" + templateFile.get().asFile.absolutePath +")")
 
         val cartridgeSet: MutableSet<String> = cartridgeProp.split(" ").toMutableSet()
-        val initCartridgeSet: MutableSet<String> =  dbCartridgeProp.split(" ").toMutableSet()
+        val initCartridgeSet: MutableSet<String> = dbCartridgeProp.split(" ").toMutableSet()
+
+        cartridgeSet.removeIf { x -> x.isBlank() }
+        initCartridgeSet.removeIf { x -> x.isBlank() }
+        prjCartridgeSet.removeIf { x -> x.isBlank() }
+        prjInitCartridgeSet.removeIf { x -> x.isBlank() }
 
         cartridgeSet.addAll(prjCartridgeSet)
         initCartridgeSet.addAll(prjInitCartridgeSet)
@@ -222,7 +227,7 @@ open class ExtendCartridgeList
             return orgProps
         } catch(ioex: IOException) {
             throw GradleException(
-                "Can not read orignal cartridge properies (" + templateFile.get().asFile.absolutePath +")")
+                "Can not read orignal cartridge properties (" + templateFile.get().asFile.absolutePath +")")
         }
     }
 
