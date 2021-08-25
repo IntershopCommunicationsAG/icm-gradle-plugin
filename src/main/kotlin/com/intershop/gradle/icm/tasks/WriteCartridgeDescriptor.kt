@@ -189,7 +189,8 @@ open class WriteCartridgeDescriptor
                         cartridges.add(identifier.projectName)
                     is ModuleComponentIdentifier ->
                         if (CartridgeUtil.isCartridge(project, identifier)) {
-                            cartridges.add("${identifier.module}:${identifier.version}")
+                            //cartridges.add("${identifier.module}:${identifier.version}")
+                            cartridges.add(identifier.module)
                         }
                 }
             }
