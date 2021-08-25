@@ -21,12 +21,14 @@ import com.intershop.gradle.icm.ICMBasePlugin.Companion.CONFIGURATION_CARTRIDGE_
 import com.intershop.gradle.icm.extension.IntershopExtension.Companion.INTERSHOP_GROUP_NAME
 import com.intershop.gradle.icm.utils.CartridgeUtil
 import org.gradle.api.DefaultTask
+import org.gradle.api.artifacts.component.LibraryBinaryIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.file.RegularFile
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.plugins.JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Input
@@ -73,7 +75,7 @@ open class WriteCartridgeDescriptor
      *
      * @param cartridgeName set provider for cartridge name.
      */
-    @Suppress( "unused")
+    @Suppress("unused")
     fun provideCartridgeName(cartridgeName: Provider<String>) = nameProperty.set(cartridgeName)
 
     @get:Input
@@ -86,7 +88,7 @@ open class WriteCartridgeDescriptor
      *
      * @param displayName set provider for display name.
      */
-    @Suppress( "unused")
+    @Suppress("unused")
     fun provideDisplayName(displayName: Provider<String>) = displayNameProperty.set(displayName)
 
     @get:Input
@@ -135,23 +137,32 @@ open class WriteCartridgeDescriptor
      */
     @TaskAction
     fun runFileCreation() {
-        if(! outputFile.parentFile.exists()) {
+        if (!outputFile.parentFile.exists()) {
             outputFile.parentFile.mkdirs()
         }
 
-        val props = linkedMapOf<String,String>()
+        val props = linkedMapOf<String, String>()
         val comment = "Intershop descriptor file"
 
         val cartridges = HashSet<String>()
+        val libs = HashSet<String>()
 
-        addCartridges(CONFIGURATION_CARTRIDGE_RUNTIME, cartridges)
+        addCartridges(cartridges)
+        addLibs(libs)
 
-        props["cartridge.dependsOn"] = cartridges.toSortedSet().joinToString( separator = ";" )
+        props["descriptor.version"] = "1.0"
+
+        props["cartridge.dependsOn"] = cartridges.toSortedSet().joinToString(separator = ";")
+        props["cartridge.dependsOnLibs"] = libs.toSortedSet().joinToString(separator = ";")
 
         props["cartridge.name"] = cartridgeName
         props["cartridge.displayName"] = displayName
         props["cartridge.description"] = displayName
         props["cartridge.version"] = project.version.toString()
+
+        if (project.hasProperty("cartridge.style")) {
+            props["cartridge.style"] = project.property("cartridge.style").toString()
+        }
 
         val propsObject = Properties()
         propsObject.putAll(props)
@@ -164,25 +175,43 @@ open class WriteCartridgeDescriptor
                 "\n"
             )
         } finally {
-            project.logger.debug("Write properties finished not correct.")
+            project.logger.debug("Wrote cartridge descriptor.")
         }
     }
 
-    private fun addCartridges(confName: String, cartridges: HashSet<String>) {
-        project.configurations.getByName(confName).
-        resolvedConfiguration.lenientConfiguration.allModuleDependencies.forEach { dependency ->
+    private fun addCartridges(cartridges: HashSet<String>) {
+        project.configurations.getByName(CONFIGURATION_CARTRIDGE_RUNTIME)
+            .resolvedConfiguration.lenientConfiguration.allModuleDependencies.forEach { dependency ->
             dependency.moduleArtifacts.forEach { artifact ->
 
-                when(val identifier = artifact.id.componentIdentifier) {
+                when (val identifier = artifact.id.componentIdentifier) {
                     is ProjectComponentIdentifier ->
                         cartridges.add(identifier.projectName)
                     is ModuleComponentIdentifier ->
-                        if(CartridgeUtil.isCartridge(project, identifier)) {
-                            cartridges.add(identifier.module)
+                        if (CartridgeUtil.isCartridge(project, identifier)) {
+                            cartridges.add("${identifier.module}:${identifier.version}")
                         }
                 }
             }
         }
     }
 
+    private fun addLibs(libs: HashSet<String>) {
+        project.configurations.getByName(RUNTIME_CLASSPATH_CONFIGURATION_NAME)
+            .resolvedConfiguration.lenientConfiguration.allModuleDependencies.forEach { dependency ->
+            dependency.moduleArtifacts.forEach { artifact ->
+
+                when (val identifier = artifact.id.componentIdentifier) {
+                    is ModuleComponentIdentifier -> {
+                        if (!CartridgeUtil.isCartridge(project, identifier)) {
+                            val id = "${identifier.group}-${identifier.module}-${identifier.version}"
+                            val name = "${id}.${artifact.type}"
+                            libs.add(name)
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
+
