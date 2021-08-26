@@ -44,6 +44,8 @@ import javax.inject.Inject
  *
  * This task creates a map of all dependend thirdparty dependencies to
  * a text file. This is used for the build of containerimages.
+ *
+ * TODO SKR remove
  */
 open class CreateThirdpartyMap @Inject constructor(
     projectLayout: ProjectLayout,

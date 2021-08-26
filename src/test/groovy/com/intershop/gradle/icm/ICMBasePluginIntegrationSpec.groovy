@@ -332,6 +332,7 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         gradleVersion << supportedGradleVersions
     }
 
+    // TODO SKR remove test
     def 'CopyThirdpartyLibs of subprojects to empty folder'() {
         given:
         settingsFile << """

@@ -22,7 +22,6 @@ import com.intershop.gradle.icm.extension.ServerDir
 import com.intershop.gradle.icm.project.PluginConfig
 import com.intershop.gradle.icm.project.TaskConfCopyLib
 import com.intershop.gradle.icm.project.TaskName
-import com.intershop.gradle.icm.tasks.CopyThirdpartyLibs
 import com.intershop.gradle.icm.tasks.CreateClusterID
 import com.intershop.gradle.icm.tasks.CreateMainPackage
 import com.intershop.gradle.icm.tasks.CreateServerInfo
@@ -151,6 +150,7 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
         pluginConfig.project.subprojects { sub ->
             val libfilter = pluginConfig.project.tasks.named(PROVIDE_LIBFILTER, ProvideLibFilter::class.java)
 
+            /* TODO SKR check regarding CollectLibrariesTask
             sub.tasks.withType(CopyThirdpartyLibs::class.java) { ctlTask ->
                 ctlTask.provideLibFilterFile(sub.provider { libfilter.get().outputFile.get() })
                 ctlTask.dependsOn(libfilter)
@@ -175,6 +175,7 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
                     copyLibsProd.configure { task -> task.from(ctlTask.outputs.files) }
                 }
             }
+            */
         }
     }
 

@@ -18,7 +18,6 @@ package com.intershop.gradle.icm.cartridge
 
 import com.intershop.gradle.icm.ICMBasePlugin
 import com.intershop.gradle.icm.extension.IntershopExtension
-import com.intershop.gradle.icm.tasks.CopyThirdpartyLibs
 import com.intershop.gradle.icm.tasks.WriteCartridgeClasspath
 import com.intershop.gradle.icm.tasks.WriteCartridgeDescriptor
 import org.gradle.api.Plugin
@@ -65,8 +64,6 @@ open class CartridgePlugin : Plugin<Project> {
             plugins.apply(JavaPlugin::class.java)
 
             configureAddFileCreation( this)
-
-            tasks.register( CopyThirdpartyLibs.DEFAULT_NAME, CopyThirdpartyLibs::class.java)
         }
     }
 

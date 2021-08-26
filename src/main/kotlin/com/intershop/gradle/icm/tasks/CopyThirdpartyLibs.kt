@@ -46,6 +46,8 @@ import javax.inject.Inject
  *
  * This task copy all dependend thirdparty dependencies to
  * a lib folder. This is used for the build of containerimages.
+ *
+ * TODO SKR remove
  */
 open class CopyThirdpartyLibs @Inject constructor(
     projectLayout: ProjectLayout,
