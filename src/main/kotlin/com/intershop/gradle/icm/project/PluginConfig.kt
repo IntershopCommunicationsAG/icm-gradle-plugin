@@ -20,12 +20,7 @@ package com.intershop.gradle.icm.project
 import com.intershop.gradle.icm.ICMProjectPlugin
 import com.intershop.gradle.icm.extension.IntershopExtension
 import com.intershop.gradle.icm.extension.ProjectConfiguration
-import com.intershop.gradle.icm.tasks.CreateConfigFolder
-import com.intershop.gradle.icm.tasks.CreateServerInfo
-import com.intershop.gradle.icm.tasks.ExtendCartridgeList
-import com.intershop.gradle.icm.tasks.ProvideCartridgeListTemplate
-import com.intershop.gradle.icm.tasks.ProvideLibFilter
-import com.intershop.gradle.icm.tasks.SetupCartridges
+import com.intershop.gradle.icm.tasks.*
 import com.intershop.gradle.icm.utils.EnvironmentType
 import org.gradle.api.Project
 import org.gradle.api.Task
@@ -147,16 +142,14 @@ class PluginConfig(val project: Project,
      *
      * @param configTask creates the configuration folder>yxc
      * @param cartridgesTask creates the folder with external cartridges
-     * @param copyLibs copy 3rd party libs
      * @param taskname specify the task name of the package folder
      */
     fun configurePackageTask(configTask: TaskProvider<CreateConfigFolder>,
                              cartridgesTask: TaskProvider<SetupCartridges>,
-                             copyLibs: TaskProvider<Sync>,
                              taskname: String): TaskProvider<Tar> =
         project.tasks.named(taskname, Tar::class.java) { pkg ->
-            pkg.with( getCopySpecFor(configTask, cartridgesTask, copyLibs) )
-            pkg.dependsOn(cartridgesTask, configTask, copyLibs)
+            pkg.with( getCopySpecFor(configTask, cartridgesTask) )
+            pkg.dependsOn(cartridgesTask, configTask)
         }
 
     /**
@@ -171,8 +164,7 @@ class PluginConfig(val project: Project,
         }
 
     private fun getCopySpecFor(configTask: TaskProvider<CreateConfigFolder>,
-                               cartridgesTask: TaskProvider<SetupCartridges>,
-                               copyLibs: TaskProvider<Sync>): CopySpec =
+                               cartridgesTask: TaskProvider<SetupCartridges>): CopySpec =
         project.copySpec { cp ->
             cp.from( project.provider { cartridgesTask.get().outputs } ) { cps ->
                 cps.into("cartridges")
@@ -190,9 +182,6 @@ class PluginConfig(val project: Project,
                 }
             }
             cp.from(configTask.get().outputs)
-            cp.from( project.provider { copyLibs.get().outputs } ) { cps ->
-                cps.into("lib")
-            }
         }
 
     /**

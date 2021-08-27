@@ -22,12 +22,7 @@ import com.intershop.gradle.icm.extension.ServerDir
 import com.intershop.gradle.icm.project.PluginConfig
 import com.intershop.gradle.icm.project.TaskConfCopyLib
 import com.intershop.gradle.icm.project.TaskName
-import com.intershop.gradle.icm.tasks.CreateClusterID
-import com.intershop.gradle.icm.tasks.CreateMainPackage
-import com.intershop.gradle.icm.tasks.CreateServerInfo
-import com.intershop.gradle.icm.tasks.CreateTestPackage
-import com.intershop.gradle.icm.tasks.PreparePublishDir
-import com.intershop.gradle.icm.tasks.ProvideLibFilter
+import com.intershop.gradle.icm.tasks.*
 import com.intershop.gradle.icm.utils.CartridgeStyle.ALL
 import com.intershop.gradle.icm.utils.CartridgeStyle.valueOf
 import com.intershop.gradle.icm.utils.EnvironmentType.DEVELOPMENT
@@ -93,11 +88,11 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
         pluginConfig.getCartridgeListTemplate()
 
         val copyLibsProd = pluginConfig.get3rdPartyCopyTask(TaskConfCopyLib.PRODUCTION)
-        val prepareContainer = prepareContainer(pluginConfig, infoTask, copyLibsProd)
+        val prepareContainer = prepareContainer(pluginConfig, infoTask)
         prepareContainer.configure { task -> task.dependsOn(copyLibsProd, writeCartridgeFile) }
 
         val copyLibsTest = pluginConfig.get3rdPartyCopyTask(TaskConfCopyLib.TEST)
-        val prepareTestContainer = prepareTestContainer(pluginConfig, infoTask, copyLibsTest)
+        val prepareTestContainer = prepareTestContainer(pluginConfig, infoTask)
         prepareTestContainer.configure { task -> task.dependsOn(copyLibsTest, writeCartridgeFile) }
 
         val copyLibs = pluginConfig.get3rdPartyCopyTask(TaskConfCopyLib.DEVELOPMENT)
@@ -105,7 +100,6 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
         prepareServer.configure { task -> task.dependsOn(copyLibs, writeCartridgeFile) }
 
         configurePrepareTasks(pluginConfig, prepareServer, prepareTestContainer, prepareContainer)
-        configureCopyLibsTasks(pluginConfig, copyLibs, copyLibsTest, copyLibsProd)
     }
 
     private fun configurePrepareTasks(pluginConfig: PluginConfig,
@@ -143,51 +137,14 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
         }
     }
 
-    private fun configureCopyLibsTasks(pluginConfig: PluginConfig,
-                                       copyLibs: TaskProvider<Sync>,
-                                       copyLibsTest: TaskProvider<Sync>,
-                                       copyLibsProd: TaskProvider<Sync>) {
-        pluginConfig.project.subprojects { sub ->
-            val libfilter = pluginConfig.project.tasks.named(PROVIDE_LIBFILTER, ProvideLibFilter::class.java)
-
-            /* TODO SKR check regarding CollectLibrariesTask
-            sub.tasks.withType(CopyThirdpartyLibs::class.java) { ctlTask ->
-                ctlTask.provideLibFilterFile(sub.provider { libfilter.get().outputFile.get() })
-                ctlTask.dependsOn(libfilter)
-
-                val styleValue =
-                    with(sub.extensions.extraProperties) {
-                        if (has("cartridge.style")) {
-                            get("cartridge.style").toString()
-                        } else {
-                            "all"
-                        }
-                    }
-                val style = valueOf(styleValue.toUpperCase())
-
-                if (style == ALL || DEVELOPMENT_ENVS.contains(style.environmentType())) {
-                    copyLibs.configure { task -> task.from(ctlTask.outputs.files) }
-                }
-                if (style == ALL || TEST_ONLY_ENVS.contains(style.environmentType())) {
-                    copyLibsTest.configure { task -> task.from(ctlTask.outputs.files) }
-                }
-                if (style == ALL || PROD_ENVS.contains(style.environmentType())) {
-                    copyLibsProd.configure { task -> task.from(ctlTask.outputs.files) }
-                }
-            }
-            */
-        }
-    }
-
     private fun prepareContainer(pluginConfig: PluginConfig,
-                                 versionInfoTask: TaskProvider<CreateServerInfo>,
-                                 copyLibs: TaskProvider<Sync>): TaskProvider<Task> {
+                                 versionInfoTask: TaskProvider<CreateServerInfo>): TaskProvider<Task> {
 
         val prodSetupCartridgeTask = pluginConfig.getSetupCartridgesTask(PRODUCTION, PROD_ENVS)
         val createConfigProd = pluginConfig.getConfigTask(versionInfoTask, PRODUCTION, PROD_ENVS)
 
         pluginConfig.configurePackageTask(
-            createConfigProd, prodSetupCartridgeTask, copyLibs, CreateMainPackage.DEFAULT_NAME)
+            createConfigProd, prodSetupCartridgeTask, CreateMainPackage.DEFAULT_NAME)
 
         val prepareTask = pluginConfig.configurePrepareTask(PRODUCTION)
         prepareTask.configure { task ->
@@ -197,14 +154,13 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
     }
 
     private fun prepareTestContainer(pluginConfig: PluginConfig,
-                                     versionInfoTask: TaskProvider<CreateServerInfo>,
-                                     copyLibs: TaskProvider<Sync>): TaskProvider<Task> {
+                                     versionInfoTask: TaskProvider<CreateServerInfo>): TaskProvider<Task> {
 
         val testSetupCartridgeTask = pluginConfig.getSetupCartridgesTask(TEST, TEST_ONLY_ENVS)
         val createConfigTest = pluginConfig.getConfigTask(versionInfoTask, TEST, TEST_ENVS)
 
         pluginConfig.configurePackageTask(
-            createConfigTest, testSetupCartridgeTask, copyLibs, CreateTestPackage.DEFAULT_NAME)
+            createConfigTest, testSetupCartridgeTask, CreateTestPackage.DEFAULT_NAME)
 
         val prepareTask = pluginConfig.configurePrepareTask(TEST)
         prepareTask.configure { task ->
