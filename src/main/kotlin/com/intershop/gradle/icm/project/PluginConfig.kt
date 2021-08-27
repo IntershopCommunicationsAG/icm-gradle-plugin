@@ -46,21 +46,6 @@ class PluginConfig(val project: Project,
     }
 
     /**
-     * Configures the 3rd party copy task from an enumeration.
-     *
-     * @param taskconf enumeration with all necessary parameters
-     * @return Sync task
-     */
-    fun get3rdPartyCopyTask(taskconf: TaskConfCopyLib): TaskProvider<Sync> =
-        project.tasks.register( taskconf.taskname(), Sync::class.java ) { sync ->
-            sync.group = IntershopExtension.INTERSHOP_GROUP_NAME
-            sync.description = taskconf.description()
-
-            sync.into(taskconf.targetpath(projectLayout))
-            sync.duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-        }
-
-    /**
      * Configures the task for the setup of external cartridges.
      *
      * @param type environment type

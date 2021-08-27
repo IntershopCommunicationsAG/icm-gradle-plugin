@@ -20,7 +20,6 @@ import com.intershop.gradle.icm.ICMBasePlugin.Companion.TASK_WRITECARTRIDGEFILES
 import com.intershop.gradle.icm.extension.IntershopExtension
 import com.intershop.gradle.icm.extension.ServerDir
 import com.intershop.gradle.icm.project.PluginConfig
-import com.intershop.gradle.icm.project.TaskConfCopyLib
 import com.intershop.gradle.icm.project.TaskName
 import com.intershop.gradle.icm.tasks.*
 import com.intershop.gradle.icm.utils.CartridgeStyle.ALL
@@ -87,17 +86,14 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
         val writeCartridgeFile = project.tasks.named(TASK_WRITECARTRIDGEFILES)
         pluginConfig.getCartridgeListTemplate()
 
-        val copyLibsProd = pluginConfig.get3rdPartyCopyTask(TaskConfCopyLib.PRODUCTION)
         val prepareContainer = prepareContainer(pluginConfig, infoTask)
-        prepareContainer.configure { task -> task.dependsOn(copyLibsProd, writeCartridgeFile) }
+        prepareContainer.configure { task -> task.dependsOn(writeCartridgeFile) }
 
-        val copyLibsTest = pluginConfig.get3rdPartyCopyTask(TaskConfCopyLib.TEST)
         val prepareTestContainer = prepareTestContainer(pluginConfig, infoTask)
-        prepareTestContainer.configure { task -> task.dependsOn(copyLibsTest, writeCartridgeFile) }
+        prepareTestContainer.configure { task -> task.dependsOn(writeCartridgeFile) }
 
-        val copyLibs = pluginConfig.get3rdPartyCopyTask(TaskConfCopyLib.DEVELOPMENT)
         val prepareServer = prepareServer(project, pluginConfig, infoTask)
-        prepareServer.configure { task -> task.dependsOn(copyLibs, writeCartridgeFile) }
+        prepareServer.configure { task -> task.dependsOn(writeCartridgeFile) }
 
         configurePrepareTasks(pluginConfig, prepareServer, prepareTestContainer, prepareContainer)
     }
