@@ -82,11 +82,12 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
 
     private fun configureProjectTasks(project: Project, pluginConfig: PluginConfig) {
         val infoTask = project.tasks.named(CreateServerInfo.DEFAULT_NAME, CreateServerInfo::class.java)
+        val collectLibrariesTask = project.tasks.named(CollectLibraries.DEFAULT_NAME, CollectLibraries::class.java)
         pluginConfig.getCartridgeListTemplate()
 
-        val prepareContainer = prepareContainer(pluginConfig, infoTask)
-        val prepareTestContainer = prepareTestContainer(pluginConfig, infoTask)
-        val prepareServer = prepareServer(project, pluginConfig, infoTask)
+        val prepareContainer = prepareContainer(pluginConfig, infoTask).apply { configure { task -> task.dependsOn(collectLibrariesTask) } }
+        val prepareTestContainer = prepareTestContainer(pluginConfig, infoTask).apply { configure { task -> task.dependsOn(collectLibrariesTask) } }
+        val prepareServer = prepareServer(project, pluginConfig, infoTask).apply { configure { task -> task.dependsOn(collectLibrariesTask) } }
 
         configurePrepareTasks(pluginConfig, prepareServer, prepareTestContainer, prepareContainer)
     }
