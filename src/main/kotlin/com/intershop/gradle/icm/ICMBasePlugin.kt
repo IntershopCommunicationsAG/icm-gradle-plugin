@@ -27,7 +27,6 @@ import com.intershop.gradle.icm.tasks.CreateClusterID
 import com.intershop.gradle.icm.tasks.CreateMainPackage
 import com.intershop.gradle.icm.tasks.CreateServerInfo
 import com.intershop.gradle.icm.tasks.CreateTestPackage
-import com.intershop.gradle.icm.tasks.WriteCartridgeClasspath
 import com.intershop.gradle.icm.utils.EnvironmentType
 import com.intershop.gradle.isml.IsmlPlugin
 import org.gradle.api.Plugin
@@ -48,7 +47,6 @@ open class ICMBasePlugin: Plugin<Project> {
 
     companion object {
         const val TASK_ALLDEPENDENCIESREPORT = "allDependencies"
-        const val TASK_WRITECARTRIDGEFILES = "writeCartridgeFiles"
 
         const val CONFIGURATION_CARTRIDGE = "cartridge"
         const val CONFIGURATION_CARTRIDGE_API = "cartridgeApi"
@@ -97,16 +95,6 @@ open class ICMBasePlugin: Plugin<Project> {
 
                 if(! checkForTask(tasks, TASK_ALLDEPENDENCIESREPORT)) {
                     tasks.register(TASK_ALLDEPENDENCIESREPORT, DependencyReportTask::class.java)
-                }
-
-                tasks.register(WriteCartridgeClasspath.DEFAULT_NAME) { task ->
-                    task.group = "ICM cartridge build"
-                    task.description = "Lifecycle task for ICM cartridge build"
-                }
-
-                tasks.register(TASK_WRITECARTRIDGEFILES) { task ->
-                    task.group = "ICM cartridge build"
-                    task.description = "Lifecycle task for ICM cartridge build"
                 }
 
                 createPackageTasks(this, configureCollectLibrariesTask)

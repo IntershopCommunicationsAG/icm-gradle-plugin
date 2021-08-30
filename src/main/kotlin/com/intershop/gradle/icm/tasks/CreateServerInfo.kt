@@ -149,7 +149,7 @@ open class CreateServerInfo @Inject constructor(
         props["version.information.productId"] = productId.getOrElse("product id")
         props["version.information.productName"] = productName.getOrElse(project.name)
         props["version.information.copyrightOwner"] = copyrightOwner.getOrElse("Intershop Communications")
-        props["version.information.copyrightFrom"] = copyrightFrom.getOrElse("2020")
+        props["version.information.copyrightFrom"] = copyrightFrom.getOrElse("2021")
 
         props["version.information.copyrightTo"] = year
         props["version.information.organization"] = organization.getOrElse("Intershop Communications")

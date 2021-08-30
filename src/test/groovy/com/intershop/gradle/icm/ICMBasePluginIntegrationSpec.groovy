@@ -462,106 +462,6 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         gradleVersion << supportedGradleVersions
     }
 
-    def 'Simple test of WriteCartridgeClasspath'(){
-        given:
-        File gradleProperties = new File(testProjectDir, "gradle.properties")
-        gradleProperties << """
-            classpath.file.enabled = true
-        """
-
-        settingsFile << """
-        rootProject.name='rootproject'
-        """.stripIndent()
-
-        buildFile << """
-            plugins {
-                id 'java'
-                id 'com.intershop.gradle.icm.base'
-            }
-            
-            buildDir = new File(projectDir, 'target')
-            
-            version = "1.0.0"
-            
-            repositories {
-                mavenCentral()
-            }
-            """.stripIndent()
-
-            def prj1dir = createSubProject('testCartridge1', """
-            plugins {
-                id 'java-library'
-                id 'com.intershop.icm.cartridge'
-            }
-            
-            buildDir = new File(projectDir, 'target')
-            
-            dependencies {
-                implementation "com.google.inject:guice:4.0"
-                implementation 'com.google.inject.extensions:guice-servlet:3.0'
-                implementation 'javax.servlet:javax.servlet-api:3.1.0'
-            } 
-            
-            repositories {
-                mavenCentral()
-            }
-            """.stripIndent())
-
-            def prj2dir = createSubProject('testCartridge2', """
-            plugins {
-                id 'java-library'
-                id 'com.intershop.icm.cartridge'
-            }
-                
-            buildDir = new File(projectDir, 'target')
-            
-            dependencies {
-                cartridge project(':testCartridge1')
-                implementation "com.google.inject:guice:4.0"
-                implementation 'com.google.inject.extensions:guice-servlet:3.0'
-                implementation 'javax.servlet:javax.servlet-api:3.1.0'
-            } 
-                
-            repositories {
-                mavenCentral()
-            }
-            """.stripIndent())
-
-            def prj3dir = createSubProject('testCartridge3', """
-            plugins {
-                id 'java-library'
-                id 'com.intershop.icm.cartridge'
-            }
-
-            buildDir = new File(projectDir, 'target')
-
-            dependencies {
-                cartridge project(':testCartridge2')
-                implementation "com.google.inject:guice:4.0"
-                implementation 'com.google.inject.extensions:guice-servlet:3.0'
-                implementation 'javax.servlet:javax.servlet-api:3.1.0'
-            } 
-                
-            repositories {
-                mavenCentral()
-            }
-            """.stripIndent())
-
-        when:
-        def result = getPreparedGradleRunner()
-                .withArguments("writeCartridgeClasspath", "-s")
-                .withGradleVersion(gradleVersion)
-                .build()
-
-        then:
-        result.task(':testCartridge1:writeCartridgeClasspath').outcome == SUCCESS
-        result.task(':testCartridge2:writeCartridgeClasspath').outcome == SUCCESS
-        result.task(':testCartridge3:writeCartridgeClasspath').outcome == SUCCESS
-
-        where:
-        gradleVersion << supportedGradleVersions
-    }
-
     def 'Simple test of WriteCartridgeDescriptor'(){
         given:
         settingsFile << """
@@ -777,8 +677,6 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
             }
              
             group = 'com.intershop'
-            
-            writeCartridgeClasspath.useClassesFolder = true
              
             dependencies {
                 cartridge project(':testCartridge3')
@@ -818,7 +716,7 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         when:
         def result = getPreparedGradleRunner()
-                .withArguments("writeCartridgeDescriptor", "writeCartridgeClasspath", "-s")
+                .withArguments("writeCartridgeDescriptor", "-s")
                 .withGradleVersion(gradleVersion)
                 .build()
 
@@ -887,17 +785,8 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         """.stripIndent()
 
         when:
-        def result1 = getPreparedGradleRunner()
-                .withArguments("writeCartridgeClasspath", "-s")
-                .withGradleVersion(gradleVersion)
-                .build()
-
-        then:
-        result1.task(':writeCartridgeClasspath').outcome == SUCCESS
-
-        when:
         def result2 = getPreparedGradleRunner()
-                .withArguments("writeCartridgeDescriptor", "writeCartridgeClasspath", "-s")
+                .withArguments("writeCartridgeDescriptor", "-s")
                 .withGradleVersion(gradleVersion)
                 .build()
 

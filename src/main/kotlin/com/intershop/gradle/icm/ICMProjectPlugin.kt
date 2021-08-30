@@ -16,7 +16,6 @@
  */
 package com.intershop.gradle.icm
 
-import com.intershop.gradle.icm.ICMBasePlugin.Companion.TASK_WRITECARTRIDGEFILES
 import com.intershop.gradle.icm.extension.IntershopExtension
 import com.intershop.gradle.icm.extension.ServerDir
 import com.intershop.gradle.icm.project.PluginConfig
@@ -83,17 +82,11 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
 
     private fun configureProjectTasks(project: Project, pluginConfig: PluginConfig) {
         val infoTask = project.tasks.named(CreateServerInfo.DEFAULT_NAME, CreateServerInfo::class.java)
-        val writeCartridgeFile = project.tasks.named(TASK_WRITECARTRIDGEFILES)
         pluginConfig.getCartridgeListTemplate()
 
         val prepareContainer = prepareContainer(pluginConfig, infoTask)
-        prepareContainer.configure { task -> task.dependsOn(writeCartridgeFile) }
-
         val prepareTestContainer = prepareTestContainer(pluginConfig, infoTask)
-        prepareTestContainer.configure { task -> task.dependsOn(writeCartridgeFile) }
-
         val prepareServer = prepareServer(project, pluginConfig, infoTask)
-        prepareServer.configure { task -> task.dependsOn(writeCartridgeFile) }
 
         configurePrepareTasks(pluginConfig, prepareServer, prepareTestContainer, prepareContainer)
     }
