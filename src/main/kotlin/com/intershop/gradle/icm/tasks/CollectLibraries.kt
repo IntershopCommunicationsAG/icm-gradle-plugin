@@ -3,16 +3,16 @@ package com.intershop.gradle.icm.tasks
 import com.intershop.gradle.icm.utils.CartridgeUtil
 import com.intershop.gradle.icm.utils.EnvironmentType
 import org.gradle.api.DefaultTask
-import org.gradle.api.Project
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.Directory
-import org.gradle.api.plugins.JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
-import java.io.File
+import org.gradle.api.tasks.TaskProvider
 
 /**
  * Collects all libraries (recursively through all (sub-)projects)
@@ -32,8 +32,37 @@ open class CollectLibraries : DefaultTask() {
     }
 
     @get:Input
-    val libraryDependencyIds: Set<String> by lazy {
-        getProjectDependencies(project)
+    val allDependencyIds: String by lazy {
+        libraryDependencyIds.toString()
+    }
+
+    @get:Internal
+    val libraryDependencyIds: Map<EnvironmentType, List<String>> by lazy {
+        val dependencies = mutableMapOf<EnvironmentType, MutableSet<String>>()
+
+        dependsOn.forEach { t ->
+            val p = t as TaskProvider<*>
+            when (val at = p.get()) {
+                is WriteCartridgeDescriptor -> {
+                    val environmentType = CartridgeUtil.getCartridgeStyle(at.project).environmentType()
+                    dependencies.computeIfAbsent(environmentType, { linkedSetOf() }).addAll(at.getLibraryIDs())
+                }
+            }
+        }
+
+        // ensure ids for a certain EnvironmentType only contain ids of this type not others (e.g. test without production)
+        val alreadyThere = mutableSetOf<String>()
+        EnvironmentType.values().forEach { env ->
+            dependencies.get(env)?.run {
+                this.removeAll(alreadyThere)
+                alreadyThere.addAll(this)
+            }
+        }
+
+        val dependencyWithList = mutableMapOf<EnvironmentType, List<String>>()
+        dependencies.forEach{ (k, v) -> dependencyWithList.put(k, v.toList().sorted()) }
+
+        dependencyWithList.toSortedMap()
     }
 
     @get:OutputDirectory
@@ -46,23 +75,31 @@ open class CollectLibraries : DefaultTask() {
      */
     @TaskAction
     fun collectLibraries() {
+        libraryDependencyIds.map { (key, value) ->
+            copySpecFor(key, value)
+        }.forEach { copySpec ->
+            project.copy { cs -> cs.with(copySpec).into(copiedLibrariesDirectory) }
+        }
+    }
 
-        val allDependencies = mutableMapOf<EnvironmentType, MutableSet<Library>>()
-        computeProjectLibraries(project, allDependencies)
+    /**
+     * Creates a ```CopySpec``` which describes that libraries get copied into the folder '''libraries/{environmentName}''' using file-name '''${dependency.moduleGroup}_${dependency.moduleName}_${dependency.moduleVersion}.${artifact.extension}'''
+     */
+    private fun copySpecFor(environmentType: EnvironmentType, ids: Collection<String>): CopySpec {
 
-        val targetFolder = copiedLibrariesDirectory.asFile
-        File(project.buildDir, BUILD_FOLDER).apply { deleteRecursively() }.apply { mkdirs() }
-
-        allDependencies.forEach { (env, dependencies) ->
-            val envFolder = File(targetFolder, env.name.lowercase()).apply { mkdirs() }
-            dependencies.forEach { lib ->
-                val targetName = lib.getIdString().plus(".").plus(lib.file.extension)
-                val targetFile = File(envFolder, targetName)
-                lib.file.copyTo(targetFile).run {
-                    project.logger.debug("Copied library {} to '{}'", lib.getIdString(), this)
+        val libCopySpec = project.copySpec().into(environmentType.name.lowercase())
+        val configuration = project.configurations.create("CollectedLibraries${environmentType.name}")
+        ids.forEach({ configuration.dependencies.add(project.dependencies.create(it)) })
+        configuration.resolvedConfiguration.lenientConfiguration.allModuleDependencies.forEach { dependency ->
+            dependency.moduleArtifacts.forEach { artifact ->
+                when (artifact.id.componentIdentifier) {
+                    is ModuleComponentIdentifier -> {
+                        libCopySpec.with(project.copySpec().from(artifact.file).rename({ name -> "${dependency.moduleGroup}_${dependency.moduleName}_${dependency.moduleVersion}.${artifact.extension}" }))
+                    }
                 }
             }
         }
+        return libCopySpec
     }
 
     /**
@@ -73,84 +110,6 @@ open class CollectLibraries : DefaultTask() {
      */
     open fun copySpecFor(environmentType: EnvironmentType): CopySpec =
             project.copySpec { cp -> cp.from(copiedLibrariesDirectory.dir(environmentType.name.lowercase())).into("lib") }
-
-    private fun computeProjectLibraries(project: Project, dependencies: MutableMap<EnvironmentType, MutableSet<Library>>) {
-        val runtimeConfig = project.configurations.findByName(RUNTIME_CLASSPATH_CONFIGURATION_NAME)
-        val environmentType = CartridgeUtil.getCartridgeStyle(project).environmentType()
-
-        runtimeConfig?.run {
-            resolvedConfiguration.lenientConfiguration.allModuleDependencies.forEach { dependency ->
-                dependency.moduleArtifacts.forEach { artifact ->
-                    when (val identifier = artifact.id.componentIdentifier) {
-                        is ModuleComponentIdentifier ->
-                            if (!CartridgeUtil.isCartridge(project, identifier)) {
-                                dependencies.computeIfAbsent(environmentType, { mutableSetOf() }).run { add(Library(identifier, artifact.file)) }
-                            }
-                    }
-                }
-            }
-        }
-
-        project.subprojects.forEach { p ->
-            computeProjectLibraries(p, dependencies)
-        }
-
-        project.logger.info("Found {} transitive dependencies for project {}", dependencies.size, project.name)
-    }
-
-    /**
-     * Used to support incremental builds by providing the artifact ids of all (sub-)project's (recursively). Changes lead to a new task execution.
-     */
-    private fun getProjectDependencies(project: Project): Set<String> {
-        val runtimeConfig = project.configurations.findByName(RUNTIME_CLASSPATH_CONFIGURATION_NAME)
-        val dependencies = mutableSetOf<String>()
-
-        runtimeConfig?.run {
-            resolvedConfiguration.lenientConfiguration.firstLevelModuleDependencies.forEach { dependency ->
-                dependency.moduleArtifacts.forEach { artifact ->
-                    when (val identifier = artifact.id.componentIdentifier) {
-                        is ModuleComponentIdentifier ->
-                            if (!CartridgeUtil.isCartridge(project, identifier)) {
-                                dependencies.add(renderId(identifier))
-                            }
-                    }
-                }
-            }
-        }
-
-        project.subprojects.forEach { p ->
-            dependencies.addAll(getProjectDependencies(p))
-        }
-
-        project.logger.info("Found {} first level module dependencies for project {}", dependencies.size, project.name)
-        return dependencies
-    }
-
-    open class Library constructor(val id: ModuleComponentIdentifier, val file: File) {
-
-        fun getIdString(): String = renderId(id)
-
-        override fun equals(other: Any?): Boolean {
-            if (this === other) return true
-            if (javaClass != other?.javaClass) return false
-
-            other as Library
-
-            if (id != other.id) return false
-
-            return true
-        }
-
-        override fun hashCode(): Int {
-            return id.hashCode()
-        }
-
-        override fun toString(): String {
-            return "Library(id=$id, file=$file)"
-        }
-
-    }
-
 
 }
 

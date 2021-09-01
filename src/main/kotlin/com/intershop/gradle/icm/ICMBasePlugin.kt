@@ -27,6 +27,8 @@ import com.intershop.gradle.icm.tasks.CreateClusterID
 import com.intershop.gradle.icm.tasks.CreateMainPackage
 import com.intershop.gradle.icm.tasks.CreateServerInfo
 import com.intershop.gradle.icm.tasks.CreateTestPackage
+import com.intershop.gradle.icm.tasks.WriteCartridgeDescriptor
+import com.intershop.gradle.icm.utils.CartridgeUtil
 import com.intershop.gradle.icm.utils.EnvironmentType
 import com.intershop.gradle.isml.IsmlPlugin
 import org.gradle.api.Plugin
@@ -140,7 +142,18 @@ open class ICMBasePlugin: Plugin<Project> {
         tasks.register( CreateClusterID.DEFAULT_NAME, CreateClusterID::class.java )
     }
 
-    private fun Project.configureCollectLibrariesTask() : TaskProvider<CollectLibraries> = tasks.register(CollectLibraries.DEFAULT_NAME, CollectLibraries::class.java)
+    private fun Project.configureCollectLibrariesTask() : TaskProvider<CollectLibraries> {
+        val collectLibrariesTask = tasks.register(CollectLibraries.DEFAULT_NAME, CollectLibraries::class.java)
+        subprojects { sub ->
+            sub.plugins.withType(CartridgePlugin::class.java) {
+                val writeCartridgeDescriptorTask = sub.tasks.named(WriteCartridgeDescriptor.DEFAULT_NAME, WriteCartridgeDescriptor::class.java)
+                collectLibrariesTask.configure{ clt ->
+                    clt.dependsOn(writeCartridgeDescriptorTask)
+                }
+            }
+        }
+        return collectLibrariesTask
+    }
 
     private fun Project.createPackageTasks(project: Project, configureCollectLibrariesTask: TaskProvider<CollectLibraries>) {
         val createMainPackage = tasks.register(CreateMainPackage.DEFAULT_NAME, CreateMainPackage::class.java)
