@@ -54,6 +54,7 @@ jobs:
           GRADLE_OPTS: "-Dorg.gradle.daemon=true"
         run: ./gradlew test build :publishIntershopMvnPublicationToMavenRepository -s --scan
       - name: PWD
-        run: echo "pwd=$(pwd)" && ls -lisa
+        if: always()
+        run: pwd && ls -lisa && ls -lisa build/test-results
       - name: Post Build
         run: rm -f $HOME/.gradle/gradle.properties && rm -f $HOME/.docker/config.json
