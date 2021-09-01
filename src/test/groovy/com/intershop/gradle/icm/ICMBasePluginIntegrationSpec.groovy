@@ -419,6 +419,7 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         then:
         result.task(':collectLibraries').outcome == SUCCESS
 
+        new File(testProjectDir,"build/libraries/production").listFiles()?.size() == 8
         (new File(testProjectDir,"build/libraries/production/aopalliance_aopalliance_1.0.jar")).exists()
         (new File(testProjectDir,"build/libraries/production/com.google.guava_guava_16.0.1.jar")).exists()
         (new File(testProjectDir,"build/libraries/production/com.google.inject_guice_4.0.jar")).exists()
@@ -428,8 +429,10 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         (new File(testProjectDir,"build/libraries/production/javax.inject_javax.inject_1.jar")).exists()
         (new File(testProjectDir,"build/libraries/production/javax.servlet_javax.servlet-api_3.1.0.jar")).exists()
 
+        new File(testProjectDir,"build/libraries/test").listFiles()?.size() == 1
         (new File(testProjectDir,"build/libraries/test/org.codehaus.janino_janino_2.5.16.jar")).exists()
 
+        new File(testProjectDir,"build/libraries/development").listFiles()?.size() == 2
         (new File(testProjectDir,"build/libraries/development/org.hamcrest_hamcrest-core_1.3.jar")).exists()
         (new File(testProjectDir,"build/libraries/development/org.hamcrest_hamcrest-library_1.3.jar")).exists()
 
@@ -441,6 +444,50 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         then:
         result2.task(':collectLibraries').outcome == UP_TO_DATE
+
+        // redefine prj3dir using less dependencies
+        prj3dir.deleteDir()
+        def prj4dir = createSubProject('devCartridge', """
+        plugins {
+            id 'java-library'
+            id 'com.intershop.icm.cartridge.development'
+        }
+        
+        dependencies {
+            implementation project(":productCartridge")
+            implementation 'org.hamcrest:hamcrest-core:1.3'
+        } 
+        
+        repositories {
+            mavenCentral()
+        }        
+        """.stripIndent())
+        writeJavaTestClass("com.intershop.devCartridge", prj4dir)
+
+        when:
+        result = getPreparedGradleRunner()
+                .withArguments("collectLibraries", '-s')
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        result.task(':collectLibraries').outcome == SUCCESS
+
+        new File(testProjectDir,"build/libraries/production").listFiles()?.size() == 8
+        (new File(testProjectDir,"build/libraries/production/aopalliance_aopalliance_1.0.jar")).exists()
+        (new File(testProjectDir,"build/libraries/production/com.google.guava_guava_16.0.1.jar")).exists()
+        (new File(testProjectDir,"build/libraries/production/com.google.inject_guice_4.0.jar")).exists()
+        (new File(testProjectDir,"build/libraries/production/io.prometheus_simpleclient_0.6.0.jar")).exists()
+        (new File(testProjectDir,"build/libraries/production/io.prometheus_simpleclient_common_0.6.0.jar")).exists()
+        (new File(testProjectDir,"build/libraries/production/io.prometheus_simpleclient_servlet_0.6.0.jar")).exists()
+        (new File(testProjectDir,"build/libraries/production/javax.inject_javax.inject_1.jar")).exists()
+        (new File(testProjectDir,"build/libraries/production/javax.servlet_javax.servlet-api_3.1.0.jar")).exists()
+
+        new File(testProjectDir,"build/libraries/test").listFiles()?.size() == 1
+        (new File(testProjectDir,"build/libraries/test/org.codehaus.janino_janino_2.5.16.jar")).exists()
+
+        new File(testProjectDir,"build/libraries/development").listFiles()?.size() == 1
+        (new File(testProjectDir,"build/libraries/development/org.hamcrest_hamcrest-core_1.3.jar")).exists()
 
         where:
         gradleVersion << supportedGradleVersions

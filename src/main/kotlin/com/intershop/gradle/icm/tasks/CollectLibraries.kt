@@ -75,6 +75,7 @@ open class CollectLibraries : DefaultTask() {
      */
     @TaskAction
     fun collectLibraries() {
+        copiedLibrariesDirectory.asFile.deleteRecursively()
         libraryDependencyIds.map { (key, value) ->
             copySpecFor(key, value)
         }.forEach { copySpec ->
