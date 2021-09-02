@@ -820,7 +820,8 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         def configDir = new File(testProjectDir, "build/container/config_folder/system-conf" )
         def configAppsDir = new File(configDir, "apps")
         def configClusterDir = new File(configDir, "cluster")
-        def prjLibsDir = new File(testProjectDir, "build/container/prjlibs")
+        def prodLibsDir = new File(testProjectDir, "build/libraries/production")
+        def testLibsDir = new File(testProjectDir, "build/libraries/test")
 
         then:
         result.task(':prepareContainer').outcome == SUCCESS
@@ -834,14 +835,16 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         configAppsDir.listFiles().size() == 3
         configClusterDir.exists()
         configClusterDir.listFiles().size() == 3
-        prjLibsDir.exists()
-        prjLibsDir.listFiles().size() == 2
+        prodLibsDir.exists()
+        prodLibsDir.listFiles()?.size() == 13
+        testLibsDir.exists()
+        testLibsDir.listFiles()?.size() == 3
 
         where:
         gradleVersion << supportedGradleVersions
     }
 
-    def "prepare folder for developement"() {
+    def "prepare folder for development"() {
         prepareDefaultBuildConfig(testProjectDir, settingsFile, buildFile)
 
         when:
@@ -855,7 +858,8 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         def configDir = new File(testProjectDir, "build/server/config_folder/system-conf" )
         def configAppsDir = new File(configDir, "apps")
         def configClusterDir = new File(configDir, "cluster")
-        def prjLibsDir = new File(testProjectDir, "build/server/prjlibs")
+        def prodLibsDir = new File(testProjectDir, "build/libraries/production")
+        def testLibsDir = new File(testProjectDir, "build/libraries/test")
 
         then:
         result.task(':prepareServer').outcome == SUCCESS
@@ -869,8 +873,10 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         configAppsDir.listFiles().size() == 3
         configClusterDir.exists()
         configClusterDir.listFiles().size() == 3
-        prjLibsDir.exists()
-        prjLibsDir.listFiles().size() == 3
+        prodLibsDir.exists()
+        prodLibsDir.listFiles()?.size() == 13
+        testLibsDir.exists()
+        testLibsDir.listFiles()?.size() == 3
 
         where:
         gradleVersion << supportedGradleVersions
@@ -1383,7 +1389,8 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         def configDir = new File(testProjectDir, "build/container/config_folder/system-conf" )
         def configAppsDir = new File(configDir, "apps")
         def configClusterDir = new File(configDir, "cluster")
-        def prjLibsDir = new File(testProjectDir, "build/container/prjlibs")
+        def prodLibsDir = new File(testProjectDir, "build/libraries/production")
+        def testLibsDir = new File(testProjectDir, "build/libraries/test")
 
         then:
         result.task(':prepareContainer').outcome == SUCCESS
@@ -1398,8 +1405,10 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         configAppsDir.listFiles().size() == 3
         configClusterDir.exists()
         configClusterDir.listFiles().size() == 3
-        prjLibsDir.exists()
-        prjLibsDir.listFiles().size() == 13
+        prodLibsDir.exists()
+        prodLibsDir.listFiles()?.size() == 13
+        testLibsDir.exists()
+        testLibsDir.listFiles()?.size() == 3
 
         where:
         gradleVersion << supportedGradleVersions
