@@ -804,7 +804,7 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
         productionLibsDir.exists()
         productionLibsDir.listFiles().size() == 13
         testLibsDir.exists()
-        testLibsDir.listFiles().size() == 6
+        testLibsDir.listFiles().size() == 3
 
         where:
         gradleVersion << supportedGradleVersions
@@ -842,7 +842,7 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
         productionLibsDir.exists()
         productionLibsDir.listFiles().size() == 13
         testLibsDir.exists()
-        testLibsDir.listFiles().size() == 6
+        testLibsDir.listFiles().size() == 3
 
         where:
         gradleVersion << supportedGradleVersions
@@ -1258,7 +1258,7 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
         productionLibsDir.exists()
         productionLibsDir.listFiles().size() == 13
         testLibsDir.exists()
-        testLibsDir.listFiles().size() == 6
+        testLibsDir.listFiles().size() == 3
 
         where:
         gradleVersion << supportedGradleVersions
