@@ -203,9 +203,7 @@ to the project.
 to the project.
 * The following tasks are added by the plugin:
 ** `writeCartridgeDescriptor`
-** `writeCartridgeClasspath` - depends on the Gradle property `classpath.file.enabled`
 
-The tasks "writeCartridgeDescriptor" and "writeCartridgeClasspath" are grouped by the task "writeCartridgeFiles". i
 It is not necessary to apply this plugin to a project separately, because it was applied by some of the plugins above.
 
 ==== Configurations
@@ -224,9 +222,6 @@ It is not necessary to apply this plugin to a project separately, because it was
 
 | *writeCartridgeDescriptor* | `com.intershop.gradle.icm.tasks +
 WriteCartridgeDescriptor` | Creates a the Cartridge descriptor file `cartridge.descriptor`.
-| *writeCartridgeClasspath*  | `com.intershop.gradle.icm.tasks +
-WriteCartridgeClasspath` | Creates a the Cartridge classpath file `cartridge.classpath` for ICM server projects.
-This task is only configured if the Gradle property `classpath.file.enabled` is true. <<anchor-1,[1]>>
 |===
 
 [[anchor-1]][1] The default value of "classpath.file.enabled" is false.
@@ -461,8 +456,6 @@ CreateServerInfo`  | Creates a properties file with all project information.
 This property is used by the server.
 | *createClusterID*     | `com.intershop.gradle.icm.tasks +
 CreateClusterID` |  This taks creates an UID with Java functionality in the required format for the server.
-| *writeCartridgeFiles* | `org.gradle.api +
-Task`  | This task groups two tasks of a cartridge (`writeCartridgeDescriptor`, `writeCartridgeClasspath`)
 | *createMainPkg* | `com.intershop.gradle.icm.tasks +
 CreateMainPackage`  | This is preconfigured Tar task. It creates `<build dir>/packages/mainpkg.tgz` as base for container creation. It contains all components of the main appserver container. Cartridges will be added per default.
 | *createTestPkg* | `com.intershop.gradle.icm.tasks +
@@ -880,7 +873,7 @@ PreparePublishDir` | Prepares the directory for publishing of a configuration pa
 
 == License
 
-Copyright 2014-2020 Intershop Communications.
+Copyright 2014-2021 Intershop Communications.
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
 
