@@ -210,7 +210,6 @@ open class ICMBasePlugin: Plugin<Project> {
         }
         createTestPackage.configure {
             it.dependsOn(configureCollectLibrariesTask)
-            it.with(configureCollectLibrariesTask.get().copySpecFor(EnvironmentType.PRODUCTION))
             it.with(configureCollectLibrariesTask.get().copySpecFor(EnvironmentType.TEST))
         }
     }
