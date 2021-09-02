@@ -37,6 +37,7 @@ import org.gradle.internal.util.PropertiesUtils
 import java.io.File
 import java.io.FileInputStream
 import java.nio.charset.Charset
+import java.nio.charset.StandardCharsets
 import java.util.Properties
 
 import javax.inject.Inject
@@ -49,8 +50,8 @@ import kotlin.collections.HashSet
  * is used by the server startup and special tests.
  */
 open class WriteCartridgeDescriptor
-@Inject constructor(projectLayout: ProjectLayout,
-                    objectFactory: ObjectFactory) : DefaultTask() {
+        @Inject constructor( projectLayout: ProjectLayout,
+                             objectFactory: ObjectFactory ) : DefaultTask() {
 
     private val outputFileProperty: RegularFileProperty = objectFactory.fileProperty()
     private val nameProperty: Property<String> = objectFactory.property(String::class.java)
@@ -169,11 +170,11 @@ open class WriteCartridgeDescriptor
         propsObject.putAll(props)
         try {
             PropertiesUtils.store(
-                    propsObject,
-                    outputFile,
-                    comment,
-                    Charset.forName("ISO_8859_1"),
-                    "\n"
+                propsObject,
+                outputFile,
+                comment,
+                StandardCharsets.ISO_8859_1,
+                "\n"
             )
         } finally {
             project.logger.debug("Wrote cartridge descriptor.")
@@ -201,17 +202,17 @@ open class WriteCartridgeDescriptor
     private fun getDependencies(configName : String) : Set<String> {
         val dependencies = HashSet<String>()
         project.configurations.getByName(configName)
-                .resolvedConfiguration.lenientConfiguration.allModuleDependencies.forEach { dependency ->
-                    dependency.moduleArtifacts.forEach { artifact ->
-                        when (val identifier = artifact.id.componentIdentifier) {
-                            is ModuleComponentIdentifier -> {
-                                if (!CartridgeUtil.isCartridge(project, identifier)) {
+            .resolvedConfiguration.lenientConfiguration.allModuleDependencies.forEach { dependency ->
+            dependency.moduleArtifacts.forEach { artifact ->
+                when (val identifier = artifact.id.componentIdentifier) {
+                    is ModuleComponentIdentifier -> {
+                        if (!CartridgeUtil.isCartridge(project, identifier)) {
                                     dependencies.add("${identifier.group}:${identifier.module}:${identifier.version}")
-                                }
-                            }
                         }
                     }
                 }
+            }
+        }
         return dependencies
     }
 
