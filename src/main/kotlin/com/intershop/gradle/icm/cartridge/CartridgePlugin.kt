@@ -18,15 +18,12 @@ package com.intershop.gradle.icm.cartridge
 
 import com.intershop.gradle.icm.ICMBasePlugin
 import com.intershop.gradle.icm.extension.IntershopExtension
-import com.intershop.gradle.icm.tasks.CopyThirdpartyLibs
-import com.intershop.gradle.icm.tasks.WriteCartridgeClasspath
 import com.intershop.gradle.icm.tasks.WriteCartridgeDescriptor
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.UnknownTaskException
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.JavaPlugin.PROCESS_RESOURCES_TASK_NAME
-import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.language.jvm.tasks.ProcessResources
 
@@ -65,8 +62,6 @@ open class CartridgePlugin : Plugin<Project> {
             plugins.apply(JavaPlugin::class.java)
 
             configureAddFileCreation( this)
-
-            tasks.register( CopyThirdpartyLibs.DEFAULT_NAME, CopyThirdpartyLibs::class.java)
         }
     }
 
@@ -99,28 +94,6 @@ open class CartridgePlugin : Plugin<Project> {
                 }
             }
 
-            try {
-                project.rootProject.tasks.named(ICMBasePlugin.TASK_WRITECARTRIDGEFILES).configure { task ->
-                    task.dependsOn(taskWriteCartridgeDescriptor)
-                }
-            } catch(ex: UnknownTaskException) {
-                project.logger.info("Task {} is not available.", ICMBasePlugin.TASK_WRITECARTRIDGEFILES)
-            }
-
-            if (!checkForTask(project.tasks, WriteCartridgeClasspath.DEFAULT_NAME)) {
-                val writeCartridgeClasspath = project.tasks.register(
-                    WriteCartridgeClasspath.DEFAULT_NAME, WriteCartridgeClasspath::class.java) {
-                    it.dependsOn(cartridgeRuntime, runtime, project.tasks.named("jar", Jar::class.java))
-                }
-
-                try {
-                    project.rootProject.tasks.named(WriteCartridgeClasspath.DEFAULT_NAME).configure { task ->
-                        task.dependsOn(writeCartridgeClasspath)
-                    }
-                } catch(ex: UnknownTaskException) {
-                    project.logger.info("Task {} is not available.", ICMBasePlugin.TASK_WRITECARTRIDGEFILES)
-                }
-            }
         }
     }
 }

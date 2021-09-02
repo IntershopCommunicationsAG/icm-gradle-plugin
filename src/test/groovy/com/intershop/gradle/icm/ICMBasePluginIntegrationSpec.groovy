@@ -17,14 +17,13 @@
 package com.intershop.gradle.icm
 
 import com.intershop.gradle.icm.tasks.CreateMainPackage
-import com.intershop.gradle.icm.tasks.CreateTestPackage
 import com.intershop.gradle.icm.tasks.CreateServerInfo
-
+import com.intershop.gradle.icm.tasks.CreateTestPackage
 import com.intershop.gradle.test.AbstractIntegrationGroovySpec
-import org.gradle.testkit.runner.TaskOutcome
 import spock.lang.Ignore
 
-import static org.gradle.testkit.runner.TaskOutcome.*
+import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
+import static org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
 
 class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
@@ -332,7 +331,7 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         gradleVersion << supportedGradleVersions
     }
 
-    def 'CopyThirdpartyLibs of subprojects to empty folder'() {
+    def 'libs of cartridges are collected by CollectLibraries'() {
         given:
         settingsFile << """
         rootProject.name='rootproject'
@@ -349,28 +348,21 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
             }
             """.stripIndent()
 
-        def prj1dir = createSubProject('testCartridge1', """
+        def prj1dir = createSubProject('productCartridge', """
         plugins {
             id 'java-library'
-            id 'com.intershop.icm.cartridge'
+            id 'com.intershop.icm.cartridge.product'
         }
         
         dependencies {
             implementation 'com.google.inject:guice:4.0'
-            implementation 'com.google.inject.extensions:guice-servlet:3.0'
             implementation 'javax.servlet:javax.servlet-api:3.1.0'
         
-            implementation 'io.prometheus:simpleclient:0.6.0'
-            implementation 'io.prometheus:simpleclient_hotspot:0.6.0'
-            implementation 'io.prometheus:simpleclient_servlet:0.6.0'
+            runtimeOnly 'io.prometheus:simpleclient:0.6.0'
+            runtimeOnly 'io.prometheus:simpleclient_servlet:0.6.0'
             
-            implementation "junit:junit:4.13.1"
-            implementation "org.junit.jupiter:junit-jupiter:5.7.0"
-            implementation "org.junit.jupiter:junit-jupiter-api:5.7.0"
-            implementation "org.junit.jupiter:junit-jupiter-params:5.7.0"
-            implementation "org.junit.platform:junit-platform-commons:1.7.0"
-            implementation "org.junit.platform:junit-platform-runner:1.7.0"
-            implementation "org.junit.vintage:junit-vintage-engine:5.7.0"
+            testImplementation "junit:junit:4.13.1"
+            testImplementation "org.junit.jupiter:junit-jupiter:5.7.0"
         } 
         
         repositories {
@@ -378,19 +370,16 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         }
         """.stripIndent())
 
-        def prj2dir = createSubProject('testCartridge2', """
+        def prj2dir = createSubProject('testCartridge', """
         plugins {
             id 'java-library'
-            id 'com.intershop.icm.cartridge'
+            id 'com.intershop.icm.cartridge.test'
         }
         
         dependencies {
-            implementation project(":testCartridge1")
-            implementation 'org.codehaus.janino:janino:2.5.16'
-            implementation 'org.codehaus.janino:commons-compiler:3.0.6'
-            implementation 'ch.qos.logback:logback-core:1.2.3'
-            implementation 'ch.qos.logback:logback-classic:1.2.3'
-            implementation 'commons-collections:commons-collections:3.2.2'
+            implementation project(":productCartridge")
+            runtimeOnly 'org.codehaus.janino:janino:2.5.16'
+            testImplementation "org.junit.jupiter:junit-jupiter-params:5.7.0"
         } 
         
         repositories {
@@ -398,93 +387,17 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         }        
         """.stripIndent())
 
-        writeJavaTestClass("com.intershop.testCartridge1", prj1dir)
-        writeJavaTestClass("com.intershop.testCartridge2", prj2dir)
 
-        when:
-        def result = getPreparedGradleRunner()
-                .withArguments("copyThirdpartyLibs", '-s')
-                .withGradleVersion(gradleVersion)
-                .build()
-
-        then:
-        result.task(':testCartridge1:copyThirdpartyLibs').outcome == SUCCESS
-        result.task(':testCartridge2:copyThirdpartyLibs').outcome == SUCCESS
-
-        (new File(testProjectDir,"testCartridge2/build/lib/ch.qos.logback-logback-classic-1.2.3.jar")).exists()
-        (new File(testProjectDir,"testCartridge1/build/lib/com.google.inject-guice-4.0.jar")).exists()
-
-        (new File(testProjectDir,"testCartridge1/build/lib/junit-junit-4.13.1.jar")).exists()
-        (new File(testProjectDir,"testCartridge1/build/lib/org.junit.jupiter-junit-jupiter-5.7.0.jar")).exists()
-        (new File(testProjectDir,"testCartridge1/build/lib/org.junit.jupiter-junit-jupiter-api-5.7.0.jar")).exists()
-        (new File(testProjectDir,"testCartridge1/build/lib/org.junit.jupiter-junit-jupiter-params-5.7.0.jar")).exists()
-        (new File(testProjectDir,"testCartridge1/build/lib/org.junit.platform-junit-platform-commons-1.7.0.jar")).exists()
-        (new File(testProjectDir,"testCartridge1/build/lib/org.junit.platform-junit-platform-runner-1.7.0.jar")).exists()
-        (new File(testProjectDir,"testCartridge1/build/lib/org.junit.vintage-junit-vintage-engine-5.7.0.jar")).exists()
-
-        when:
-        def result2 = getPreparedGradleRunner()
-                .withArguments("copyThirdpartyLibs", "-s")
-                .withGradleVersion(gradleVersion)
-                .build()
-
-        then:
-        result2.task(':testCartridge1:copyThirdpartyLibs').outcome == TaskOutcome.UP_TO_DATE
-        result2.task(':testCartridge2:copyThirdpartyLibs').outcome == TaskOutcome.UP_TO_DATE
-
-        where:
-        gradleVersion << supportedGradleVersions
-    }
-
-    def 'CopyThirdpartyLibs of subprojects with changed dependencies'() {
-        given:
-        settingsFile << """
-        rootProject.name='rootproject'
-        """.stripIndent()
-
-        buildFile << """
-            plugins {
-                id 'java'
-                id 'com.intershop.gradle.icm.base'
-            }
-            
-            version = "1.0.0"
-            
-            repositories {
-                mavenCentral()
-            }
-            """.stripIndent()
-
-        def prj1dir = createSubProject('testCartridge1', """
+        def prj3dir = createSubProject('devCartridge', """
         plugins {
             id 'java-library'
-            id 'com.intershop.icm.cartridge'
+            id 'com.intershop.icm.cartridge.development'
         }
         
         dependencies {
-            implementation "com.google.inject:guice:\${project.ext.inject_guice_version}"
-            implementation 'com.google.inject.extensions:guice-servlet:3.0'
-            implementation 'javax.servlet:javax.servlet-api:3.1.0'
-        
-            implementation 'io.prometheus:simpleclient:0.6.0'
-            implementation 'io.prometheus:simpleclient_hotspot:0.6.0'
-            implementation 'io.prometheus:simpleclient_servlet:0.6.0'
-        } 
-        
-        repositories {
-            mavenCentral()
-        }
-        """.stripIndent())
-
-        def prj2dir = createSubProject('testCartridge2', """
-        plugins {
-            id 'java-library'
-            id 'com.intershop.icm.cartridge'
-        }
-        
-        dependencies {
-            implementation "ch.qos.logback:logback-core:\${project.ext.logback_logback_classic_version}"
-            implementation "ch.qos.logback:logback-classic:\${project.ext.logback_logback_classic_version}"
+            implementation project(":productCartridge")
+            implementation 'org.hamcrest:hamcrest-core:1.3'
+            implementation 'org.hamcrest:hamcrest-library:1.3'
         } 
         
         repositories {
@@ -492,150 +405,88 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         }        
         """.stripIndent())
 
-        writeJavaTestClass("com.intershop.testCartridge1", prj1dir)
-        writeJavaTestClass("com.intershop.testCartridge2", prj2dir)
+        writeJavaTestClass("com.intershop.productCartridge", prj1dir)
+        writeJavaTestClass("com.intershop.testCartridge", prj2dir)
+        writeJavaTestClass("com.intershop.devCartridge", prj3dir)
 
         when:
-        File gradleProps = file("gradle.properties")
-        gradleProps.createNewFile()
-        gradleProps << """
-        inject_guice_version = 4.0
-        logback_logback_classic_version = 1.2.3
-        """.stripIndent()
-
         def result = getPreparedGradleRunner()
-                .withArguments("copyThirdpartyLibs")
+                .withArguments("collectLibraries", '-s')
                 .withGradleVersion(gradleVersion)
                 .build()
 
         then:
-        result.task(':testCartridge1:copyThirdpartyLibs').outcome == SUCCESS
-        result.task(':testCartridge2:copyThirdpartyLibs').outcome == SUCCESS
+        result.task(':collectLibraries').outcome == SUCCESS
 
-        new File(testProjectDir,"testCartridge2/build/lib/ch.qos.logback-logback-classic-1.2.3.jar").exists()
-        new File(testProjectDir,"testCartridge1/build/lib/com.google.inject-guice-4.0.jar").exists()
+        new File(testProjectDir,"build/libraries/production").listFiles()?.size() == 8
+        (new File(testProjectDir,"build/libraries/production/aopalliance_aopalliance_1.0.jar")).exists()
+        (new File(testProjectDir,"build/libraries/production/com.google.guava_guava_16.0.1.jar")).exists()
+        (new File(testProjectDir,"build/libraries/production/com.google.inject_guice_4.0.jar")).exists()
+        (new File(testProjectDir,"build/libraries/production/io.prometheus_simpleclient_0.6.0.jar")).exists()
+        (new File(testProjectDir,"build/libraries/production/io.prometheus_simpleclient_common_0.6.0.jar")).exists()
+        (new File(testProjectDir,"build/libraries/production/io.prometheus_simpleclient_servlet_0.6.0.jar")).exists()
+        (new File(testProjectDir,"build/libraries/production/javax.inject_javax.inject_1.jar")).exists()
+        (new File(testProjectDir,"build/libraries/production/javax.servlet_javax.servlet-api_3.1.0.jar")).exists()
+
+        new File(testProjectDir,"build/libraries/test").listFiles()?.size() == 1
+        (new File(testProjectDir,"build/libraries/test/org.codehaus.janino_janino_2.5.16.jar")).exists()
+
+        new File(testProjectDir,"build/libraries/development").listFiles()?.size() == 2
+        (new File(testProjectDir,"build/libraries/development/org.hamcrest_hamcrest-core_1.3.jar")).exists()
+        (new File(testProjectDir,"build/libraries/development/org.hamcrest_hamcrest-library_1.3.jar")).exists()
 
         when:
-        gradleProps.delete()
-        gradleProps.createNewFile()
-        gradleProps << """
-        inject_guice_version = 4.2.2
-        logback_logback_classic_version = 1.2.0
-        """.stripIndent()
-
         def result2 = getPreparedGradleRunner()
-                .withArguments("copyThirdpartyLibs")
+                .withArguments("collectLibraries", "-s")
                 .withGradleVersion(gradleVersion)
                 .build()
 
         then:
-        result2.task(':testCartridge1:copyThirdpartyLibs').outcome == SUCCESS
-        result2.task(':testCartridge2:copyThirdpartyLibs').outcome == SUCCESS
+        result2.task(':collectLibraries').outcome == UP_TO_DATE
 
-        new File(testProjectDir,"testCartridge2/build/lib/ch.qos.logback-logback-classic-1.2.0.jar").exists()
-        new File(testProjectDir,"testCartridge1/build/lib/com.google.inject-guice-4.2.2.jar").exists()
-        ! new File(testProjectDir,"testCartridge2/build/lib/ch.qos.logback-logback-classic-1.2.3.jar").exists()
-        ! new File(testProjectDir,"testCartridge1/build/lib/com.google.inject-guice-4.0.jar").exists()
-
-        where:
-        gradleVersion << supportedGradleVersions
-    }
-
-    def 'Simple test of WriteCartridgeClasspath'(){
-        given:
-        File gradleProperties = new File(testProjectDir, "gradle.properties")
-        gradleProperties << """
-            classpath.file.enabled = true
-        """
-
-        settingsFile << """
-        rootProject.name='rootproject'
-        """.stripIndent()
-
-        buildFile << """
-            plugins {
-                id 'java'
-                id 'com.intershop.gradle.icm.base'
-            }
-            
-            buildDir = new File(projectDir, 'target')
-            
-            version = "1.0.0"
-            
-            repositories {
-                mavenCentral()
-            }
-            """.stripIndent()
-
-            def prj1dir = createSubProject('testCartridge1', """
-            plugins {
-                id 'java-library'
-                id 'com.intershop.icm.cartridge'
-            }
-            
-            buildDir = new File(projectDir, 'target')
-            
-            dependencies {
-                implementation "com.google.inject:guice:4.0"
-                implementation 'com.google.inject.extensions:guice-servlet:3.0'
-                implementation 'javax.servlet:javax.servlet-api:3.1.0'
-            } 
-            
-            repositories {
-                mavenCentral()
-            }
-            """.stripIndent())
-
-            def prj2dir = createSubProject('testCartridge2', """
-            plugins {
-                id 'java-library'
-                id 'com.intershop.icm.cartridge'
-            }
-                
-            buildDir = new File(projectDir, 'target')
-            
-            dependencies {
-                cartridge project(':testCartridge1')
-                implementation "com.google.inject:guice:4.0"
-                implementation 'com.google.inject.extensions:guice-servlet:3.0'
-                implementation 'javax.servlet:javax.servlet-api:3.1.0'
-            } 
-                
-            repositories {
-                mavenCentral()
-            }
-            """.stripIndent())
-
-            def prj3dir = createSubProject('testCartridge3', """
-            plugins {
-                id 'java-library'
-                id 'com.intershop.icm.cartridge'
-            }
-
-            buildDir = new File(projectDir, 'target')
-
-            dependencies {
-                cartridge project(':testCartridge2')
-                implementation "com.google.inject:guice:4.0"
-                implementation 'com.google.inject.extensions:guice-servlet:3.0'
-                implementation 'javax.servlet:javax.servlet-api:3.1.0'
-            } 
-                
-            repositories {
-                mavenCentral()
-            }
-            """.stripIndent())
+        // redefine prj3dir using less dependencies
+        prj3dir.deleteDir()
+        def prj4dir = createSubProject('devCartridge', """
+        plugins {
+            id 'java-library'
+            id 'com.intershop.icm.cartridge.development'
+        }
+        
+        dependencies {
+            implementation project(":productCartridge")
+            implementation 'org.hamcrest:hamcrest-core:1.3'
+        } 
+        
+        repositories {
+            mavenCentral()
+        }        
+        """.stripIndent())
+        writeJavaTestClass("com.intershop.devCartridge", prj4dir)
 
         when:
-        def result = getPreparedGradleRunner()
-                .withArguments("writeCartridgeClasspath", "-s")
+        result = getPreparedGradleRunner()
+                .withArguments("collectLibraries", '-s')
                 .withGradleVersion(gradleVersion)
                 .build()
 
         then:
-        result.task(':testCartridge1:writeCartridgeClasspath').outcome == SUCCESS
-        result.task(':testCartridge2:writeCartridgeClasspath').outcome == SUCCESS
-        result.task(':testCartridge3:writeCartridgeClasspath').outcome == SUCCESS
+        result.task(':collectLibraries').outcome == SUCCESS
+
+        new File(testProjectDir,"build/libraries/production").listFiles()?.size() == 8
+        (new File(testProjectDir,"build/libraries/production/aopalliance_aopalliance_1.0.jar")).exists()
+        (new File(testProjectDir,"build/libraries/production/com.google.guava_guava_16.0.1.jar")).exists()
+        (new File(testProjectDir,"build/libraries/production/com.google.inject_guice_4.0.jar")).exists()
+        (new File(testProjectDir,"build/libraries/production/io.prometheus_simpleclient_0.6.0.jar")).exists()
+        (new File(testProjectDir,"build/libraries/production/io.prometheus_simpleclient_common_0.6.0.jar")).exists()
+        (new File(testProjectDir,"build/libraries/production/io.prometheus_simpleclient_servlet_0.6.0.jar")).exists()
+        (new File(testProjectDir,"build/libraries/production/javax.inject_javax.inject_1.jar")).exists()
+        (new File(testProjectDir,"build/libraries/production/javax.servlet_javax.servlet-api_3.1.0.jar")).exists()
+
+        new File(testProjectDir,"build/libraries/test").listFiles()?.size() == 1
+        (new File(testProjectDir,"build/libraries/test/org.codehaus.janino_janino_2.5.16.jar")).exists()
+
+        new File(testProjectDir,"build/libraries/development").listFiles()?.size() == 1
+        (new File(testProjectDir,"build/libraries/development/org.hamcrest_hamcrest-core_1.3.jar")).exists()
 
         where:
         gradleVersion << supportedGradleVersions
@@ -856,8 +707,6 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
             }
              
             group = 'com.intershop'
-            
-            writeCartridgeClasspath.useClassesFolder = true
              
             dependencies {
                 cartridge project(':testCartridge3')
@@ -897,7 +746,7 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         when:
         def result = getPreparedGradleRunner()
-                .withArguments("writeCartridgeDescriptor", "writeCartridgeClasspath", "-s")
+                .withArguments("writeCartridgeDescriptor", "-s")
                 .withGradleVersion(gradleVersion)
                 .build()
 
@@ -966,17 +815,8 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         """.stripIndent()
 
         when:
-        def result1 = getPreparedGradleRunner()
-                .withArguments("writeCartridgeClasspath", "-s")
-                .withGradleVersion(gradleVersion)
-                .build()
-
-        then:
-        result1.task(':writeCartridgeClasspath').outcome == SUCCESS
-
-        when:
         def result2 = getPreparedGradleRunner()
-                .withArguments("writeCartridgeDescriptor", "writeCartridgeClasspath", "-s")
+                .withArguments("writeCartridgeDescriptor", "-s")
                 .withGradleVersion(gradleVersion)
                 .build()
 

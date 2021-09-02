@@ -30,9 +30,7 @@ import com.intershop.gradle.icm.utils.EnvironmentType
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.file.CopySpec
-import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.file.ProjectLayout
-import org.gradle.api.tasks.Sync
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.bundling.Tar
 
@@ -49,21 +47,6 @@ class PluginConfig(val project: Project,
     private val projectConfig : ProjectConfiguration by lazy {
         project.extensions.getByType(IntershopExtension::class.java).projectConfig
     }
-
-    /**
-     * Configures the 3rd party copy task from an enumeration.
-     *
-     * @param taskconf enumeration with all necessary parameters
-     * @return Sync task
-     */
-    fun get3rdPartyCopyTask(taskconf: TaskConfCopyLib): TaskProvider<Sync> =
-        project.tasks.register( taskconf.taskname(), Sync::class.java ) { sync ->
-            sync.group = IntershopExtension.INTERSHOP_GROUP_NAME
-            sync.description = taskconf.description()
-
-            sync.into(taskconf.targetpath(projectLayout))
-            sync.duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-        }
 
     /**
      * Configures the task for the setup of external cartridges.
@@ -147,16 +130,14 @@ class PluginConfig(val project: Project,
      *
      * @param configTask creates the configuration folder>yxc
      * @param cartridgesTask creates the folder with external cartridges
-     * @param copyLibs copy 3rd party libs
      * @param taskname specify the task name of the package folder
      */
     fun configurePackageTask(configTask: TaskProvider<CreateConfigFolder>,
                              cartridgesTask: TaskProvider<SetupCartridges>,
-                             copyLibs: TaskProvider<Sync>,
                              taskname: String): TaskProvider<Tar> =
         project.tasks.named(taskname, Tar::class.java) { pkg ->
-            pkg.with( getCopySpecFor(configTask, cartridgesTask, copyLibs) )
-            pkg.dependsOn(cartridgesTask, configTask, copyLibs)
+            pkg.with( getCopySpecFor(configTask, cartridgesTask) )
+            pkg.dependsOn(cartridgesTask, configTask)
         }
 
     /**
@@ -171,8 +152,7 @@ class PluginConfig(val project: Project,
         }
 
     private fun getCopySpecFor(configTask: TaskProvider<CreateConfigFolder>,
-                               cartridgesTask: TaskProvider<SetupCartridges>,
-                               copyLibs: TaskProvider<Sync>): CopySpec =
+                               cartridgesTask: TaskProvider<SetupCartridges>): CopySpec =
         project.copySpec { cp ->
             cp.from( project.provider { cartridgesTask.get().outputs } ) { cps ->
                 cps.into("cartridges")
@@ -190,9 +170,6 @@ class PluginConfig(val project: Project,
                 }
             }
             cp.from(configTask.get().outputs)
-            cp.from( project.provider { copyLibs.get().outputs } ) { cps ->
-                cps.into("lib")
-            }
         }
 
     /**

@@ -330,61 +330,6 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
         gradleVersion << supportedGradleVersions
     }
 
-    def 'copy 3rd party libs'() {
-        prepareDefaultBuildConfig(testProjectDir, settingsFile, buildFile)
-
-        when:
-        def result3RDPL = getPreparedGradleRunner()
-                .withArguments("copyLibsProd", "-s", "--warning-mode", "all")
-                .withGradleVersion(gradleVersion)
-                .build()
-
-        def prodDir = new File(testProjectDir, "build/container/prjlibs")
-
-        then:
-        result3RDPL.task(":copyLibsProd").outcome == SUCCESS
-        prodDir.exists()
-        new File(prodDir, "com.google.guava-guava-16.0.1.jar").exists()
-        ! new File(prodDir, "org.codehaus.janino-janino-2.5.16.jar").exists()
-        new File(prodDir, "org.slf4j-slf4j-api-1.7.25.jar").exists()
-        new File(testProjectDir, "build/libfilter/libfilter.txt").exists()
-
-        when:
-        def result3RDPLTest = getPreparedGradleRunner()
-                .withArguments("copyLibsTest", "-s", "--warning-mode", "all")
-                .withGradleVersion(gradleVersion)
-                .build()
-
-        def testDir = new File(testProjectDir, "build/testcontainer/prjlibs")
-
-        then:
-        result3RDPLTest.task(":copyLibsTest").outcome == SUCCESS
-        testDir.exists()
-        ! new File(testDir, "com.google.guava-guava-16.0.1.jar").exists()
-        new File(testDir, "org.codehaus.janino-janino-2.5.16.jar").exists()
-        new File(testDir, "org.slf4j-slf4j-api-1.7.25.jar").exists()
-        new File(testProjectDir, "build/libfilter/libfilter.txt").exists()
-
-        when:
-        def result3RDPLDev = getPreparedGradleRunner()
-                .withArguments("copyLibs", "-s", "--warning-mode", "all")
-                .withGradleVersion(gradleVersion)
-                .build()
-
-        def devDir = new File(testProjectDir, "build/server/prjlibs")
-
-        then:
-        result3RDPLDev.task(":copyLibs").outcome == SUCCESS
-        devDir.exists()
-        new File(devDir, "com.google.guava-guava-16.0.1.jar").exists()
-        new File(devDir, "org.codehaus.janino-janino-2.5.16.jar").exists()
-        new File(devDir, "org.slf4j-slf4j-api-1.7.25.jar").exists()
-        new File(testProjectDir, "build/libfilter/libfilter.txt").exists()
-
-        where:
-        gradleVersion << supportedGradleVersions
-    }
-
     private def createLocalFile(String path, String content) {
         def testFile = new File(testProjectDir, path)
         testFile.parentFile.mkdirs()
@@ -839,7 +784,8 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
         def configDir = new File(testProjectDir, "build/container/config_folder/system-conf" )
         def configAppsDir = new File(configDir, "apps")
         def configClusterDir = new File(configDir, "cluster")
-        def prjLibsDir = new File(testProjectDir, "build/container/prjlibs")
+        def productionLibsDir = new File(testProjectDir, "build/libraries/production")
+        def testLibsDir = new File(testProjectDir, "build/libraries/test")
 
         then:
         result.task(':prepareContainer').outcome == SUCCESS
@@ -855,8 +801,10 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
         configAppsDir.listFiles().size() == 3
         configClusterDir.exists()
         configClusterDir.listFiles().size() == 3
-        prjLibsDir.exists()
-        prjLibsDir.listFiles().size() == 2
+        productionLibsDir.exists()
+        productionLibsDir.listFiles().size() == 13
+        testLibsDir.exists()
+        testLibsDir.listFiles().size() == 3
 
         where:
         gradleVersion << supportedGradleVersions
@@ -876,7 +824,8 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
         def configDir = new File(testProjectDir, "build/server/config_folder/system-conf" )
         def configAppsDir = new File(configDir, "apps")
         def configClusterDir = new File(configDir, "cluster")
-        def prjLibsDir = new File(testProjectDir, "build/server/prjlibs")
+        def productionLibsDir = new File(testProjectDir, "build/libraries/production")
+        def testLibsDir = new File(testProjectDir, "build/libraries/test")
 
         then:
         result.task(':prepareServer').outcome == SUCCESS
@@ -890,8 +839,10 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
         configAppsDir.listFiles().size() == 3
         configClusterDir.exists()
         configClusterDir.listFiles().size() == 3
-        prjLibsDir.exists()
-        prjLibsDir.listFiles().size() == 3
+        productionLibsDir.exists()
+        productionLibsDir.listFiles().size() == 13
+        testLibsDir.exists()
+        testLibsDir.listFiles().size() == 3
 
         where:
         gradleVersion << supportedGradleVersions
@@ -1288,7 +1239,8 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
         def configDir = new File(testProjectDir, "build/container/config_folder/system-conf" )
         def configAppsDir = new File(configDir, "apps")
         def configClusterDir = new File(configDir, "cluster")
-        def prjLibsDir = new File(testProjectDir, "build/container/prjlibs")
+        def productionLibsDir = new File(testProjectDir, "build/libraries/production")
+        def testLibsDir = new File(testProjectDir, "build/libraries/test")
 
         then:
         result.task(':prepareContainer').outcome == SUCCESS
@@ -1303,8 +1255,10 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
         configAppsDir.listFiles().size() == 3
         configClusterDir.exists()
         configClusterDir.listFiles().size() == 3
-        prjLibsDir.exists()
-        prjLibsDir.listFiles().size() == 13
+        productionLibsDir.exists()
+        productionLibsDir.listFiles().size() == 13
+        testLibsDir.exists()
+        testLibsDir.listFiles().size() == 3
 
         where:
         gradleVersion << supportedGradleVersions

@@ -165,6 +165,14 @@ object CartridgeUtil {
         return returnSet
     }
 
+    fun getCartridgeStyle(project: Project): CartridgeStyle {
+        return if (project.hasProperty("cartridge.style")) {
+            CartridgeStyle.valueOf(project.property("cartridge.style").toString().uppercase())
+        } else {
+            CartridgeStyle.CARTRIDGE
+        }
+    }
+
     private fun getModuleFrom(node: Node): String {
         if(node.nodeName == "dependency") {
             val moduleNodes = node.childNodes as Element

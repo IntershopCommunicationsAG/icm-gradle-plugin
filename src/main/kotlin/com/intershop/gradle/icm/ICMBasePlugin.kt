@@ -22,11 +22,13 @@ import com.intershop.gradle.icm.cartridge.ContainerPlugin
 import com.intershop.gradle.icm.cartridge.ProductPlugin
 import com.intershop.gradle.icm.cartridge.TestPlugin
 import com.intershop.gradle.icm.extension.IntershopExtension
+import com.intershop.gradle.icm.tasks.CollectLibraries
 import com.intershop.gradle.icm.tasks.CreateClusterID
 import com.intershop.gradle.icm.tasks.CreateMainPackage
 import com.intershop.gradle.icm.tasks.CreateServerInfo
 import com.intershop.gradle.icm.tasks.CreateTestPackage
-import com.intershop.gradle.icm.tasks.WriteCartridgeClasspath
+import com.intershop.gradle.icm.tasks.WriteCartridgeDescriptor
+import com.intershop.gradle.icm.utils.EnvironmentType
 import com.intershop.gradle.isml.IsmlPlugin
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -34,6 +36,7 @@ import org.gradle.api.file.CopySpec
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
 import org.gradle.api.tasks.TaskContainer
+import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.bundling.Tar
 import org.gradle.api.tasks.diagnostics.DependencyReportTask
 
@@ -44,7 +47,6 @@ open class ICMBasePlugin: Plugin<Project> {
 
     companion object {
         const val TASK_ALLDEPENDENCIESREPORT = "allDependencies"
-        const val TASK_WRITECARTRIDGEFILES = "writeCartridgeFiles"
 
         const val CONFIGURATION_CARTRIDGE = "cartridge"
         const val CONFIGURATION_CARTRIDGE_API = "cartridgeApi"
@@ -89,22 +91,13 @@ open class ICMBasePlugin: Plugin<Project> {
 
                 configureClusterIdTask()
                 configureCreateServerInfoPropertiesTask(extension)
+                val configureCollectLibrariesTask = configureCollectLibrariesTask()
 
                 if(! checkForTask(tasks, TASK_ALLDEPENDENCIESREPORT)) {
                     tasks.register(TASK_ALLDEPENDENCIESREPORT, DependencyReportTask::class.java)
                 }
 
-                tasks.register(WriteCartridgeClasspath.DEFAULT_NAME) { task ->
-                    task.group = "ICM cartridge build"
-                    task.description = "Lifecycle task for ICM cartridge build"
-                }
-
-                tasks.register(TASK_WRITECARTRIDGEFILES) { task ->
-                    task.group = "ICM cartridge build"
-                    task.description = "Lifecycle task for ICM cartridge build"
-                }
-
-                createPackageTasks(this)
+                createPackageTasks(this, configureCollectLibrariesTask)
 
             } else {
                 logger.warn("ICM build plugin will be not applied to the sub project '{}'", name)
@@ -147,7 +140,22 @@ open class ICMBasePlugin: Plugin<Project> {
         tasks.register( CreateClusterID.DEFAULT_NAME, CreateClusterID::class.java )
     }
 
-    private fun Project.createPackageTasks(project: Project) {
+    private fun Project.configureCollectLibrariesTask() : TaskProvider<CollectLibraries> {
+        val collectLibrariesTask = tasks.register(CollectLibraries.DEFAULT_NAME, CollectLibraries::class.java)
+        subprojects { sub ->
+            sub.plugins.withType(CartridgePlugin::class.java) {
+                val writeCartridgeDescriptorTask = sub.tasks.
+                    named(WriteCartridgeDescriptor.DEFAULT_NAME, WriteCartridgeDescriptor::class.java)
+                collectLibrariesTask.configure{ clt ->
+                    clt.dependsOn(writeCartridgeDescriptorTask)
+                }
+            }
+        }
+        return collectLibrariesTask
+    }
+
+    private fun Project.createPackageTasks(project: Project,
+                                           configureCollectLibrariesTask: TaskProvider<CollectLibraries>) {
         val createMainPackage = tasks.register(CreateMainPackage.DEFAULT_NAME, CreateMainPackage::class.java)
         val createTestPackage = tasks.register(CreateTestPackage.DEFAULT_NAME, CreateTestPackage::class.java)
 
@@ -194,6 +202,15 @@ open class ICMBasePlugin: Plugin<Project> {
                     createTestPackage.configure { testpkg -> testpkg.with(cartridgefiles) }
                 }
             }
+        }
+
+        createMainPackage.configure {
+            it.dependsOn(configureCollectLibrariesTask)
+            it.with(configureCollectLibrariesTask.get().copySpecFor(EnvironmentType.PRODUCTION))
+        }
+        createTestPackage.configure {
+            it.dependsOn(configureCollectLibrariesTask)
+            it.with(configureCollectLibrariesTask.get().copySpecFor(EnvironmentType.TEST))
         }
     }
 

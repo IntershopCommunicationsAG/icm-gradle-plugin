@@ -204,7 +204,6 @@ to the project.
 * The following tasks are added by the plugin:
 ** `writeCartridgeDescriptor`
 ** `writeCartridgeClasspath` - depends on the Gradle property `classpath.file.enabled`
-** `copyThirdpartyLibs`
 
 The tasks "writeCartridgeDescriptor" and "writeCartridgeClasspath" are grouped by the task "writeCartridgeFiles". i
 It is not necessary to apply this plugin to a project separately, because it was applied by some of the plugins above.
@@ -228,9 +227,6 @@ WriteCartridgeDescriptor` | Creates a the Cartridge descriptor file `cartridge.d
 | *writeCartridgeClasspath*  | `com.intershop.gradle.icm.tasks +
 WriteCartridgeClasspath` | Creates a the Cartridge classpath file `cartridge.classpath` for ICM server projects.
 This task is only configured if the Gradle property `classpath.file.enabled` is true. <<anchor-1,[1]>>
-| *copyThirdpartyLibs*       | `com.intershop.gradle.icm.tasks +
-CopyThirdpartyLibs` | Copies all 3rd party libraries to one build directory. File located in the container of the
-base project are not copied.<<anchor-2,[2]>>
 |===
 
 [[anchor-1]][1] The default value of "classpath.file.enabled" is false.
@@ -458,6 +454,8 @@ NOTE: All properties are read only.
 | *allDependencies*    | `org.gradle.api.tasks.diagnostics +
 DependencyReportTask` | Displays the dependency tree for a project. An instance of this type is used when you
 execute the dependencies task from the command-line.
+| *collectLibraries*    | `com.intershop.gradle.icm.tasks +
+CollectLibraries`  | Collects all libraries (recursively through all (sub-)projects).
 | *createServerInfo*    | `com.intershop.gradle.icm.tasks +
 CreateServerInfo`  | Creates a properties file with all project information.
 This property is used by the server.
