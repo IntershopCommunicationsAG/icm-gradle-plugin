@@ -9,7 +9,6 @@ import org.gradle.api.file.Directory
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
-import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.TaskProvider
@@ -18,12 +17,12 @@ import org.gradle.api.tasks.TaskProvider
  * Collects all libraries (recursively through all (sub-)projects)
  */
 open class CollectLibraries : DefaultTask() {
-    private val copiedLibrariesDirectoryProperty: Property<Directory> = project.objects.directoryProperty().convention(project.layout.buildDirectory.dir(BUILD_FOLDER))
+    private val copiedLibrariesDirectoryProperty: Property<Directory> =
+            project.objects.directoryProperty().convention(project.layout.buildDirectory.dir(BUILD_FOLDER))
 
     companion object {
         const val DEFAULT_NAME = "collectLibraries"
         const val BUILD_FOLDER = "libraries"
-        fun renderId(id: ModuleComponentIdentifier): String = "${id.group}-${id.module}-${id.version}"
     }
 
     init {
@@ -50,7 +49,8 @@ open class CollectLibraries : DefaultTask() {
             }
         }
 
-        // ensure ids for a certain EnvironmentType only contain ids of this type not others (e.g. test without production)
+        // ensure ids for a certain EnvironmentType only contain ids of this type not others
+        // (e.g. test without production)
         val alreadyThere = mutableSetOf<String>()
         EnvironmentType.values().forEach { env ->
             dependencies.get(env)?.run {
@@ -60,7 +60,7 @@ open class CollectLibraries : DefaultTask() {
         }
 
         val dependencyWithList = mutableMapOf<EnvironmentType, List<String>>()
-        dependencies.forEach{ (k, v) -> dependencyWithList.put(k, v.toList().sorted()) }
+        dependencies.forEach { (k, v) -> dependencyWithList.put(k, v.toList().sorted()) }
 
         dependencyWithList.toSortedMap()
     }
@@ -74,7 +74,7 @@ open class CollectLibraries : DefaultTask() {
      * Task action starts the java process in the background.
      */
     @TaskAction
-    fun collectLibraries() {
+    fun execute() {
         copiedLibrariesDirectory.asFile.deleteRecursively()
         libraryDependencyIds.map { (key, value) ->
             copySpecFor(key, value)
@@ -84,7 +84,9 @@ open class CollectLibraries : DefaultTask() {
     }
 
     /**
-     * Creates a ```CopySpec``` which describes that libraries get copied into the folder '''libraries/{environmentName}''' using file-name '''${dependency.moduleGroup}_${dependency.moduleName}_${dependency.moduleVersion}.${artifact.extension}'''
+     * Creates a ```CopySpec``` which describes that libraries get copied into the folder
+     * '''libraries/{environmentName}''' using file-name
+     * '''${dependency.moduleGroup}_${dependency.moduleName}_${dependency.moduleVersion}.${artifact.extension}'''
      */
     private fun copySpecFor(environmentType: EnvironmentType, ids: Collection<String>): CopySpec {
 
@@ -95,7 +97,12 @@ open class CollectLibraries : DefaultTask() {
             dependency.moduleArtifacts.forEach { artifact ->
                 when (artifact.id.componentIdentifier) {
                     is ModuleComponentIdentifier -> {
-                        libCopySpec.with(project.copySpec().from(artifact.file).rename({ name -> "${dependency.moduleGroup}_${dependency.moduleName}_${dependency.moduleVersion}.${artifact.extension}" }))
+                        libCopySpec.with(project.copySpec().from(artifact.file).rename { name ->
+                            "${dependency.moduleGroup}_" +
+                            "${dependency.moduleName}_" +
+                            "${dependency.moduleVersion}." +
+                            artifact.extension
+                        })
                     }
                 }
             }
@@ -110,7 +117,9 @@ open class CollectLibraries : DefaultTask() {
      * + ```to``` = ```"lib"```
      */
     open fun copySpecFor(environmentType: EnvironmentType): CopySpec =
-            project.copySpec { cp -> cp.from(copiedLibrariesDirectory.dir(environmentType.name.lowercase())).into("lib") }
+            project.copySpec { cp ->
+                cp.from(copiedLibrariesDirectory.dir(environmentType.name.lowercase())).into("lib")
+            }
 
 }
 

@@ -17,14 +17,13 @@
 package com.intershop.gradle.icm
 
 import com.intershop.gradle.icm.tasks.CreateMainPackage
-import com.intershop.gradle.icm.tasks.CreateTestPackage
 import com.intershop.gradle.icm.tasks.CreateServerInfo
-
+import com.intershop.gradle.icm.tasks.CreateTestPackage
 import com.intershop.gradle.test.AbstractIntegrationGroovySpec
-import org.gradle.testkit.runner.TaskOutcome
 import spock.lang.Ignore
 
-import static org.gradle.testkit.runner.TaskOutcome.*
+import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
+import static org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
 
 class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 

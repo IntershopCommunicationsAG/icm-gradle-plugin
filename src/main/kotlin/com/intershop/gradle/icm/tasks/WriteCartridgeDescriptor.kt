@@ -22,7 +22,6 @@ import com.intershop.gradle.icm.extension.IntershopExtension.Companion.INTERSHOP
 import com.intershop.gradle.icm.utils.CartridgeUtil
 import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
-import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.file.RegularFile
 import org.gradle.api.file.RegularFileProperty
@@ -38,8 +37,10 @@ import org.gradle.internal.util.PropertiesUtils
 import java.io.File
 import java.io.FileInputStream
 import java.nio.charset.Charset
-import java.util.*
+import java.util.Properties
+
 import javax.inject.Inject
+import kotlin.collections.HashSet
 
 /**
  * WriteCartridgeDescriptor Gradle task 'writeCartridgeDescriptor'
@@ -101,15 +102,20 @@ open class WriteCartridgeDescriptor
     val cartridgeDependencies: String by lazy {
         flattenToString(
                 { project.configurations.getByName(CONFIGURATION_CARTRIDGE).dependencies },
-                { value -> value.toString().apply { project.logger.debug("CartridgeDependencies of project {}: {}", project.name, this) } }
+                { value -> value.toString().apply {
+                    project.logger.debug("CartridgeDependencies of project {}: {}", project.name, this) }
+                }
         )
     }
 
     @get:Input
     val runtimeDependencies: String by lazy {
         flattenToString(
-                { project.configurations.getByName(RUNTIME_CLASSPATH_CONFIGURATION_NAME).resolvedConfiguration.lenientConfiguration.firstLevelModuleDependencies },
-                { value -> value.toString().apply { project.logger.debug("RuntimeDependencies of project {}: {}", project.name, this) } }
+                { project.configurations.getByName(RUNTIME_CLASSPATH_CONFIGURATION_NAME).
+                    resolvedConfiguration.lenientConfiguration.firstLevelModuleDependencies },
+                { value -> value.toString().apply {
+                    project.logger.debug("RuntimeDependencies of project {}: {}", project.name, this) }
+                }
         )
     }
 
@@ -209,7 +215,8 @@ open class WriteCartridgeDescriptor
         return dependencies
     }
 
-    private fun <E> flattenToString(collectionProvider: () -> Collection<E>, stringifier : (value: E) -> String = { value -> value.toString() }) : String =
+    private fun <E> flattenToString(collectionProvider: () -> Collection<E>,
+                                    stringifier : (value: E) -> String = { value -> value.toString() }) : String =
             collectionProvider.invoke().map { value -> stringifier.invoke(value)}.sorted().toString()
 
 }

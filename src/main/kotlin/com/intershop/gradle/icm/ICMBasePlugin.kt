@@ -28,7 +28,6 @@ import com.intershop.gradle.icm.tasks.CreateMainPackage
 import com.intershop.gradle.icm.tasks.CreateServerInfo
 import com.intershop.gradle.icm.tasks.CreateTestPackage
 import com.intershop.gradle.icm.tasks.WriteCartridgeDescriptor
-import com.intershop.gradle.icm.utils.CartridgeUtil
 import com.intershop.gradle.icm.utils.EnvironmentType
 import com.intershop.gradle.isml.IsmlPlugin
 import org.gradle.api.Plugin
@@ -40,7 +39,6 @@ import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.bundling.Tar
 import org.gradle.api.tasks.diagnostics.DependencyReportTask
-import java.io.FileFilter
 
 /**
  * The base plugin for the configuration of the ICM project.
@@ -146,7 +144,8 @@ open class ICMBasePlugin: Plugin<Project> {
         val collectLibrariesTask = tasks.register(CollectLibraries.DEFAULT_NAME, CollectLibraries::class.java)
         subprojects { sub ->
             sub.plugins.withType(CartridgePlugin::class.java) {
-                val writeCartridgeDescriptorTask = sub.tasks.named(WriteCartridgeDescriptor.DEFAULT_NAME, WriteCartridgeDescriptor::class.java)
+                val writeCartridgeDescriptorTask = sub.tasks.
+                    named(WriteCartridgeDescriptor.DEFAULT_NAME, WriteCartridgeDescriptor::class.java)
                 collectLibrariesTask.configure{ clt ->
                     clt.dependsOn(writeCartridgeDescriptorTask)
                 }
@@ -155,7 +154,8 @@ open class ICMBasePlugin: Plugin<Project> {
         return collectLibrariesTask
     }
 
-    private fun Project.createPackageTasks(project: Project, configureCollectLibrariesTask: TaskProvider<CollectLibraries>) {
+    private fun Project.createPackageTasks(project: Project,
+                                           configureCollectLibrariesTask: TaskProvider<CollectLibraries>) {
         val createMainPackage = tasks.register(CreateMainPackage.DEFAULT_NAME, CreateMainPackage::class.java)
         val createTestPackage = tasks.register(CreateTestPackage.DEFAULT_NAME, CreateTestPackage::class.java)
 

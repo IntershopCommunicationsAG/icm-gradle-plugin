@@ -20,7 +20,12 @@ import com.intershop.gradle.icm.extension.IntershopExtension
 import com.intershop.gradle.icm.extension.ServerDir
 import com.intershop.gradle.icm.project.PluginConfig
 import com.intershop.gradle.icm.project.TaskName
-import com.intershop.gradle.icm.tasks.*
+import com.intershop.gradle.icm.tasks.CollectLibraries
+import com.intershop.gradle.icm.tasks.CreateClusterID
+import com.intershop.gradle.icm.tasks.CreateMainPackage
+import com.intershop.gradle.icm.tasks.CreateServerInfo
+import com.intershop.gradle.icm.tasks.CreateTestPackage
+import com.intershop.gradle.icm.tasks.PreparePublishDir
 import com.intershop.gradle.icm.utils.CartridgeStyle.ALL
 import com.intershop.gradle.icm.utils.CartridgeStyle.valueOf
 import com.intershop.gradle.icm.utils.EnvironmentType.DEVELOPMENT
@@ -85,9 +90,12 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
         val collectLibrariesTask = project.tasks.named(CollectLibraries.DEFAULT_NAME, CollectLibraries::class.java)
         pluginConfig.getCartridgeListTemplate()
 
-        val prepareContainer = prepareContainer(pluginConfig, infoTask).apply { configure { task -> task.dependsOn(collectLibrariesTask) } }
-        val prepareTestContainer = prepareTestContainer(pluginConfig, infoTask).apply { configure { task -> task.dependsOn(collectLibrariesTask) } }
-        val prepareServer = prepareServer(project, pluginConfig, infoTask).apply { configure { task -> task.dependsOn(collectLibrariesTask) } }
+        val prepareContainer = prepareContainer(pluginConfig, infoTask).
+            apply { configure { task -> task.dependsOn(collectLibrariesTask) } }
+        val prepareTestContainer = prepareTestContainer(pluginConfig, infoTask).
+            apply { configure { task -> task.dependsOn(collectLibrariesTask) } }
+        val prepareServer = prepareServer(project, pluginConfig, infoTask).
+            apply { configure { task -> task.dependsOn(collectLibrariesTask) } }
 
         configurePrepareTasks(pluginConfig, prepareServer, prepareTestContainer, prepareContainer)
     }

@@ -20,14 +20,17 @@ package com.intershop.gradle.icm.project
 import com.intershop.gradle.icm.ICMProjectPlugin
 import com.intershop.gradle.icm.extension.IntershopExtension
 import com.intershop.gradle.icm.extension.ProjectConfiguration
-import com.intershop.gradle.icm.tasks.*
+import com.intershop.gradle.icm.tasks.CreateConfigFolder
+import com.intershop.gradle.icm.tasks.CreateServerInfo
+import com.intershop.gradle.icm.tasks.ExtendCartridgeList
+import com.intershop.gradle.icm.tasks.ProvideCartridgeListTemplate
+import com.intershop.gradle.icm.tasks.ProvideLibFilter
+import com.intershop.gradle.icm.tasks.SetupCartridges
 import com.intershop.gradle.icm.utils.EnvironmentType
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.file.CopySpec
-import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.file.ProjectLayout
-import org.gradle.api.tasks.Sync
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.bundling.Tar
 
