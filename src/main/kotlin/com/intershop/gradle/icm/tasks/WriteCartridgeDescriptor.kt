@@ -118,7 +118,8 @@ open class WriteCartridgeDescriptor
     val runtimeDependencies: String by lazy {
         flattenToString(
             {
-                project.configurations.getByName(RUNTIME_CLASSPATH_CONFIGURATION_NAME).resolvedConfiguration.lenientConfiguration.firstLevelModuleDependencies
+                project.configurations.getByName(RUNTIME_CLASSPATH_CONFIGURATION_NAME).resolvedConfiguration
+                    .lenientConfiguration.firstLevelModuleDependencies
             },
             { value ->
                 value.toString().apply {
