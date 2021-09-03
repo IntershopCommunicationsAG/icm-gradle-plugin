@@ -524,9 +524,7 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
             buildDir = new File(projectDir, 'target')
             
             dependencies {
-                implementation "com.google.inject:guice:4.0"
-                implementation 'com.google.inject.extensions:guice-servlet:3.0'
-                implementation 'javax.servlet:javax.servlet-api:3.1.0'
+                implementation 'org.slf4j:slf4j-simple:1.7.32'
             } 
             
             repositories {
@@ -544,9 +542,7 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
             
             dependencies {
                 cartridge project(':testCartridge1')
-                implementation "com.google.inject:guice:4.0"
-                implementation 'com.google.inject.extensions:guice-servlet:3.0'
-                implementation 'javax.servlet:javax.servlet-api:3.1.0'
+                runtimeOnly 'javax.servlet:javax.servlet-api:3.1.0'
             } 
                 
             repositories {
@@ -562,16 +558,14 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
             
             description = \"""\\
             Test cartridge implementation first line
-            Test cartridge implementation second line   
+            Test cartridge implementation second line
             \"""
+            version = '1.2.3'
 
             buildDir = new File(projectDir, 'target')
              
             dependencies {
                 cartridge project(':testCartridge2')
-                implementation "com.google.inject:guice:4.0"
-                implementation 'com.google.inject.extensions:guice-servlet:3.0'
-                implementation 'javax.servlet:javax.servlet-api:3.1.0'
             } 
                 
             repositories {
@@ -587,177 +581,60 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         then:
         result.task(':testCartridge1:writeCartridgeDescriptor').outcome == SUCCESS
+
+        Properties p1 = readProperties(prj1dir, 'target/descriptor/cartridge.descriptor')
+        p1['descriptor.version'] == '1.0'
+        p1['cartridge.name'] == 'testCartridge1'
+        p1['cartridge.version'] == 'unspecified'
+        p1['cartridge.description'] == 'Test cartridge implementation'
+        p1['cartridge.displayName'] == 'Test cartridge implementation'
+        p1['cartridge.dependsOnLibs'] == 'org.slf4j:slf4j-api:1.7.32;org.slf4j:slf4j-simple:1.7.32'
+        p1['cartridge.dependsOn'] == ''
+
         result.task(':testCartridge2:writeCartridgeDescriptor').outcome == SUCCESS
+
+        Properties p2 = readProperties(prj2dir, 'target/descriptor/cartridge.descriptor')
+        p2['descriptor.version'] == '1.0'
+        p2['cartridge.name'] == 'testCartridge2'
+        p2['cartridge.version'] == 'unspecified'
+        p2['cartridge.description'] == 'testCartridge2'
+        p2['cartridge.displayName'] == 'testCartridge2'
+        p2['cartridge.dependsOnLibs'] == 'javax.servlet:javax.servlet-api:3.1.0;org.slf4j:slf4j-api:1.7.32;org.slf4j:slf4j-simple:1.7.32'
+        p2['cartridge.dependsOn'] == 'testCartridge1'
+
         result.task(':testCartridge3:writeCartridgeDescriptor').outcome == SUCCESS
+
+        Properties p3 = readProperties(prj3dir, 'target/descriptor/cartridge.descriptor')
+        p3['descriptor.version'] == '1.0'
+        p3['cartridge.name'] == 'testCartridge3'
+        p3['cartridge.version'] == '1.2.3'
+        p3['cartridge.description'] == "Test cartridge implementation first line\nTest cartridge implementation second line\n"
+        p3['cartridge.displayName'] == "Test cartridge implementation first line\nTest cartridge implementation second line\n"
+        p3['cartridge.dependsOnLibs'] == 'javax.servlet:javax.servlet-api:3.1.0;org.slf4j:slf4j-api:1.7.32;org.slf4j:slf4j-simple:1.7.32'
+        p3['cartridge.dependsOn'] == 'testCartridge1;testCartridge2'
+
+        when:
+        def again = getPreparedGradleRunner()
+                .withArguments("writeCartridgeDescriptor", "-s")
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        again.task(':testCartridge1:writeCartridgeDescriptor').outcome == UP_TO_DATE
+        again.task(':testCartridge2:writeCartridgeDescriptor').outcome == UP_TO_DATE
+        again.task(':testCartridge3:writeCartridgeDescriptor').outcome == UP_TO_DATE
 
         where:
         gradleVersion << supportedGradleVersions
-
     }
 
-    def 'Extended test of WriteCartridgeDescriptor'(){
-        given:
-        File gradleProperties = new File(testProjectDir, "gradle.properties")
-        gradleProperties << """
-            classpath.file.enabled = true
-        """
-
-        settingsFile << """
-        rootProject.name='rootproject'
-        """.stripIndent()
-
-        buildFile << """
-            plugins {
-                id 'java'
-                id 'com.intershop.gradle.icm.base'
-            }
-            
-            version = "1.0.0"
-
-            repositories {
-                mavenCentral()
-            }
-            """.stripIndent()
-
-        def prj1dir = createSubProject('testCartridge1', """
-            plugins {
-                id 'java-library'
-                id 'com.intershop.icm.cartridge'
-            }
-            
-            group = 'com.intershop'
-            
-            dependencies {
-                implementation "com.google.inject:guice:4.0"
-                implementation 'com.google.inject.extensions:guice-servlet:3.0'
-                implementation 'javax.servlet:javax.servlet-api:3.1.0'
-            } 
-            
-            repositories {
-                mavenCentral()
-            }
-            """.stripIndent())
-
-        def prj2dir = createSubProject('testCartridge2', """
-            plugins {
-                id 'java-library'
-                id 'com.intershop.icm.cartridge'
-            }
-            
-            group = 'com.intershop'
-            
-            dependencies {
-                cartridge project(':testCartridge1')
-                implementation "com.google.inject:guice:4.0"
-                implementation 'com.google.inject.extensions:guice-servlet:3.0'
-                implementation 'javax.servlet:javax.servlet-api:3.1.0'
-            } 
-                
-            repositories {
-                mavenCentral()
-            }
-            """.stripIndent())
-
-        def prj3dir = createSubProject('testCartridge3', """
-            plugins {
-                id 'java-library'
-                id 'com.intershop.icm.cartridge'
-            }
-            
-            group = 'com.intershop'
-
-            dependencies {
-                cartridge project(':testCartridge2')
-                implementation "com.google.inject:guice:4.0"
-                implementation 'com.google.inject.extensions:guice-servlet:3.0'
-                implementation 'javax.servlet:javax.servlet-api:3.1.0'
-            } 
-                
-            repositories {
-                mavenCentral()
-            }
-            """.stripIndent())
-
-        def prj4dir = createSubProject('testCartridge4', """
-            plugins {
-                id 'java-library'
-                id 'com.intershop.icm.cartridge'
-            }
-                
-            group = 'com.intershop'
-            
-            dependencies {
-                cartridge project(':testCartridge3')
-                implementation "com.google.inject:guice:4.0"
-                implementation 'com.google.inject.extensions:guice-servlet:3.0'
-                implementation 'javax.servlet:javax.servlet-api:3.1.0'
-
-                runtimeOnly 'net.logstash.logback:logstash-logback-encoder:4.11'
-            } 
-                
-            repositories {
-                mavenCentral()
-            }
-            """.stripIndent())
-
-        def prj5dir = createSubProject('testCartridge5', """
-            plugins {
-                id 'java-library'
-                id 'com.intershop.icm.cartridge'
-            }
-             
-            group = 'com.intershop'
-             
-            dependencies {
-                cartridge project(':testCartridge3')
-                implementation "com.google.inject:guice:4.0"
-                implementation 'com.google.inject.extensions:guice-servlet:3.0'
-                implementation 'javax.servlet:javax.servlet-api:3.1.0'
-                
-                implementation 'org.hamcrest:hamcrest-library:2.1'
-            } 
-                
-            repositories {
-                mavenCentral()
-            }
-            """.stripIndent())
-
-        writeJavaTestClass("com.intershop.test", prj5dir)
-
-        def prj6dir = createSubProject('testCartridge6', """
-            plugins {
-                id 'java-library'
-                id 'com.intershop.icm.cartridge'
-            }
-             
-            group = 'com.intershop'
-             
-            dependencies {
-                cartridge project(':testCartridge3')
-                implementation "com.google.inject:guice:4.0"
-                implementation 'com.google.inject.extensions:guice-servlet:3.0'
-                implementation 'javax.servlet:javax.servlet-api:3.1.0'
-            } 
-                
-            repositories {
-                mavenCentral()
-            }
-            """.stripIndent())
-
-        when:
-        def result = getPreparedGradleRunner()
-                .withArguments("writeCartridgeDescriptor", "-s")
-                .withGradleVersion(gradleVersion)
-                .build()
-
-        then:
-        result.task(':testCartridge1:writeCartridgeDescriptor').outcome == SUCCESS
-        result.task(':testCartridge2:writeCartridgeDescriptor').outcome == SUCCESS
-        result.task(':testCartridge3:writeCartridgeDescriptor').outcome == SUCCESS
-
-        where:
-        gradleVersion << supportedGradleVersions
-
+    Properties readProperties(File parent, String name) {
+        Properties properties = new Properties()
+        File propertiesFile = new File(parent, name)
+        propertiesFile.withInputStream {
+            properties.load(it)
+        }
+        properties
     }
 
     @Ignore
