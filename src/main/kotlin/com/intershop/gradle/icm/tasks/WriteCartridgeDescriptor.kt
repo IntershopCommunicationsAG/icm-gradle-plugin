@@ -22,6 +22,7 @@ import com.intershop.gradle.icm.extension.IntershopExtension.Companion.INTERSHOP
 import com.intershop.gradle.icm.utils.CartridgeUtil
 import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.file.RegularFile
 import org.gradle.api.file.RegularFileProperty
@@ -50,8 +51,10 @@ import kotlin.collections.HashSet
  * is used by the server startup and special tests.
  */
 open class WriteCartridgeDescriptor
-        @Inject constructor( projectLayout: ProjectLayout,
-                             objectFactory: ObjectFactory ) : DefaultTask() {
+@Inject constructor(
+    projectLayout: ProjectLayout,
+    objectFactory: ObjectFactory
+) : DefaultTask() {
 
     private val outputFileProperty: RegularFileProperty = objectFactory.fileProperty()
     private val nameProperty: Property<String> = objectFactory.property(String::class.java)
@@ -102,21 +105,27 @@ open class WriteCartridgeDescriptor
     @get:Input
     val cartridgeDependencies: String by lazy {
         flattenToString(
-                { project.configurations.getByName(CONFIGURATION_CARTRIDGE).dependencies },
-                { value -> value.toString().apply {
-                    project.logger.debug("CartridgeDependencies of project {}: {}", project.name, this) }
+            { project.configurations.getByName(CONFIGURATION_CARTRIDGE).dependencies },
+            { value ->
+                value.toString().apply {
+                    project.logger.debug("CartridgeDependencies of project {}: {}", project.name, this)
                 }
+            }
         )
     }
 
     @get:Input
     val runtimeDependencies: String by lazy {
         flattenToString(
-                { project.configurations.getByName(RUNTIME_CLASSPATH_CONFIGURATION_NAME).
-                    resolvedConfiguration.lenientConfiguration.firstLevelModuleDependencies },
-                { value -> value.toString().apply {
-                    project.logger.debug("RuntimeDependencies of project {}: {}", project.name, this) }
+            {
+                project.configurations.getByName(RUNTIME_CLASSPATH_CONFIGURATION_NAME).resolvedConfiguration
+                    .lenientConfiguration.firstLevelModuleDependencies
+            },
+            { value ->
+                value.toString().apply {
+                    project.logger.debug("RuntimeDependencies of project {}: {}", project.name, this)
                 }
+            }
         )
     }
 
@@ -191,34 +200,46 @@ open class WriteCartridgeDescriptor
         return if (dependsOnLibs.isEmpty()) setOf() else dependsOnLibs.split(";").toSet()
     }
 
-    private fun getCartridges() : Set<String> {
-        return getDependencies(CONFIGURATION_CARTRIDGE_RUNTIME)
-    }
-
-    private fun getLibs() : Set<String> {
-        return getDependencies(RUNTIME_CLASSPATH_CONFIGURATION_NAME)
-    }
-
-    private fun getDependencies(configName : String) : Set<String> {
+    private fun getLibs(): Set<String> {
         val dependencies = HashSet<String>()
-        project.configurations.getByName(configName)
+        project.configurations.getByName(RUNTIME_CLASSPATH_CONFIGURATION_NAME)
             .resolvedConfiguration.lenientConfiguration.allModuleDependencies.forEach { dependency ->
-            dependency.moduleArtifacts.forEach { artifact ->
-                when (val identifier = artifact.id.componentIdentifier) {
-                    is ModuleComponentIdentifier -> {
-                        if (!CartridgeUtil.isCartridge(project, identifier)) {
-                                    dependencies.add("${identifier.group}:${identifier.module}:${identifier.version}")
+                dependency.moduleArtifacts.forEach { artifact ->
+                    when (val identifier = artifact.id.componentIdentifier) {
+                        is ModuleComponentIdentifier -> {
+                            if (!CartridgeUtil.isCartridge(project, identifier)) {
+                                dependencies.add("${identifier.group}:${identifier.module}:${identifier.version}")
+                            }
                         }
                     }
                 }
             }
-        }
         return dependencies
     }
 
-    private fun <E> flattenToString(collectionProvider: () -> Collection<E>,
-                                    stringifier : (value: E) -> String = { value -> value.toString() }) : String =
-            collectionProvider.invoke().map { value -> stringifier.invoke(value)}.sorted().toString()
+    private fun getCartridges(): Set<String> {
+        val dependencies = HashSet<String>()
+        project.configurations.getByName(CONFIGURATION_CARTRIDGE_RUNTIME)
+            .resolvedConfiguration.lenientConfiguration.allModuleDependencies.forEach { dependency ->
+                dependency.moduleArtifacts.forEach { artifact ->
+                    when (val identifier = artifact.id.componentIdentifier) {
+                        is ProjectComponentIdentifier ->
+                            dependencies.add(identifier.projectName)
+                        is ModuleComponentIdentifier ->
+                            if (CartridgeUtil.isCartridge(project, identifier)) {
+                                dependencies.add("${identifier.module}:${identifier.version}")
+                            }
+                    }
+                }
+            }
+        return dependencies
+    }
+
+    private fun <E> flattenToString(
+        collectionProvider: () -> Collection<E>,
+        stringifier: (value: E) -> String = { value -> value.toString() }
+    ): String =
+        collectionProvider.invoke().map { value -> stringifier.invoke(value) }.sorted().toString()
 
 }
 
