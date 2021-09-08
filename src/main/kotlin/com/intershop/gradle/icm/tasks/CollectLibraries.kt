@@ -20,6 +20,7 @@ package com.intershop.gradle.icm.tasks
 import com.intershop.gradle.icm.utils.CartridgeUtil
 import com.intershop.gradle.icm.utils.EnvironmentType
 import org.gradle.api.DefaultTask
+import org.gradle.api.GradleException
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.Directory
@@ -29,13 +30,15 @@ import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.TaskProvider
+import org.gradle.tooling.model.Dependency
+import java.util.function.BiFunction
 
 /**
  * Collects all libraries (recursively through all (sub-)projects)
  */
 open class CollectLibraries : DefaultTask() {
     private val copiedLibrariesDirectoryProperty: Property<Directory> =
-            project.objects.directoryProperty().convention(project.layout.buildDirectory.dir(BUILD_FOLDER))
+        project.objects.directoryProperty().convention(project.layout.buildDirectory.dir(BUILD_FOLDER))
 
     companion object {
         const val DEFAULT_NAME = "collectLibraries"
@@ -56,14 +59,29 @@ open class CollectLibraries : DefaultTask() {
     val libraryDependencyIds: Map<EnvironmentType, List<String>> by lazy {
         val dependencies = mutableMapOf<EnvironmentType, MutableSet<String>>()
 
+        val deps = mutableMapOf<String, MutableMap<String, String>>()
+
         dependsOn.forEach { t ->
             val p = t as TaskProvider<*>
             when (val at = p.get()) {
                 is WriteCartridgeDescriptor -> {
                     val environmentType = CartridgeUtil.getCartridgeStyle(at.project).environmentType()
-                    dependencies.computeIfAbsent(environmentType, { linkedSetOf() }).addAll(at.getLibraryIDs())
+                    dependencies.computeIfAbsent(environmentType, { linkedSetOf() }).addAll(at.getLibraryIDs().apply {
+                        this.forEach {
+                            val groupAndName = it.substringBeforeLast(':')
+                            val versionInProjects = deps.computeIfAbsent(groupAndName, { mutableMapOf() })
+                            versionInProjects.compute(
+                                it,
+                                { k, p -> if (null == p) at.project.name else p + " " + at.project.name })
+                        }
+                    })
                 }
             }
+        }
+
+        val conflicts = deps.filter { e -> 1 < e.value.size }.map { it.value }.toList()
+        if (!conflicts.isEmpty()) {
+            throw GradleException("Unable to process libraries. Dependencies ${conflicts} are required by cartridge-projects in non-unique versions.")
         }
 
         // ensure ids for a certain EnvironmentType only contain ids of this type not others
@@ -109,21 +127,26 @@ open class CollectLibraries : DefaultTask() {
 
         val libCopySpec = project.copySpec().into(environmentType.name.lowercase())
         val configuration = project.configurations.create("CollectedLibraries${environmentType.name}")
-        ids.forEach({ configuration.dependencies.add(project.dependencies.create(it)) })
+
+        configuration.setTransitive(false)
+        ids.forEach { configuration.dependencies.add(project.dependencies.create(it)) }
+
         configuration.resolvedConfiguration.lenientConfiguration.allModuleDependencies.forEach { dependency ->
+
             dependency.moduleArtifacts.forEach { artifact ->
                 when (artifact.id.componentIdentifier) {
                     is ModuleComponentIdentifier -> {
                         libCopySpec.with(project.copySpec().from(artifact.file).rename { name ->
                             "${dependency.moduleGroup}_" +
-                            "${dependency.moduleName}_" +
-                            "${dependency.moduleVersion}." +
-                            artifact.extension
+                                    "${dependency.moduleName}_" +
+                                    "${dependency.moduleVersion}." +
+                                    artifact.extension
                         })
                     }
                 }
             }
         }
+
         return libCopySpec
     }
 
@@ -134,9 +157,9 @@ open class CollectLibraries : DefaultTask() {
      * + ```to``` = ```"lib"```
      */
     open fun copySpecFor(environmentType: EnvironmentType): CopySpec =
-            project.copySpec { cp ->
-                cp.from(copiedLibrariesDirectory.dir(environmentType.name.lowercase())).into("lib")
-            }
+        project.copySpec { cp ->
+            cp.from(copiedLibrariesDirectory.dir(environmentType.name.lowercase())).into("lib")
+        }
 
 }
 
