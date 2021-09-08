@@ -81,7 +81,8 @@ open class CollectLibraries : DefaultTask() {
 
         val conflicts = deps.filter { e -> 1 < e.value.size }.map { it.value }.toList()
         if (!conflicts.isEmpty()) {
-            throw GradleException("Unable to process libraries. Dependencies ${conflicts} are required by cartridge-projects in non-unique versions.")
+            throw GradleException("Unable to process libraries. Dependencies ${conflicts}" +
+                    " are required by cartridge-projects in non-unique versions.")
         }
 
         // ensure ids for a certain EnvironmentType only contain ids of this type not others
