@@ -119,7 +119,7 @@ open class WriteCartridgeDescriptor
         flattenToString(
             {
                 project.configurations.getByName(RUNTIME_CLASSPATH_CONFIGURATION_NAME).resolvedConfiguration
-                    .lenientConfiguration.firstLevelModuleDependencies
+                    .lenientConfiguration.allModuleDependencies
             },
             { value ->
                 value.toString().apply {
