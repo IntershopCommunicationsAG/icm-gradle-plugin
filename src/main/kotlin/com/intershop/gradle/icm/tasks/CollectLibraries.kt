@@ -21,7 +21,14 @@ import com.intershop.gradle.icm.utils.CartridgeUtil
 import com.intershop.gradle.icm.utils.EnvironmentType
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
+import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.api.attributes.Bundling
+import org.gradle.api.attributes.Category
+import org.gradle.api.attributes.LibraryElements
+import org.gradle.api.attributes.Usage
+import org.gradle.api.attributes.java.TargetJvmEnvironment
+import org.gradle.api.attributes.java.TargetJvmVersion
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.Directory
 import org.gradle.api.provider.Property
@@ -30,6 +37,7 @@ import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.TaskProvider
+import org.gradle.platform.base.Library
 import org.gradle.tooling.model.Dependency
 import java.util.function.BiFunction
 
@@ -81,8 +89,10 @@ open class CollectLibraries : DefaultTask() {
 
         val conflicts = deps.filter { e -> 1 < e.value.size }.map { it.value }.toList()
         if (!conflicts.isEmpty()) {
-            throw GradleException("Unable to process libraries. Dependencies ${conflicts}" +
-                    " are required by cartridge-projects in non-unique versions.")
+            throw GradleException(
+                "Unable to process libraries. Dependencies ${conflicts}" +
+                        " are required by cartridge-projects in non-unique versions."
+            )
         }
 
         // ensure ids for a certain EnvironmentType only contain ids of this type not others
@@ -128,27 +138,78 @@ open class CollectLibraries : DefaultTask() {
 
         val libCopySpec = project.copySpec().into(environmentType.name.lowercase())
         val configuration = project.configurations.create("CollectedLibraries${environmentType.name}")
+        setupConfiguration(configuration)
 
-        configuration.setTransitive(false)
+        // add dependencies
         ids.forEach { configuration.dependencies.add(project.dependencies.create(it)) }
 
-        configuration.resolvedConfiguration.lenientConfiguration.allModuleDependencies.forEach { dependency ->
-
-            dependency.moduleArtifacts.forEach { artifact ->
-                when (artifact.id.componentIdentifier) {
-                    is ModuleComponentIdentifier -> {
-                        libCopySpec.with(project.copySpec().from(artifact.file).rename { name ->
-                            "${dependency.moduleGroup}_" +
-                                    "${dependency.moduleName}_" +
-                                    "${dependency.moduleVersion}." +
-                                    artifact.extension
-                        })
-                    }
-                }
-            }
+        // process resolved artifacts
+        configuration.resolvedConfiguration.getResolvedArtifacts().forEach { artifact ->
+            val id = artifact.moduleVersion.id
+            libCopySpec.with(project.copySpec().from(artifact.file).rename { name ->
+                "${id.group}_" +
+                        "${id.name}_" +
+                        "${id.version}." +
+                        artifact.extension
+            })
         }
-
         return libCopySpec
+    }
+
+
+    /* Need to configure attributes to avoid:
+
+        org.gradle.internal.component.AmbiguousConfigurationSelectionException: Cannot choose between the following variants of org.junit.jupiter:junit-jupiter-params:5.7.1:
+          - runtimeElements
+          - shadowRuntimeElements
+        All of them match the consumer attributes:
+          - Variant 'runtimeElements' capability org.junit.jupiter:junit-jupiter-params:5.7.1:
+              - Unmatched attributes:
+                  - Provides org.gradle.category 'library' but the consumer didn't ask for it
+                  - Provides org.gradle.dependency.bundling 'external' but the consumer didn't ask for it
+                  - Provides org.gradle.jvm.version '8' but the consumer didn't ask for it
+                  - Provides org.gradle.libraryelements 'jar' but the consumer didn't ask for it
+                  - Provides org.gradle.status 'release' but the consumer didn't ask for it
+                  - Provides org.gradle.usage 'java-runtime' but the consumer didn't ask for it
+                  - Provides org.jetbrains.kotlin.localToProject 'public' but the consumer didn't ask for it
+                  - Provides org.jetbrains.kotlin.platform.type 'jvm' but the consumer didn't ask for it
+          - Variant 'shadowRuntimeElements' capability org.junit.jupiter:junit-jupiter-params:5.7.1:
+              - Unmatched attributes:
+                  - Provides org.gradle.category 'library' but the consumer didn't ask for it
+                  - Provides org.gradle.dependency.bundling 'embedded' but the consumer didn't ask for it
+                  - Provides org.gradle.jvm.version '8' but the consumer didn't ask for it
+                  - Provides org.gradle.libraryelements 'jar' but the consumer didn't ask for it
+                  - Provides org.gradle.status 'release' but the consumer didn't ask for it
+                  - Provides org.gradle.usage 'java-runtime' but the consumer didn't ask for it
+     */
+    private fun setupConfiguration(configuration: Configuration) {
+        configuration.setTransitive(false)
+
+        /*
+           from Java: {org.gradle.category=library, org.gradle.dependency.bundling=external, org.gradle.jvm.environment=standard-jvm, org.gradle.jvm.version=11, org.gradle.libraryelements=jar, org.gradle.usage=java-runtime}
+         */
+        configuration.attributes { attributeContainer ->
+            attributeContainer.attribute(
+                Category.CATEGORY_ATTRIBUTE,
+                project.getObjects().named(Category::class.java, Category.LIBRARY)
+            )
+            attributeContainer.attribute(
+                Bundling.BUNDLING_ATTRIBUTE,
+                project.getObjects().named(Bundling::class.java, Bundling.EXTERNAL)
+            )
+            attributeContainer.attribute(
+                TargetJvmEnvironment.TARGET_JVM_ENVIRONMENT_ATTRIBUTE,
+                project.getObjects().named(TargetJvmEnvironment::class.java, TargetJvmEnvironment.STANDARD_JVM)
+            )
+            attributeContainer.attribute(
+                LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE,
+                project.getObjects().named(LibraryElements::class.java, LibraryElements.JAR)
+            )
+            attributeContainer.attribute(
+                Usage.USAGE_ATTRIBUTE,
+                project.getObjects().named(Usage::class.java, Usage.JAVA_RUNTIME)
+            )
+        }
     }
 
     /**
@@ -161,6 +222,5 @@ open class CollectLibraries : DefaultTask() {
         project.copySpec { cp ->
             cp.from(copiedLibrariesDirectory.dir(environmentType.name.lowercase())).into("lib")
         }
-
 }
 

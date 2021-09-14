@@ -372,14 +372,14 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         def prj2dir = createSubProject('testCartridge', """
         plugins {
-            id 'java-library'
+            id 'java'
             id 'com.intershop.icm.cartridge.test'
         }
-        
+
         dependencies {
             implementation project(":productCartridge")
+            implementation "org.junit.jupiter:junit-jupiter-params:5.7.1"
             runtimeOnly 'org.codehaus.janino:janino:2.5.16'
-            testImplementation "org.junit.jupiter:junit-jupiter-params:5.7.0"
         } 
         
         repositories {
@@ -428,8 +428,13 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         (new File(testProjectDir,"build/libraries/production/javax.inject_javax.inject_1.jar")).exists()
         (new File(testProjectDir,"build/libraries/production/javax.servlet_javax.servlet-api_3.1.0.jar")).exists()
 
-        new File(testProjectDir,"build/libraries/test").listFiles()?.size() == 1
+        new File(testProjectDir,"build/libraries/test").listFiles()?.size() == 6
+        (new File(testProjectDir,"build/libraries/test/org.apiguardian_apiguardian-api_1.1.0.jar")).exists()
         (new File(testProjectDir,"build/libraries/test/org.codehaus.janino_janino_2.5.16.jar")).exists()
+        (new File(testProjectDir,"build/libraries/test/org.junit.jupiter_junit-jupiter-api_5.7.1.jar")).exists()
+        (new File(testProjectDir,"build/libraries/test/org.junit.jupiter_junit-jupiter-params_5.7.1.jar")).exists()
+        (new File(testProjectDir,"build/libraries/test/org.junit.platform_junit-platform-commons_1.7.1.jar")).exists()
+        (new File(testProjectDir,"build/libraries/test/org.opentest4j_opentest4j_1.2.0.jar")).exists()
 
         new File(testProjectDir,"build/libraries/development").listFiles()?.size() == 2
         (new File(testProjectDir,"build/libraries/development/org.hamcrest_hamcrest-core_1.3.jar")).exists()
@@ -473,20 +478,8 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         result.task(':collectLibraries').outcome == SUCCESS
 
         new File(testProjectDir,"build/libraries/production").listFiles()?.size() == 8
-        (new File(testProjectDir,"build/libraries/production/aopalliance_aopalliance_1.0.jar")).exists()
-        (new File(testProjectDir,"build/libraries/production/com.google.guava_guava_16.0.1.jar")).exists()
-        (new File(testProjectDir,"build/libraries/production/com.google.inject_guice_4.0.jar")).exists()
-        (new File(testProjectDir,"build/libraries/production/io.prometheus_simpleclient_0.6.0.jar")).exists()
-        (new File(testProjectDir,"build/libraries/production/io.prometheus_simpleclient_common_0.6.0.jar")).exists()
-        (new File(testProjectDir,"build/libraries/production/io.prometheus_simpleclient_servlet_0.6.0.jar")).exists()
-        (new File(testProjectDir,"build/libraries/production/javax.inject_javax.inject_1.jar")).exists()
-        (new File(testProjectDir,"build/libraries/production/javax.servlet_javax.servlet-api_3.1.0.jar")).exists()
-
-        new File(testProjectDir,"build/libraries/test").listFiles()?.size() == 1
-        (new File(testProjectDir,"build/libraries/test/org.codehaus.janino_janino_2.5.16.jar")).exists()
-
+        new File(testProjectDir,"build/libraries/test").listFiles()?.size() == 6
         new File(testProjectDir,"build/libraries/development").listFiles()?.size() == 1
-        (new File(testProjectDir,"build/libraries/development/org.hamcrest_hamcrest-core_1.3.jar")).exists()
 
         where:
         gradleVersion << supportedGradleVersions
