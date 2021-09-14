@@ -207,7 +207,8 @@ open class WriteCartridgeDescriptor
                 dependency.moduleArtifacts.forEach { artifact ->
                     when (val identifier = artifact.id.componentIdentifier) {
                         is ModuleComponentIdentifier -> {
-                            if (!CartridgeUtil.isCartridge(project, identifier)) {
+                            // only add non-cartridge-'jar's
+                            if (artifact.extension.equals("jar") && !CartridgeUtil.isCartridge(project, identifier)) {
                                 dependencies.add("${identifier.group}:${identifier.module}:${identifier.version}")
                             }
                         }
