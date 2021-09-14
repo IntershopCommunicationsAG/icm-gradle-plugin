@@ -159,7 +159,8 @@ open class CollectLibraries : DefaultTask() {
 
     /* Need to configure attributes to avoid:
 
-        org.gradle.internal.component.AmbiguousConfigurationSelectionException: Cannot choose between the following variants of org.junit.jupiter:junit-jupiter-params:5.7.1:
+        org.gradle.internal.component.AmbiguousConfigurationSelectionException:
+            Cannot choose between the following variants of org.junit.jupiter:junit-jupiter-params:5.7.1:
           - runtimeElements
           - shadowRuntimeElements
         All of them match the consumer attributes:
@@ -186,7 +187,13 @@ open class CollectLibraries : DefaultTask() {
         configuration.setTransitive(false)
 
         /*
-           from Java: {org.gradle.category=library, org.gradle.dependency.bundling=external, org.gradle.jvm.environment=standard-jvm, org.gradle.jvm.version=11, org.gradle.libraryelements=jar, org.gradle.usage=java-runtime}
+           from Java: {
+            org.gradle.category=library,
+            org.gradle.dependency.bundling=external,
+            org.gradle.jvm.environment=standard-jvm,
+            org.gradle.jvm.version=11,
+            org.gradle.libraryelements=jar,
+            org.gradle.usage=java-runtime}
          */
         configuration.attributes { attributeContainer ->
             attributeContainer.attribute(

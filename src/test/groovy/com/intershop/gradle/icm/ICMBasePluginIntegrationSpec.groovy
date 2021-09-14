@@ -802,7 +802,11 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
             
                 mavenPublicationName = 'ishmvn'
             }
-            
+        
+            repositories {
+                mavenCentral()
+            }            
+
             publishing {
                 repositories {
                     maven {
