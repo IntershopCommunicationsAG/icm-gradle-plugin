@@ -80,7 +80,7 @@ open class CollectLibraries : DefaultTask() {
                             val versionInProjects = deps.computeIfAbsent(groupAndName, { mutableMapOf() })
                             versionInProjects.compute(
                                 it,
-                                { k, p -> if (null == p) at.project.name else p + " " + at.project.name })
+                                { _ , p -> if (null == p) at.project.name else p + " " + at.project.name })
                         }
                     })
                 }
@@ -146,7 +146,7 @@ open class CollectLibraries : DefaultTask() {
         // process resolved artifacts
         configuration.resolvedConfiguration.getResolvedArtifacts().forEach { artifact ->
             val id = artifact.moduleVersion.id
-            libCopySpec.with(project.copySpec().from(artifact.file).rename { name ->
+            libCopySpec.with(project.copySpec().from(artifact.file).rename {
                 "${id.group}_" +
                         "${id.name}_" +
                         "${id.version}." +

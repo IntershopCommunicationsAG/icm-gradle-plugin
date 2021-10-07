@@ -485,6 +485,119 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         gradleVersion << supportedGradleVersions
     }
 
+    def 'libs of cartridges are collected by CollectLibraries - tested with assemble'() {
+        given:
+        settingsFile << """
+        rootProject.name='rootproject'
+        """.stripIndent()
+
+        buildFile << """
+            plugins {
+                id 'java'
+                id 'com.intershop.gradle.icm.base'
+            }
+            
+            repositories {
+                mavenCentral()
+            }
+            """.stripIndent()
+
+        def prj1dir = createSubProject('productCartridge', """
+        plugins {
+            id 'java-library'
+            id 'com.intershop.icm.cartridge.product'
+        }
+        
+        dependencies {
+            implementation 'com.google.inject:guice:4.0'
+            implementation 'javax.servlet:javax.servlet-api:3.1.0'
+        
+            runtimeOnly 'io.prometheus:simpleclient:0.6.0'
+            runtimeOnly 'io.prometheus:simpleclient_servlet:0.6.0'
+            
+            testImplementation "junit:junit:4.13.1"
+            testImplementation "org.junit.jupiter:junit-jupiter:5.7.0"
+        } 
+        
+        repositories {
+            mavenCentral()
+        }
+        """.stripIndent())
+
+        def prj2dir = createSubProject('testCartridge', """
+        plugins {
+            id 'java'
+            id 'com.intershop.icm.cartridge.test'
+        }
+
+        dependencies {
+            implementation project(":productCartridge")
+            implementation "org.junit.jupiter:junit-jupiter-params:5.7.1"
+            runtimeOnly 'org.codehaus.janino:janino:2.5.16'
+        } 
+        
+        repositories {
+            mavenCentral()
+        }        
+        """.stripIndent())
+
+
+        def prj3dir = createSubProject('devCartridge', """
+        plugins {
+            id 'java-library'
+            id 'com.intershop.icm.cartridge.development'
+        }
+        
+        dependencies {
+            implementation project(":productCartridge")
+            implementation 'org.hamcrest:hamcrest-core:1.3'
+            implementation 'org.hamcrest:hamcrest-library:1.3'
+        } 
+        
+        repositories {
+            mavenCentral()
+        }        
+        """.stripIndent())
+
+        writeJavaTestClass("com.intershop.productCartridge", prj1dir)
+        writeJavaTestClass("com.intershop.testCartridge", prj2dir)
+        writeJavaTestClass("com.intershop.devCartridge", prj3dir)
+
+        when:
+        def result = getPreparedGradleRunner()
+                .withArguments("assemble", '-s')
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        result.task(':assemble').outcome == SUCCESS
+
+        new File(testProjectDir,"build/libraries/production").listFiles()?.size() == 8
+        (new File(testProjectDir,"build/libraries/production/aopalliance_aopalliance_1.0.jar")).exists()
+        (new File(testProjectDir,"build/libraries/production/com.google.guava_guava_16.0.1.jar")).exists()
+        (new File(testProjectDir,"build/libraries/production/com.google.inject_guice_4.0.jar")).exists()
+        (new File(testProjectDir,"build/libraries/production/io.prometheus_simpleclient_0.6.0.jar")).exists()
+        (new File(testProjectDir,"build/libraries/production/io.prometheus_simpleclient_common_0.6.0.jar")).exists()
+        (new File(testProjectDir,"build/libraries/production/io.prometheus_simpleclient_servlet_0.6.0.jar")).exists()
+        (new File(testProjectDir,"build/libraries/production/javax.inject_javax.inject_1.jar")).exists()
+        (new File(testProjectDir,"build/libraries/production/javax.servlet_javax.servlet-api_3.1.0.jar")).exists()
+
+        new File(testProjectDir,"build/libraries/test").listFiles()?.size() == 6
+        (new File(testProjectDir,"build/libraries/test/org.apiguardian_apiguardian-api_1.1.0.jar")).exists()
+        (new File(testProjectDir,"build/libraries/test/org.codehaus.janino_janino_2.5.16.jar")).exists()
+        (new File(testProjectDir,"build/libraries/test/org.junit.jupiter_junit-jupiter-api_5.7.1.jar")).exists()
+        (new File(testProjectDir,"build/libraries/test/org.junit.jupiter_junit-jupiter-params_5.7.1.jar")).exists()
+        (new File(testProjectDir,"build/libraries/test/org.junit.platform_junit-platform-commons_1.7.1.jar")).exists()
+        (new File(testProjectDir,"build/libraries/test/org.opentest4j_opentest4j_1.2.0.jar")).exists()
+
+        new File(testProjectDir,"build/libraries/development").listFiles()?.size() == 2
+        (new File(testProjectDir,"build/libraries/development/org.hamcrest_hamcrest-core_1.3.jar")).exists()
+        (new File(testProjectDir,"build/libraries/development/org.hamcrest_hamcrest-library_1.3.jar")).exists()
+
+        where:
+        gradleVersion << supportedGradleVersions
+    }
+
     def 'Simple test of WriteCartridgeDescriptor'(){
         given:
         settingsFile << """

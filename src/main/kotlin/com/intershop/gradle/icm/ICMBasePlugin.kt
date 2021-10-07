@@ -33,6 +33,8 @@ import com.intershop.gradle.isml.IsmlPlugin
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.file.CopySpec
+import org.gradle.api.plugins.BasePlugin
+import org.gradle.api.plugins.BasePlugin.ASSEMBLE_TASK_NAME
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
 import org.gradle.api.tasks.TaskContainer
@@ -142,6 +144,13 @@ open class ICMBasePlugin: Plugin<Project> {
 
     private fun Project.configureCollectLibrariesTask() : TaskProvider<CollectLibraries> {
         val collectLibrariesTask = tasks.register(CollectLibraries.DEFAULT_NAME, CollectLibraries::class.java)
+
+        plugins.withType(BasePlugin::class.java) {
+            tasks.named(ASSEMBLE_TASK_NAME).configure {
+                it.dependsOn(collectLibrariesTask)
+            }
+        }
+
         subprojects { sub ->
             sub.plugins.withType(CartridgePlugin::class.java) {
                 val writeCartridgeDescriptorTask = sub.tasks.

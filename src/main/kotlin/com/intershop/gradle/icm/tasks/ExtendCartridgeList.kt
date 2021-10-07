@@ -192,7 +192,7 @@ open class ExtendCartridgeList
         project.rootProject.subprojects { prj ->
             if(prj.hasProperty("cartridge.style")) {
                 projectCartridgeMap[prj.name] =
-                    CartridgeStyle.valueOf(prj.property("cartridge.style").toString().toUpperCase())
+                    CartridgeStyle.valueOf(prj.property("cartridge.style").toString().uppercase())
             }
         }
 
