@@ -33,6 +33,7 @@ import com.intershop.gradle.isml.IsmlPlugin
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.file.CopySpec
+import org.gradle.api.plugins.BasePlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
 import org.gradle.api.tasks.TaskContainer
@@ -83,9 +84,16 @@ open class ICMBasePlugin: Plugin<Project> {
                     configureBaseConfigurations(this)
                 }
 
-                subprojects.forEach { prj ->
-                    prj.plugins.withType(JavaPlugin::class.java) {
-                        configureBaseConfigurations(prj)
+                val rootAssembleTask = tasks.named(BasePlugin.ASSEMBLE_TASK_NAME)
+                subprojects.forEach { subProject ->
+                    subProject.plugins.withType(JavaPlugin::class.java) {
+                        configureBaseConfigurations(subProject)
+                    }
+                    // enforce: root.assemble dependsOn <allSubprojectsWithBasePlugin>.assemble
+                    subProject.plugins.withType(BasePlugin::class.java) {
+                        rootAssembleTask.configure { rootAssemble ->
+                            rootAssemble.dependsOn(subProject.tasks.named(BasePlugin.ASSEMBLE_TASK_NAME))
+                        }
                     }
                 }
 
@@ -151,6 +159,9 @@ open class ICMBasePlugin: Plugin<Project> {
                 }
             }
         }
+        // root.assemble dependsOn collectLibrariesTask
+        project.tasks.named(BasePlugin.ASSEMBLE_TASK_NAME).get().dependsOn(collectLibrariesTask)
+
         return collectLibrariesTask
     }
 
