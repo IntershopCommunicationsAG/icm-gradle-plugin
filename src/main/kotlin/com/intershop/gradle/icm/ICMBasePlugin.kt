@@ -72,6 +72,7 @@ open class ICMBasePlugin: Plugin<Project> {
 
                 // apply maven publishing plugin to root and subprojects
                 plugins.apply(MavenPublishPlugin::class.java)
+                plugins.apply(BasePlugin::class.java)
 
                 val extension = extensions.findByType(
                     IntershopExtension::class.java
@@ -160,7 +161,9 @@ open class ICMBasePlugin: Plugin<Project> {
             }
         }
         // root.assemble dependsOn collectLibrariesTask
-        project.tasks.named(BasePlugin.ASSEMBLE_TASK_NAME).get().dependsOn(collectLibrariesTask)
+        project.tasks.named(BasePlugin.ASSEMBLE_TASK_NAME).configure { rootAssemble ->
+            rootAssemble.dependsOn(collectLibrariesTask)
+        }
 
         return collectLibrariesTask
     }

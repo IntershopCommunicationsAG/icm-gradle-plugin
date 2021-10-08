@@ -67,7 +67,6 @@ open class CartridgePlugin : Plugin<Project> {
     private fun configureAddFileCreation(project: Project) {
         with(project) {
             val implementation = configurations.getByName(JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME)
-            val runtime = configurations.getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME)
 
             val cartridge = configurations.maybeCreate(CONFIGURATION_CARTRIDGE)
             cartridge.isTransitive = false
@@ -83,11 +82,10 @@ open class CartridgePlugin : Plugin<Project> {
                     WriteCartridgeDescriptor::class.java) { writeCartridgeDescriptor ->
 
                 writeCartridgeDescriptor.dependsOn(cartridge, cartridgeRuntime)
-
-                // cartridge.assemble dependsOn writeCartridgeDescriptor
-                tasks.named(BasePlugin.ASSEMBLE_TASK_NAME).get().dependsOn(writeCartridgeDescriptor)
             }
 
+            // ensure resulting dependency chain (simplified):
+            //     assemble -> jar -> processResources -> writeCartridgeDescriptor
             prTask.configure {
                 it.dependsOn(taskWriteCartridgeDescriptor)
                 it.from(taskWriteCartridgeDescriptor) { cs ->
