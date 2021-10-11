@@ -16,12 +16,11 @@
  */
 package com.intershop.gradle.icm.cartridge
 
-import com.intershop.gradle.icm.ICMBasePlugin
 import com.intershop.gradle.icm.extension.IntershopExtension
 import com.intershop.gradle.icm.tasks.WriteCartridgeDescriptor
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.UnknownTaskException
+import org.gradle.api.plugins.BasePlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.JavaPlugin.PROCESS_RESOURCES_TASK_NAME
 import org.gradle.api.tasks.TaskContainer
@@ -66,27 +65,27 @@ open class CartridgePlugin : Plugin<Project> {
     }
 
     private fun configureAddFileCreation(project: Project) {
-        with(project.configurations) {
-            val implementation = getByName(JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME)
-            val runtime = getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME)
+        with(project) {
+            val implementation = configurations.getByName(JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME)
 
-            val cartridge = maybeCreate(CONFIGURATION_CARTRIDGE)
+            val cartridge = configurations.maybeCreate(CONFIGURATION_CARTRIDGE)
             cartridge.isTransitive = false
             implementation.extendsFrom(cartridge)
 
-            val cartridgeRuntime = maybeCreate(CONFIGURATION_CARTRIDGERUNTIME)
+            val cartridgeRuntime = configurations.maybeCreate(CONFIGURATION_CARTRIDGERUNTIME)
             cartridgeRuntime.extendsFrom(cartridge)
             cartridgeRuntime.isTransitive = true
 
             val prTask = project.tasks.named(PROCESS_RESOURCES_TASK_NAME, ProcessResources::class.java)
 
-            val taskWriteCartridgeDescriptor = project.tasks.register(
-                WriteCartridgeDescriptor.DEFAULT_NAME,
-                WriteCartridgeDescriptor::class.java
-                ) { task ->
-                task.dependsOn(cartridge, cartridgeRuntime)
+            val taskWriteCartridgeDescriptor = project.tasks.register(WriteCartridgeDescriptor.DEFAULT_NAME,
+                    WriteCartridgeDescriptor::class.java) { writeCartridgeDescriptor ->
+
+                writeCartridgeDescriptor.dependsOn(cartridge, cartridgeRuntime)
             }
 
+            // ensure resulting dependency chain (simplified):
+            //     assemble -> jar -> processResources -> writeCartridgeDescriptor
             prTask.configure {
                 it.dependsOn(taskWriteCartridgeDescriptor)
                 it.from(taskWriteCartridgeDescriptor) { cs ->
