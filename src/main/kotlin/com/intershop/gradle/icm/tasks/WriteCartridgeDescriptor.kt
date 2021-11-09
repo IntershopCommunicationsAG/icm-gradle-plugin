@@ -21,6 +21,7 @@ import com.intershop.gradle.icm.ICMBasePlugin.Companion.CONFIGURATION_CARTRIDGE_
 import com.intershop.gradle.icm.extension.IntershopExtension.Companion.INTERSHOP_GROUP_NAME
 import com.intershop.gradle.icm.utils.CartridgeUtil
 import org.gradle.api.DefaultTask
+import org.gradle.api.artifacts.LenientConfiguration
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import org.gradle.api.file.ProjectLayout
@@ -202,8 +203,10 @@ open class WriteCartridgeDescriptor
 
     private fun getLibs(): Set<String> {
         val dependencies = HashSet<String>()
-        project.configurations.getByName(RUNTIME_CLASSPATH_CONFIGURATION_NAME)
-            .resolvedConfiguration.lenientConfiguration.allModuleDependencies.forEach { dependency ->
+        val lenientConfiguration = project.configurations.getByName(RUNTIME_CLASSPATH_CONFIGURATION_NAME)
+            .resolvedConfiguration.lenientConfiguration
+        logUnresolvedDepencencies(lenientConfiguration)
+        lenientConfiguration.allModuleDependencies.forEach { dependency ->
                 dependency.moduleArtifacts.forEach { artifact ->
                     when (val identifier = artifact.id.componentIdentifier) {
                         is ModuleComponentIdentifier -> {
@@ -220,8 +223,10 @@ open class WriteCartridgeDescriptor
 
     private fun getCartridges(): Set<String> {
         val dependencies = HashSet<String>()
-        project.configurations.getByName(CONFIGURATION_CARTRIDGE_RUNTIME)
-            .resolvedConfiguration.lenientConfiguration.allModuleDependencies.forEach { dependency ->
+        val lenientConfiguration = project.configurations.getByName(CONFIGURATION_CARTRIDGE_RUNTIME)
+            .resolvedConfiguration.lenientConfiguration
+        logUnresolvedDepencencies(lenientConfiguration)
+        lenientConfiguration.allModuleDependencies.forEach { dependency ->
                 dependency.moduleArtifacts.forEach { artifact ->
                     when (val identifier = artifact.id.componentIdentifier) {
                         is ProjectComponentIdentifier ->
@@ -234,6 +239,14 @@ open class WriteCartridgeDescriptor
                 }
             }
         return dependencies
+    }
+
+    private fun logUnresolvedDepencencies(lenientConfiguration: LenientConfiguration) {
+        val unresolvedModuleDependencies = lenientConfiguration.unresolvedModuleDependencies
+        if (unresolvedModuleDependencies.isNotEmpty()){
+            project.logger.warn("Failed to resolve the following dependencies while writing the cartridge" +
+                                " descriptor for project {}: {}", project.name, unresolvedModuleDependencies)
+        }
     }
 
     private fun <E> flattenToString(
