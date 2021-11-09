@@ -244,7 +244,8 @@ open class WriteCartridgeDescriptor
     private fun logUnresolvedDepencencies(lenientConfiguration: LenientConfiguration) {
         val unresolvedModuleDependencies = lenientConfiguration.unresolvedModuleDependencies
         if (unresolvedModuleDependencies.isNotEmpty()){
-            project.logger.warn("Failed to resolve the following dependencies while writing the cartridge descriptor for project {}: {}", project.name, unresolvedModuleDependencies)
+            project.logger.warn("Failed to resolve the following dependencies while writing the cartridge" +
+                                " descriptor for project {}: {}", project.name, unresolvedModuleDependencies)
         }
     }
 
