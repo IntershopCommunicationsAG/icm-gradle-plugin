@@ -147,8 +147,8 @@ pluginBundle {
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
 }
 
 // set correct project status
@@ -299,6 +299,7 @@ publishing {
         }
     }
     repositories {
+	    			
         maven {
             val releasesRepoUrl = "https://oss.sonatype.org/service/local/staging/deploy/maven2"
             val snapshotsRepoUrl = "https://oss.sonatype.org/content/repositories/snapshots"
@@ -320,8 +321,11 @@ dependencies {
     implementation(localGroovy())
 
     compileOnly("org.apache.ant:ant:1.10.7")
-    implementation("com.intershop.gradle.isml:isml-gradle-plugin:4.1.4")
-
+	
     testImplementation("com.intershop.gradle.test:test-gradle-plugin:4.1.1")
     testImplementation(gradleTestKit())
+	
+	repositories {
+		mavenLocal()
+	}
 }

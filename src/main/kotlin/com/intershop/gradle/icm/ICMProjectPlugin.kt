@@ -31,7 +31,6 @@ import com.intershop.gradle.icm.utils.CartridgeStyle.valueOf
 import com.intershop.gradle.icm.utils.EnvironmentType.DEVELOPMENT
 import com.intershop.gradle.icm.utils.EnvironmentType.PRODUCTION
 import com.intershop.gradle.icm.utils.EnvironmentType.TEST
-import com.intershop.gradle.isml.IsmlPlugin
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
@@ -125,12 +124,6 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
                 if (style == ALL || PROD_ENVS.contains(style.environmentType())) {
                     prepareContainer.configure { task -> task.dependsOn(jarTask) }
                 }
-            }
-            sub.plugins.withType(IsmlPlugin::class.java) {
-                val ismlTask = sub.tasks.getByName("isml2classMain")
-                prepareServer.configure { task -> task.dependsOn(ismlTask) }
-                prepareTestContainer.configure { task -> task.dependsOn(ismlTask) }
-                prepareContainer.configure { task -> task.dependsOn(ismlTask) }
             }
         }
     }

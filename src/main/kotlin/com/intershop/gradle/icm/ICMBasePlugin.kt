@@ -29,7 +29,6 @@ import com.intershop.gradle.icm.tasks.CreateServerInfo
 import com.intershop.gradle.icm.tasks.CreateTestPackage
 import com.intershop.gradle.icm.tasks.WriteCartridgeDescriptor
 import com.intershop.gradle.icm.utils.EnvironmentType
-import com.intershop.gradle.isml.IsmlPlugin
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.file.CopySpec
@@ -161,9 +160,7 @@ open class ICMBasePlugin: Plugin<Project> {
             }
         }
         // root.assemble dependsOn collectLibrariesTask
-        project.tasks.named(BasePlugin.ASSEMBLE_TASK_NAME).configure { rootAssemble ->
-            rootAssemble.dependsOn(collectLibrariesTask)
-        }
+        project.tasks.named(BasePlugin.ASSEMBLE_TASK_NAME).get().dependsOn(collectLibrariesTask)
 
         return collectLibrariesTask
     }
@@ -182,12 +179,6 @@ open class ICMBasePlugin: Plugin<Project> {
                         }
                     }
 
-                    sub.plugins.withType(IsmlPlugin::class.java) {
-                        cp.from(sub.tasks.getByName("isml2classMain")) { cpt ->
-                            intoRelease(cpt, sub)
-                        }
-                    }
-
                     sub.plugins.withType(JavaPlugin::class.java) {
                         cp.from(sub.tasks.getByName("jar")) { cps ->
                             cps.into("cartridges/${sub.name}/release/lib")
@@ -196,23 +187,14 @@ open class ICMBasePlugin: Plugin<Project> {
                 }
 
                 sub.plugins.withType(ProductPlugin::class.java) {
-                    sub.plugins.withType(IsmlPlugin::class.java) {
-                        createMainPackage.configure { mainpkg -> pkgDependsOn(mainpkg, sub) }
-                    }
                     createMainPackage.configure { mainpkg -> mainpkg.with(cartridgefiles) }
                 }
 
                 sub.plugins.withType(ContainerPlugin::class.java) {
-                    sub.plugins.withType(IsmlPlugin::class.java) {
-                        createMainPackage.configure { mainpkg -> pkgDependsOn(mainpkg, sub) }
-                    }
                     createMainPackage.configure { mainpkg -> mainpkg.with(cartridgefiles) }
                 }
 
                 sub.plugins.withType(TestPlugin::class.java) {
-                    sub.plugins.withType(IsmlPlugin::class.java) {
-                        createTestPackage.configure { testpkg -> pkgDependsOn(testpkg, sub) }
-                    }
                     createTestPackage.configure { testpkg -> testpkg.with(cartridgefiles) }
                 }
             }
@@ -231,7 +213,6 @@ open class ICMBasePlugin: Plugin<Project> {
     private fun intoRelease(cpsp: CopySpec, prj: Project) = cpsp.into("cartridges/${prj.name}/release")
 
     private fun pkgDependsOn(tar: Tar, prj: Project) {
-        tar.dependsOn(prj.tasks.named("isml2classMain"))
         tar.dependsOn(prj.tasks.named("jar"))
     }
 }
