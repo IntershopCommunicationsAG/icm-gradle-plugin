@@ -16,14 +16,10 @@
  */
 package com.intershop.gradle.icm.utils
 
-import com.bmuschko.gradle.docker.internal.IOUtils
 import org.gradle.api.Project
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
-import java.net.URI
-import java.net.http.HttpClient
-import java.net.http.HttpRequest
-import java.net.http.HttpResponse
+import org.gradle.api.internal.GradleInternal
+import org.gradle.internal.logging.progress.ProgressLogger
+import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import java.time.Duration
 import java.time.Instant
 import java.time.temporal.ChronoUnit
@@ -37,7 +33,7 @@ abstract class AbstractProbe(private val project: Project) : Probe {
     override fun execute(): Boolean {
         // create progressLogger for pretty printing of terminal log progression.
         val reqDesc = describeRequest()
-        val progressLogger = IOUtils.getProgressLogger(project, this.javaClass).start(
+        val progressLogger = getProgressLogger().start(
                 "Probing a $reqDesc expecting to become available and to response properly.", "started")
 
         val start = Instant.now()
@@ -97,6 +93,12 @@ abstract class AbstractProbe(private val project: Project) : Probe {
     override fun onFailure(onFailure : (Unit) -> Unit) : Probe {
         this.onFailure = onFailure
         return this
+    }
+
+    private fun getProgressLogger() : ProgressLogger {
+        val registry = (project as GradleInternal).services
+        val factory = registry.get(ProgressLoggerFactory::class.java)
+        return factory.newOperation(javaClass)
     }
 
 }
