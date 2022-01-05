@@ -61,7 +61,10 @@ abstract class AbstractProbe(private val project: Project) : Probe {
             tryCount++
         }
         val totalDuration = Duration.ofMillis(start.until(Instant.now(), ChronoUnit.MILLIS))
-        progressLogger.completed("Failed to probe a ${describeRequest()} (total retry duration is ${totalDuration})", false)
+        progressLogger.completed(
+                "Failed to probe a ${describeRequest()} (total retry duration is ${totalDuration})",
+                false
+        )
         onSuccess.invoke(Unit)
         return true
     }

@@ -19,7 +19,10 @@ package com.intershop.gradle.icm.utils
 import org.gradle.api.Project
 import java.net.Socket
 
-class SocketProbe(private val project: Project, private val hostName : String, private val port : Int) : AbstractProbe(project) {
+class SocketProbe(
+        private val project: Project,
+        private val hostName : String,
+        private val port : Int) : AbstractProbe(project) {
 
     companion object {
         fun toLocalhost(project: Project, port : Int) : SocketProbe = SocketProbe(project, "localhost", port)
