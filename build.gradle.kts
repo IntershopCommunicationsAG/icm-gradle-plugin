@@ -320,8 +320,17 @@ dependencies {
     implementation(localGroovy())
 
     compileOnly("org.apache.ant:ant:1.10.7")
+    implementation("com.bmuschko:gradle-docker-plugin:7.1.0")
     implementation("com.intershop.gradle.isml:isml-gradle-plugin:4.1.4")
 
     testImplementation("com.intershop.gradle.test:test-gradle-plugin:4.1.1")
     testImplementation(gradleTestKit())
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+    maven {
+        url = uri("https://plugins.gradle.org/m2/")
+    }
 }
