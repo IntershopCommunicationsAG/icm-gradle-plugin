@@ -16,74 +16,42 @@
  */
 package com.intershop.gradle.icm.utils
 
+import org.gradle.api.Project
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
-import java.time.Duration
-import java.time.Instant
-import java.time.temporal.ChronoUnit
-import java.util.function.Predicate
 
-class HttpProbe(target : URI) {
-    private val logger: Logger = LoggerFactory.getLogger(HttpProbe::class.java)
+class HttpProbe(private val project: Project, target : URI) : AbstractProbe(project) {
     private val client : HttpClient = HttpClient.newHttpClient()
-    private var retryInterval = Duration.ofMinutes(1)
-    private var retryTimeout = retryInterval.multipliedBy(3)
-    private var statusCheck = Predicate<Int> { statusCode -> statusCode == 200 }
+    private var statusCheck : (statusCode : Int) -> Boolean = { statusCode -> statusCode == 200 }
     val request : HttpRequest = HttpRequest.newBuilder().GET().uri(target).build()
 
-    fun execute(): Boolean {
-        val start = Instant.now()
-        var success = executeOnce()
-        while (!success){
-            // sleep for <retryInterval>
-            Thread.sleep(retryInterval.toMillis())
-            // calculate if <retryTimeout> is exceeded
-            val end = Instant.now()
-            val dur = Duration.ofMillis(start.until(end, ChronoUnit.MILLIS))
-            if (dur > retryTimeout){
-                logger.warn("Failed to probe a HTTP {} to {} (total retry duration is {})", request.method(),
-                        request.uri(), dur)
-                // if so fail
-                return false
-            }
-            success = executeOnce()
-        }
-        val totalDuration = Duration.ofMillis(start.until(Instant.now(), ChronoUnit.MILLIS))
-        logger.info("Successfully probed a HTTP {} to {} (total duration is {})", request.method(), request.uri(),
-                totalDuration)
-        return true
-    }
-
-    private fun executeOnce(): Boolean {
-        logger.debug("Retrying to probe a HTTP {} to {}", request.method(), request.uri())
+    override fun executeOnce(): Boolean {
+        val reqDesc = describeRequest()
         val response = try {
+            project.logger.debug("(Re-)trying to probe a {}", reqDesc)
             client.send(request, HttpResponse.BodyHandlers.ofString())
         } catch (e: Exception) {
-            logger.debug("Unable to probe a HTTP {} to {}", request.method(), request.uri(), e)
+            project.logger.debug("Unable to probe {}", reqDesc, e)
             return false
         }
-        logger.debug("Received response while probing a HTTP {} to {}: status={}", request.method(), request.uri(),
-                response.statusCode())
-        return statusCheck.test(response.statusCode())
+        project.logger.debug("Received response while probing a {}: status={}", reqDesc, response.statusCode())
+        return statusCheck.invoke(response.statusCode())
     }
 
-    fun withRetryInterval(interval : Duration) : HttpProbe {
-        retryInterval = interval
-        return this
-    }
+    override fun describeRequest(): String = "HTTP ${request.method()} to ${request.uri()}"
 
-    fun withRetryTimeout(timeout : Duration) : HttpProbe {
-        retryTimeout = timeout
-        return this
-    }
-
-    fun requireHttpStatus(statusCheck : Predicate<Int> ) : HttpProbe {
+    fun requireHttpStatus(statusCheck : (statusCode : Int) -> Boolean ) : HttpProbe {
         this.statusCheck = statusCheck
         return this
+    }
+
+    override fun toString(): String {
+        return "HttpProbe using ${request.method()} to '${request.uri()}' retried each $retryInterval timing out " +
+               "after $retryTimeout"
     }
 
 }
