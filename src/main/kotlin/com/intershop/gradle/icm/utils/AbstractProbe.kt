@@ -16,15 +16,14 @@
  */
 package com.intershop.gradle.icm.utils
 
-import org.gradle.api.Project
-import org.gradle.api.internal.GradleInternal
 import org.gradle.internal.logging.progress.ProgressLogger
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
+import org.gradle.internal.service.ServiceRegistry
 import java.time.Duration
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 
-abstract class AbstractProbe(private val project: Project) : Probe {
+abstract class AbstractProbe(private val serviceRegistrySupplier : () -> ServiceRegistry) : Probe {
     var retryInterval = Duration.ofMinutes(1)
     var retryTimeout = retryInterval.multipliedBy(3)
     private var onSuccess : (Unit) -> Unit = { }
@@ -96,8 +95,7 @@ abstract class AbstractProbe(private val project: Project) : Probe {
     }
 
     private fun getProgressLogger() : ProgressLogger {
-        val registry = (project as GradleInternal).services
-        val factory = registry.get(ProgressLoggerFactory::class.java)
+        val factory = serviceRegistrySupplier.invoke().get(ProgressLoggerFactory::class.java)
         return factory.newOperation(javaClass)
     }
 
