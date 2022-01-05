@@ -23,7 +23,10 @@ import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 
-class HttpProbe(private val project : Project, serviceRegistrySupplier : () -> ServiceRegistry, target : URI) : AbstractProbe(serviceRegistrySupplier) {
+class HttpProbe(
+        private val project : Project,
+        serviceRegistrySupplier : () -> ServiceRegistry,
+        target : URI) : AbstractProbe(serviceRegistrySupplier) {
     private val client : HttpClient = HttpClient.newHttpClient()
     private var statusCheck : (statusCode : Int) -> Boolean = { statusCode -> statusCode == 200 }
     val request : HttpRequest = HttpRequest.newBuilder().GET().uri(target).build()
