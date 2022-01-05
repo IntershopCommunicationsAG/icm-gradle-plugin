@@ -17,15 +17,19 @@
 package com.intershop.gradle.icm.utils
 
 import org.gradle.api.Project
+import org.gradle.internal.service.ServiceRegistry
 import java.net.Socket
 
 class SocketProbe(
         private val project: Project,
+        serviceRegistrySupplier : () -> ServiceRegistry,
         private val hostName : String,
-        private val port : Int) : AbstractProbe(project) {
+        private val port : Int) : AbstractProbe(serviceRegistrySupplier) {
 
     companion object {
-        fun toLocalhost(project: Project, port : Int) : SocketProbe = SocketProbe(project, "localhost", port)
+        fun toLocalhost(project: Project, serviceRegistrySupplier : () -> ServiceRegistry, port : Int) : SocketProbe {
+            return SocketProbe(project, serviceRegistrySupplier, "localhost", port)
+        }
     }
 
     override fun executeOnce(): Boolean {
