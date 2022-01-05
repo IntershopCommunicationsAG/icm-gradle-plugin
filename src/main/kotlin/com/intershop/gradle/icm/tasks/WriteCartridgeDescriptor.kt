@@ -203,10 +203,13 @@ open class WriteCartridgeDescriptor
 
     private fun getLibs(): Set<String> {
         val dependencies = HashSet<String>()
-        val lenientConfiguration = project.configurations.getByName(RUNTIME_CLASSPATH_CONFIGURATION_NAME)
-            .resolvedConfiguration.lenientConfiguration
-        logUnresolvedDepencencies(lenientConfiguration)
-        lenientConfiguration.allModuleDependencies.forEach { dependency ->
+        val resolvedConfig = project.configurations.getByName(RUNTIME_CLASSPATH_CONFIGURATION_NAME)
+            .resolvedConfiguration
+        // ensure build fails if there are resolve errors
+        if (resolvedConfig.hasError()){
+            resolvedConfig.rethrowFailure()
+        }
+        resolvedConfig.lenientConfiguration.allModuleDependencies.forEach { dependency ->
                 dependency.moduleArtifacts.forEach { artifact ->
                     when (val identifier = artifact.id.componentIdentifier) {
                         is ModuleComponentIdentifier -> {
@@ -223,10 +226,12 @@ open class WriteCartridgeDescriptor
 
     private fun getCartridges(): Set<String> {
         val dependencies = HashSet<String>()
-        val lenientConfiguration = project.configurations.getByName(CONFIGURATION_CARTRIDGE_RUNTIME)
-            .resolvedConfiguration.lenientConfiguration
-        logUnresolvedDepencencies(lenientConfiguration)
-        lenientConfiguration.allModuleDependencies.forEach { dependency ->
+        val resolvedConfig = project.configurations.getByName(CONFIGURATION_CARTRIDGE_RUNTIME).resolvedConfiguration
+        // ensure build fails if there are resolve errors
+        if (resolvedConfig.hasError()){
+            resolvedConfig.rethrowFailure()
+        }
+        resolvedConfig.lenientConfiguration.allModuleDependencies.forEach { dependency ->
                 dependency.moduleArtifacts.forEach { artifact ->
                     when (val identifier = artifact.id.componentIdentifier) {
                         is ProjectComponentIdentifier ->
@@ -239,14 +244,6 @@ open class WriteCartridgeDescriptor
                 }
             }
         return dependencies
-    }
-
-    private fun logUnresolvedDepencencies(lenientConfiguration: LenientConfiguration) {
-        val unresolvedModuleDependencies = lenientConfiguration.unresolvedModuleDependencies
-        if (unresolvedModuleDependencies.isNotEmpty()){
-            project.logger.warn("Failed to resolve the following dependencies while writing the cartridge" +
-                                " descriptor for project {}: {}", project.name, unresolvedModuleDependencies)
-        }
     }
 
     private fun <E> flattenToString(
