@@ -25,6 +25,7 @@ import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import java.util.*
 import javax.inject.Inject
+import kotlin.math.min
 
 /**
  * Gradle task to create an ID for ICM cluster.
@@ -39,6 +40,7 @@ open class CreateClusterID @Inject constructor(
     companion object {
         const val DEFAULT_NAME = "createClusterID"
         const val CLUSTER_ID_NAME = "cluster.id"
+        const val MAX_LENGTH = 28
     }
 
     /**
@@ -62,7 +64,8 @@ open class CreateClusterID @Inject constructor(
     @TaskAction
     fun createID() {
         val uuid = UUID.randomUUID()
-        val uuidStr = uuid.toString().replace("-", "")
+        val uuidReplaced = uuid.toString().replace("-", "")
+        val uuidStr = uuidReplaced.substring(0, min(MAX_LENGTH, uuidReplaced.length))
         val outputFile = outputDir.get().file(CLUSTER_ID_NAME).asFile
 
         if(! outputFile.parentFile.exists()) {
