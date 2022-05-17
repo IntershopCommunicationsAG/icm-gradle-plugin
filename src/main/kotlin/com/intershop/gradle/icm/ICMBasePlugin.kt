@@ -23,7 +23,6 @@ import com.intershop.gradle.icm.cartridge.ProductPlugin
 import com.intershop.gradle.icm.cartridge.TestPlugin
 import com.intershop.gradle.icm.extension.IntershopExtension
 import com.intershop.gradle.icm.tasks.CollectLibraries
-import com.intershop.gradle.icm.tasks.CreateClusterID
 import com.intershop.gradle.icm.tasks.CreateMainPackage
 import com.intershop.gradle.icm.tasks.CreateServerInfo
 import com.intershop.gradle.icm.tasks.CreateTestPackage
@@ -97,7 +96,6 @@ open class ICMBasePlugin: Plugin<Project> {
                     }
                 }
 
-                configureClusterIdTask()
                 configureCreateServerInfoPropertiesTask(extension)
                 val configureCollectLibrariesTask = configureCollectLibrariesTask()
 
@@ -142,10 +140,6 @@ open class ICMBasePlugin: Plugin<Project> {
             task.provideCopyrightFrom(extension.projectInfo.copyrightFromProvider)
             task.provideOrganization(extension.projectInfo.organizationProvider)
         }
-    }
-
-    private fun Project.configureClusterIdTask() {
-        tasks.register( CreateClusterID.DEFAULT_NAME, CreateClusterID::class.java )
     }
 
     private fun Project.configureCollectLibrariesTask() : TaskProvider<CollectLibraries> {

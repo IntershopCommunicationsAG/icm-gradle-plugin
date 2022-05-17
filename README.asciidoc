@@ -454,8 +454,6 @@ CollectLibraries`  | Collects all libraries (recursively through all (sub-)proje
 | *createServerInfo*    | `com.intershop.gradle.icm.tasks +
 CreateServerInfo`  | Creates a properties file with all project information.
 This property is used by the server.
-| *createClusterID*     | `com.intershop.gradle.icm.tasks +
-CreateClusterID` |  This taks creates an UID with Java functionality in the required format for the server.
 | *createMainPkg* | `com.intershop.gradle.icm.tasks +
 CreateMainPackage`  | This is preconfigured Tar task. It creates `<build dir>/packages/mainpkg.tgz` as base for container creation. It contains all components of the main appserver container. Cartridges will be added per default.
 | *createTestPkg* | `com.intershop.gradle.icm.tasks +
