@@ -159,7 +159,7 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
         return prepareTask
     }
 
-    private fun prepareServer(project: Project, pluginConfig: PluginConfig,
+    private fun prepareServer(pluginConfig: PluginConfig,
                                       versionInfoTask: TaskProvider<CreateServerInfo>): TaskProvider<Task> {
 
         val setupCartridgeTask = pluginConfig.getSetupCartridgesTask(DEVELOPMENT, DEVELOPMENT_ENVS)
