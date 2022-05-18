@@ -92,7 +92,7 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
             apply { configure { task -> task.dependsOn(collectLibrariesTask) } }
         val prepareTestContainer = prepareTestContainer(pluginConfig, infoTask).
             apply { configure { task -> task.dependsOn(collectLibrariesTask) } }
-        val prepareServer = prepareServer(project, pluginConfig, infoTask).
+        val prepareServer = prepareServer(pluginConfig, infoTask).
             apply { configure { task -> task.dependsOn(collectLibrariesTask) } }
 
         configurePrepareTasks(pluginConfig, prepareServer, prepareTestContainer, prepareContainer)
