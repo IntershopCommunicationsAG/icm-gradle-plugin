@@ -21,7 +21,6 @@ import com.intershop.gradle.icm.extension.ServerDir
 import com.intershop.gradle.icm.project.PluginConfig
 import com.intershop.gradle.icm.project.TaskName
 import com.intershop.gradle.icm.tasks.CollectLibraries
-import com.intershop.gradle.icm.tasks.CreateClusterID
 import com.intershop.gradle.icm.tasks.CreateMainPackage
 import com.intershop.gradle.icm.tasks.CreateServerInfo
 import com.intershop.gradle.icm.tasks.CreateTestPackage
@@ -93,7 +92,7 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
             apply { configure { task -> task.dependsOn(collectLibrariesTask) } }
         val prepareTestContainer = prepareTestContainer(pluginConfig, infoTask).
             apply { configure { task -> task.dependsOn(collectLibrariesTask) } }
-        val prepareServer = prepareServer(project, pluginConfig, infoTask).
+        val prepareServer = prepareServer(pluginConfig, infoTask).
             apply { configure { task -> task.dependsOn(collectLibrariesTask) } }
 
         configurePrepareTasks(pluginConfig, prepareServer, prepareTestContainer, prepareContainer)
@@ -160,17 +159,15 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
         return prepareTask
     }
 
-    private fun prepareServer(project: Project, pluginConfig: PluginConfig,
+    private fun prepareServer(pluginConfig: PluginConfig,
                                       versionInfoTask: TaskProvider<CreateServerInfo>): TaskProvider<Task> {
 
         val setupCartridgeTask = pluginConfig.getSetupCartridgesTask(DEVELOPMENT, DEVELOPMENT_ENVS)
         val createConfig = pluginConfig.getConfigTask(versionInfoTask, DEVELOPMENT, DEVELOPMENT_ENVS)
 
-        val createClusterID = project.tasks.named(CreateClusterID.DEFAULT_NAME)
-
         val prepareTask = pluginConfig.configurePrepareTask(DEVELOPMENT)
         prepareTask.configure { task ->
-            task.dependsOn(setupCartridgeTask, createConfig, createClusterID)
+            task.dependsOn(setupCartridgeTask, createConfig)
         }
         return prepareTask
     }
