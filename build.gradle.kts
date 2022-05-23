@@ -312,9 +312,9 @@ publishing {
     }
 }
 
-//signing {
-//    sign(publishing.publications["intershopMvn"])
-//}
+signing {
+    sign(publishing.publications["intershopMvn"])
+}
 
 dependencies {
     implementation(gradleApi())
