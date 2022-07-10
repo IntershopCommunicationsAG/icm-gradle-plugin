@@ -25,6 +25,7 @@ import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
+import org.gradle.api.tasks.bundling.Jar
 import java.time.Year
 
 /**
@@ -43,6 +44,7 @@ open class PublicPlugin : Plugin<Project> {
 
     private fun configureAddJars(project: Project) {
         with(project) {
+
             plugins.withType(JavaPlugin::class.java) {
 
                 val java = extensions.getByType(JavaPluginExtension::class.java)
@@ -64,6 +66,10 @@ open class PublicPlugin : Plugin<Project> {
                                 vm.usage("java-runtime") { ms ->
                                     ms.fromResolutionResult()
                                 }
+                            }
+
+                            plugins.withId("com.intershop.gradle.isml") {
+                                artifact(tasks.named("ismlSourcesJar", Jar::class.java))
                             }
 
                             try {
