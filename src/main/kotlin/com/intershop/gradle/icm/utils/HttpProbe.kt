@@ -22,14 +22,16 @@ import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
+import java.time.Duration
 
 class HttpProbe(
         private val project : Project,
         serviceRegistrySupplier : () -> ServiceRegistry,
-        target : URI) : AbstractProbe(serviceRegistrySupplier) {
+        target : URI,
+        requestTimeout : Duration = Duration.ofSeconds(30)) : AbstractProbe(serviceRegistrySupplier) {
     private val client : HttpClient = HttpClient.newHttpClient()
     private var statusCheck : (statusCode : Int) -> Boolean = { statusCode -> statusCode == 200 }
-    val request : HttpRequest = HttpRequest.newBuilder().GET().uri(target).build()
+    val request : HttpRequest = HttpRequest.newBuilder().GET().timeout(requestTimeout).uri(target).build()
 
     override fun executeOnce(): Boolean {
         val reqDesc = describeRequest()
@@ -53,7 +55,7 @@ class HttpProbe(
 
     override fun toString(): String {
         return "HttpProbe using ${request.method()} to '${request.uri()}' retried each $retryInterval timing out " +
-               "after $retryTimeout"
+               "after $retryTimeout with a request timeout of ${request.timeout()}"
     }
 
 }
