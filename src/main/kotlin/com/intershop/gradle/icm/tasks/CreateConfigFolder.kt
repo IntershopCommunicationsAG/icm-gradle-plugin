@@ -51,16 +51,6 @@ open class CreateConfigFolder
     }
 
     @get:InputFile
-    val cartridgeList: RegularFileProperty = objectFactory.fileProperty()
-
-    /**
-     * Provides the cartridgelist.properties of this project.
-     *
-     * @param file regular file provider.
-     */
-    fun provideCartridgeListFile(file: Provider<RegularFile>) = cartridgeList.set(file)
-
-    @get:InputFile
     val versionInfo: RegularFileProperty = objectFactory.fileProperty()
 
     /**
@@ -92,7 +82,6 @@ open class CreateConfigFolder
         }
 
         val fileCS = project.copySpec()
-        fileCS.from(cartridgeList.get())
         fileCS.from(versionInfo.get())
         fileCS.into("system-conf/cluster")
 

@@ -21,24 +21,17 @@ import com.intershop.gradle.icm.ICMBasePlugin.Companion.CONFIGURATION_CARTRIDGE_
 import com.intershop.gradle.icm.extension.IntershopExtension.Companion.INTERSHOP_GROUP_NAME
 import com.intershop.gradle.icm.utils.CartridgeUtil
 import org.gradle.api.DefaultTask
-import org.gradle.api.artifacts.LenientConfiguration
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import org.gradle.api.file.ProjectLayout
-import org.gradle.api.file.RegularFile
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME
 import org.gradle.api.provider.Property
-import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import org.gradle.internal.util.PropertiesUtils
-import java.io.File
-import java.io.FileInputStream
-import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
 import java.util.Properties
 
@@ -57,51 +50,32 @@ open class WriteCartridgeDescriptor
     objectFactory: ObjectFactory
 ) : DefaultTask() {
 
-    private val outputFileProperty: RegularFileProperty = objectFactory.fileProperty()
-    private val nameProperty: Property<String> = objectFactory.property(String::class.java)
-    private val descriptionProperty: Property<String> = objectFactory.property(String::class.java)
-    private val displayNameProperty: Property<String> = objectFactory.property(String::class.java)
-
     companion object {
         const val DEFAULT_NAME = "writeCartridgeDescriptor"
         const val CARTRIDGE_DESCRIPTOR = "descriptor/cartridge.descriptor"
     }
 
-    init {
-        group = INTERSHOP_GROUP_NAME
-        description = "Writes all necessary information of the cartridge to a file."
-
-        outputFileProperty.convention(projectLayout.buildDirectory.file(CARTRIDGE_DESCRIPTOR))
-
-        nameProperty.convention(project.name)
-        displayNameProperty.convention(project.description ?: project.name)
-    }
-
     /**
-     * Set provider for descriptor cartridge name property.
+     * Set property for descriptor cartridge name property.
      *
      * @param cartridgeName set provider for cartridge name.
      */
-    @Suppress("unused")
-    fun provideCartridgeName(cartridgeName: Provider<String>) = nameProperty.set(cartridgeName)
-
     @get:Input
-    var cartridgeName: String
-        get() = nameProperty.get()
-        set(value) = nameProperty.set(value)
+    val cartridgeName: Property<String> = objectFactory.property(String::class.java)
 
     /**
-     * Set provider for descriptor display name property.
+     * Set property for display cartridge name property.
      *
-     * @param displayName set provider for display name.
+     * @param cartridgeName set provider for cartridge name.
      */
-    @Suppress("unused")
-    fun provideDisplayName(displayName: Provider<String>) = displayNameProperty.set(displayName)
+    @get:Input
+    val displayName: Property<String> = objectFactory.property(String::class.java)
 
     @get:Input
-    var displayName: String
-        get() = displayNameProperty.get()
-        set(value) = displayNameProperty.set(value)
+    val cartridgeVersion: Property<String> = objectFactory.property(String::class.java)
+
+    @get:Input
+    val cartridgeStyle: Property<String> = objectFactory.property(String::class.java)
 
     @get:Input
     val cartridgeDependencies: String by lazy {
@@ -131,29 +105,34 @@ open class WriteCartridgeDescriptor
     }
 
     /**
-     * Provides an output file for this task.
-     *
-     * @param outputfile
-     */
-    fun provideOutputfile(outputfile: Provider<RegularFile>) = outputFileProperty.set(outputfile)
-
-    /**
      * Output file for generated descriptor.
      *
      * @property outputFile
      */
     @get:OutputFile
-    var outputFile: File
-        get() = outputFileProperty.get().asFile
-        set(value) = outputFileProperty.set(value)
+    val outputFile: RegularFileProperty = objectFactory.fileProperty()
+
+    init {
+        group = INTERSHOP_GROUP_NAME
+        description = "Writes all necessary information of the cartridge to a file."
+
+        outputFile.convention(projectLayout.buildDirectory.file(CARTRIDGE_DESCRIPTOR))
+
+        cartridgeName.convention(project.name)
+        displayName.convention(project.description ?: project.name)
+        cartridgeVersion.convention(project.version.toString())
+
+        cartridgeStyle.convention(CartridgeUtil.getCartridgeStyle(project).name)
+
+    }
 
     /**
      * Task method for the creation of a descriptor file.
      */
     @TaskAction
     fun runFileCreation() {
-        if (!outputFile.parentFile.exists()) {
-            outputFile.parentFile.mkdirs()
+        if (!outputFile.asFile.get().exists()) {
+            outputFile.asFile.get().parentFile.mkdirs()
         }
 
         val props = linkedMapOf<String, String>()
@@ -167,13 +146,13 @@ open class WriteCartridgeDescriptor
         props["cartridge.dependsOn"] = cartridges.toSortedSet().joinToString(separator = ";")
         props["cartridge.dependsOnLibs"] = libs.toSortedSet().joinToString(separator = ";")
 
-        props["cartridge.name"] = cartridgeName
-        props["cartridge.displayName"] = displayName
-        props["cartridge.description"] = displayName
-        props["cartridge.version"] = project.version.toString()
+        props["cartridge.name"] = cartridgeName.get()
+        props["cartridge.displayName"] = displayName.get()
+        props["cartridge.description"] = displayName.get()
+        props["cartridge.version"] = cartridgeVersion.get()
 
-        if (project.hasProperty("cartridge.style")) {
-            props["cartridge.style"] = project.property("cartridge.style").toString()
+        if(cartridgeStyle.get().isNotBlank()) {
+            props["cartridge.style"] = cartridgeStyle.get()
         }
 
         val propsObject = Properties()
@@ -181,7 +160,7 @@ open class WriteCartridgeDescriptor
         try {
             PropertiesUtils.store(
                 propsObject,
-                outputFile,
+                outputFile.asFile.get(),
                 comment,
                 StandardCharsets.ISO_8859_1,
                 "\n"
@@ -189,16 +168,6 @@ open class WriteCartridgeDescriptor
         } finally {
             project.logger.debug("Wrote cartridge descriptor.")
         }
-    }
-
-    @Internal
-    fun getLibraryIDs(): Set<String> {
-        val props = Properties()
-        FileInputStream(outputFile).use {
-            props.load(it)
-        }
-        val dependsOnLibs = props["cartridge.dependsOnLibs"].toString()
-        return if (dependsOnLibs.isEmpty()) setOf() else dependsOnLibs.split(";").toSet()
     }
 
     private fun getLibs(): Set<String> {

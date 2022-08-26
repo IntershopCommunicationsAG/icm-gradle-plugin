@@ -71,9 +71,6 @@ class CrossProjectDevelopmentPlugin: Plugin<Project> {
                 val modulesStr = developmentConfig.getConfigProperty(CROSSPRJ_MODULES, "")
                 val finalProjectStr = developmentConfig.getConfigProperty(CROSSPRJ_FINALPROJECT, "")
                 val baseProjectStr = developmentConfig.getConfigProperty(CROSSPRJ_BASEPROJECT, "")
-                val cartridgeListPath = developmentConfig.getConfigProperty(
-                    CROSSPRJ_CARTRIDGELISTPATH,
-                    CROSSPRJ_CARTRIDGELISTPATH_DEFVALUE)
 
                 var finalPrj: IncludedBuild?  = null
 
@@ -107,7 +104,7 @@ class CrossProjectDevelopmentPlugin: Plugin<Project> {
                 }
 
                 if(project.name == finalPrj?.projectName) {
-                    prepareStoreFrontTasks(this, projectConfig, cartridgeListPath, basePrj)
+                    prepareStoreFrontTasks(this, projectConfig, basePrj)
                 }
             }
         }
@@ -132,24 +129,13 @@ class CrossProjectDevelopmentPlugin: Plugin<Project> {
 
     private fun prepareStoreFrontTasks(project: Project,
                                        projectConfig: ProjectConfiguration,
-                                       cartridgelistPath: String,
                                        basePrj: IncludedBuild?) {
         with(project) {
-
-            val templateFile = File("${basePrj?.projectPath}/${cartridgelistPath}")
-            if(! templateFile.exists()) {
-                logger.error(
-                    "There is currently no configuration for the " +
-                            "cartridges list properties file template! ({})", templateFile
-                )
-            }
 
             val prepareCartridgeList = tasks.register(TASK_PREPARE_CARTRIDGELIST,
                         ExtendCartridgeList::class.java) {
                 it.group = TASK_GROUP
                 it.description = "Generates an cartridgelist.properties file for cross project development"
-
-                it.templateFile.set(templateFile)
 
                 it.provideCartridges(projectConfig.cartridges)
                 it.provideDBprepareCartridges(projectConfig.dbprepareCartridges)
@@ -179,7 +165,6 @@ class CrossProjectDevelopmentPlugin: Plugin<Project> {
                 }
 
                 it.moduleDirectories.set(mutableMapOf<String, File>())
-                it.provideCartridgeListFile( project.provider { prepareCartridgeList.get().outputFile.get() } )
                 it.provideVersionInfoFile( project.provider { versionInfoTask.get().outputFile.get() } )
 
                 it.dependsOn(prepareCartridgeList, versionInfoTask)

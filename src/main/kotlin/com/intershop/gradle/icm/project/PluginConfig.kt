@@ -22,7 +22,6 @@ import com.intershop.gradle.icm.extension.IntershopExtension
 import com.intershop.gradle.icm.extension.ProjectConfiguration
 import com.intershop.gradle.icm.tasks.CreateConfigFolder
 import com.intershop.gradle.icm.tasks.CreateServerInfo
-import com.intershop.gradle.icm.tasks.ExtendCartridgeList
 import com.intershop.gradle.icm.tasks.ProvideCartridgeListTemplate
 import com.intershop.gradle.icm.tasks.ProvideLibFilter
 import com.intershop.gradle.icm.tasks.SetupCartridges
@@ -90,21 +89,6 @@ class PluginConfig(val project: Project,
             val task = TaskName.valueOf(type.name)
             val target = TargetConf.valueOf(type.name)
 
-            val cartridgeListTemplate = tasks.named(
-                ICMProjectPlugin.PROVIDE_CARTRIDGELIST_TEMPLATE, ProvideCartridgeListTemplate::class.java)
-
-            val cartridgeListTask = tasks.register(task.cartridgelist(), ExtendCartridgeList::class.java) { cltask ->
-                cltask.provideTemplateFile( project.provider { cartridgeListTemplate.get().outputFile.get() } )
-                cltask.provideCartridges(projectConfig.cartridges)
-                cltask.provideDBprepareCartridges(projectConfig.dbprepareCartridges)
-
-                cltask.environmentTypes.set(environmentTypesList)
-
-                cltask.provideOutputFile(target.cartridgelist(projectLayout))
-
-                cltask.dependsOn(cartridgeListTemplate)
-            }
-
             return tasks.register(task.config(), CreateConfigFolder::class.java) { cfgTask ->
                 cfgTask.baseProject.set(projectConfig.base)
 
@@ -115,12 +99,11 @@ class PluginConfig(val project: Project,
                 cfgTask.baseDirConfig.set(projectConfig.serverDirConfig.base)
                 cfgTask.extraDirConfig.set(projectConfig.serverDirConfig.getServerDir(type))
 
-                cfgTask.provideCartridgeListFile( project.provider { cartridgeListTask.get().outputFile.get() } )
                 cfgTask.provideVersionInfoFile( project.provider { versionInfoTask.get().outputFile.get() } )
 
                 cfgTask.provideOutputDir(target.config(projectLayout))
 
-                cfgTask.dependsOn(cartridgeListTask, versionInfoTask)
+                cfgTask.dependsOn(versionInfoTask)
             }
         }
     }

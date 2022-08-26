@@ -85,7 +85,6 @@ open class PrepareConfigFolder
         }
 
         val fileCS = project.copySpec()
-        fileCS.from(cartridgeList.get())
         fileCS.from(versionInfo.get())
         fileCS.into("system-conf/cluster")
 
