@@ -17,7 +17,6 @@
 
 package com.intershop.gradle.icm.tasks
 
-import com.intershop.gradle.icm.ICMProjectPlugin.Companion.CARTRIDGELIST_FILENAME
 import com.intershop.gradle.icm.project.TargetConf
 import com.intershop.gradle.icm.tasks.CreateServerInfo.Companion.VERSIONINFO_FILENAME
 import com.intershop.gradle.icm.utils.PackageUtil
@@ -68,7 +67,7 @@ open class CreateConfigFolder
             classifier = "configuration",
             copySpec = cs,
             filePackage = baseProject.get().configPackage,
-            excludes = listOf("**/cluster/${CARTRIDGELIST_FILENAME}", "**/cluster/${VERSIONINFO_FILENAME}"),
+            excludes = listOf("**/cluster/${VERSIONINFO_FILENAME}"),
             fileBase = null)
         modules.get().forEach { prj ->
             PackageUtil.addPackageToCS(
@@ -77,7 +76,7 @@ open class CreateConfigFolder
                 classifier = "configuration",
                 copySpec = cs,
                 filePackage = prj.configPackage,
-                excludes = listOf("**/cluster/${CARTRIDGELIST_FILENAME}", "**/cluster/${VERSIONINFO_FILENAME}"),
+                excludes = listOf("**/cluster/${VERSIONINFO_FILENAME}"),
                 fileBase = null)
         }
 

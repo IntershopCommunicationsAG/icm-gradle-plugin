@@ -34,6 +34,7 @@ import org.w3c.dom.NodeList
 import org.xml.sax.InputSource
 import java.io.File
 import java.io.StringReader
+import java.util.*
 import javax.xml.parsers.DocumentBuilderFactory
 import javax.xml.xpath.XPathConstants
 import javax.xml.xpath.XPathFactory
@@ -112,7 +113,7 @@ object CartridgeUtil {
         if(items != null && items.length > 0) {
             returnValue = if (environmentTypes.isNotEmpty()) {
                 val style = CartridgeStyle.valueOf(
-                    items.item(0).firstChild.nodeValue.toUpperCase()
+                    items.item(0).firstChild.nodeValue.uppercase(Locale.getDefault())
                 )
                 environmentTypes.contains(style.environmentType())
             } else {

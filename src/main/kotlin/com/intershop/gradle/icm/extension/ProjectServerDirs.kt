@@ -17,7 +17,6 @@
 
 package com.intershop.gradle.icm.extension
 
-import com.intershop.gradle.icm.ICMProjectPlugin
 import com.intershop.gradle.icm.tasks.CreateServerInfo
 import com.intershop.gradle.icm.utils.EnvironmentType
 import groovy.lang.Closure
@@ -39,8 +38,7 @@ open class ProjectServerDirs @Inject constructor(val project: Project, objectFac
     val base: ServerDir = objectFactory.newInstance(
         ServerDir::class.java,
         "system-conf",
-        listOf("**/cluster/${ICMProjectPlugin.CARTRIDGELIST_FILENAME}",
-            "**/cluster/${CreateServerInfo.VERSIONINFO_FILENAME}"),
+        listOf("**/cluster/${CreateServerInfo.VERSIONINFO_FILENAME}"),
         listOf<String>())
 
     /**
@@ -66,8 +64,7 @@ open class ProjectServerDirs @Inject constructor(val project: Project, objectFac
     val prod: ServerDir = objectFactory.newInstance(
         ServerDir::class.java,
         "system-conf",
-        listOf("**/cluster/${ICMProjectPlugin.CARTRIDGELIST_FILENAME}",
-            "**/cluster/${CreateServerInfo.VERSIONINFO_FILENAME}"),
+        listOf("**/cluster/${CreateServerInfo.VERSIONINFO_FILENAME}"),
         listOf<String>())
 
     /**
@@ -93,8 +90,7 @@ open class ProjectServerDirs @Inject constructor(val project: Project, objectFac
     val test: ServerDir = objectFactory.newInstance(
         ServerDir::class.java,
         "system-conf",
-        listOf("**/cluster/${ICMProjectPlugin.CARTRIDGELIST_FILENAME}",
-            "**/cluster/${CreateServerInfo.VERSIONINFO_FILENAME}"),
+        listOf("**/cluster/${CreateServerInfo.VERSIONINFO_FILENAME}"),
         listOf<String>())
 
     /**
@@ -120,8 +116,7 @@ open class ProjectServerDirs @Inject constructor(val project: Project, objectFac
     val dev: ServerDir = objectFactory.newInstance(
         ServerDir::class.java,
         "system-conf",
-        listOf("**/cluster/${ICMProjectPlugin.CARTRIDGELIST_FILENAME}",
-            "**/cluster/${CreateServerInfo.VERSIONINFO_FILENAME}"),
+        listOf("**/cluster/${CreateServerInfo.VERSIONINFO_FILENAME}"),
         listOf<String>())
 
     /**

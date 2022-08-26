@@ -51,9 +51,6 @@ import javax.inject.Inject
 open class ICMProjectPlugin @Inject constructor(private var projectLayout: ProjectLayout) : Plugin<Project> {
 
     companion object {
-        const val CARTRIDGELIST_FILENAME = "cartridgelist.properties"
-        const val PROVIDE_CARTRIDGELIST_TEMPLATE = "provideCartridgeListTemplate"
-
         const val PROVIDE_LIBFILTER = "provideLibFilter"
 
         val PROD_ENVS = listOf(PRODUCTION)

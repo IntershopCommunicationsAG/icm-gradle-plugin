@@ -14,7 +14,6 @@
  * limitations under the License.
  *
  */
-
 package com.intershop.gradle.icm.utils
 
 import com.intershop.gradle.icm.extension.DirConfig

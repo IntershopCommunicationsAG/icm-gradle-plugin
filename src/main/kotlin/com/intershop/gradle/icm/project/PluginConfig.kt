@@ -22,7 +22,6 @@ import com.intershop.gradle.icm.extension.IntershopExtension
 import com.intershop.gradle.icm.extension.ProjectConfiguration
 import com.intershop.gradle.icm.tasks.CreateConfigFolder
 import com.intershop.gradle.icm.tasks.CreateServerInfo
-import com.intershop.gradle.icm.tasks.ProvideCartridgeListTemplate
 import com.intershop.gradle.icm.tasks.ProvideLibFilter
 import com.intershop.gradle.icm.tasks.SetupCartridges
 import com.intershop.gradle.icm.utils.EnvironmentType
@@ -153,19 +152,6 @@ class PluginConfig(val project: Project,
                 }
             }
             cp.from(configTask.get().outputs)
-        }
-
-    /**
-     * Configures task for the preparation of
-     * the cartridge list properties template.
-     */
-    fun getCartridgeListTemplate(): TaskProvider<ProvideCartridgeListTemplate> =
-        project.tasks.register(
-            ICMProjectPlugin.PROVIDE_CARTRIDGELIST_TEMPLATE,
-            ProvideCartridgeListTemplate::class.java
-        ) { task ->
-            task.provideBaseDependency(projectConfig.base.dependency)
-            task.provideFileDependency(projectConfig.cartridgeListDependency)
         }
 
     /**

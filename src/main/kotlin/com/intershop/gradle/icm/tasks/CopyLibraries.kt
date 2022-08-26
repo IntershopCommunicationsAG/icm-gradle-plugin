@@ -14,7 +14,6 @@
  * limitations under the License.
  *
  */
-
 package com.intershop.gradle.icm.tasks
 
 import com.intershop.gradle.icm.utils.DependencyListUtil
@@ -27,7 +26,6 @@ import org.gradle.api.attributes.Usage
 import org.gradle.api.attributes.java.TargetJvmEnvironment
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DirectoryProperty
-import org.gradle.api.file.ProjectLayout
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
@@ -41,9 +39,7 @@ import javax.inject.Inject
 /**
  * Collects all libraries (recursively through all (sub-)projects)
  */
-open class CopyLibraries @Inject constructor(
-    projectLayout: ProjectLayout,
-    objectFactory: ObjectFactory ) : DefaultTask() {
+open class CopyLibraries @Inject constructor( objectFactory: ObjectFactory ) : DefaultTask() {
 
     companion object {
         const val DEFAULT_NAME = "CopyLibraries"
