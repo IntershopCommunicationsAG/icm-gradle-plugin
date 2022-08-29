@@ -16,6 +16,7 @@
  */
 package com.intershop.gradle.icm.utils
 
+import org.gradle.api.GradleException
 import org.gradle.api.file.RegularFile
 import org.gradle.api.logging.Logger
 import java.io.BufferedReader
@@ -31,7 +32,7 @@ object DependencyListUtil {
                 br.lines().forEach { if (it.isNotEmpty()) list.add(it) }
             }
         } catch (e: IOException) {
-            logger.warn("It was not possible to read {} for {}", listFile.asFile, envType)
+            throw GradleException("It was not possible to read ${listFile.asFile} for ${envType}")
         }
         return list.sorted()
     }
