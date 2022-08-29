@@ -20,13 +20,13 @@ import com.intershop.gradle.icm.extension.IntershopExtension
 import com.intershop.gradle.icm.extension.ServerDir
 import com.intershop.gradle.icm.project.PluginConfig
 import com.intershop.gradle.icm.project.TaskName
-import com.intershop.gradle.icm.tasks.CollectLibraries
 import com.intershop.gradle.icm.tasks.CreateMainPackage
 import com.intershop.gradle.icm.tasks.CreateServerInfo
 import com.intershop.gradle.icm.tasks.CreateTestPackage
 import com.intershop.gradle.icm.tasks.PreparePublishDir
+import com.intershop.gradle.icm.tasks.WriteCartridgeDescriptor
 import com.intershop.gradle.icm.utils.CartridgeStyle.ALL
-import com.intershop.gradle.icm.utils.CartridgeStyle.valueOf
+import com.intershop.gradle.icm.utils.CartridgeUtil
 import com.intershop.gradle.icm.utils.EnvironmentType.DEVELOPMENT
 import com.intershop.gradle.icm.utils.EnvironmentType.PRODUCTION
 import com.intershop.gradle.icm.utils.EnvironmentType.TEST
@@ -40,8 +40,8 @@ import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
 import org.gradle.api.tasks.Sync
 import org.gradle.api.tasks.TaskProvider
-import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.bundling.Zip
+import java.util.*
 import javax.inject.Inject
 
 
@@ -51,9 +51,6 @@ import javax.inject.Inject
 open class ICMProjectPlugin @Inject constructor(private var projectLayout: ProjectLayout) : Plugin<Project> {
 
     companion object {
-        const val CARTRIDGELIST_FILENAME = "cartridgelist.properties"
-        const val PROVIDE_CARTRIDGELIST_TEMPLATE = "provideCartridgeListTemplate"
-
         const val PROVIDE_LIBFILTER = "provideLibFilter"
 
         val PROD_ENVS = listOf(PRODUCTION)
@@ -85,8 +82,7 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
 
     private fun configureProjectTasks(project: Project, pluginConfig: PluginConfig) {
         val infoTask = project.tasks.named(CreateServerInfo.DEFAULT_NAME, CreateServerInfo::class.java)
-        val collectLibrariesTask = project.tasks.named(CollectLibraries.DEFAULT_NAME, CollectLibraries::class.java)
-        pluginConfig.getCartridgeListTemplate()
+        val collectLibrariesTask = project.tasks.named("collectLibraries")
 
         val prepareContainer = prepareContainer(pluginConfig, infoTask).
             apply { configure { task -> task.dependsOn(collectLibrariesTask) } }
@@ -103,25 +99,17 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
                                       prepareTestContainer: TaskProvider<Task>,
                                       prepareContainer: TaskProvider<Task>) {
         pluginConfig.project.subprojects { sub ->
-            sub.tasks.withType(Jar::class.java) { jarTask ->
-                val styleValue =
-                    with(sub.extensions.extraProperties) {
-                        if (has("cartridge.style")) {
-                            get("cartridge.style").toString()
-                        } else {
-                            "all"
-                        }
-                    }
-                val style = valueOf(styleValue.toUpperCase())
+            sub.tasks.withType(WriteCartridgeDescriptor::class.java) { wcdTask ->
+                val style = CartridgeUtil.getCartridgeStyle(sub)
 
                 if (style == ALL || DEVELOPMENT_ENVS.contains(style.environmentType())) {
-                    prepareServer.configure { task -> task.dependsOn(jarTask) }
+                    prepareServer.configure { task -> task.dependsOn(wcdTask) }
                 }
                 if (style == ALL || TEST_ONLY_ENVS.contains(style.environmentType())) {
-                    prepareTestContainer.configure { task -> task.dependsOn(jarTask) }
+                    prepareTestContainer.configure { task -> task.dependsOn(wcdTask) }
                 }
                 if (style == ALL || PROD_ENVS.contains(style.environmentType())) {
-                    prepareContainer.configure { task -> task.dependsOn(jarTask) }
+                    prepareContainer.configure { task -> task.dependsOn(wcdTask) }
                 }
             }
         }
@@ -201,14 +189,18 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
 
     private fun getZipTasks(project: Project, baseDir: ServerDir, prodDir: ServerDir, type: String): TaskProvider<Zip> {
         val preparePubTask =
-            project.tasks.register("preparePub${type.capitalize()}", PreparePublishDir::class.java) { task ->
+            project.tasks.register("preparePub${
+                    type.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
+            }", PreparePublishDir::class.java) { task ->
                 task.baseDirConfig.set(baseDir)
                 task.extraDirConfig.set(prodDir)
 
                 task.outputDirectory.set(project.layout.buildDirectory.dir("publish/predir${type}"))
             }
 
-        return project.tasks.register("zip${type.capitalize()}", Zip::class.java) { task ->
+        return project.tasks.register("zip${
+                type.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
+            }", Zip::class.java) { task ->
             task.from(preparePubTask.get().outputs)
 
             task.archiveBaseName.set(type)
@@ -255,7 +247,9 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
 
     private fun getZipFolder(project: Project, sync: TaskProvider<Sync>, type: String) : TaskProvider<Zip>? {
         return if (! sync.get().outputs.files.isEmpty) {
-                project.tasks.register("zip${type.capitalize()}", Zip::class.java) { zip ->
+                project.tasks.register("zip${
+                    type.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
+                }", Zip::class.java) { zip ->
                         zip.from(sync.get().outputs.files)
 
                         zip.includeEmptyDirs = false

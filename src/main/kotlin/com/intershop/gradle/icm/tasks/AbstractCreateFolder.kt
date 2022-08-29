@@ -90,6 +90,7 @@ abstract class AbstractCreateFolder
 
         addPackages(cs)
 
+        cs.exclude("**/**/cartridgelist.properties")
         if(baseDirConfig.isPresent && baseDirConfig.get().dirs.isNotEmpty()) {
             cs.with(CopySpecUtil.getCSForServerDir(project, baseDirConfig.get()))
         }

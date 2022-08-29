@@ -17,7 +17,6 @@
 
 package com.intershop.gradle.icm.tasks
 
-import com.intershop.gradle.icm.ICMProjectPlugin.Companion.CARTRIDGELIST_FILENAME
 import com.intershop.gradle.icm.project.TargetConf
 import com.intershop.gradle.icm.tasks.CreateServerInfo.Companion.VERSIONINFO_FILENAME
 import com.intershop.gradle.icm.utils.PackageUtil
@@ -51,16 +50,6 @@ open class CreateConfigFolder
     }
 
     @get:InputFile
-    val cartridgeList: RegularFileProperty = objectFactory.fileProperty()
-
-    /**
-     * Provides the cartridgelist.properties of this project.
-     *
-     * @param file regular file provider.
-     */
-    fun provideCartridgeListFile(file: Provider<RegularFile>) = cartridgeList.set(file)
-
-    @get:InputFile
     val versionInfo: RegularFileProperty = objectFactory.fileProperty()
 
     /**
@@ -78,7 +67,7 @@ open class CreateConfigFolder
             classifier = "configuration",
             copySpec = cs,
             filePackage = baseProject.get().configPackage,
-            excludes = listOf("**/cluster/${CARTRIDGELIST_FILENAME}", "**/cluster/${VERSIONINFO_FILENAME}"),
+            excludes = listOf("**/cluster/${VERSIONINFO_FILENAME}"),
             fileBase = null)
         modules.get().forEach { prj ->
             PackageUtil.addPackageToCS(
@@ -87,12 +76,11 @@ open class CreateConfigFolder
                 classifier = "configuration",
                 copySpec = cs,
                 filePackage = prj.configPackage,
-                excludes = listOf("**/cluster/${CARTRIDGELIST_FILENAME}", "**/cluster/${VERSIONINFO_FILENAME}"),
+                excludes = listOf("**/cluster/${VERSIONINFO_FILENAME}"),
                 fileBase = null)
         }
 
         val fileCS = project.copySpec()
-        fileCS.from(cartridgeList.get())
         fileCS.from(versionInfo.get())
         fileCS.into("system-conf/cluster")
 

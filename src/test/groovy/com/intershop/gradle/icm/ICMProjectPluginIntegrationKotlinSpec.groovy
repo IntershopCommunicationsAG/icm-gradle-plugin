@@ -177,27 +177,6 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
         prepareDefaultBuildConfig(testProjectDir, settingsFile, buildFile)
 
         when:
-        def resultECL = getPreparedGradleRunner()
-                .withArguments("extendCartridgeListProd", "-s", "--warning-mode", "all")
-                .withGradleVersion(gradleVersion)
-                .build()
-        def cartridgeListProd = new File(testProjectDir, "build/container/cartridgelist/cartridgelist.properties")
-
-        then:
-        resultECL.task(":extendCartridgeListProd").outcome == SUCCESS
-        cartridgeListProd.exists()
-
-        when:
-        Properties properties = new Properties()
-        cartridgeListProd.withInputStream {
-            properties.load(it)
-        }
-
-        then:
-        properties.getProperty(com.intershop.gradle.icm.tasks.ExtendCartridgeList.CARTRIDGES_PROPERTY) == PROD_CARTRIDGES
-        properties.getProperty(com.intershop.gradle.icm.tasks.ExtendCartridgeList.CARTRIDGES_DB_PROPERTY) == PROD_DB_CARTRIDGES
-
-        when:
         def resultSC = getPreparedGradleRunner()
                 .withArguments("setupCartridgesProd", "-s", "--warning-mode", "all")
                 .withGradleVersion(gradleVersion)
@@ -234,27 +213,6 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
         prepareDefaultBuildConfig(testProjectDir, settingsFile, buildFile)
 
         when:
-        def resultECL = getPreparedGradleRunner()
-                .withArguments("extendCartridgeListTest", "-s", "--warning-mode", "all")
-                .withGradleVersion(gradleVersion)
-                .build()
-        def cartridgeListTest = new File(testProjectDir, "build/testcontainer/cartridgelist/cartridgelist.properties")
-
-        then:
-        resultECL.task(":extendCartridgeListTest").outcome == SUCCESS
-        cartridgeListTest.exists()
-
-        when:
-        Properties properties = new Properties()
-        cartridgeListTest.withInputStream {
-            properties.load(it)
-        }
-
-        then:
-        properties.getProperty(com.intershop.gradle.icm.tasks.ExtendCartridgeList.CARTRIDGES_PROPERTY) == TEST_CARTRIDGES
-        properties.getProperty(com.intershop.gradle.icm.tasks.ExtendCartridgeList.CARTRIDGES_DB_PROPERTY) == TEST_DB_CARTRIDGES
-
-        when:
         def resultSC = getPreparedGradleRunner()
                 .withArguments("setupCartridgesTest",  "-s", "--warning-mode", "all")
                 .withGradleVersion(gradleVersion)
@@ -279,27 +237,6 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
 
     def 'check dev cartridge list and setup cartridges'() {
         prepareDefaultBuildConfig(testProjectDir, settingsFile, buildFile)
-
-        when:
-        def resultECL = getPreparedGradleRunner()
-                .withArguments("extendCartridgeList", "-s", "--warning-mode", "all")
-                .withGradleVersion(gradleVersion)
-                .build()
-        def cartridgeList = new File(testProjectDir, "build/server/cartridgelist/cartridgelist.properties")
-
-        then:
-        resultECL.task(":extendCartridgeList").outcome == SUCCESS
-        cartridgeList.exists()
-
-        when:
-        Properties properties = new Properties()
-        cartridgeList.withInputStream {
-            properties.load(it)
-        }
-
-        then:
-        properties.getProperty(com.intershop.gradle.icm.tasks.ExtendCartridgeList.CARTRIDGES_PROPERTY) == CARTRIDGES
-        properties.getProperty(com.intershop.gradle.icm.tasks.ExtendCartridgeList.CARTRIDGES_DB_PROPERTY) == DB_CARTRIDGES
 
         when:
         def resultSC = getPreparedGradleRunner()
@@ -536,13 +473,6 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
                 .withGradleVersion(gradleVersion)
                 .build()
 
-        def cartridgeListProd = new File(testProjectDir, "build/container/config_folder/system-conf/cluster/cartridgelist.properties")
-
-        Properties properties = new Properties()
-        cartridgeListProd.withInputStream {
-            properties.load(it)
-        }
-
         def versionFile = new File(testProjectDir,"build/container/config_folder/system-conf/cluster/version.properties")
         def apps1File = new File(testProjectDir,"build/container/config_folder/system-conf/apps/file.txt")
         def apps2File = new File(testProjectDir,"build/container/config_folder/system-conf/apps/file2.txt")
@@ -551,9 +481,6 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
 
         then:
         resultProdConf.task(":createConfigProd").outcome == SUCCESS
-
-        properties.getProperty(com.intershop.gradle.icm.tasks.ExtendCartridgeList.CARTRIDGES_PROPERTY) == PROD_CARTRIDGES
-        properties.getProperty(com.intershop.gradle.icm.tasks.ExtendCartridgeList.CARTRIDGES_DB_PROPERTY) == PROD_DB_CARTRIDGES
 
         versionFile.exists()
         versionFile.text.contains("version.information.version=10.0.0")
@@ -601,13 +528,6 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
                 .withGradleVersion(gradleVersion)
                 .build()
 
-        def cartridgeListProd = new File(testProjectDir, "build/testcontainer/config_folder/system-conf/cluster/cartridgelist.properties")
-
-        Properties properties = new Properties()
-        cartridgeListProd.withInputStream {
-            properties.load(it)
-        }
-
         def versionFile = new File(testProjectDir,"build/testcontainer/config_folder/system-conf/cluster/version.properties")
         def apps1File = new File(testProjectDir,"build/testcontainer/config_folder/system-conf/apps/file.txt")
         def apps2File = new File(testProjectDir,"build/testcontainer/config_folder/system-conf/apps/file2.txt")
@@ -616,9 +536,6 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
 
         then:
         resultProdConf.task(":createConfigTest").outcome == SUCCESS
-
-        properties.getProperty(com.intershop.gradle.icm.tasks.ExtendCartridgeList.CARTRIDGES_PROPERTY) == TEST_CARTRIDGES
-        properties.getProperty(com.intershop.gradle.icm.tasks.ExtendCartridgeList.CARTRIDGES_DB_PROPERTY) == TEST_DB_CARTRIDGES
 
         versionFile.exists()
         versionFile.text.contains("version.information.version=10.0.0")
@@ -666,13 +583,6 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
                 .withGradleVersion(gradleVersion)
                 .build()
 
-        def cartridgeListProd = new File(testProjectDir, "build/server/config_folder/system-conf/cluster/cartridgelist.properties")
-
-        Properties properties = new Properties()
-        cartridgeListProd.withInputStream {
-            properties.load(it)
-        }
-
         def versionFile = new File(testProjectDir,"build/server/config_folder/system-conf/cluster/version.properties")
         def apps1File = new File(testProjectDir,"build/server/config_folder/system-conf/apps/file.txt")
         def apps2File = new File(testProjectDir,"build/server/config_folder/system-conf/apps/file2.txt")
@@ -681,9 +591,6 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
 
         then:
         resultProdConf.task(":createConfig").outcome == SUCCESS
-
-        properties.getProperty(com.intershop.gradle.icm.tasks.ExtendCartridgeList.CARTRIDGES_PROPERTY) == CARTRIDGES
-        properties.getProperty(com.intershop.gradle.icm.tasks.ExtendCartridgeList.CARTRIDGES_DB_PROPERTY) == DB_CARTRIDGES
 
         versionFile.exists()
         versionFile.text.contains("version.information.version=10.0.0")
@@ -753,18 +660,6 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
             ${repoConf}
         """.stripIndent()
 
-        when:
-        def result = getPreparedGradleRunner()
-                .withArguments(":provideCartridgeListTemplate", "-s")
-                .withGradleVersion(gradleVersion)
-                .build()
-        def clFile = new File(testProjectDir, "build/cartridgelisttemplate/cartridgelist.properties")
-
-        then:
-        result.task(":provideCartridgeListTemplate").outcome == SUCCESS
-        clFile.exists()
-        clFile.text.contains("simple file on repo")
-
         where:
         gradleVersion << supportedGradleVersions
 
@@ -789,8 +684,6 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
 
         then:
         result.task(':prepareContainer').outcome == SUCCESS
-        result.task(':provideCartridgeListTemplate').outcome == SUCCESS
-        result.task(':extendCartridgeListProd').outcome == SUCCESS
         cartridgesDir.exists()
         cartridgesDir.listFiles().size() == 3
         cartridgesLibDir.exists()
@@ -800,7 +693,7 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
         configAppsDir.exists()
         configAppsDir.listFiles().size() == 3
         configClusterDir.exists()
-        configClusterDir.listFiles().size() == 3
+        configClusterDir.listFiles().size() == 2
         productionLibsDir.exists()
         productionLibsDir.listFiles().size() == 13
         testLibsDir.exists()
@@ -838,7 +731,7 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
         configAppsDir.exists()
         configAppsDir.listFiles().size() == 3
         configClusterDir.exists()
-        configClusterDir.listFiles().size() == 3
+        configClusterDir.listFiles().size() == 2
         productionLibsDir.exists()
         productionLibsDir.listFiles().size() == 13
         testLibsDir.exists()
@@ -1254,7 +1147,7 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
         configAppsDir.exists()
         configAppsDir.listFiles().size() == 3
         configClusterDir.exists()
-        configClusterDir.listFiles().size() == 3
+        configClusterDir.listFiles().size() == 2
         productionLibsDir.exists()
         productionLibsDir.listFiles().size() == 13
         testLibsDir.exists()

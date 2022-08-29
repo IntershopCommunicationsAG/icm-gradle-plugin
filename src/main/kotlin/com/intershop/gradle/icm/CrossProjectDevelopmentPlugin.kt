@@ -19,7 +19,6 @@ package com.intershop.gradle.icm
 import com.intershop.gradle.icm.extension.IntershopExtension
 import com.intershop.gradle.icm.extension.ProjectConfiguration
 import com.intershop.gradle.icm.tasks.CreateServerInfo
-import com.intershop.gradle.icm.tasks.ExtendCartridgeList
 import com.intershop.gradle.icm.tasks.crossproject.IncludedBuild
 import com.intershop.gradle.icm.tasks.crossproject.PrepareConfigFolder
 import com.intershop.gradle.icm.tasks.crossproject.WriteMappingFile
@@ -41,17 +40,13 @@ class CrossProjectDevelopmentPlugin: Plugin<Project> {
 
         const val TASK_WRITEMAPPINGFILES = "writeMappingFiles"
         const val TASK_PREPARE_CONFIG = "prepareCrossProject"
-        const val TASK_PREPARE_CARTRIDGELIST = "prepareCrossProjectCartridgeList"
 
         const val CROSSPRJ_BUILD_DIR = "compositebuild"
 
         const val CROSSPRJ_MODULES = "cross.project.modules"
         const val CROSSPRJ_FINALPROJECT = "cross.project.finalproject"
-        const val CROSSPRJ_CARTRIDGELISTPATH = "cross.project.cartridgelist.path"
 
         const val CROSSPRJ_BASEPROJECT = "cross.project.baseproject"
-
-        const val CROSSPRJ_CARTRIDGELISTPATH_DEFVALUE = "icm_config/cartridgelist/cartridgelist.properties"
     }
 
     override fun apply(project: Project) {
@@ -71,9 +66,6 @@ class CrossProjectDevelopmentPlugin: Plugin<Project> {
                 val modulesStr = developmentConfig.getConfigProperty(CROSSPRJ_MODULES, "")
                 val finalProjectStr = developmentConfig.getConfigProperty(CROSSPRJ_FINALPROJECT, "")
                 val baseProjectStr = developmentConfig.getConfigProperty(CROSSPRJ_BASEPROJECT, "")
-                val cartridgeListPath = developmentConfig.getConfigProperty(
-                    CROSSPRJ_CARTRIDGELISTPATH,
-                    CROSSPRJ_CARTRIDGELISTPATH_DEFVALUE)
 
                 var finalPrj: IncludedBuild?  = null
 
@@ -107,7 +99,7 @@ class CrossProjectDevelopmentPlugin: Plugin<Project> {
                 }
 
                 if(project.name == finalPrj?.projectName) {
-                    prepareStoreFrontTasks(this, projectConfig, cartridgeListPath, basePrj)
+                    prepareStoreFrontTasks(this, projectConfig, basePrj)
                 }
             }
         }
@@ -132,33 +124,8 @@ class CrossProjectDevelopmentPlugin: Plugin<Project> {
 
     private fun prepareStoreFrontTasks(project: Project,
                                        projectConfig: ProjectConfiguration,
-                                       cartridgelistPath: String,
                                        basePrj: IncludedBuild?) {
         with(project) {
-
-            val templateFile = File("${basePrj?.projectPath}/${cartridgelistPath}")
-            if(! templateFile.exists()) {
-                logger.error(
-                    "There is currently no configuration for the " +
-                            "cartridges list properties file template! ({})", templateFile
-                )
-            }
-
-            val prepareCartridgeList = tasks.register(TASK_PREPARE_CARTRIDGELIST,
-                        ExtendCartridgeList::class.java) {
-                it.group = TASK_GROUP
-                it.description = "Generates an cartridgelist.properties file for cross project development"
-
-                it.templateFile.set(templateFile)
-
-                it.provideCartridges(projectConfig.cartridges)
-                it.provideDBprepareCartridges(projectConfig.dbprepareCartridges)
-                it.environmentTypes.set(ICMProjectPlugin.DEVELOPMENT_ENVS)
-
-                it.outputFile.set(
-                    File(
-                        "${basePrj?.projectPath}/build/compositeserver/${name}/conf/cartridgelist.properties"))
-            }
 
             val versionInfoTask = tasks.named(CreateServerInfo.DEFAULT_NAME, CreateServerInfo::class.java)
 
@@ -166,7 +133,6 @@ class CrossProjectDevelopmentPlugin: Plugin<Project> {
                 it.group = TASK_GROUP
                 it.description = "Copy all files for server conf folder for storefront project"
 
-                project.provider { prepareCartridgeList.get().outputFile.get() }
                 it.baseProject.set(projectConfig.base)
                 it.baseDirConfig.set(projectConfig.serverDirConfig.base)
                 it.extraDirConfig.set(projectConfig.serverDirConfig.
@@ -179,10 +145,9 @@ class CrossProjectDevelopmentPlugin: Plugin<Project> {
                 }
 
                 it.moduleDirectories.set(mutableMapOf<String, File>())
-                it.provideCartridgeListFile( project.provider { prepareCartridgeList.get().outputFile.get() } )
                 it.provideVersionInfoFile( project.provider { versionInfoTask.get().outputFile.get() } )
 
-                it.dependsOn(prepareCartridgeList, versionInfoTask)
+                it.dependsOn(versionInfoTask)
             }
         }
     }

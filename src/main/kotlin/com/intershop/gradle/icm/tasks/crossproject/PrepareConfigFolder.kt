@@ -16,7 +16,6 @@
  */
 package com.intershop.gradle.icm.tasks.crossproject
 
-import com.intershop.gradle.icm.ICMProjectPlugin
 import com.intershop.gradle.icm.tasks.CreateConfigFolder
 import com.intershop.gradle.icm.tasks.CreateServerInfo
 import com.intershop.gradle.icm.utils.PackageUtil
@@ -60,8 +59,7 @@ open class PrepareConfigFolder
             classifier = "configuration",
             copySpec = cs,
             filePackage = baseProject.get().configPackage,
-            excludes = listOf("**/cluster/${ICMProjectPlugin.CARTRIDGELIST_FILENAME}",
-                "**/cluster/${CreateServerInfo.VERSIONINFO_FILENAME}"),
+            excludes = listOf("**/cluster/${CreateServerInfo.VERSIONINFO_FILENAME}"),
             fileBase = mainBaseDir.get().asFile)
 
         modules.get().forEach { prj ->
@@ -79,13 +77,11 @@ open class PrepareConfigFolder
                 classifier = "configuration",
                 copySpec = cs,
                 filePackage = prj.configPackage,
-                excludes = listOf("**/cluster/${ICMProjectPlugin.CARTRIDGELIST_FILENAME}",
-                    "**/cluster/${CreateServerInfo.VERSIONINFO_FILENAME}"),
+                excludes = listOf("**/cluster/${CreateServerInfo.VERSIONINFO_FILENAME}"),
                 fileBase = dir)
         }
 
         val fileCS = project.copySpec()
-        fileCS.from(cartridgeList.get())
         fileCS.from(versionInfo.get())
         fileCS.into("system-conf/cluster")
 

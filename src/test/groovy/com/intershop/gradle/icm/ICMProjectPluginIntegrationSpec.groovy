@@ -169,30 +169,7 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
     def 'check product cartridge list and setup cartridges'() {
         prepareDefaultBuildConfig(testProjectDir, settingsFile, buildFile)
 
-        createLocalFile("build/container/cartridgelist/cartridgelist.properties", "previous_file = true")
         createLocalFile("build/libfilter/libfilter.txt", "previous_file = true")
-
-        when:
-        def resultECL = getPreparedGradleRunner()
-                .withArguments("extendCartridgeListProd", "-s", "--warning-mode", "all")
-                .withGradleVersion(gradleVersion)
-                .build()
-        def cartridgeListProd = new File(testProjectDir, "build/container/cartridgelist/cartridgelist.properties")
-
-        then:
-        resultECL.task(":extendCartridgeListProd").outcome == SUCCESS
-        cartridgeListProd.exists()
-        ! cartridgeListProd.text.contains("previous_file = true")
-
-        when:
-        Properties properties = new Properties()
-        cartridgeListProd.withInputStream {
-            properties.load(it)
-        }
-
-        then:
-        properties.getProperty(com.intershop.gradle.icm.tasks.ExtendCartridgeList.CARTRIDGES_PROPERTY) == PROD_CARTRIDGES
-        properties.getProperty(com.intershop.gradle.icm.tasks.ExtendCartridgeList.CARTRIDGES_DB_PROPERTY) == PROD_DB_CARTRIDGES
 
         when:
         def resultSC = getPreparedGradleRunner()
@@ -233,27 +210,6 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         prepareDefaultBuildConfig(testProjectDir, settingsFile, buildFile)
 
         when:
-        def resultECL = getPreparedGradleRunner()
-                .withArguments("extendCartridgeListTest", "-s", "--warning-mode", "all")
-                .withGradleVersion(gradleVersion)
-                .build()
-        def cartridgeListTest = new File(testProjectDir, "build/testcontainer/cartridgelist/cartridgelist.properties")
-
-        then:
-        resultECL.task(":extendCartridgeListTest").outcome == SUCCESS
-        cartridgeListTest.exists()
-
-        when:
-        Properties properties = new Properties()
-        cartridgeListTest.withInputStream {
-            properties.load(it)
-        }
-
-        then:
-        properties.getProperty(com.intershop.gradle.icm.tasks.ExtendCartridgeList.CARTRIDGES_PROPERTY) == TEST_CARTRIDGES
-        properties.getProperty(com.intershop.gradle.icm.tasks.ExtendCartridgeList.CARTRIDGES_DB_PROPERTY) == TEST_DB_CARTRIDGES
-
-        when:
         def resultSC = getPreparedGradleRunner()
                 .withArguments("setupCartridgesTest",  "-s", "--warning-mode", "all")
                 .withGradleVersion(gradleVersion)
@@ -278,27 +234,6 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
     def 'check dev cartridge list and setup cartridges'() {
         prepareDefaultBuildConfig(testProjectDir, settingsFile, buildFile)
-
-        when:
-        def resultECL = getPreparedGradleRunner()
-                .withArguments("extendCartridgeList", "-s", "--warning-mode", "all")
-                .withGradleVersion(gradleVersion)
-                .build()
-        def cartridgeList = new File(testProjectDir, "build/server/cartridgelist/cartridgelist.properties")
-
-        then:
-        resultECL.task(":extendCartridgeList").outcome == SUCCESS
-        cartridgeList.exists()
-
-        when:
-        Properties properties = new Properties()
-        cartridgeList.withInputStream {
-            properties.load(it)
-        }
-
-        then:
-        properties.getProperty(com.intershop.gradle.icm.tasks.ExtendCartridgeList.CARTRIDGES_PROPERTY) == CARTRIDGES
-        properties.getProperty(com.intershop.gradle.icm.tasks.ExtendCartridgeList.CARTRIDGES_DB_PROPERTY) == DB_CARTRIDGES
 
         when:
         def resultSC = getPreparedGradleRunner()
@@ -384,7 +319,6 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         """.stripIndent()
 
         createLocalFile("config/base/cluster/test.properties", "test.properties = base_dir")
-        createLocalFile("config/base/cluster/cartridgelist.properties", "cartridgelist = base_dir")
         createLocalFile("config/test/cluster/test.properties", "test_test = 1")
         createLocalFile("config/dev/cluster/test.properties", "dev_test = 1")
         createLocalFile("config/prod/cluster/test.properties", "test.properties = prod_dir")
@@ -575,13 +509,6 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                 .withGradleVersion(gradleVersion)
                 .build()
 
-        def cartridgeListProd = new File(testProjectDir, "build/container/config_folder/system-conf/cluster/cartridgelist.properties")
-
-        Properties properties = new Properties()
-        cartridgeListProd.withInputStream {
-            properties.load(it)
-        }
-
         def versionFile = new File(testProjectDir,"build/container/config_folder/system-conf/cluster/version.properties")
         def apps1File = new File(testProjectDir,"build/container/config_folder/system-conf/apps/file.txt")
         def apps2File = new File(testProjectDir,"build/container/config_folder/system-conf/apps/file2.txt")
@@ -590,9 +517,6 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         then:
         resultProdConf.task(":createConfigProd").outcome == SUCCESS
-
-        properties.getProperty(com.intershop.gradle.icm.tasks.ExtendCartridgeList.CARTRIDGES_PROPERTY) == PROD_CARTRIDGES
-        properties.getProperty(com.intershop.gradle.icm.tasks.ExtendCartridgeList.CARTRIDGES_DB_PROPERTY) == PROD_DB_CARTRIDGES
 
         versionFile.exists()
         versionFile.text.contains("version.information.version=10.0.0")
@@ -639,13 +563,6 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                 .withGradleVersion(gradleVersion)
                 .build()
 
-        def cartridgeListProd = new File(testProjectDir, "build/testcontainer/config_folder/system-conf/cluster/cartridgelist.properties")
-
-        Properties properties = new Properties()
-        cartridgeListProd.withInputStream {
-            properties.load(it)
-        }
-
         def versionFile = new File(testProjectDir,"build/testcontainer/config_folder/system-conf/cluster/version.properties")
         def apps1File = new File(testProjectDir,"build/testcontainer/config_folder/system-conf/apps/file.txt")
         def apps2File = new File(testProjectDir,"build/testcontainer/config_folder/system-conf/apps/file2.txt")
@@ -654,9 +571,6 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         then:
         resultProdConf.task(":createConfigTest").outcome == SUCCESS
-
-        properties.getProperty(com.intershop.gradle.icm.tasks.ExtendCartridgeList.CARTRIDGES_PROPERTY) == TEST_CARTRIDGES
-        properties.getProperty(com.intershop.gradle.icm.tasks.ExtendCartridgeList.CARTRIDGES_DB_PROPERTY) == TEST_DB_CARTRIDGES
 
         versionFile.exists()
         versionFile.text.contains("version.information.version=10.0.0")
@@ -703,13 +617,6 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                 .withGradleVersion(gradleVersion)
                 .build()
 
-        def cartridgeListProd = new File(testProjectDir, "build/server/config_folder/system-conf/cluster/cartridgelist.properties")
-
-        Properties properties = new Properties()
-        cartridgeListProd.withInputStream {
-            properties.load(it)
-        }
-
         def versionFile = new File(testProjectDir,"build/server/config_folder/system-conf/cluster/version.properties")
         def apps1File = new File(testProjectDir,"build/server/config_folder/system-conf/apps/file.txt")
         def apps2File = new File(testProjectDir,"build/server/config_folder/system-conf/apps/file2.txt")
@@ -718,9 +625,6 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         then:
         resultProdConf.task(":createConfig").outcome == SUCCESS
-
-        properties.getProperty(com.intershop.gradle.icm.tasks.ExtendCartridgeList.CARTRIDGES_PROPERTY) == CARTRIDGES
-        properties.getProperty(com.intershop.gradle.icm.tasks.ExtendCartridgeList.CARTRIDGES_DB_PROPERTY) == DB_CARTRIDGES
 
         versionFile.exists()
         versionFile.text.contains("version.information.version=10.0.0")
@@ -735,75 +639,6 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         where:
         gradleVersion << supportedGradleVersions
-    }
-
-    def "test cartridge.properties from dependency"() {
-        TestRepo repo = new TestRepo(new File(testProjectDir, "/repo"))
-        String repoConf = repo.getRepoConfig()
-
-        settingsFile << """
-        rootProject.name='rootproject'
-        """.stripIndent()
-
-        buildFile << """
-            plugins {
-                id 'java'
-                id 'com.intershop.gradle.icm.project'
-            }
-            
-            group = 'com.intershop.test'
-            version = '10.0.0'
-
-            intershop {
-                projectConfig {
-                    
-                    cartridges = [ 'com.intershop.cartridge:cartridge_test:1.0.0', 
-                                   'prjCartridge_prod',
-                                   'com.intershop.cartridge:cartridge_dev:1.0.0', 
-                                   'com.intershop.cartridge:cartridge_adapter:1.0.0',
-                                   'prjCartridge_adapter',
-                                   'prjCartridge_dev',
-                                   'prjCartridge_test',
-                                   'com.intershop.cartridge:cartridge_prod:1.0.0' ] 
-
-                    dbprepareCartridges = [ 'prjCartridge_prod',
-                                            'prjCartridge_test' ] 
-
-                    base {
-                        dependency = "com.intershop.icm:icm-as:1.0.0"
-                    }
-
-                    cartridgeListDependency = "com.project.group:configuration:1.0.0"
-
-                    modules {
-                        solrExt {
-                            dependency.set("com.intershop.search:solrcloud:1.0.0")
-                        }
-                        paymentExt {
-                            dependency.set("com.intershop.payment:paymenttest:1.0.0")
-                        }
-                    }
-                }
-            }
-
-            ${repoConf}
-        """.stripIndent()
-
-        when:
-        def result = getPreparedGradleRunner()
-                .withArguments(":provideCartridgeListTemplate", "-s")
-                .withGradleVersion(gradleVersion)
-                .build()
-        def clFile = new File(testProjectDir, "build/cartridgelisttemplate/cartridgelist.properties")
-
-        then:
-        result.task(":provideCartridgeListTemplate").outcome == SUCCESS
-        clFile.exists()
-        clFile.text.contains("simple file on repo")
-
-        where:
-        gradleVersion << supportedGradleVersions
-
     }
 
     def "prepare folder for release"() {
@@ -834,7 +669,7 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         configAppsDir.exists()
         configAppsDir.listFiles().size() == 3
         configClusterDir.exists()
-        configClusterDir.listFiles().size() == 3
+        configClusterDir.listFiles().size() == 2
         prodLibsDir.exists()
         prodLibsDir.listFiles()?.size() == 13
         testLibsDir.exists()
@@ -872,7 +707,7 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         configAppsDir.exists()
         configAppsDir.listFiles().size() == 3
         configClusterDir.exists()
-        configClusterDir.listFiles().size() == 3
+        configClusterDir.listFiles().size() == 2
         prodLibsDir.exists()
         prodLibsDir.listFiles()?.size() == 13
         testLibsDir.exists()
@@ -891,7 +726,6 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         """.stripIndent()
 
         createLocalFile("config/base/cluster/test.properties", "test.properties = base_dir")
-        createLocalFile("config/base/cluster/cartridgelist.properties", "cartridgelist = base_dir")
         createLocalFile("config/test/cluster/test.properties", "test_test = 1")
         createLocalFile("config/dev/cluster/test.properties", "dev_test = 1")
         createLocalFile("config/prod/cluster/test.properties", "test.properties = prod_dir")
@@ -1404,7 +1238,7 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         configAppsDir.exists()
         configAppsDir.listFiles().size() == 3
         configClusterDir.exists()
-        configClusterDir.listFiles().size() == 3
+        configClusterDir.listFiles().size() == 2
         prodLibsDir.exists()
         prodLibsDir.listFiles()?.size() == 13
         testLibsDir.exists()

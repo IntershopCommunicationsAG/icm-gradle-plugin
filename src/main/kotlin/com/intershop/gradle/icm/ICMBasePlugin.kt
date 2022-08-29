@@ -22,11 +22,13 @@ import com.intershop.gradle.icm.cartridge.ContainerPlugin
 import com.intershop.gradle.icm.cartridge.ProductPlugin
 import com.intershop.gradle.icm.cartridge.TestPlugin
 import com.intershop.gradle.icm.extension.IntershopExtension
-import com.intershop.gradle.icm.tasks.CollectLibraries
+import com.intershop.gradle.icm.tasks.CopyLibraries
+import com.intershop.gradle.icm.tasks.CreateLibList
 import com.intershop.gradle.icm.tasks.CreateMainPackage
 import com.intershop.gradle.icm.tasks.CreateServerInfo
 import com.intershop.gradle.icm.tasks.CreateTestPackage
 import com.intershop.gradle.icm.tasks.WriteCartridgeDescriptor
+import com.intershop.gradle.icm.utils.CartridgeUtil
 import com.intershop.gradle.icm.utils.EnvironmentType
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -36,8 +38,8 @@ import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.TaskProvider
-import org.gradle.api.tasks.bundling.Tar
 import org.gradle.api.tasks.diagnostics.DependencyReportTask
+import java.io.File
 
 /**
  * The base plugin for the configuration of the ICM project.
@@ -96,14 +98,16 @@ open class ICMBasePlugin: Plugin<Project> {
                     }
                 }
 
+                val createMainPackage = tasks.register(CreateMainPackage.DEFAULT_NAME, CreateMainPackage::class.java)
+                val createTestPackage = tasks.register(CreateTestPackage.DEFAULT_NAME, CreateTestPackage::class.java)
+
                 configureCreateServerInfoPropertiesTask(extension)
-                val configureCollectLibrariesTask = configureCollectLibrariesTask()
+                configureCollectLibrariesTask(createMainPackage, createTestPackage)
+                configurePackageTasks(this, createMainPackage, createTestPackage)
 
                 if(! checkForTask(tasks, TASK_ALLDEPENDENCIESREPORT)) {
                     tasks.register(TASK_ALLDEPENDENCIESREPORT, DependencyReportTask::class.java)
                 }
-
-                createPackageTasks(this, configureCollectLibrariesTask)
 
             } else {
                 logger.warn("ICM build plugin will be not applied to the sub project '{}'", name)
@@ -142,28 +146,92 @@ open class ICMBasePlugin: Plugin<Project> {
         }
     }
 
-    private fun Project.configureCollectLibrariesTask() : TaskProvider<CollectLibraries> {
-        val collectLibrariesTask = tasks.register(CollectLibraries.DEFAULT_NAME, CollectLibraries::class.java)
+    private fun Project.configureCollectLibrariesTask(createMainPackage: TaskProvider<CreateMainPackage>,
+                                                      createTestPackage: TaskProvider<CreateTestPackage>) {
+        val collectLibraries = tasks.register("collectLibraries")
+
+        val prodLibListTask = registerLibListTask(EnvironmentType.PRODUCTION)
+        val prodLibCopyTask = registerLibCopyTask(EnvironmentType.PRODUCTION, prodLibListTask)
+        createMainPackage.configure {
+            it.dependsOn(prodLibCopyTask)
+            it.from(prodLibCopyTask.get().librariesDirectory)
+        }
+
+        val testLibListTask = registerLibListTask(EnvironmentType.TEST)
+        val testLibCopyTask = registerLibCopyTask(EnvironmentType.TEST, testLibListTask)
+        createTestPackage.configure {
+            it.dependsOn(testLibCopyTask)
+            it.from(testLibCopyTask.get().librariesDirectory)
+        }
+
+        testLibListTask.configure {
+            it.exludeLibraryLists.add(prodLibListTask.get().libraryListFile)
+            it.dependsOn(prodLibListTask)
+        }
+
+        val devLibListTask = registerLibListTask(EnvironmentType.DEVELOPMENT)
+        val devLibCopyTask = registerLibCopyTask(EnvironmentType.DEVELOPMENT, devLibListTask)
+
+        devLibListTask.configure {
+            it.exludeLibraryLists.add(prodLibListTask.get().libraryListFile)
+            it.exludeLibraryLists.add(testLibListTask.get().libraryListFile)
+            it.dependsOn(prodLibListTask, testLibListTask)
+        }
+
+        collectLibraries.configure {
+            it.dependsOn(prodLibCopyTask, testLibCopyTask, devLibCopyTask)
+        }
+
         subprojects { sub ->
             sub.plugins.withType(CartridgePlugin::class.java) {
                 val writeCartridgeDescriptorTask = sub.tasks.
                     named(WriteCartridgeDescriptor.DEFAULT_NAME, WriteCartridgeDescriptor::class.java)
-                collectLibrariesTask.configure{ clt ->
-                    clt.dependsOn(writeCartridgeDescriptorTask)
+
+                when(CartridgeUtil.getCartridgeStyle(sub).environmentType()) {
+                    EnvironmentType.PRODUCTION ->
+                        configureLibListTask(prodLibListTask, writeCartridgeDescriptorTask)
+                    EnvironmentType.TEST ->
+                        configureLibListTask(testLibListTask, writeCartridgeDescriptorTask)
+                    EnvironmentType.DEVELOPMENT ->
+                        configureLibListTask(devLibListTask, writeCartridgeDescriptorTask)
+                    EnvironmentType.ALL -> {
+                        configureLibListTask(prodLibListTask, writeCartridgeDescriptorTask)
+                        configureLibListTask(testLibListTask, writeCartridgeDescriptorTask)
+                    }
                 }
             }
         }
-        // root.assemble dependsOn collectLibrariesTask
-        project.tasks.named(BasePlugin.ASSEMBLE_TASK_NAME).get().dependsOn(collectLibrariesTask)
-
-        return collectLibrariesTask
     }
 
-    private fun Project.createPackageTasks(project: Project,
-                                           configureCollectLibrariesTask: TaskProvider<CollectLibraries>) {
-        val createMainPackage = tasks.register(CreateMainPackage.DEFAULT_NAME, CreateMainPackage::class.java)
-        val createTestPackage = tasks.register(CreateTestPackage.DEFAULT_NAME, CreateTestPackage::class.java)
+    private fun Project.registerLibListTask(type: EnvironmentType): TaskProvider<CreateLibList> {
+        return tasks.register(
+            CreateLibList.getName(type.toString()), CreateLibList::class.java) {
+                it.environmentType.set(type.name)
+                it.libraryListFile.set(File(buildDir, CreateLibList.getOutputPath(type.name)))
+        }
+    }
 
+    private fun Project.registerLibCopyTask(type: EnvironmentType,
+                                            cll: TaskProvider<CreateLibList>): TaskProvider<CopyLibraries> {
+        return tasks.register(
+            CopyLibraries.getName(type.toString()), CopyLibraries::class.java) {
+            it.environmentType.set(type.name)
+            it.librariesDirectory.set(File(buildDir, CopyLibraries.getOutputPath(type.name)))
+            it.dependencyIDFile.set(cll.get().libraryListFile)
+            it.dependsOn(cll)
+        }
+    }
+    private fun configureLibListTask(clt: TaskProvider<CreateLibList>,
+                                     wcd: TaskProvider<WriteCartridgeDescriptor>) {
+        clt.configure {
+            it.dependsOn(wcd)
+            it.cartridgeDescriptors.add(wcd.get().outputFile)
+        }
+    }
+
+    private fun Project.configurePackageTasks(project: Project,
+                                              createMainPackage: TaskProvider<CreateMainPackage>,
+                                              createTestPackage: TaskProvider<CreateTestPackage>) {
         subprojects {sub ->
             sub.plugins.withType(CartridgePlugin::class.java) {
                 val cartridgefiles = project.copySpec { cp ->
@@ -193,20 +261,8 @@ open class ICMBasePlugin: Plugin<Project> {
                 }
             }
         }
-
-        createMainPackage.configure {
-            it.dependsOn(configureCollectLibrariesTask)
-            it.with(configureCollectLibrariesTask.get().copySpecFor(EnvironmentType.PRODUCTION))
-        }
-        createTestPackage.configure {
-            it.dependsOn(configureCollectLibrariesTask)
-            it.with(configureCollectLibrariesTask.get().copySpecFor(EnvironmentType.TEST))
-        }
     }
 
     private fun intoRelease(cpsp: CopySpec, prj: Project) = cpsp.into("cartridges/${prj.name}/release")
 
-    private fun pkgDependsOn(tar: Tar, prj: Project) {
-        tar.dependsOn(prj.tasks.named("jar"))
-    }
 }
