@@ -154,14 +154,18 @@ open class ICMBasePlugin: Plugin<Project> {
         val prodLibCopyTask = registerLibCopyTask(EnvironmentType.PRODUCTION, prodLibListTask)
         createMainPackage.configure {
             it.dependsOn(prodLibCopyTask)
-            it.from(prodLibCopyTask.get().librariesDirectory)
+            it.from(prodLibCopyTask.get().librariesDirectory) {
+                it.into("lib")
+            }
         }
 
         val testLibListTask = registerLibListTask(EnvironmentType.TEST)
         val testLibCopyTask = registerLibCopyTask(EnvironmentType.TEST, testLibListTask)
         createTestPackage.configure {
             it.dependsOn(testLibCopyTask)
-            it.from(testLibCopyTask.get().librariesDirectory)
+            it.from(testLibCopyTask.get().librariesDirectory) {
+                it.into("lib")
+            }
         }
 
         testLibListTask.configure {
