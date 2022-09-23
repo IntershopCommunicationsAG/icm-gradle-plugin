@@ -86,8 +86,8 @@ open class CreateLibList @Inject constructor(
                     val groupAndName = it.substringBeforeLast(':')
                     val versionInProjects = dependenciesVersions.computeIfAbsent(groupAndName, { mutableMapOf() })
                     versionInProjects.compute(
-                        it,
-                        { _, p -> if (null == p) getCartridgeName(props) else p + " " + getCartridgeName(props) })
+                        it
+                    ) { _, p -> if (null == p) getCartridgeName(props) else p + " " + getCartridgeName(props) }
                 }
             })
         }
@@ -101,7 +101,7 @@ open class CreateLibList @Inject constructor(
         }
 
         exludeLibraryLists.get().forEach {
-            val excludeList = DependencyListUtil.getIDList(project.logger,  environmentType.get(), it)
+            val excludeList = DependencyListUtil.getIDList(environmentType.get(), it)
             dependencies.removeAll(excludeList.toSet())
         }
 
@@ -127,7 +127,7 @@ open class CreateLibList @Inject constructor(
         return props
     }
     private fun getCartridgeName(props:Properties): String {
-        return props["cartridge.name"].toString() ?: ""
+        return props["cartridge.name"].toString()
     }
 
     private fun getLibraryIDs(props:Properties): Set<String> {

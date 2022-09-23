@@ -27,16 +27,6 @@ import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpec {
 
-
-    final String PROD_CARTRIDGES = "runtime pf_cartridge component file emf pf_extension pf_property jmx app pf_kafka cache pipeline isml orm configuration businessobject core orm_oracle orm_mssql wsrp rest bc_auditing bc_region bc_service bc_mail bc_ruleengine report bc_auditing_orm bc_organization bc_approval bc_validation bc_address bc_address_orm bc_user bc_user_orm bc_captcha bc_pdf bc_abtest bc_abtest_orm bc_payment sld_pdf sld_preview sld_mcm sld_ch_b2c_base sld_ch_sf_base app_bo_catalog ac_gtm dev_basketinfo dev_apiinfo prjCartridge_prod cartridge_adapter prjCartridge_adapter cartridge_prod"
-    final String PROD_DB_CARTRIDGES = "runtime file emf pf_extension pf_property jmx app pf_kafka cache pipeline isml orm orm_oracle orm_mssql wsrp rest bc_user_orm bc_captcha btc monitor smc bc_pricing bc_pmc pmc_rest bc_search bc_mvc bc_order bc_order_orm sld_mcm sld_ch_b2c_base sld_ch_sf_base ac_bmecat ac_oci ac_cxml prjCartridge_prod"
-
-    final String TEST_CARTRIDGES = "runtime pf_cartridge component file emf pf_extension pf_property jmx app pf_kafka cache pipeline isml orm configuration businessobject core orm_oracle orm_mssql wsrp rest bc_auditing bc_region bc_service bc_mail bc_ruleengine report bc_auditing_orm bc_organization bc_approval bc_validation bc_address bc_address_orm bc_user bc_user_orm bc_captcha bc_pdf bc_abtest bc_abtest_orm bc_payment sld_pdf sld_preview sld_mcm sld_ch_b2c_base sld_ch_sf_base app_bo_catalog ac_gtm dev_basketinfo dev_apiinfo cartridge_test prjCartridge_prod cartridge_adapter prjCartridge_adapter prjCartridge_test cartridge_prod"
-    final String TEST_DB_CARTRIDGES = "runtime file emf pf_extension pf_property jmx app pf_kafka cache pipeline isml orm orm_oracle orm_mssql wsrp rest bc_user_orm bc_captcha btc monitor smc bc_pricing bc_pmc pmc_rest bc_search bc_mvc bc_order bc_order_orm sld_mcm sld_ch_b2c_base sld_ch_sf_base ac_bmecat ac_oci ac_cxml prjCartridge_prod prjCartridge_test"
-
-    final String CARTRIDGES = "runtime pf_cartridge component file emf pf_extension pf_property jmx app pf_kafka cache pipeline isml orm configuration businessobject core orm_oracle orm_mssql wsrp rest bc_auditing bc_region bc_service bc_mail bc_ruleengine report bc_auditing_orm bc_organization bc_approval bc_validation bc_address bc_address_orm bc_user bc_user_orm bc_captcha bc_pdf bc_abtest bc_abtest_orm bc_payment sld_pdf sld_preview sld_mcm sld_ch_b2c_base sld_ch_sf_base app_bo_catalog ac_gtm dev_basketinfo dev_apiinfo cartridge_test prjCartridge_prod cartridge_dev cartridge_adapter prjCartridge_adapter prjCartridge_dev prjCartridge_test cartridge_prod"
-    final String DB_CARTRIDGES = "runtime file emf pf_extension pf_property jmx app pf_kafka cache pipeline isml orm orm_oracle orm_mssql wsrp rest bc_user_orm bc_captcha btc monitor smc bc_pricing bc_pmc pmc_rest bc_search bc_mvc bc_order bc_order_orm sld_mcm sld_ch_b2c_base sld_ch_sf_base ac_bmecat ac_oci ac_cxml prjCartridge_prod prjCartridge_test"
-
     def 'check lic configuration from extension'() {
         given:
         settingsFile << """
@@ -173,100 +163,6 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
         gradleVersion << supportedGradleVersions
     }
 
-    def 'check product cartridge list and setup cartridges'() {
-        prepareDefaultBuildConfig(testProjectDir, settingsFile, buildFile)
-
-        when:
-        def resultSC = getPreparedGradleRunner()
-                .withArguments("setupCartridgesProd", "-s", "--warning-mode", "all")
-                .withGradleVersion(gradleVersion)
-                .build()
-
-        def cartridges = new File(testProjectDir, "build/container/cartridges")
-        def adapter_cartridge = new File(testProjectDir, "build/container/cartridges/cartridge_adapter/release/lib/cartridge_adapter-1.0.0.jar")
-        def prod_cartridge = new File(testProjectDir, "build/container/cartridges/cartridge_prod/release/lib/cartridge_prod-1.0.0.jar")
-        def cartridges_libs_library2 = new File(testProjectDir, "build/container/cartridges/libs/com.other-library2-1.5.0.jar")
-        def cartridges_libs_library3 = new File(testProjectDir, "build/container/cartridges/libs/com.other-library3-1.5.0.jar")
-        def templateFile = new File(testProjectDir, "build/libfilter/libfilter.txt")
-
-        then:
-        resultSC.task(":setupCartridgesProd").outcome == SUCCESS
-        cartridges.exists()
-        adapter_cartridge.exists()
-        prod_cartridge.exists()
-        ! cartridges_libs_library2.exists()
-        cartridges_libs_library3.exists()
-        templateFile.exists()
-
-        def libs = []
-        templateFile.eachLine { line ->
-            libs << line
-        }
-        libs.contains("com.other-library2-1.5.0")
-        cartridges.listFiles().size() == 3
-
-        where:
-        gradleVersion << supportedGradleVersions
-    }
-
-    def 'check test cartridge list and setup cartridges'() {
-        prepareDefaultBuildConfig(testProjectDir, settingsFile, buildFile)
-
-        when:
-        def resultSC = getPreparedGradleRunner()
-                .withArguments("setupCartridgesTest",  "-s", "--warning-mode", "all")
-                .withGradleVersion(gradleVersion)
-                .build()
-
-        def cartridges = new File(testProjectDir, "build/testcontainer/cartridges")
-        def test_cartridge = new File(testProjectDir, "build/testcontainer/cartridges/cartridge_test/release/lib/cartridge_test-1.0.0.jar")
-        def cartridges_libs_library3 = new File(testProjectDir, "build/testcontainer/cartridges/libs/com.other-library3-1.5.0.jar")
-        def templateFile = new File(testProjectDir, "build/libfilter/libfilter.txt")
-
-        then:
-        resultSC.task(":setupCartridgesTest").outcome == SUCCESS
-        cartridges.exists()
-        test_cartridge.exists()
-        cartridges_libs_library3.exists()
-        templateFile.exists()
-        cartridges.listFiles().size() == 2
-
-        where:
-        gradleVersion << supportedGradleVersions
-    }
-
-    def 'check dev cartridge list and setup cartridges'() {
-        prepareDefaultBuildConfig(testProjectDir, settingsFile, buildFile)
-
-        when:
-        def resultSC = getPreparedGradleRunner()
-                .withArguments("setupCartridges", "-s", "--warning-mode", "all")
-                .withGradleVersion(gradleVersion)
-                .build()
-
-        def cartridges = new File(testProjectDir, "build/server/cartridges")
-        def adapter_cartridge = new File(testProjectDir, "build/server/cartridges/cartridge_adapter/release/lib/cartridge_adapter-1.0.0.jar")
-        def prod_cartridge = new File(testProjectDir, "build/server/cartridges/cartridge_prod/release/lib/cartridge_prod-1.0.0.jar")
-        def dev_cartridge = new File(testProjectDir, "build/server/cartridges/cartridge_dev/release/lib/cartridge_dev-1.0.0.jar")
-        def test_cartridge = new File(testProjectDir, "build/server/cartridges/cartridge_test/release/lib/cartridge_test-1.0.0.jar")
-        def cartridges_libs_library3 = new File(testProjectDir, "build/server/cartridges/libs/com.other-library3-1.5.0.jar")
-        def templateFile = new File(testProjectDir, "build/libfilter/libfilter.txt")
-
-        then:
-        resultSC.task(":setupCartridges").outcome == SUCCESS
-        cartridges.exists()
-        adapter_cartridge.exists()
-        prod_cartridge.exists()
-        dev_cartridge.exists()
-        test_cartridge.exists()
-        cartridges_libs_library3.exists()
-        templateFile.exists()
-        cartridges.listFiles().size() == 5
-
-        where:
-        gradleVersion << supportedGradleVersions
-    }
-
     private def createLocalFile(String path, String content) {
         def testFile = new File(testProjectDir, path)
         testFile.parentFile.mkdirs()
@@ -282,7 +178,6 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
         """.stripIndent()
 
         createLocalFile("config/base/cluster/test.properties", "test.properties = base_dir")
-        createLocalFile("config/base/cluster/cartridgelist.properties", "cartridgelist = base_dir")
         createLocalFile("config/test/cluster/test.properties", "test_test = 1")
         createLocalFile("config/dev/cluster/test.properties", "dev_test = 1")
         createLocalFile("config/prod/cluster/test.properties", "test.properties = prod_dir")
@@ -298,18 +193,6 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
 
             intershop {
                 projectConfig {
-                    
-                    cartridges.set(listOf( "com.intershop.cartridge:cartridge_test:1.0.0", 
-                                   "prjCartridge_prod",
-                                   "com.intershop.cartridge:cartridge_dev:1.0.0", 
-                                   "com.intershop.cartridge:cartridge_adapter:1.0.0",
-                                   "prjCartridge_adapter",
-                                   "prjCartridge_dev",
-                                   "prjCartridge_test",
-                                   "com.intershop.cartridge:cartridge_prod:1.0.0" ))
-
-                    dbprepareCartridges.set(listOf( "prjCartridge_prod",
-                                            "prjCartridge_test" ))
 
                     base {
                         dependency.set("com.intershop.icm:icm-as:1.0.0")
@@ -443,7 +326,7 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
     }
 
     def "test of prod tasks for config folder creation"() {
-        prepareDefaultBuildConfig(testProjectDir, settingsFile, buildFile)
+          prepareDefaultBuildConfig(testProjectDir, settingsFile, buildFile)
 
         buildFile << """
 
@@ -626,19 +509,6 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
 
             intershop {
                 projectConfig {
-                    
-                    cartridges.set(listOf("com.intershop.cartridge:cartridge_test:1.0.0", 
-                                   "prjCartridge_prod",
-                                   "com.intershop.cartridge:cartridge_dev:1.0.0", 
-                                   "com.intershop.cartridge:cartridge_adapter:1.0.0",
-                                   "prjCartridge_adapter",
-                                   "prjCartridge_dev",
-                                   "prjCartridge_test",
-                                   "com.intershop.cartridge:cartridge_prod:1.0.0"))
-
-                    dbprepareCartridges.set(listOf("prjCartridge_prod",
-                                            "prjCartridge_test"))
-
                     base {
                         dependency.set("com.intershop.icm:icm-as:1.0.0")
                         platform("com.intershop:libbom:1.0.0")
@@ -674,28 +544,19 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
                 .withGradleVersion(gradleVersion)
                 .build()
 
-        def cartridgesDir = new File(testProjectDir, "build/container/cartridges")
-        def cartridgesLibDir = new File(cartridgesDir, "libs")
         def configDir = new File(testProjectDir, "build/container/config_folder/system-conf" )
         def configAppsDir = new File(configDir, "apps")
         def configClusterDir = new File(configDir, "cluster")
-        def productionLibsDir = new File(testProjectDir, "build/libraries/production")
         def testLibsDir = new File(testProjectDir, "build/libraries/test")
 
         then:
         result.task(':prepareContainer').outcome == SUCCESS
-        cartridgesDir.exists()
-        cartridgesDir.listFiles().size() == 3
-        cartridgesLibDir.exists()
-        cartridgesLibDir.listFiles().size() == 1
         configDir.exists()
         configDir.listFiles().size() == 2
         configAppsDir.exists()
         configAppsDir.listFiles().size() == 3
         configClusterDir.exists()
         configClusterDir.listFiles().size() == 2
-        productionLibsDir.exists()
-        productionLibsDir.listFiles().size() == 13
         testLibsDir.exists()
         testLibsDir.listFiles().size() == 3
 
@@ -713,7 +574,6 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
                 .build()
 
         def cartridgesDir = new File(testProjectDir, "build/server/cartridges")
-        def cartridgesLibDir = new File(cartridgesDir, "libs")
         def configDir = new File(testProjectDir, "build/server/config_folder/system-conf" )
         def configAppsDir = new File(configDir, "apps")
         def configClusterDir = new File(configDir, "cluster")
@@ -722,10 +582,6 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
 
         then:
         result.task(':prepareServer').outcome == SUCCESS
-        cartridgesDir.exists()
-        cartridgesDir.listFiles().size() == 5
-        cartridgesLibDir.exists()
-        cartridgesLibDir.listFiles().size() == 1
         configDir.exists()
         configDir.listFiles().size() == 2
         configAppsDir.exists()
@@ -767,18 +623,6 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
 
             intershop {
                 projectConfig {
-                  
-                    cartridges.set(listOf("com.intershop.cartridge:cartridge_test:1.0.0", 
-                                   "prjCartridge_prod",
-                                   "com.intershop.cartridge:cartridge_dev:1.0.0", 
-                                   "com.intershop.cartridge:cartridge_adapter:1.0.0",
-                                   "prjCartridge_adapter",
-                                   "prjCartridge_dev",
-                                   "prjCartridge_test",
-                                   "com.intershop.cartridge:cartridge_prod:1.0.0"))
-
-                    dbprepareCartridges.set(listOf("prjCartridge_prod",
-                                            "prjCartridge_test"))
 
                     base {
                         dependency.set("com.intershop.icm:icm-as:1.0.0")
@@ -966,19 +810,6 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
 
             intershop {
                 projectConfig {
-                    
-                    cartridges.set(listOf("com.intershop.cartridge:cartridge_test:1.0.0", 
-                                   "prjCartridge_prod",
-                                   "com.intershop.cartridge:cartridge_dev:1.0.0", 
-                                   "com.intershop.cartridge:cartridge_adapter:1.0.0",
-                                   "prjCartridge_adapter",
-                                   "prjCartridge_dev",
-                                   "prjCartridge_test",
-                                   "com.intershop.cartridge:cartridge_prod:1.0.0"))
-
-                    dbprepareCartridges.set(listOf("prjCartridge_prod",
-                                            "prjCartridge_test"))
-
                     base {
                         dependency.set("com.intershop.icm:icm-as:2.0.0")
                     }
@@ -1127,8 +958,6 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
                 .withGradleVersion(gradleVersion)
                 .build()
 
-        def cartridgesDir = new File(testProjectDir, "build/container/cartridges")
-        def cartridgesLibDir = new File(cartridgesDir, "libs")
         def configDir = new File(testProjectDir, "build/container/config_folder/system-conf" )
         def configAppsDir = new File(configDir, "apps")
         def configClusterDir = new File(configDir, "cluster")
@@ -1137,11 +966,6 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
 
         then:
         result.task(':prepareContainer').outcome == SUCCESS
-        result.output.contains("No library filter is available!")
-        cartridgesDir.exists()
-        cartridgesDir.listFiles().size() == 3
-        cartridgesLibDir.exists()
-        cartridgesLibDir.listFiles().size() == 2
         configDir.exists()
         configDir.listFiles().size() == 2
         configAppsDir.exists()
@@ -1184,20 +1008,7 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
             version = "10.0.0"
 
             intershop {
-                projectConfig {
-                    
-                    cartridges.set(listOf("com.intershop.cartridge:cartridge_test:1.0.0", 
-                                   "prjCartridge_prod",
-                                   "com.intershop.cartridge:cartridge_dev:1.0.0", 
-                                   "com.intershop.cartridge:cartridge_adapter:1.0.0",
-                                   "prjCartridge_adapter",
-                                   "prjCartridge_dev",
-                                   "prjCartridge_test",
-                                   "com.intershop.cartridge:cartridge_prod:1.0.0"))
-
-                    dbprepareCartridges.set(listOf("prjCartridge_prod",
-                                            "prjCartridge_test"))
-
+                projectConfig {                   
                     base {
                         dependency.set("com.intershop.icm:icm-as:1.0.0")
                     }
@@ -1379,19 +1190,6 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
 
             intershop {
                 projectConfig {
-                    
-                    cartridges.set(listOf("com.intershop.cartridge:cartridge_test:1.0.0", 
-                                   "prjCartridge_prod",
-                                   "com.intershop.cartridge:cartridge_dev:1.0.0", 
-                                   "com.intershop.cartridge:cartridge_adapter:1.0.0",
-                                   "prjCartridge_adapter",
-                                   "prjCartridge_dev",
-                                   "prjCartridge_test",
-                                   "com.intershop.cartridge:cartridge_prod:1.0.0"))
-
-                    dbprepareCartridges.set(listOf("prjCartridge_prod",
-                                            "prjCartridge_test"))
-
                     base {
                         dependency.set("com.intershop.icm:icm-as:1.0.0")
                         platform("com.intershop:libbom:1.0.0")

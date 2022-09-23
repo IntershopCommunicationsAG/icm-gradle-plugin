@@ -112,8 +112,6 @@ class TestRepo {
 
         }.writeTo(repoDir)
 
-        addCartridgeList('com.project.group', 'configuration', '1.0.0')
-
         addSimpleLib('library1', '1.5.0')
         addSimpleLib('library2', '1.5.0')
         addSimpleLib('library3', '1.5.0')
@@ -130,18 +128,6 @@ class TestRepo {
         addSecondBaseProject('com.intershop.search', 'solrcloud', '1.0.0')
         addThirdBaseProject('com.intershop.payment', 'paymenttest', '1.0.0')
         addBaseProjectWithoutLibsTxt('icm-as', '2.0.0')
-    }
-
-    private void addCartridgeList(String group, String artifactID, String version) {
-        new TestMavenRepoBuilder().repository {
-            project(groupId: group, artifactId: artifactID, version: version) {
-                artifact (
-                        classifier: "cartridgelist",
-                        ext: "properties",
-                        content: getTextResources('cartridgelist/repocartridgelist.properties')
-                )
-            }
-        }.writeTo(repoDir)
     }
 
     private void addSimpleLib(String artifactId, String version) {
@@ -214,7 +200,6 @@ class TestRepo {
                         ext: "zip",
                         entries: [
                                 TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'system-conf/apps/file.txt', content: "apps = test1.component(com.intershop.icm:${projectName}:${version})"),
-                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'system-conf/cluster/cartridgelist.properties', content: getTextResources('cartridgelist/cartridgelist.properties')),
                                 TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'system-conf/cluster/version.properties', content: "testprop = com.intershop.icm:${projectName}:${version}")
                         ]
                 )
@@ -244,7 +229,6 @@ class TestRepo {
                         ext: "zip",
                         entries: [
                                 TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'system-conf/apps/file2.txt', content: "apps = test2.component (${group}:${projectName}:${version})"),
-                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'system-conf/cluster/cartridgelist.properties', content: getTextResources('cartridgelist/cartridgelist.properties')),
                                 TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'system-conf/cluster/version.properties', content: "testprop = ${group}:${projectName}:${version}")
                         ]
                 )
@@ -293,7 +277,6 @@ class TestRepo {
                         ext: "zip",
                         entries: [
                                 TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'system-conf/apps/file.txt', content: "apps = test1.component (com.intershop.icm:${projectName}:${version})"),
-                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'system-conf/cluster/cartridgelist.properties', content: getTextResources('cartridgelist/cartridgelist.properties')),
                                 TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'system-conf/cluster/version.properties', content: "testprop = com.intershop.icm:${projectName}:${version}")
                         ]
                 )
@@ -318,7 +301,6 @@ class TestRepo {
                         ext: "zip",
                         entries: [
                                 TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'system-conf/apps/file.txt', content: "apps = test1.component com.intershop.icm:${projectName}:${version}"),
-                                TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'system-conf/cluster/cartridgelist.properties', content: getTextResources('cartridgelist/cartridgelist.properties')),
                                 TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'system-conf/cluster/version.properties', content: "testprop = com.intershop.icm:${projectName}:${version}")
                         ]
                 )

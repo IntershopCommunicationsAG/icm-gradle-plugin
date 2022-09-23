@@ -23,7 +23,8 @@ plugins {
     // project plugins
     `java-gradle-plugin`
     groovy
-    kotlin("jvm") version "1.5.21"
+
+    kotlin("jvm") version "1.7.10"
 
     // test coverage
     jacoco
@@ -50,7 +51,7 @@ plugins {
     id("io.gitlab.arturbosch.detekt") version "1.18.0"
 
     // plugin for publishing to Gradle Portal
-    id("com.gradle.plugin-publish") version "0.15.0"
+    id("com.gradle.plugin-publish") version "1.0.0"
 }
 
 scm {
@@ -65,7 +66,9 @@ val sonatypeUsername: String? by project
 val sonatypePassword: String? by project
 
 repositories {
+    mavenLocal()
     mavenCentral()
+    gradlePluginPortal()
 }
 
 gradlePlugin {
@@ -130,12 +133,6 @@ gradlePlugin {
             displayName = "icm-external-cartridge"
             description = "The cartridge plugin applies all basic configurations and tasks of an public cartridge (published to Maven)."
         }
-        create("crossprojectICMPlugin") {
-            id = "com.intershop.icm.crossproject"
-            implementationClass = "com.intershop.gradle.icm.CrossProjectDevelopmentPlugin"
-            displayName = "icm-cross-project-development"
-            description = "Plugin for Intershop cross projekt development - necessary for integration development"
-        }
     }
 }
 
@@ -143,7 +140,7 @@ pluginBundle {
     val pluginURL = "https://github.com/IntershopCommunicationsAG/${project.name}"
     website = pluginURL
     vcsUrl = pluginURL
-    tags = listOf("intershop", "gradle", "plugin", "build", "icm")
+    tags = listOf("intershop", "build", "icm")
 }
 
 java {
@@ -164,13 +161,13 @@ detekt {
 tasks {
 
     withType<Test>().configureEach {
-        systemProperty("intershop.gradle.versions", "7.2")
+        systemProperty("intershop.gradle.versions", "7.5.1")
         useJUnitPlatform()
 
         dependsOn("jar")
     }
 
-    val copyAsciiDoc = register<Copy>("copyAsciiDoc") {
+    register<Copy>("copyAsciiDoc") {
         includeEmptyDirs = false
 
         val outputDir = file("$buildDir/tmp/asciidoctorSrc")
@@ -191,7 +188,7 @@ tasks {
     }
 
     withType<AsciidoctorTask> {
-        dependsOn(copyAsciiDoc)
+        dependsOn("copyAsciiDoc")
 
         setSourceDir(file("$buildDir/tmp/asciidoctorSrc"))
         sources(delegateClosureOf<PatternSet> {
@@ -218,10 +215,10 @@ tasks {
 
     withType<JacocoReport> {
         reports {
-            xml.getRequired().set(true)
-            html.getRequired().set(true)
+            xml.required.set(true)
+            html.required.set(true)
 
-            html.getOutputLocation().set( File(project.buildDir, "jacocoHtml") )
+            html.outputLocation.set( File(project.buildDir, "jacocoHtml") )
         }
 
         val jacocoTestReport by tasks
@@ -230,7 +227,7 @@ tasks {
 
     getByName("jar").dependsOn("asciidoctor")
 
-    val compileKotlin by getting(KotlinCompile::class) {
+    withType<KotlinCompile>  {
         kotlinOptions.jvmTarget = JavaVersion.VERSION_1_8.toString()
     }
 
@@ -238,17 +235,21 @@ tasks {
         outputDirectory.set(buildDir.resolve("dokka"))
     }
 
-    register<Jar>("sourceJar") {
-        description = "Creates a JAR that contains the source code."
-
-        from(sourceSets.getByName("main").allSource)
-        archiveClassifier.set("sources")
+    withType<Sign> {
+        val sign = this
+        withType<PublishToMavenLocal> {
+            this.dependsOn(sign)
+        }
+        withType<PublishToMavenRepository> {
+            this.dependsOn(sign)
+        }
     }
 
-    register<Jar>("javaDoc") {
-        dependsOn(dokkaJavadoc)
-        from(dokkaJavadoc)
-        archiveClassifier.set("javadoc")
+    afterEvaluate {
+        getByName<Jar>("javadocJar") {
+            dependsOn(dokkaJavadoc)
+            from(dokkaJavadoc)
+        }
     }
 }
 
@@ -257,8 +258,6 @@ publishing {
         create("intershopMvn", MavenPublication::class.java) {
 
             from(components["java"])
-            artifact(tasks.getByName("sourceJar"))
-            artifact(tasks.getByName("javaDoc"))
 
             artifact(File(buildDir, "docs/asciidoc/html5/README.html")) {
                 classifier = "reference"
@@ -320,16 +319,9 @@ dependencies {
     implementation(gradleApi())
     implementation(localGroovy())
 
-    compileOnly("org.apache.ant:ant:1.10.7")
+    compileOnly("org.apache.ant:ant:1.10.12")
 
-    testImplementation("com.intershop.gradle.test:test-gradle-plugin:4.1.1")
+    testImplementation("com.intershop.gradle.test:test-gradle-plugin:4.1.2")
     testImplementation(gradleTestKit())
 }
 
-repositories {
-    mavenLocal()
-    mavenCentral()
-    maven {
-        url = uri("https://plugins.gradle.org/m2/")
-    }
-}
