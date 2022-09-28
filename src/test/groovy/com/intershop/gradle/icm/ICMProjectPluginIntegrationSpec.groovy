@@ -231,14 +231,17 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                     base {
                         dependency = "com.intershop.icm:icm-as:1.0.0"
                         platforms = [ "com.intershop:libbom:1.0.0" ]
+                        image.set("intershophub/icm-as:11.0.1")
                     }
 
                     modules {
                         solrExt {
                             dependency.set("com.intershop.search:solrcloud:1.0.0")
+                            image.set("intershophub/solrcloud:11.0.1")
                         }
                         paymentExt {
                             dependency.set("com.intershop.payment:paymenttest:1.0.0")
+                            image.set("intershophub/paymenttest:11.0.1")
                         }
                     }
 
@@ -615,14 +618,17 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                     base {
                         dependency = "com.intershop.icm:icm-as:1.0.0"
                         platforms = [ "com.intershop:libbom:1.0.0" ]
+                        image.set("intershophub/icm-as:11.0.1")
                     }
 
                     modules {
                         solrExt {
                             dependency.set("com.intershop.search:solrcloud:1.0.0")
+                            image.set("intershophub/solrcloud:11.0.1")
                         }
                         paymentExt {
                             dependency.set("com.intershop.payment:paymenttest:1.0.0")
+                            image.set("intershophub/paymenttest:11.0.1")
                         }
                     }
 
@@ -916,14 +922,17 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                 projectConfig {
                     base {
                         dependency = "com.intershop.icm:icm-as:2.0.0"
+                        image.set("intershophub/icm-as:11.0.1")
                     }
 
                     modules {
                         solrExt {
                             dependency.set("com.intershop.search:solrcloud:1.0.0")
+                            image.set("intershophub/solrcloud:11.0.1")
                         }
                         paymentExt {
                             dependency.set("com.intershop.payment:paymenttest:1.0.0")
+                            image.set("intershophub/paymenttest:11.0.1")
                         }
                     }
 
@@ -1062,7 +1071,6 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                 .withGradleVersion(gradleVersion)
                 .build()
 
-        def cartridgesDir = new File(testProjectDir, "build/container/cartridges")
         def configDir = new File(testProjectDir, "build/container/config_folder/system-conf" )
         def configAppsDir = new File(configDir, "apps")
         def configClusterDir = new File(configDir, "cluster")

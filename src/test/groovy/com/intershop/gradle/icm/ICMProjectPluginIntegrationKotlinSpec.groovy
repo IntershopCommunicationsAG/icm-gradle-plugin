@@ -197,14 +197,17 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
                     base {
                         dependency.set("com.intershop.icm:icm-as:1.0.0")
                         platform("com.intershop:libbom:1.0.0")
+                        image.set("intershophub/icm-as:11.0.1")
                     }
 
                     modules {
                         register("solrExt") {
                             dependency.set("com.intershop.search:solrcloud:1.0.0")
+                            image.set("intershophub/solrcloud:11.0.1")
                         }
                         register("paymentExt") {
                             dependency.set("com.intershop.payment:paymenttest:1.0.0")
+                            image.set("intershophub/paymenttest:11.0.1")
                         }
                     }
 
@@ -512,16 +515,17 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
                     base {
                         dependency.set("com.intershop.icm:icm-as:1.0.0")
                         platform("com.intershop:libbom:1.0.0")
+                        image.set("intershophub/icm-as:11.0.1")
                     }
-
-                    cartridgeListDependency.set("com.project.group:configuration:1.0.0")
 
                     modules {
                         register("solrExt") {
                             dependency.set("com.intershop.search:solrcloud:1.0.0")
+                            image.set("intershophub/solrcloud:11.0.1")
                         }
                         register("paymentExt") {
                             dependency.set("com.intershop.payment:paymenttest:1.0.0")
+                            image.set("intershophub/paymenttest:11.0.1")
                         }
                     }
                 }
@@ -627,14 +631,17 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
                     base {
                         dependency.set("com.intershop.icm:icm-as:1.0.0")
                         platform("com.intershop:libbom:1.0.0")
+                        image.set("intershophub/icm-as:11.0.1")                        
                     }
 
                     modules {
                         register("solrExt") {
                             dependency.set("com.intershop.search:solrcloud:1.0.0")
+                            image.set("intershophub/solrcloud:11.0.1")
                         }
                         register("paymentExt") {
                             dependency.set("com.intershop.payment:paymenttest:1.0.0")
+                            image.set("intershophub/paymenttest:11.0.1")
                         }
                     }
 
@@ -812,14 +819,17 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
                 projectConfig {
                     base {
                         dependency.set("com.intershop.icm:icm-as:2.0.0")
+                        image.set("intershophub/icm-as:11.0.1")  
                     }
 
                     modules {
                         register("solrExt") {
                             dependency.set("com.intershop.search:solrcloud:1.0.0")
+                            image.set("intershophub/solrcloud:11.0.1")  
                         }
                         register("paymentExt") {
                             dependency.set("com.intershop.payment:paymenttest:1.0.0")
+                            image.set("intershophub/paymenttest:11.0.1")  
                         }
                     }
 
@@ -1011,14 +1021,17 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
                 projectConfig {                   
                     base {
                         dependency.set("com.intershop.icm:icm-as:1.0.0")
+                        image.set("intershophub/icm-as:11.0.1")  
                     }
 
                     modules {
                         register("solrExt") {
                             dependency.set("com.intershop.search:solrcloud:1.0.0")
+                            image.set("intershophub/solrcloud:11.0.1")  
                         }
                         register("paymentExt") {
                             dependency.set("com.intershop.payment:paymenttest:1.0.0")
+                            image.set("intershophub/paymenttest:11.0.1")  
                         }
                     }
 
