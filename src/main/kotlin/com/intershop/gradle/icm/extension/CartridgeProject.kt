@@ -45,6 +45,23 @@ open class CartridgeProject @Inject constructor(@Internal val project: Project, 
     val dependency: Property<String> = objectFactory.property(String::class.java)
 
     /**
+     * Image path for the project.
+     *
+     * @property image
+     */
+    @get:Input
+    val image: Property<String> = objectFactory.property(String::class.java)
+
+    /**
+     * Test image path for the project.
+     *
+     * @property testImage
+     */
+    @get:Optional
+    @get:Input
+    val testImage: Property<String> = objectFactory.property(String::class.java)
+
+    /**
      * Dependency of version filters of the base project.
      *
      * @property platforms

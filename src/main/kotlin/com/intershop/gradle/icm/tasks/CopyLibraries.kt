@@ -33,7 +33,6 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
-import java.util.*
 import javax.inject.Inject
 
 /**
@@ -71,8 +70,7 @@ open class CopyLibraries @Inject constructor( objectFactory: ObjectFactory ) : D
      */
     @TaskAction
     fun execute() {
-        val libraryDependencyIds = DependencyListUtil.getIDList(project.logger,
-                                                                environmentType.get(),
+        val libraryDependencyIds = DependencyListUtil.getIDList(environmentType.get(),
                                                                 dependencyIDFile.get())
         project.sync {
             it.with(copySpecFor(libraryDependencyIds))
@@ -99,11 +97,8 @@ open class CopyLibraries @Inject constructor( objectFactory: ObjectFactory ) : D
             // process resolved artifacts
             configuration.resolvedConfiguration.resolvedArtifacts.forEach { artifact ->
                 val id = artifact.moduleVersion.id
-                libCopySpec.with(project.copySpec().from(artifact.file).rename { name ->
-                    "${id.group}_" +
-                            "${id.name}_" +
-                            "${id.version}." +
-                            artifact.extension
+                libCopySpec.with(project.copySpec().from(artifact.file).rename {
+                    "${id.group}_${id.name}_${id.version}.${artifact.extension}"
                 })
             }
             return libCopySpec

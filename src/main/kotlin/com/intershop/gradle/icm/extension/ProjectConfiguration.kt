@@ -24,7 +24,6 @@ import org.gradle.api.Project
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
-import org.gradle.api.provider.SetProperty
 import java.io.File
 import javax.inject.Inject
 
@@ -77,41 +76,7 @@ open class ProjectConfiguration
             NamedCartridgeProject::class.java,
             NamedCartridgeProjectFactory(project, objectFactory))
 
-    val cartridgeListDependency: Property<String> = objectFactory.property(String::class.java)
-
     val libFilterFileDependency: Property<String> = objectFactory.property(String::class.java)
-
-    /**
-     * Cartridges of this project.
-     *
-     * @property cartridges
-     */
-    val cartridges: SetProperty<String> = objectFactory.setProperty(String::class.java)
-
-    /**
-     * Add a single cartridge to the list.
-     *
-     * @param cartridge name of an ICM cartridge
-     */
-    fun cartridge(cartridge: String) {
-        cartridges.add(cartridge)
-    }
-
-    /**
-     * Cartridges of this project.
-     *
-     * @property dbprepareCartridges
-     */
-    var dbprepareCartridges: SetProperty<String> = objectFactory.setProperty(String::class.java)
-
-    /**
-     * Add a single cartridge to the list of dbprepare cartridges.
-     *
-     * @param cartridge name of an ICM cartridge
-     */
-    fun dbprepareCartridge(cartridge: String) {
-        dbprepareCartridges.add(cartridge)
-    }
 
     val serverDirConfig: ProjectServerDirs = objectFactory.newInstance(ProjectServerDirs::class.java, project)
 

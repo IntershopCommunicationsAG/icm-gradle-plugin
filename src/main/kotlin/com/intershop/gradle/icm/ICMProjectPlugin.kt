@@ -118,15 +118,14 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
     private fun prepareContainer(pluginConfig: PluginConfig,
                                  versionInfoTask: TaskProvider<CreateServerInfo>): TaskProvider<Task> {
 
-        val prodSetupCartridgeTask = pluginConfig.getSetupCartridgesTask(PRODUCTION, PROD_ENVS)
-        val createConfigProd = pluginConfig.getConfigTask(versionInfoTask, PRODUCTION, PROD_ENVS)
+        val createConfigProd = pluginConfig.getConfigTask(versionInfoTask, PRODUCTION)
 
         pluginConfig.configurePackageTask(
-            createConfigProd, prodSetupCartridgeTask, CreateMainPackage.DEFAULT_NAME)
+            createConfigProd, CreateMainPackage.DEFAULT_NAME)
 
         val prepareTask = pluginConfig.configurePrepareTask(PRODUCTION)
         prepareTask.configure { task ->
-            task.dependsOn(prodSetupCartridgeTask, createConfigProd)
+            task.dependsOn(createConfigProd)
         }
         return prepareTask
     }
@@ -134,28 +133,25 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
     private fun prepareTestContainer(pluginConfig: PluginConfig,
                                      versionInfoTask: TaskProvider<CreateServerInfo>): TaskProvider<Task> {
 
-        val testSetupCartridgeTask = pluginConfig.getSetupCartridgesTask(TEST, TEST_ONLY_ENVS)
-        val createConfigTest = pluginConfig.getConfigTask(versionInfoTask, TEST, TEST_ENVS)
+        val createConfigTest = pluginConfig.getConfigTask(versionInfoTask, TEST)
 
         pluginConfig.configurePackageTask(
-            createConfigTest, testSetupCartridgeTask, CreateTestPackage.DEFAULT_NAME)
+            createConfigTest, CreateTestPackage.DEFAULT_NAME)
 
         val prepareTask = pluginConfig.configurePrepareTask(TEST)
         prepareTask.configure { task ->
-            task.dependsOn(testSetupCartridgeTask, createConfigTest)
+            task.dependsOn(createConfigTest)
         }
         return prepareTask
     }
 
     private fun prepareServer(pluginConfig: PluginConfig,
                                       versionInfoTask: TaskProvider<CreateServerInfo>): TaskProvider<Task> {
-
-        val setupCartridgeTask = pluginConfig.getSetupCartridgesTask(DEVELOPMENT, DEVELOPMENT_ENVS)
-        val createConfig = pluginConfig.getConfigTask(versionInfoTask, DEVELOPMENT, DEVELOPMENT_ENVS)
+        val createConfig = pluginConfig.getConfigTask(versionInfoTask, DEVELOPMENT)
 
         val prepareTask = pluginConfig.configurePrepareTask(DEVELOPMENT)
         prepareTask.configure { task ->
-            task.dependsOn(setupCartridgeTask, createConfig)
+            task.dependsOn(createConfig)
         }
         return prepareTask
     }

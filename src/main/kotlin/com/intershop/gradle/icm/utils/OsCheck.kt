@@ -38,7 +38,7 @@ object OsCheck {
      * the result.
      */
     init {
-        val osName = System.getProperty("os.name", "generic").toLowerCase(Locale.ENGLISH)
+        val osName = System.getProperty("os.name", "generic").lowercase(Locale.ENGLISH)
         detectedOS = if (osName.indexOf("mac") >= 0 || osName.indexOf("darwin") >= 0) {
             OSType.MacOS
         } else if (osName.indexOf("win") >= 0) {

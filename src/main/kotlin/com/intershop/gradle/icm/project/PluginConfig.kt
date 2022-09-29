@@ -23,7 +23,6 @@ import com.intershop.gradle.icm.extension.ProjectConfiguration
 import com.intershop.gradle.icm.tasks.CreateConfigFolder
 import com.intershop.gradle.icm.tasks.CreateServerInfo
 import com.intershop.gradle.icm.tasks.ProvideLibFilter
-import com.intershop.gradle.icm.tasks.SetupCartridges
 import com.intershop.gradle.icm.utils.EnvironmentType
 import org.gradle.api.Project
 import org.gradle.api.Task
@@ -47,42 +46,13 @@ class PluginConfig(val project: Project,
     }
 
     /**
-     * Configures the task for the setup of external cartridges.
-     *
-     * @param type environment type
-     * @param environmentTypesList List of environment types
-     */
-    fun getSetupCartridgesTask(type: EnvironmentType,
-                               environmentTypesList: List<EnvironmentType> ): TaskProvider<SetupCartridges> {
-        val plTask = project.tasks.named(ICMProjectPlugin.PROVIDE_LIBFILTER, ProvideLibFilter::class.java)
-
-        return project.tasks.register(TaskName.valueOf(type.name).cartridges(), SetupCartridges::class.java) { task ->
-            task.provideCartridges(projectConfig.cartridges)
-            task.provideDBprepareCartridges(projectConfig.dbprepareCartridges)
-            task.provideLibFilterFile( project.provider { plTask.get().outputFile.get() } )
-
-            task.platformDependencies(projectConfig.base.platforms)
-
-            projectConfig.modules.all {
-                task.platformDependencies(it.platforms)
-            }
-
-            task.environmentTypes.set(environmentTypesList)
-            task.provideOutputDir(TargetConf.valueOf(type.name).cartridges(projectLayout))
-            task.dependsOn(plTask)
-        }
-    }
-
-    /**
      * Configures the task for the configuration folder creation.
      *
      * @param versionInfoTask task that creates the server info
      * @param type environment type
-     * @param environmentTypesList list of environment types for the configuration
      */
     fun getConfigTask(versionInfoTask: TaskProvider<CreateServerInfo>,
-                      type: EnvironmentType,
-                      environmentTypesList: List<EnvironmentType>): TaskProvider<CreateConfigFolder> {
+                      type: EnvironmentType): TaskProvider<CreateConfigFolder> {
         with(project) {
 
             val task = TaskName.valueOf(type.name)
@@ -111,15 +81,13 @@ class PluginConfig(val project: Project,
      * Configures an existing package task package.
      *
      * @param configTask creates the configuration folder>yxc
-     * @param cartridgesTask creates the folder with external cartridges
      * @param taskname specify the task name of the package folder
      */
     fun configurePackageTask(configTask: TaskProvider<CreateConfigFolder>,
-                             cartridgesTask: TaskProvider<SetupCartridges>,
                              taskname: String): TaskProvider<Tar> =
         project.tasks.named(taskname, Tar::class.java) { pkg ->
-            pkg.with( getCopySpecFor(configTask, cartridgesTask) )
-            pkg.dependsOn(cartridgesTask, configTask)
+            pkg.with( getCopySpecFor(configTask) )
+            pkg.dependsOn(configTask)
         }
 
     /**
@@ -133,24 +101,8 @@ class PluginConfig(val project: Project,
             task.description = "starts all tasks for the preparation of a '${type}' build dir"
         }
 
-    private fun getCopySpecFor(configTask: TaskProvider<CreateConfigFolder>,
-                               cartridgesTask: TaskProvider<SetupCartridges>): CopySpec =
+    private fun getCopySpecFor(configTask: TaskProvider<CreateConfigFolder>): CopySpec =
         project.copySpec { cp ->
-            cp.from( project.provider { cartridgesTask.get().outputs } ) { cps ->
-                cps.into("cartridges")
-                cps.exclude("libs/**")
-                cps.exclude("**/**/.git*")
-            }
-            cp.from( project.provider { cartridgesTask.get().outputs } ) { cps ->
-                cps.into("lib")
-                cps.include("libs/**")
-                cps.exclude("**/**/.git*")
-                cps.includeEmptyDirs = false
-                cps.eachFile { details ->
-                    val targetPath = details.path.replaceFirst("libs/", "")
-                    details.path = targetPath
-                }
-            }
             cp.from(configTask.get().outputs)
         }
 

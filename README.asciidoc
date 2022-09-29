@@ -3,6 +3,9 @@
 :toc:
 :icons: font
 
+CAUTION:
+Version ??? requires Gradle 7.5.1!
+
 == Summary
 This plugin collection contains plugins for building all necessary artifacts of an
 Intershop Commerce Management Server.
