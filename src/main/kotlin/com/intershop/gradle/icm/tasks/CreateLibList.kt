@@ -32,19 +32,18 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import org.gradle.util.internal.VersionNumber
 import java.io.FileInputStream
-import java.lang.IllegalArgumentException
-import java.lang.module.ModuleDescriptor.Version
-import java.util.*
+import java.util.Properties
 import javax.inject.Inject
 
 /**
  * Collects all libraries (recursively through all (sub-)projects) and write IDs to a file
  */
 open class CreateLibList @Inject constructor(
-    objectFactory: ObjectFactory ) : DefaultTask() {
+        objectFactory: ObjectFactory,
+) : DefaultTask() {
 
     private val copiedLibrariesDirectoryProperty: Property<Directory> =
-        project.objects.directoryProperty().convention(project.layout.buildDirectory.dir(BUILD_FOLDER))
+            project.objects.directoryProperty().convention(project.layout.buildDirectory.dir(BUILD_FOLDER))
 
     companion object {
         const val DEFAULT_NAME = "CreateLibraries"
@@ -53,6 +52,7 @@ open class CreateLibList @Inject constructor(
         fun getName(type: String): String {
             return "${type.lowercase()}${DEFAULT_NAME}"
         }
+
         fun getOutputPath(type: String): String {
             return "librarylist/${type.lowercase()}/file.list"
         }
@@ -98,7 +98,9 @@ open class CreateLibList @Inject constructor(
             }
         }
 
-        val dependencies = dependenciesVersions.toSortedMap().map { (groupAndName, versionToCartridges) -> toDependencyId(groupAndName, resolveVersionConflict(groupAndName, versionToCartridges))}.toMutableList()
+        val dependencies = dependenciesVersions.toSortedMap().map { (groupAndName, versionToCartridges) ->
+            toDependencyId(groupAndName, resolveVersionConflict(groupAndName, versionToCartridges))
+        }.toMutableList()
 
         exludeLibraryLists.get().forEach {
             val excludeList = DependencyListUtil.getIDList(environmentType.get(), it)
@@ -108,7 +110,7 @@ open class CreateLibList @Inject constructor(
         val sortedDeps = dependencies.toList().sorted()
         val listFile = libraryListFile.asFile.get()
 
-        if(listFile.exists()) {
+        if (listFile.exists()) {
             listFile.delete()
         }
 
@@ -119,52 +121,65 @@ open class CreateLibList @Inject constructor(
         }
     }
 
-    private fun resolveVersionConflict(groupAndName : String, versionToCartridges : Map<String, String>) : String {
+    private fun resolveVersionConflict(groupAndName: String, versionToCartridges: Map<String, String>): String {
         // not a conflict at all ?
-        if (versionToCartridges.size == 1){
+        if (versionToCartridges.size == 1) {
             return versionToCartridges.keys.first()
         }
 
-        project.logger.debug("Trying to resolve a version conflict for dependency '{}' requiring the versions {}", groupAndName, versionToCartridges.keys)
+        project.logger.debug("Trying to resolve a version conflict for dependency '{}' requiring the versions {}",
+                groupAndName, versionToCartridges.keys)
 
         // parse to org.gradle.util.internal.VersionNumber
         val versions = versionToCartridges.keys.map { versionStr ->
             val versionNumber = VersionNumber.parse(versionStr)
             if (versionNumber == VersionNumber.UNKNOWN) {
                 throw GradleException(
-                        "The version string '$versionStr' can not be parsed into a ${VersionNumber::class.java} therefore the conflict resolution must be done manually: The dependency '$groupAndName' is required in ${versionToCartridges.size} versions by the following cartridges: $versionToCartridges")
+                        "The version string '$versionStr' can not be parsed into a ${VersionNumber::class.java} " +
+                        "therefore the conflict resolution must be done manually: The dependency '$groupAndName' is " +
+                        "required in ${versionToCartridges.size} versions by the following cartridges: " +
+                        "$versionToCartridges")
             }
             versionNumber
         }.sortedDescending()
 
         // check for major/minor/patch version jump
-        var prev : VersionNumber? = null
+        var prev: VersionNumber? = null
         for (curr in versions) {
-            if (prev == null){
+            if (prev == null) {
                 prev = curr
                 continue // skip first iteration (nothing to compare)
             }
-            if (prev.major != curr.major){
+            if (prev.major != curr.major) {
                 throw GradleException(
-                        "There's a major version conflict for dependency '$groupAndName': $prev <-> $curr. Please resolve this conflict analyzing the dependencies of the following cartridges: $versionToCartridges")
+                        "There's a major version conflict for dependency '$groupAndName': $prev <-> $curr. Please " +
+                        "resolve this conflict analyzing the dependencies of the following cartridges: " +
+                        "$versionToCartridges")
             }
             val chosen = maxOf(prev, curr)
-            if (prev.minor != curr.minor){
-                project.logger.warn("There's a minor version conflict for dependency '{}': {} <-> {}. Version {} is chosen. If this is not the correct version please resolve this conflict analyzing the dependencies of the following cartridges: {}", groupAndName, prev, curr, chosen, versionToCartridges)
+            if (prev.minor != curr.minor) {
+                project.logger.warn(
+                        "There's a minor version conflict for dependency '{}': {} <-> {}. Version {} is chosen. If " +
+                        "this is not the correct version please resolve this conflict analyzing the dependencies of " +
+                        "the following cartridges: {}", groupAndName, prev, curr, chosen, versionToCartridges)
             }
-            if (prev.micro != curr.micro){
-                project.logger.info("There's a patch version conflict for dependency '{}': {} <-> {}. Version {} is chosen. If this is not the correct version please resolve this conflict analyzing the dependencies of the following cartridges: {}", groupAndName, prev, curr, chosen, versionToCartridges)
+            if (prev.micro != curr.micro) {
+                project.logger.info(
+                        "There's a patch version conflict for dependency '{}': {} <-> {}. Version {} is chosen. If " +
+                        "this is not the correct version please resolve this conflict analyzing the dependencies of " +
+                        "the following cartridges: {}", groupAndName, prev, curr, chosen, versionToCartridges)
             }
             prev = curr
         }
 
         // finally take the first (highest) version
         val chosen = versions.first()
-        project.logger.debug("Resolved the version conflict for dependency '{}' choosing the versions {}", groupAndName, chosen)
+        project.logger.debug("Resolved the version conflict for dependency '{}' choosing the versions {}",
+                groupAndName, chosen)
         return chosen.toString()
     }
 
-    private fun toDependencyId(groupAndName : String, version : String): String {
+    private fun toDependencyId(groupAndName: String, version: String): String {
         return "$groupAndName:$version"
     }
 
@@ -175,11 +190,12 @@ open class CreateLibList @Inject constructor(
         }
         return props
     }
-    private fun getCartridgeName(props:Properties): String {
+
+    private fun getCartridgeName(props: Properties): String {
         return props["cartridge.name"].toString()
     }
 
-    private fun getLibraryIDs(props:Properties): Set<String> {
+    private fun getLibraryIDs(props: Properties): Set<String> {
         val dependsOnLibs = props["cartridge.dependsOnLibs"].toString()
         return if (dependsOnLibs.isEmpty()) setOf() else dependsOnLibs.split(";").toSet()
     }
