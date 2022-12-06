@@ -320,6 +320,7 @@ dependencies {
     implementation(localGroovy())
 
     compileOnly("org.apache.ant:ant:1.10.12")
+    implementation("com.vdurmont:semver4j:3.1.0")
 
     testImplementation("com.intershop.gradle.test:test-gradle-plugin:4.1.2")
     testImplementation(gradleTestKit())

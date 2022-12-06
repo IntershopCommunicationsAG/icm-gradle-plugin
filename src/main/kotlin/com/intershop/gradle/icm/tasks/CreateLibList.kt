@@ -18,6 +18,8 @@
 package com.intershop.gradle.icm.tasks
 
 import com.intershop.gradle.icm.utils.DependencyListUtil
+import com.vdurmont.semver4j.Semver
+import com.vdurmont.semver4j.SemverException
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.file.Directory
@@ -30,7 +32,6 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
-import org.gradle.util.internal.VersionNumber
 import java.io.FileInputStream
 import java.util.Properties
 import javax.inject.Inject
@@ -41,9 +42,6 @@ import javax.inject.Inject
 open class CreateLibList @Inject constructor(
         objectFactory: ObjectFactory,
 ) : DefaultTask() {
-
-    private val copiedLibrariesDirectoryProperty: Property<Directory> =
-            project.objects.directoryProperty().convention(project.layout.buildDirectory.dir(BUILD_FOLDER))
 
     companion object {
         const val DEFAULT_NAME = "CreateLibraries"
@@ -80,7 +78,7 @@ open class CreateLibList @Inject constructor(
      */
     @TaskAction
     fun execute() {
-        // map group+name to another map mapping group+name+version to cartridgeNames (space separated list)
+        // map group+name to another map mapping -> version to cartridgeNames (space separated list)
         // e.g. "aopalliance:aopalliance" -> {
         //      "1.0" -> "ac_order_export_xml_b2b ac_cxml_order_injection",
         //      "1.0.1" -> "ac_order_export_xml_b2b ac_cxml_order_injection"
@@ -98,6 +96,7 @@ open class CreateLibList @Inject constructor(
             }
         }
 
+        // convert dependenciesVersions into a list of dependencyIds resolving version conflicts if required
         val dependencies = dependenciesVersions.toSortedMap().map { (groupAndName, versionToCartridges) ->
             toDependencyId(groupAndName, resolveVersionConflict(groupAndName, versionToCartridges))
         }.toMutableList()
@@ -121,6 +120,13 @@ open class CreateLibList @Inject constructor(
         }
     }
 
+    /**
+     * Resolves a version conflict if required (more than 1 version referenced). The conflict is resolved by choosing
+     * the highest version except the version gap is a major update - then a GradleException is thrown. If the gap is
+     * a minor update a warning is logged, on a patch update an info message is logged.
+     * ATTENTION: this method requires the versions to be semantic version parseable by
+     * com.vdurmont.semver4j.Semver.Semver(java.lang.String)
+     */
     private fun resolveVersionConflict(groupAndName: String, versionToCartridges: Map<String, String>): String {
         // not a conflict at all ?
         if (versionToCartridges.size == 1) {
@@ -132,19 +138,19 @@ open class CreateLibList @Inject constructor(
 
         // parse to org.gradle.util.internal.VersionNumber
         val versions = versionToCartridges.keys.map { versionStr ->
-            val versionNumber = VersionNumber.parse(versionStr)
-            if (versionNumber == VersionNumber.UNKNOWN) {
+            try {
+                Semver(versionStr)
+            } catch (e: SemverException) {
                 throw GradleException(
-                        "The version string '$versionStr' can not be parsed into a ${VersionNumber::class.java} " +
-                        "therefore the conflict resolution must be done manually: The dependency '$groupAndName' is " +
-                        "required in ${versionToCartridges.size} versions by the following cartridges: " +
-                        "$versionToCartridges")
+                        "The version string '$versionStr' can not be parsed therefore the conflict resolution must be " +
+                        "done manually: The dependency '$groupAndName' is required in ${versionToCartridges.size} " +
+                        "different versions by the following cartridges: " +
+                        "$versionToCartridges", e)
             }
-            versionNumber
         }.sortedDescending()
 
         // check for major/minor/patch version jump
-        var prev: VersionNumber? = null
+        var prev: Semver? = null
         for (curr in versions) {
             if (prev == null) {
                 prev = curr
@@ -160,21 +166,21 @@ open class CreateLibList @Inject constructor(
             if (prev.minor != curr.minor) {
                 project.logger.warn(
                         "There's a minor version conflict for dependency '{}': {} <-> {}. Version {} is chosen. If " +
-                        "this is not the correct version please resolve this conflict analyzing the dependencies of " +
-                        "the following cartridges: {}", groupAndName, prev, curr, chosen, versionToCartridges)
+                        "this is not the correct version please resolve this conflict by analyzing the dependencies " +
+                        "of the following cartridges: {}", groupAndName, prev, curr, chosen, versionToCartridges)
             }
-            if (prev.micro != curr.micro) {
+            if (prev.patch != curr.patch) {
                 project.logger.info(
                         "There's a patch version conflict for dependency '{}': {} <-> {}. Version {} is chosen. If " +
-                        "this is not the correct version please resolve this conflict analyzing the dependencies of " +
-                        "the following cartridges: {}", groupAndName, prev, curr, chosen, versionToCartridges)
+                        "this is not the correct version please resolve this conflict by analyzing the dependencies " +
+                        "of the following cartridges: {}", groupAndName, prev, curr, chosen, versionToCartridges)
             }
             prev = curr
         }
 
         // finally take the first (highest) version
         val chosen = versions.first()
-        project.logger.debug("Resolved the version conflict for dependency '{}' choosing the versions {}",
+        project.logger.debug("Resolved the version conflict for dependency '{}' choosing version {}",
                 groupAndName, chosen)
         return chosen.toString()
     }
