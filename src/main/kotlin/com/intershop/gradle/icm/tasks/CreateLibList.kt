@@ -18,11 +18,9 @@
 package com.intershop.gradle.icm.tasks
 
 import com.intershop.gradle.icm.utils.DependencyListUtil
-import com.vdurmont.semver4j.Semver
-import com.vdurmont.semver4j.SemverException
+import com.intershop.version.semantic.SemanticVersion
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
-import org.gradle.api.file.Directory
 import org.gradle.api.file.RegularFile
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.model.ObjectFactory
@@ -139,8 +137,8 @@ open class CreateLibList @Inject constructor(
         // parse to org.gradle.util.internal.VersionNumber
         val versions = versionToCartridges.keys.map { versionStr ->
             try {
-                Semver(versionStr)
-            } catch (e: SemverException) {
+                SemanticVersion.valueOf(versionStr)
+            } catch (e: Exception) {
                 throw GradleException(
                         "The version string '$versionStr' can not be parsed therefore the conflict resolution must be " +
                         "done manually: The dependency '$groupAndName' is required in ${versionToCartridges.size} " +
@@ -150,7 +148,7 @@ open class CreateLibList @Inject constructor(
         }.sortedDescending()
 
         // check for major/minor/patch version jump
-        var prev: Semver? = null
+        var prev: SemanticVersion? = null
         for (curr in versions) {
             if (prev == null) {
                 prev = curr
@@ -158,7 +156,7 @@ open class CreateLibList @Inject constructor(
             }
             if (prev.major != curr.major) {
                 throw GradleException(
-                        "There's a major version conflict for dependency '$groupAndName': $prev <-> $curr. Please " +
+                        "There's a major version conflict for dependency '$groupAndName': ${prev.version} <-> ${curr.version}. Please " +
                         "resolve this conflict analyzing the dependencies of the following cartridges: " +
                         "$versionToCartridges")
             }
@@ -167,22 +165,22 @@ open class CreateLibList @Inject constructor(
                 project.logger.warn(
                         "There's a minor version conflict for dependency '{}': {} <-> {}. Version {} is chosen. If " +
                         "this is not the correct version please resolve this conflict by analyzing the dependencies " +
-                        "of the following cartridges: {}", groupAndName, prev, curr, chosen, versionToCartridges)
+                        "of the following cartridges: {}", groupAndName, prev.version, curr.version, chosen.version, versionToCartridges)
             }
             if (prev.patch != curr.patch) {
                 project.logger.info(
                         "There's a patch version conflict for dependency '{}': {} <-> {}. Version {} is chosen. If " +
                         "this is not the correct version please resolve this conflict by analyzing the dependencies " +
-                        "of the following cartridges: {}", groupAndName, prev, curr, chosen, versionToCartridges)
+                        "of the following cartridges: {}", groupAndName, prev.version, curr.version, chosen.version, versionToCartridges)
             }
             prev = curr
         }
 
         // finally take the first (highest) version
-        val chosen = versions.first()
+        val chosen = versions.first().version
         project.logger.debug("Resolved the version conflict for dependency '{}' choosing version {}",
                 groupAndName, chosen)
-        return chosen.toString()
+        return chosen
     }
 
     private fun toDependencyId(groupAndName: String, version: String): String {
