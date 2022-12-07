@@ -140,8 +140,8 @@ open class CreateLibList @Inject constructor(
                 SemanticVersion.valueOf(versionStr)
             } catch (e: Exception) {
                 throw GradleException(
-                        "The version string '$versionStr' can not be parsed therefore the conflict resolution must be " +
-                        "done manually: The dependency '$groupAndName' is required in ${versionToCartridges.size} " +
+                        "The version string '$versionStr' can not be parsed therefore the conflict resolution must " +
+                        "be done manually: The dependency '$groupAndName' is required in ${versionToCartridges.size} " +
                         "different versions by the following cartridges: " +
                         "$versionToCartridges", e)
             }
@@ -156,22 +156,24 @@ open class CreateLibList @Inject constructor(
             }
             if (prev.major != curr.major) {
                 throw GradleException(
-                        "There's a major version conflict for dependency '$groupAndName': ${prev.version} <-> ${curr.version}. Please " +
-                        "resolve this conflict analyzing the dependencies of the following cartridges: " +
-                        "$versionToCartridges")
+                        "There's a major version conflict for dependency '$groupAndName': ${prev.version} <-> " +
+                        "${curr.version}. Please resolve this conflict analyzing the dependencies of the following " +
+                        "cartridges: $versionToCartridges")
             }
             val chosen = maxOf(prev, curr)
             if (prev.minor != curr.minor) {
                 project.logger.warn(
                         "There's a minor version conflict for dependency '{}': {} <-> {}. Version {} is chosen. If " +
                         "this is not the correct version please resolve this conflict by analyzing the dependencies " +
-                        "of the following cartridges: {}", groupAndName, prev.version, curr.version, chosen.version, versionToCartridges)
+                        "of the following cartridges: {}",
+                        groupAndName, prev.version, curr.version, chosen.version, versionToCartridges)
             }
             if (prev.patch != curr.patch) {
                 project.logger.info(
                         "There's a patch version conflict for dependency '{}': {} <-> {}. Version {} is chosen. If " +
                         "this is not the correct version please resolve this conflict by analyzing the dependencies " +
-                        "of the following cartridges: {}", groupAndName, prev.version, curr.version, chosen.version, versionToCartridges)
+                        "of the following cartridges: {}",
+                        groupAndName, prev.version, curr.version, chosen.version, versionToCartridges)
             }
             prev = curr
         }
@@ -204,4 +206,3 @@ open class CreateLibList @Inject constructor(
         return if (dependsOnLibs.isEmpty()) setOf() else dependsOnLibs.split(";").toSet()
     }
 }
-
