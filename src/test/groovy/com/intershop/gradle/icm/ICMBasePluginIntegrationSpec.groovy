@@ -592,7 +592,7 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         p2['cartridge.version'] == 'unspecified'
         p2['cartridge.description'] == 'testCartridge2'
         p2['cartridge.displayName'] == 'testCartridge2'
-        p2['cartridge.dependsOnLibs'] == 'javax.servlet:javax.servlet-api:3.1.0;org.slf4j:slf4j-api:1.7.32;org.slf4j:slf4j-simple:1.7.32'
+        p2['cartridge.dependsOnLibs'] == 'javax.servlet:javax.servlet-api:3.1.0'
         p2['cartridge.dependsOn'] == 'testCartridge1'
 
         result.task(':testCartridge3:writeCartridgeDescriptor').outcome == SUCCESS
@@ -603,8 +603,8 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         p3['cartridge.version'] == '1.2.3'
         p3['cartridge.description'] == "Test cartridge implementation first line\nTest cartridge implementation second line\n"
         p3['cartridge.displayName'] == "Test cartridge implementation first line\nTest cartridge implementation second line\n"
-        p3['cartridge.dependsOnLibs'] == 'javax.servlet:javax.servlet-api:3.1.0;org.slf4j:slf4j-api:1.7.32;org.slf4j:slf4j-simple:1.7.32'
-        p3['cartridge.dependsOn'] == 'testCartridge1;testCartridge2'
+        p3['cartridge.dependsOnLibs'] == ''
+        p3['cartridge.dependsOn'] == 'testCartridge2'
 
         when:
         def again = getPreparedGradleRunner()
