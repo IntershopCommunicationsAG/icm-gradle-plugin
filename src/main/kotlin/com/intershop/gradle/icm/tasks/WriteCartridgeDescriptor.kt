@@ -21,6 +21,7 @@ import com.intershop.gradle.icm.ICMBasePlugin.Companion.CONFIGURATION_CARTRIDGE_
 import com.intershop.gradle.icm.extension.IntershopExtension.Companion.INTERSHOP_GROUP_NAME
 import com.intershop.gradle.icm.utils.CartridgeUtil
 import org.gradle.api.DefaultTask
+import org.gradle.api.artifacts.ResolvedDependency
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import org.gradle.api.file.ProjectLayout
@@ -138,12 +139,13 @@ open class WriteCartridgeDescriptor
         val props = linkedMapOf<String, String>()
         val comment = "Intershop descriptor file"
 
-        val cartridges = getCartridges()
-        val libs = getLibs()
+        val cartridgeDependencies = getCartridgeDependencies()
+        val libs = getLibs(cartridgeDependencies)
 
         props["descriptor.version"] = "1.0"
 
-        props["cartridge.dependsOn"] = cartridges.toSortedSet().joinToString(separator = ";")
+        props["cartridge.dependsOn"] = cartridgeDependencies.map { it.cartridgeId }.toSortedSet()
+                .joinToString(separator = ";")
         props["cartridge.dependsOnLibs"] = libs.toSortedSet().joinToString(separator = ";")
 
         props["cartridge.name"] = cartridgeName.get()
@@ -170,48 +172,75 @@ open class WriteCartridgeDescriptor
         }
     }
 
-    private fun getLibs(): Set<String> {
+    private fun getLibs(cartridgeDependencies: Set<CartridgeDependency>): Set<String> {
+        // put the ids of all cartridge dependencies into 1 single set for later lookup
+        val derivedLibraryDependencyIds = cartridgeDependencies.flatMap { cartDep ->
+            cartDep.childDependencies.flatMap { childDep -> // 1. get children
+                childDep.allModuleArtifacts // 2. get artifacts of children (transitive!)
+            }
+        }.asSequence().filter { it.extension.equals("jar") } // 3. jars only
+                .map { it.id.componentIdentifier } // 4. get componentIdentifier
+                .filter { it is ModuleComponentIdentifier } // 5. ModuleComponentIdentifiers only
+                .map {
+                    with(it as ModuleComponentIdentifier) { // cast to ModuleComponentIdentifier
+                        "${group}:${module}:${version}" // 4. render actual id
+                    }
+                }.toSet()
+
         val dependencies = HashSet<String>()
         val resolvedConfig = project.configurations.getByName(RUNTIME_CLASSPATH_CONFIGURATION_NAME)
-            .resolvedConfiguration
+                .resolvedConfiguration
         // ensure build fails if there are resolve errors
         if (resolvedConfig.hasError()){
             resolvedConfig.rethrowFailure()
         }
+
+        var transitiveCount = 0
+        var directCount = 0
         resolvedConfig.lenientConfiguration.allModuleDependencies.forEach { dependency ->
-                dependency.moduleArtifacts.forEach { artifact ->
-                    when (val identifier = artifact.id.componentIdentifier) {
-                        is ModuleComponentIdentifier -> {
-                            // only add non-cartridge-'jar's
-                            if (artifact.extension.equals("jar") && !CartridgeUtil.isCartridge(project, identifier)) {
-                                dependencies.add("${identifier.group}:${identifier.module}:${identifier.version}")
+            dependency.moduleArtifacts.forEach { artifact ->
+                when (val identifier = artifact.id.componentIdentifier) {
+                    is ModuleComponentIdentifier -> {
+                        // only add non-cartridge-'jar's
+                        if (artifact.extension.equals("jar") && !CartridgeUtil.isCartridge(project, identifier)) {
+                            val id = "${identifier.group}:${identifier.module}:${identifier.version}"
+                            transitiveCount++
+                            // only return libs that haven't come along with other cartridges
+                            if (!derivedLibraryDependencyIds.contains(id)) {
+                                dependencies.add(id)
+                                directCount++
                             }
                         }
                     }
                 }
             }
+        }
+        project.logger.debug("Cartridge {} directly depends on {} libraries and transitively on {}",
+                project.name, directCount, transitiveCount)
         return dependencies
     }
 
-    private fun getCartridges(): Set<String> {
-        val dependencies = HashSet<String>()
-        val resolvedConfig = project.configurations.getByName(CONFIGURATION_CARTRIDGE_RUNTIME).resolvedConfiguration
+    private fun getCartridgeDependencies(): Set<CartridgeDependency> {
+        val dependencies = HashSet<CartridgeDependency>()
+        val resolvedConfig = project.configurations.getByName(CONFIGURATION_CARTRIDGE_RUNTIME)
+                .resolvedConfiguration
         // ensure build fails if there are resolve errors
         if (resolvedConfig.hasError()){
             resolvedConfig.rethrowFailure()
         }
-        resolvedConfig.lenientConfiguration.allModuleDependencies.forEach { dependency ->
-                dependency.moduleArtifacts.forEach { artifact ->
-                    when (val identifier = artifact.id.componentIdentifier) {
-                        is ProjectComponentIdentifier ->
-                            dependencies.add(identifier.projectName)
-                        is ModuleComponentIdentifier ->
-                            if (CartridgeUtil.isCartridge(project, identifier)) {
-                                dependencies.add("${identifier.module}:${identifier.version}")
-                            }
-                    }
+        resolvedConfig.lenientConfiguration.firstLevelModuleDependencies.forEach { dependency ->
+            dependency.moduleArtifacts.forEach { artifact ->
+                when (val identifier = artifact.id.componentIdentifier) {
+                    is ProjectComponentIdentifier ->
+                        dependencies.add(CartridgeDependency(identifier.projectName, dependency.children))
+                    is ModuleComponentIdentifier ->
+                        if (CartridgeUtil.isCartridge(project, identifier)) {
+                            dependencies.add(CartridgeDependency("${identifier.module}:${identifier.version}",
+                                    dependency.children))
+                        }
                 }
             }
+        }
         return dependencies
     }
 
@@ -221,5 +250,9 @@ open class WriteCartridgeDescriptor
     ): String =
         collectionProvider.invoke().map { value -> stringifier.invoke(value) }.sorted().toString()
 
+    private class CartridgeDependency(val cartridgeId : String, val childDependencies : Set<ResolvedDependency>) {
+        override fun toString(): String {
+            return "CartridgeDependency(cartridgeId='$cartridgeId', childDependencies=$childDependencies)"
+        }
+    }
 }
-
