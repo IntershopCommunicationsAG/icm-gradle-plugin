@@ -21,6 +21,8 @@ import com.intershop.gradle.icm.ICMBasePlugin.Companion.CONFIGURATION_CARTRIDGE_
 import com.intershop.gradle.icm.extension.IntershopExtension.Companion.INTERSHOP_GROUP_NAME
 import com.intershop.gradle.icm.utils.CartridgeUtil
 import org.gradle.api.DefaultTask
+import org.gradle.api.GradleException
+import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.artifacts.ResolvedDependency
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier
@@ -172,11 +174,35 @@ open class WriteCartridgeDescriptor
         }
     }
 
+    /**
+     * Reimplementation of [ResolvedDependency.getAllModuleArtifacts] but with circle detection (already processed
+     * dependencies will be skipped).
+     * Original method [ResolvedDependency.getAllModuleArtifacts] will get stuck in a stack overflow when processing
+     * `org.apache.solr:solr-solrj` which is dependent from `org.apache.solr:solr-solrj-zookeeper` and vice versa.
+     */
+    private fun getAllModuleArtifacts(dependency : ResolvedDependency, processedDependencies : MutableSet<ResolvedDependency>) : Set<ResolvedArtifact> {
+        project.logger.debug("Determining module artifacts of {} transitively", dependency.name)
+        // detect circular dependencies like
+        if (processedDependencies.contains(dependency)){
+            project.logger.debug("Dependency {} already has been processed", dependency.name)
+            return setOf() // no extra artifacts
+        }
+        processedDependencies.add(dependency) // mark as processed
+        var artifacts = dependency.moduleArtifacts // own artifacts
+        project.logger.debug("Found artifacts {}", artifacts)
+        dependency.children.forEach { child ->
+            artifacts = artifacts + getAllModuleArtifacts(child, processedDependencies) // append child artifacts
+        }
+        return artifacts
+    }
+
     private fun getLibs(cartridgeDependencies: Set<CartridgeDependency>): Set<String> {
+        val processedDependencies = mutableSetOf<ResolvedDependency>()
         // put the ids of all cartridge dependencies into 1 single set for later lookup
-        val derivedLibraryDependencyIds = cartridgeDependencies.flatMap { cartDep ->
+        val derivedLibraryDependencyIds = cartridgeDependencies.flatMap {
+            cartDep ->
             cartDep.childDependencies.flatMap { childDep -> // 1. get children
-                childDep.allModuleArtifacts // 2. get artifacts of children (transitive!)
+                getAllModuleArtifacts(childDep, processedDependencies) // 2. get artifacts of children (transitive!)
             }
         }.asSequence().filter { it.extension.equals("jar") } // 3. jars only
                 .map { it.id.componentIdentifier } // 4. get componentIdentifier
