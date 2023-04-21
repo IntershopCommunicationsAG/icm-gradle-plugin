@@ -180,10 +180,13 @@ open class WriteCartridgeDescriptor
      * Original method [ResolvedDependency.getAllModuleArtifacts] will get stuck in a stack overflow when processing
      * `org.apache.solr:solr-solrj` which is dependent from `org.apache.solr:solr-solrj-zookeeper` and vice versa.
      */
-    private fun getAllModuleArtifacts(dependency : ResolvedDependency, processedDependencies : MutableSet<ResolvedDependency>) : Set<ResolvedArtifact> {
+    private fun getAllModuleArtifacts(
+            dependency: ResolvedDependency,
+            processedDependencies: MutableSet<ResolvedDependency>,
+    ): Set<ResolvedArtifact> {
         project.logger.debug("Determining module artifacts of {} transitively", dependency.name)
         // detect circular dependencies like
-        if (processedDependencies.contains(dependency)){
+        if (processedDependencies.contains(dependency)) {
             project.logger.debug("Dependency {} already has been processed", dependency.name)
             return setOf() // no extra artifacts
         }
