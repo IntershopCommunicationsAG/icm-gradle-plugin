@@ -60,7 +60,9 @@ object CopySpecUtil {
         val cs = project.copySpec()
 
         with(dirConfig) {
-            cs.from(dir.get())
+            if (dir.isPresent) {
+                cs.from(dir.get())
+            }
             if (excludes.get().isNotEmpty()) {
                 cs.exclude(*excludes.get().toTypedArray())
             }
