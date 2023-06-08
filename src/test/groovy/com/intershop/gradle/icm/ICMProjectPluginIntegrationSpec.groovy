@@ -55,7 +55,7 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         then:
         result.task(':showLicPath').outcome == SUCCESS
-        result.output.contains(".gradle/icm-default/lic/license.xml")
+        result.output.contains(new File("gradle/icm-default/lic/license.xml").toString())
 
         when:
         def result1 = getPreparedGradleRunner()
@@ -65,7 +65,7 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         then:
         result1.task(':showLicPath').outcome == SUCCESS
-        result1.output.contains("/home/user/licdir/license.xml")
+        result1.output.contains(new File("/home/user/licdir/license.xml").toString())
 
         when:
         def result2 = getPreparedGradleRunner()
@@ -75,7 +75,7 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         then:
         result2.task(':showLicPath').outcome == SUCCESS
-        result2.output.contains("/home/otheruser/licdir/license.xml")
+        result2.output.contains(new File("/home/otheruser/licdir/license.xml").toString())
 
         when:
         def result3 = getPreparedGradleRunner()
@@ -86,7 +86,7 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         then:
         result3.task(':showLicPath').outcome == SUCCESS
-        result3.output.contains("/home/other/licdir/license.xml")
+        result3.output.contains(new File("/home/other/licdir/license.xml").toString())
 
         where:
         gradleVersion << supportedGradleVersions
@@ -120,7 +120,7 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         then:
         result.task(':showConfPath').outcome == SUCCESS
-        result.output.contains(".gradle/icm-default/conf/icm.properties")
+        result.output.contains(new File("gradle/icm-default/conf/icm.properties").toString())
 
         when:
         def result1 = getPreparedGradleRunner()
@@ -130,7 +130,7 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         then:
         result1.task(':showConfPath').outcome == SUCCESS
-        result1.output.contains("/home/user/conf/icm.properties")
+        result1.output.contains(new File("/home/user/conf/icm.properties").toString())
 
         when:
         def result2 = getPreparedGradleRunner()
@@ -140,7 +140,7 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         then:
         result2.task(':showConfPath').outcome == SUCCESS
-        result2.output.contains("/home/otheruser/conf/icm.properties")
+        result2.output.contains(new File("/home/otheruser/conf/icm.properties").toString())
 
         when:
         def result3 = getPreparedGradleRunner()
@@ -151,7 +151,7 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         then:
         result3.task(':showConfPath').outcome == SUCCESS
-        result3.output.contains("/home/other/conf/icm.properties")
+        result3.output.contains(new File("/home/other/conf/icm.properties").toString())
 
         where:
         gradleVersion << supportedGradleVersions
@@ -385,7 +385,7 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         then:
         resultPrintProdConfFolder.task(":printProdFolder").outcome == SUCCESS
-        resultPrintProdConfFolder.output.contains("build/container/config_folder")
+        resultPrintProdConfFolder.output.contains(new File("build/container/config_folder").toString())
 
         when:
         def resultProdConf = getPreparedGradleRunner()
@@ -439,7 +439,7 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         then:
         resultPrintProdConfFolder.task(":printTestFolder").outcome == SUCCESS
-        resultPrintProdConfFolder.output.contains("build/testcontainer/config_folder")
+        resultPrintProdConfFolder.output.contains(new File("build/testcontainer/config_folder").toString())
 
         when:
         def resultProdConf = getPreparedGradleRunner()
@@ -493,7 +493,7 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         then:
         resultPrintProdConfFolder.task(":printDevFolder").outcome == SUCCESS
-        resultPrintProdConfFolder.output.contains("build/server/config_folder")
+        resultPrintProdConfFolder.output.contains(new File( "build/server/config_folder").toString())
 
         when:
         def resultProdConf = getPreparedGradleRunner()

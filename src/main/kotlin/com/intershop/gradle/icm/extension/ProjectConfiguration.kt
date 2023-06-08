@@ -102,7 +102,13 @@ open class ProjectConfiguration
         newBaseProject.set(false)
 
         serverDirConfig.base.dirs.register("main") {
-            it.dir.convention( projectLayout.projectDirectory.dir("config/base") )
+            val configBase = projectLayout.projectDirectory.dir("config/base")
+            if (configBase.asFile.exists()) {
+                it.dir.convention(configBase)
+            } else {
+                project.logger.info("Directory $configBase does not exist. Skipping to package directory content" +
+                                    " as configuration.")
+            }
         }
     }
 }
