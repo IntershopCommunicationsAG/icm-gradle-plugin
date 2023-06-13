@@ -517,18 +517,6 @@ intershop {
                 dependency = "com.intershop.payment:payment:1.0.0"
             }
         }
-        serverDirConfig {
-            base {
-                dirs {
-                    main {
-                        dir.set(file("config/altbase"))
-                    }
-                }
-            }
-            prod { }
-            test { }
-            dev { }
-        }
     }
 }
 ----
@@ -580,18 +568,6 @@ intershop {
             register("payment") {
                 dependency.set("com.intershop.payment:payment:1.0.0")
             }
-        }
-        serverDirConfig {
-            base {
-                dirs {
-                    named("main") {
-                        dir.set(file("config/altbase"))
-                    }
-                }
-            }
-            prod { }
-            test { }
-            dev { }
         }
     }
 }
@@ -650,8 +626,10 @@ server/config_folder` | Contains the complete configuration of a development ser
 
 | `cartridge` | `String` | Add a cartridge to the list of cartridges. This can be a project name or a short module dependency configuration (`group:module:version`).
 | `dbprepareCartridge` | `String` | Add a cartridge to the list of cartridges for Database preparation. This can be a project name or a short module dependency configuration (`group:module:version`).
-| `serverDirConfig` | Action<in ProjectServerDirs> | Configures the usage of project directories for configuration from an action.
-| `serverDirConfig` | Closure<ProjectServerDirs> | Configures the usage of project directories for configuration from a closure.
+| `serverDirConfig` | Action<in ProjectServerDirs> |  Configures the usage of project directories for configuration from an action. +
+*Deprecated since 5.6.0*: Configuration via folder is unsupported
+| `serverDirConfig` | Closure<ProjectServerDirs> | Configures the usage of project directories for configuration from a closure. +
+*Deprecated since 5.6.0*: Configuration via folder is unsupported
 |===
 
 `modules` is a `NamedDomainObjectContainer` of `CartridgeProject` a configuration is possible in a `Closure` or in a `Action`.
@@ -706,6 +684,9 @@ Methods of `CartridgeProject`
 |===
 
 ====== Object `ProjectServerDirs`
+
+*Deprecated since 5.6.0*: Configuration via folder is unsupported
+
 This configures directories for environment types. These configurations are all optional.
 
 Methods of `ProjectServerDirs`

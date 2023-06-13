@@ -42,7 +42,8 @@ open class ProjectConfiguration
     val testcontainerConfig: File = TargetConf.TEST.config(projectLayout).get().asFile
 
     val config: File = TargetConf.DEVELOPMENT.config(projectLayout).get().asFile
-    val newBaseProject: Property<Boolean> = objectFactory.property(Boolean::class.java)
+    @Deprecated("newBaseProject feature is unsupported since 5.6.0", level = DeprecationLevel.WARNING)
+    val newBaseProject: Property<Boolean> = objectFactory.property(Boolean::class.java).convention(false)
 
     /**
      * Base project configuration for final project.
@@ -78,6 +79,7 @@ open class ProjectConfiguration
 
     val libFilterFileDependency: Property<String> = objectFactory.property(String::class.java)
 
+    @Deprecated("Configuration via folder is unsupported since 5.6.0", level = DeprecationLevel.WARNING)
     val serverDirConfig: ProjectServerDirs = objectFactory.newInstance(ProjectServerDirs::class.java, project)
 
     /**
@@ -85,6 +87,7 @@ open class ProjectConfiguration
      *
      * @param action Action to configure project server dirs
      */
+    @Deprecated("Configuration via folder is unsupported since 5.6.0", level = DeprecationLevel.WARNING)
     fun serverDirConfig(action: Action<in ProjectServerDirs>) {
         action.execute(serverDirConfig)
     }
@@ -94,22 +97,10 @@ open class ProjectConfiguration
      *
      * @param closure Closure to configure project server dirs
      */
+    @Deprecated("Configuration via folder is unsupported since 5.6.0", level = DeprecationLevel.WARNING)
     fun serverDirConfig(closure: Closure<ProjectServerDirs>) {
         project.configure(serverDirConfig, closure)
     }
 
-    init {
-        newBaseProject.set(false)
-
-        serverDirConfig.base.dirs.register("main") {
-            val configBase = projectLayout.projectDirectory.dir("config/base")
-            if (configBase.asFile.exists()) {
-                it.dir.convention(configBase)
-            } else {
-                project.logger.info("Directory $configBase does not exist. Skipping to package directory content" +
-                                    " as configuration.")
-            }
-        }
-    }
 }
 

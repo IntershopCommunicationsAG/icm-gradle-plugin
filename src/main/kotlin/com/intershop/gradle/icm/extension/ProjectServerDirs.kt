@@ -33,6 +33,7 @@ import javax.inject.Inject
  *
  * @constructor creates a configuration of a set of ServerDirs.
  */
+@Deprecated("Configuration via folder is unsupported since 5.6.0", level = DeprecationLevel.WARNING)
 open class ProjectServerDirs @Inject constructor(val project: Project, objectFactory: ObjectFactory ) {
 
     val base: ServerDir = objectFactory.newInstance(
