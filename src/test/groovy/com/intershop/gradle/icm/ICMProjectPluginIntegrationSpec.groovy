@@ -492,7 +492,6 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                 .build()
 
         def configDir = new File(testProjectDir, "build/server/config_folder/system-conf" )
-        def configAppsDir = new File(configDir, "apps")
         def configClusterDir = new File(configDir, "cluster")
         def prodLibsDir = new File(testProjectDir, "build/libraries/production")
         def testLibsDir = new File(testProjectDir, "build/libraries/test")
@@ -500,11 +499,9 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         then:
         result.task(':prepareServer').outcome == SUCCESS
         configDir.exists()
-        configDir.listFiles().size() == 2
-        configAppsDir.exists()
-        configAppsDir.listFiles().size() == 3
+        configDir.listFiles().size() == 1
         configClusterDir.exists()
-        configClusterDir.listFiles().size() == 2
+        configClusterDir.listFiles().size() == 1
         prodLibsDir.exists()
         prodLibsDir.listFiles()?.size() == 13
         testLibsDir.exists()
@@ -917,7 +914,6 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                 .build()
 
         def configDir = new File(testProjectDir, "build/container/config_folder/system-conf" )
-        def configAppsDir = new File(configDir, "apps")
         def configClusterDir = new File(configDir, "cluster")
         def prodLibsDir = new File(testProjectDir, "build/libraries/production")
         def testLibsDir = new File(testProjectDir, "build/libraries/test")
@@ -925,11 +921,9 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         then:
         result.task(':prepareContainer').outcome == SUCCESS
         configDir.exists()
-        configDir.listFiles().size() == 2
-        configAppsDir.exists()
-        configAppsDir.listFiles().size() == 3
+        configDir.listFiles().size() == 1
         configClusterDir.exists()
-        configClusterDir.listFiles().size() == 2
+        configClusterDir.listFiles().size() == 1
         prodLibsDir.exists()
         prodLibsDir.listFiles()?.size() == 13
         testLibsDir.exists()
