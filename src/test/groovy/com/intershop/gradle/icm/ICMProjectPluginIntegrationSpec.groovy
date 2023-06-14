@@ -244,43 +244,6 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                             image.set("intershophub/paymenttest:11.0.1")
                         }
                     }
-
-                    serverDirConfig {
-                        base {
-                            dirs {
-                                main {
-                                    dir.set(file("config/base"))
-                                    exclude("**/cluster/test.properties")
-                                }
-                            }
-                            exclude("**/cluster/cartridgelist.properties")
-                        }
-                        prod {
-                            dirs {
-                                main {
-                                    dir.set(file("config/prod"))
-                                }
-                            }
-                        }
-                        test {
-                            dirs {
-                                main {
-                                    dir.set(file("config/test"))
-                                }
-                            }
-                        }
-                        dev {
-                            dirs {
-                                main {
-                                    dir.set(file("config/dev"))
-                                }
-                                test {
-                                    dir.set(file("config/test"))
-                                    exclude("**/cluster/test.properties")
-                                }
-                            }
-                        }
-                    }
                 }
             }
 
@@ -394,10 +357,6 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                 .build()
 
         def versionFile = new File(testProjectDir,"build/container/config_folder/system-conf/cluster/version.properties")
-        def apps1File = new File(testProjectDir,"build/container/config_folder/system-conf/apps/file.txt")
-        def apps2File = new File(testProjectDir,"build/container/config_folder/system-conf/apps/file2.txt")
-        def apps3File = new File(testProjectDir,"build/container/config_folder/system-conf/apps/paymenr.txt")
-        def testPropsFile = new File(testProjectDir,"build/container/config_folder/system-conf/cluster/test.properties")
 
         then:
         resultProdConf.task(":createConfigProd").outcome == SUCCESS
@@ -448,10 +407,6 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                 .build()
 
         def versionFile = new File(testProjectDir,"build/testcontainer/config_folder/system-conf/cluster/version.properties")
-        def apps1File = new File(testProjectDir,"build/testcontainer/config_folder/system-conf/apps/file.txt")
-        def apps2File = new File(testProjectDir,"build/testcontainer/config_folder/system-conf/apps/file2.txt")
-        def apps3File = new File(testProjectDir,"build/testcontainer/config_folder/system-conf/apps/paymenr.txt")
-        def testPropsFile = new File(testProjectDir,"build/testcontainer/config_folder/system-conf/cluster/test.properties")
 
         then:
         resultProdConf.task(":createConfigTest").outcome == SUCCESS
@@ -502,10 +457,6 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                 .build()
 
         def versionFile = new File(testProjectDir,"build/server/config_folder/system-conf/cluster/version.properties")
-        def apps1File = new File(testProjectDir,"build/server/config_folder/system-conf/apps/file.txt")
-        def apps2File = new File(testProjectDir,"build/server/config_folder/system-conf/apps/file2.txt")
-        def apps3File = new File(testProjectDir,"build/server/config_folder/system-conf/apps/paymenr.txt")
-        def testPropsFile = new File(testProjectDir,"build/server/config_folder/system-conf/cluster/test.properties")
 
         then:
         resultProdConf.task(":createConfig").outcome == SUCCESS
@@ -598,11 +549,6 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         rootProject.name='rootproject'
         """.stripIndent()
 
-        createLocalFile("config/base/cluster/test.properties", "test.properties = base_dir")
-        createLocalFile("config/test/cluster/test.properties", "test_test = 1")
-        createLocalFile("config/dev/cluster/test.properties", "dev_test = 1")
-        createLocalFile("config/prod/cluster/test.properties", "test.properties = prod_dir")
-
         buildFile << """
             plugins {
                 id 'java'
@@ -629,43 +575,6 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                         paymentExt {
                             dependency.set("com.intershop.payment:paymenttest:1.0.0")
                             image.set("intershophub/paymenttest:11.0.1")
-                        }
-                    }
-
-                    serverDirConfig {
-                        base {
-                            dirs {
-                                main {
-                                    dir.set(file("config/base"))
-                                    exclude("**/cluster/test.properties")
-                                }
-                            }
-                            exclude("**/cluster/cartridgelist.properties")
-                        }
-                        prod {
-                            dirs {
-                                main {
-                                    dir.set(file("config/prod"))
-                                }
-                            }
-                        }
-                        test {
-                            dirs {
-                                main {
-                                    dir.set(file("config/test"))
-                                }
-                            }
-                        }
-                        dev {
-                            dirs {
-                                main {
-                                    dir.set(file("config/dev"))
-                                }
-                                test {
-                                    dir.set(file("config/test"))
-                                    exclude("**/cluster/test.properties")
-                                }
-                            }
                         }
                     }
                 }
@@ -935,43 +844,6 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                             image.set("intershophub/paymenttest:11.0.1")
                         }
                     }
-
-                    serverDirConfig {
-                        base {
-                            dirs {
-                                main {
-                                    dir.set(file("config/base"))
-                                    exclude("**/cluster/test.properties")
-                                }
-                            }
-                            exclude("**/cluster/cartridgelist.properties")
-                        }
-                        prod {
-                            dirs {
-                                main {
-                                    dir.set(file("config/prod"))
-                                }
-                            }
-                        }
-                        test {
-                            dirs {
-                                main {
-                                    dir.set(file("config/test"))
-                                }
-                            }
-                        }
-                        dev {
-                            dirs {
-                                main {
-                                    dir.set(file("config/dev"))
-                                }
-                                test {
-                                    dir.set(file("config/test"))
-                                    exclude("**/cluster/test.properties")
-                                }
-                            }
-                        }
-                    }
                 }
             }
 
@@ -1132,43 +1004,6 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                         }
                         paymentExt {
                             dependency.set("com.intershop.payment:paymenttest:1.0.0")
-                        }
-                    }
-
-                    serverDirConfig {
-                        base {
-                            dirs {
-                                main {
-                                    dir.set(file("config/base"))
-                                    exclude("**/cluster/test.properties")
-                                }
-                            }
-                            exclude("**/cluster/cartridgelist.properties")
-                        }
-                        prod {
-                            dirs {
-                                main {
-                                    dir.set(file("config/prod"))
-                                }
-                            }
-                        }
-                        test {
-                            dirs {
-                                main {
-                                    dir.set(file("config/test"))
-                                }
-                            }
-                        }
-                        dev {
-                            dirs {
-                                main {
-                                    dir.set(file("config/dev"))
-                                }
-                                test {
-                                    dir.set(file("config/test"))
-                                    exclude("**/cluster/test.properties")
-                                }
-                            }
                         }
                     }
                 }
