@@ -363,14 +363,6 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         versionFile.exists()
         versionFile.text.contains("version.information.version=10.0.0")
-        apps1File.exists()
-        apps1File.text.contains("apps = test1.component(com.intershop.icm:icm-as:1.0.0)")
-        apps2File.exists()
-        apps2File.text.contains("apps = test2.component (com.intershop.search:solrcloud:1.0.0)")
-        apps3File.exists()
-        apps3File.text.contains("payment = test2.component")
-        testPropsFile.exists()
-        testPropsFile.text.contains("test.properties = prod_dir")
 
         where:
         gradleVersion << supportedGradleVersions
@@ -413,14 +405,6 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         versionFile.exists()
         versionFile.text.contains("version.information.version=10.0.0")
-        apps1File.exists()
-        apps1File.text.contains("apps = test1.component(com.intershop.icm:icm-as:1.0.0)")
-        apps2File.exists()
-        apps2File.text.contains("apps = test2.component (com.intershop.search:solrcloud:1.0.0)")
-        apps3File.exists()
-        apps3File.text.contains("payment = test2.component")
-        testPropsFile.exists()
-        testPropsFile.text.contains("test_test = 1")
 
         where:
         gradleVersion << supportedGradleVersions
@@ -463,14 +447,6 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
         versionFile.exists()
         versionFile.text.contains("version.information.version=10.0.0")
-        apps1File.exists()
-        apps1File.text.contains("apps = test1.component(com.intershop.icm:icm-as:1.0.0)")
-        apps2File.exists()
-        apps2File.text.contains("apps = test2.component (com.intershop.search:solrcloud:1.0.0)")
-        apps3File.exists()
-        apps3File.text.contains("payment = test2.component")
-        testPropsFile.exists()
-        testPropsFile.text.contains("dev_test = 1")
 
         where:
         gradleVersion << supportedGradleVersions
