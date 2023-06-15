@@ -210,43 +210,7 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
                             image.set("intershophub/paymenttest:11.0.1")
                         }
                     }
-
-                    serverDirConfig {
-                        base {
-                            dirs {
-                                named("main") {
-                                    dir.set(file("config/base"))
-                                    exclude("**/cluster/test.properties")
-                                }
-                            }
-                            exclude("**/cluster/cartridgelist.properties")
-                        }
-                        prod {
-                            dirs {
-                                register("main") {
-                                    dir.set(file("config/prod"))
-                                }
-                            }
-                        }
-                        test {
-                            dirs {
-                                register("main") {
-                                    dir.set(file("config/test"))
-                                }
-                            }
-                        }
-                        dev {
-                            dirs {
-                                register("main") {
-                                    dir.set(file("config/dev"))
-                                }
-                                register("test") {
-                                    dir.set(file("config/test"))
-                                    exclude("**/cluster/test.properties")
-                                }
-                            }
-                        }
-                    }
+                    
                 }
             }
 
@@ -328,171 +292,6 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
         return repoConf
     }
 
-    def "test of prod tasks for config folder creation"() {
-          prepareDefaultBuildConfig(testProjectDir, settingsFile, buildFile)
-
-        buildFile << """
-
-            plugins.withType(com.intershop.gradle.icm.ICMProjectPlugin::class.java) {
-                tasks.register("printProdFolder") { 
-                    doLast {
-                        val extension = project.extensions.getByName("intershop") as com.intershop.gradle.icm.extension.IntershopExtension
-                        println(extension.projectConfig.containerConfig)
-                    }
-                }
-            }
-        """.stripIndent()
-
-        when:
-        def resultPrintProdConfFolder = getPreparedGradleRunner()
-                .withArguments("printProdFolder", "-s")
-                .withGradleVersion(gradleVersion)
-                .build()
-
-        then:
-        resultPrintProdConfFolder.task(":printProdFolder").outcome == SUCCESS
-        resultPrintProdConfFolder.output.contains("build/container/config_folder")
-
-        when:
-        def resultProdConf = getPreparedGradleRunner()
-                .withArguments("createConfigProd", "-s", "--warning-mode", "all")
-                .withGradleVersion(gradleVersion)
-                .build()
-
-        def versionFile = new File(testProjectDir,"build/container/config_folder/system-conf/cluster/version.properties")
-        def apps1File = new File(testProjectDir,"build/container/config_folder/system-conf/apps/file.txt")
-        def apps2File = new File(testProjectDir,"build/container/config_folder/system-conf/apps/file2.txt")
-        def apps3File = new File(testProjectDir,"build/container/config_folder/system-conf/apps/paymenr.txt")
-        def testPropsFile = new File(testProjectDir,"build/container/config_folder/system-conf/cluster/test.properties")
-
-        then:
-        resultProdConf.task(":createConfigProd").outcome == SUCCESS
-
-        versionFile.exists()
-        versionFile.text.contains("version.information.version=10.0.0")
-        apps1File.exists()
-        apps1File.text.contains("apps = test1.component(com.intershop.icm:icm-as:1.0.0)")
-        apps2File.exists()
-        apps2File.text.contains("apps = test2.component (com.intershop.search:solrcloud:1.0.0)")
-        apps3File.exists()
-        apps3File.text.contains("payment = test2.component")
-        testPropsFile.exists()
-        testPropsFile.text.contains("test.properties = prod_dir")
-
-        where:
-        gradleVersion << supportedGradleVersions
-    }
-
-    def "test of test tasks for config folder creation"() {
-        prepareDefaultBuildConfig(testProjectDir, settingsFile, buildFile)
-
-        buildFile << """
-
-            plugins.withType(com.intershop.gradle.icm.ICMProjectPlugin::class.java) {
-                tasks.register("printTestFolder") { 
-                    doLast {
-                        val extension = project.extensions.getByName("intershop") as com.intershop.gradle.icm.extension.IntershopExtension
-                        println(extension.projectConfig.testcontainerConfig)
-                    }
-                }
-            }
-        """.stripIndent()
-
-        when:
-        def resultPrintProdConfFolder = getPreparedGradleRunner()
-                .withArguments("printTestFolder", "-s")
-                .withGradleVersion(gradleVersion)
-                .build()
-
-        then:
-        resultPrintProdConfFolder.task(":printTestFolder").outcome == SUCCESS
-        resultPrintProdConfFolder.output.contains("build/testcontainer/config_folder")
-
-        when:
-        def resultProdConf = getPreparedGradleRunner()
-                .withArguments("createConfigTest", "-s", "--warning-mode", "all")
-                .withGradleVersion(gradleVersion)
-                .build()
-
-        def versionFile = new File(testProjectDir,"build/testcontainer/config_folder/system-conf/cluster/version.properties")
-        def apps1File = new File(testProjectDir,"build/testcontainer/config_folder/system-conf/apps/file.txt")
-        def apps2File = new File(testProjectDir,"build/testcontainer/config_folder/system-conf/apps/file2.txt")
-        def apps3File = new File(testProjectDir,"build/testcontainer/config_folder/system-conf/apps/paymenr.txt")
-        def testPropsFile = new File(testProjectDir,"build/testcontainer/config_folder/system-conf/cluster/test.properties")
-
-        then:
-        resultProdConf.task(":createConfigTest").outcome == SUCCESS
-
-        versionFile.exists()
-        versionFile.text.contains("version.information.version=10.0.0")
-        apps1File.exists()
-        apps1File.text.contains("apps = test1.component(com.intershop.icm:icm-as:1.0.0)")
-        apps2File.exists()
-        apps2File.text.contains("apps = test2.component (com.intershop.search:solrcloud:1.0.0)")
-        apps3File.exists()
-        apps3File.text.contains("payment = test2.component")
-        testPropsFile.exists()
-        testPropsFile.text.contains("test_test = 1")
-
-        where:
-        gradleVersion << supportedGradleVersions
-    }
-
-    def "test of dev tasks for config folder creation"() {
-        prepareDefaultBuildConfig(testProjectDir, settingsFile, buildFile)
-
-        buildFile << """
-
-            plugins.withType(com.intershop.gradle.icm.ICMProjectPlugin::class.java) {
-                tasks.register("printDevFolder") { 
-                    doLast {
-                        val extension = project.extensions.getByName("intershop") as com.intershop.gradle.icm.extension.IntershopExtension
-                        println(extension.projectConfig.config)
-                    }
-                }
-            }
-        """.stripIndent()
-
-        when:
-        def resultPrintProdConfFolder = getPreparedGradleRunner()
-                .withArguments("printDevFolder", "-s")
-                .withGradleVersion(gradleVersion)
-                .build()
-
-        then:
-        resultPrintProdConfFolder.task(":printDevFolder").outcome == SUCCESS
-        resultPrintProdConfFolder.output.contains("build/server/config_folder")
-
-        when:
-        def resultProdConf = getPreparedGradleRunner()
-                .withArguments("createConfig", "-s", "--warning-mode", "all")
-                .withGradleVersion(gradleVersion)
-                .build()
-
-        def versionFile = new File(testProjectDir,"build/server/config_folder/system-conf/cluster/version.properties")
-        def apps1File = new File(testProjectDir,"build/server/config_folder/system-conf/apps/file.txt")
-        def apps2File = new File(testProjectDir,"build/server/config_folder/system-conf/apps/file2.txt")
-        def apps3File = new File(testProjectDir,"build/server/config_folder/system-conf/apps/paymenr.txt")
-        def testPropsFile = new File(testProjectDir,"build/server/config_folder/system-conf/cluster/test.properties")
-
-        then:
-        resultProdConf.task(":createConfig").outcome == SUCCESS
-
-        versionFile.exists()
-        versionFile.text.contains("version.information.version=10.0.0")
-        apps1File.exists()
-        apps1File.text.contains("apps = test1.component(com.intershop.icm:icm-as:1.0.0)")
-        apps2File.exists()
-        apps2File.text.contains("apps = test2.component (com.intershop.search:solrcloud:1.0.0)")
-        apps3File.exists()
-        apps3File.text.contains("payment = test2.component")
-        testPropsFile.exists()
-        testPropsFile.text.contains("dev_test = 1")
-
-        where:
-        gradleVersion << supportedGradleVersions
-    }
-
     def "test cartridge.properties from dependency"() {
         TestRepo repo = new TestRepo(new File(testProjectDir, "/repo"))
         String repoConf = repo.getRepoKtsConfig()
@@ -539,68 +338,6 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
 
     }
 
-    def "prepare folder for release"() {
-        prepareDefaultBuildConfig(testProjectDir, settingsFile, buildFile)
-
-        when:
-        def result = getPreparedGradleRunner()
-                .withArguments("prepareContainer", "-s")
-                .withGradleVersion(gradleVersion)
-                .build()
-
-        def configDir = new File(testProjectDir, "build/container/config_folder/system-conf" )
-        def configAppsDir = new File(configDir, "apps")
-        def configClusterDir = new File(configDir, "cluster")
-        def testLibsDir = new File(testProjectDir, "build/libraries/test")
-
-        then:
-        result.task(':prepareContainer').outcome == SUCCESS
-        configDir.exists()
-        configDir.listFiles().size() == 2
-        configAppsDir.exists()
-        configAppsDir.listFiles().size() == 3
-        configClusterDir.exists()
-        configClusterDir.listFiles().size() == 2
-        testLibsDir.exists()
-        testLibsDir.listFiles().size() == 3
-
-        where:
-        gradleVersion << supportedGradleVersions
-    }
-
-    def "prepare folder for developement"() {
-        prepareDefaultBuildConfig(testProjectDir, settingsFile, buildFile)
-
-        when:
-        def result = getPreparedGradleRunner()
-                .withArguments("prepareServer", "-s")
-                .withGradleVersion(gradleVersion)
-                .build()
-
-        def cartridgesDir = new File(testProjectDir, "build/server/cartridges")
-        def configDir = new File(testProjectDir, "build/server/config_folder/system-conf" )
-        def configAppsDir = new File(configDir, "apps")
-        def configClusterDir = new File(configDir, "cluster")
-        def productionLibsDir = new File(testProjectDir, "build/libraries/production")
-        def testLibsDir = new File(testProjectDir, "build/libraries/test")
-
-        then:
-        result.task(':prepareServer').outcome == SUCCESS
-        configDir.exists()
-        configDir.listFiles().size() == 2
-        configAppsDir.exists()
-        configAppsDir.listFiles().size() == 3
-        configClusterDir.exists()
-        configClusterDir.listFiles().size() == 2
-        productionLibsDir.exists()
-        productionLibsDir.listFiles().size() == 13
-        testLibsDir.exists()
-        testLibsDir.listFiles().size() == 3
-
-        where:
-        gradleVersion << supportedGradleVersions
-    }
-
     private def prepareDefaultBuildConfigwithPublishing(File testProjectDir, File settingsFile, File buildFile) {
         TestRepo repo = new TestRepo(new File(testProjectDir, "/repo"))
         String repoConf = repo.getRepoKtsConfig()
@@ -644,43 +381,6 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
                             image.set("intershophub/paymenttest:11.0.1")
                         }
                     }
-
-                    serverDirConfig {
-                        base {
-                            dirs {
-                                named("main") {
-                                    dir.set(file("config/base"))
-                                    exclude("**/cluster/test.properties")
-                                }
-                            }
-                            exclude("**/cluster/cartridgelist.properties")
-                        }
-                        prod {
-                            dirs {
-                                register("main") {
-                                    dir.set(file("config/prod"))
-                                }
-                            }
-                        }
-                        test {
-                            dirs {
-                                register("main") {
-                                    dir.set(file("config/test"))
-                                }
-                            }
-                        }
-                        dev {
-                            dirs {
-                                register("main") {
-                                    dir.set(file("config/dev"))
-                                }
-                                register("test") {
-                                    dir.set(file("config/test"))
-                                    exclude("**/cluster/test.properties")
-                                }
-                            }
-                        }
-                    }
                 }
             }
 
@@ -769,26 +469,6 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
         writeJavaTestClass("com.intershop.adapter", prj4dir)
 
         return repoConf
-    }
-
-    def "prepare folder for publishing"() {
-        prepareDefaultBuildConfigwithPublishing(testProjectDir, settingsFile, buildFile)
-        when:
-        def result = getPreparedGradleRunner()
-                .withArguments("publish", "-s")
-                .withGradleVersion(gradleVersion)
-                .build()
-
-        def repoConfigFile = new File(testProjectDir, "build/pubrepo/com/intershop/test/rootproject/10.0.0/rootproject-10.0.0-configuration.zip")
-
-        then:
-        result.task(':publish').outcome == SUCCESS
-        result.task(':zipConfiguration').outcome == SUCCESS
-        repoConfigFile.exists()
-        new ZipFile(repoConfigFile).entries().toList().size() == 3
-
-        where:
-        gradleVersion << supportedGradleVersions
     }
 
     private def prepareDefaultBuildConfigWithoutLibsTxt(File testProjectDir, File settingsFile, File buildFile) {
@@ -831,44 +511,7 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
                             dependency.set("com.intershop.payment:paymenttest:1.0.0")
                             image.set("intershophub/paymenttest:11.0.1")  
                         }
-                    }
-
-                    serverDirConfig {
-                        base {
-                            dirs {
-                                named("main") {
-                                    dir.set(file("config/base"))
-                                    exclude("**/cluster/test.properties")
-                                }
-                            }
-                            exclude("**/cluster/cartridgelist.properties")
-                        }
-                        prod {
-                            dirs {
-                                register("main") {
-                                    dir.set(file("config/prod"))
-                                }
-                            }
-                        }
-                        test {
-                            dirs {
-                                register("main") {
-                                    dir.set(file("config/test"))
-                                }
-                            }
-                        }
-                        dev {
-                            dirs {
-                                register("main") {
-                                    dir.set(file("config/dev"))
-                                }
-                                register("test") {
-                                    dir.set(file("config/test"))
-                                    exclude("**/cluster/test.properties")
-                                }
-                            }
-                        }
-                    }
+                    }                   
                 }
             }
 
@@ -957,38 +600,6 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
         writeJavaTestClass("com.intershop.adapter", prj4dir)
 
         return repoConf
-    }
-
-    def "prepare folder without libs.txt"() {
-        prepareDefaultBuildConfigWithoutLibsTxt(testProjectDir, settingsFile, buildFile)
-
-        when:
-        def result = getPreparedGradleRunner()
-                .withArguments("prepareContainer", "-s")
-                .withGradleVersion(gradleVersion)
-                .build()
-
-        def configDir = new File(testProjectDir, "build/container/config_folder/system-conf" )
-        def configAppsDir = new File(configDir, "apps")
-        def configClusterDir = new File(configDir, "cluster")
-        def productionLibsDir = new File(testProjectDir, "build/libraries/production")
-        def testLibsDir = new File(testProjectDir, "build/libraries/test")
-
-        then:
-        result.task(':prepareContainer').outcome == SUCCESS
-        configDir.exists()
-        configDir.listFiles().size() == 2
-        configAppsDir.exists()
-        configAppsDir.listFiles().size() == 3
-        configClusterDir.exists()
-        configClusterDir.listFiles().size() == 2
-        productionLibsDir.exists()
-        productionLibsDir.listFiles().size() == 13
-        testLibsDir.exists()
-        testLibsDir.listFiles().size() == 3
-
-        where:
-        gradleVersion << supportedGradleVersions
     }
 
     private def prepareBuildConfigwithPublishingWithoutSites(File testProjectDir, File settingsFile, File buildFile) {
@@ -1033,44 +644,7 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
                             dependency.set("com.intershop.payment:paymenttest:1.0.0")
                             image.set("intershophub/paymenttest:11.0.1")  
                         }
-                    }
-
-                    serverDirConfig {
-                        base {
-                            dirs {
-                                named("main") {
-                                    dir.set(file("config/base"))
-                                    exclude("**/cluster/test.properties")
-                                }
-                            }
-                            exclude("**/cluster/cartridgelist.properties")
-                        }
-                        prod {
-                            dirs {
-                                register("main") {
-                                    dir.set(file("config/prod"))
-                                }
-                            }
-                        }
-                        test {
-                            dirs {
-                                register("main") {
-                                    dir.set(file("config/test"))
-                                }
-                            }
-                        }
-                        dev {
-                            dirs {
-                                register("main") {
-                                    dir.set(file("config/dev"))
-                                }
-                                register("test") {
-                                    dir.set(file("config/test"))
-                                    exclude("**/cluster/test.properties")
-                                }
-                            }
-                        }
-                    }
+                    }                 
                 }
             }
 
@@ -1158,26 +732,6 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
         writeJavaTestClass("com.intershop.adapter", prj4dir)
 
         return repoConf
-    }
-
-    def "prepare folder for publishing without sites"() {
-        prepareBuildConfigwithPublishingWithoutSites(testProjectDir, settingsFile, buildFile)
-
-        when:
-        def result = getPreparedGradleRunner()
-                .withArguments("publish", "-s")
-                .withGradleVersion(gradleVersion)
-                .build()
-
-        def repoConfigFile = new File(testProjectDir, "build/pubrepo/com/intershop/test/rootproject/10.0.0/rootproject-10.0.0-configuration.zip")
-        then:
-        result.task(':publish').outcome == SUCCESS
-        result.task(':zipConfiguration').outcome == SUCCESS
-        repoConfigFile.exists()
-        new ZipFile(repoConfigFile).entries().toList().size() == 3
-
-        where:
-        gradleVersion << supportedGradleVersions
     }
 
     private def prepareBuildConfigwithPublishingWithoutAnything(File testProjectDir, File settingsFile, File buildFile) {
@@ -1304,25 +858,5 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
         writeJavaTestClass("com.intershop.adapter", prj4dir)
 
         return repoConf
-    }
-
-    def "prepare folder for publishing without anything"() {
-        prepareBuildConfigwithPublishingWithoutAnything(testProjectDir, settingsFile, buildFile)
-
-        when:
-        def result = getPreparedGradleRunner()
-                .withArguments("publish", "-s")
-                .withGradleVersion(gradleVersion)
-                .build()
-
-        def repoConfigFile = new File(testProjectDir, "build/pubrepo/com/intershop/test/rootproject/10.0.0/rootproject-10.0.0-configuration.zip")
-
-        then:
-        result.task(':publish').outcome == SUCCESS
-        result.task(':zipConfiguration').outcome == SUCCESS
-        repoConfigFile.exists()
-
-        where:
-        gradleVersion << supportedGradleVersions
     }
 }

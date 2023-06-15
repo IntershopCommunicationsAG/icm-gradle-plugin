@@ -18,8 +18,6 @@
 package com.intershop.gradle.icm.tasks
 
 import com.intershop.gradle.icm.project.TargetConf
-import com.intershop.gradle.icm.tasks.CreateServerInfo.Companion.VERSIONINFO_FILENAME
-import com.intershop.gradle.icm.utils.PackageUtil
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.file.ProjectLayout
@@ -61,25 +59,6 @@ open class CreateConfigFolder
     fun provideVersionInfoFile(file: Provider<RegularFile>) = versionInfo.set(file)
 
     override fun addPackages(cs: CopySpec) {
-        PackageUtil.addPackageToCS(
-            project = project,
-            dependency = baseProject.get().dependency.get(),
-            classifier = "configuration",
-            copySpec = cs,
-            filePackage = baseProject.get().configPackage,
-            excludes = listOf("**/cluster/${VERSIONINFO_FILENAME}"),
-            fileBase = null)
-        modules.get().forEach { prj ->
-            PackageUtil.addPackageToCS(
-                project = project,
-                dependency = prj.dependency.get(),
-                classifier = "configuration",
-                copySpec = cs,
-                filePackage = prj.configPackage,
-                excludes = listOf("**/cluster/${VERSIONINFO_FILENAME}"),
-                fileBase = null)
-        }
-
         val fileCS = project.copySpec()
         fileCS.from(versionInfo.get())
         fileCS.into("system-conf/cluster")

@@ -244,43 +244,6 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                             image.set("intershophub/paymenttest:11.0.1")
                         }
                     }
-
-                    serverDirConfig {
-                        base {
-                            dirs {
-                                main {
-                                    dir.set(file("config/base"))
-                                    exclude("**/cluster/test.properties")
-                                }
-                            }
-                            exclude("**/cluster/cartridgelist.properties")
-                        }
-                        prod {
-                            dirs {
-                                main {
-                                    dir.set(file("config/prod"))
-                                }
-                            }
-                        }
-                        test {
-                            dirs {
-                                main {
-                                    dir.set(file("config/test"))
-                                }
-                            }
-                        }
-                        dev {
-                            dirs {
-                                main {
-                                    dir.set(file("config/dev"))
-                                }
-                                test {
-                                    dir.set(file("config/test"))
-                                    exclude("**/cluster/test.properties")
-                                }
-                            }
-                        }
-                    }
                 }
             }
 
@@ -394,24 +357,12 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                 .build()
 
         def versionFile = new File(testProjectDir,"build/container/config_folder/system-conf/cluster/version.properties")
-        def apps1File = new File(testProjectDir,"build/container/config_folder/system-conf/apps/file.txt")
-        def apps2File = new File(testProjectDir,"build/container/config_folder/system-conf/apps/file2.txt")
-        def apps3File = new File(testProjectDir,"build/container/config_folder/system-conf/apps/paymenr.txt")
-        def testPropsFile = new File(testProjectDir,"build/container/config_folder/system-conf/cluster/test.properties")
 
         then:
         resultProdConf.task(":createConfigProd").outcome == SUCCESS
 
         versionFile.exists()
         versionFile.text.contains("version.information.version=10.0.0")
-        apps1File.exists()
-        apps1File.text.contains("apps = test1.component(com.intershop.icm:icm-as:1.0.0)")
-        apps2File.exists()
-        apps2File.text.contains("apps = test2.component (com.intershop.search:solrcloud:1.0.0)")
-        apps3File.exists()
-        apps3File.text.contains("payment = test2.component")
-        testPropsFile.exists()
-        testPropsFile.text.contains("test.properties = prod_dir")
 
         where:
         gradleVersion << supportedGradleVersions
@@ -448,24 +399,12 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                 .build()
 
         def versionFile = new File(testProjectDir,"build/testcontainer/config_folder/system-conf/cluster/version.properties")
-        def apps1File = new File(testProjectDir,"build/testcontainer/config_folder/system-conf/apps/file.txt")
-        def apps2File = new File(testProjectDir,"build/testcontainer/config_folder/system-conf/apps/file2.txt")
-        def apps3File = new File(testProjectDir,"build/testcontainer/config_folder/system-conf/apps/paymenr.txt")
-        def testPropsFile = new File(testProjectDir,"build/testcontainer/config_folder/system-conf/cluster/test.properties")
 
         then:
         resultProdConf.task(":createConfigTest").outcome == SUCCESS
 
         versionFile.exists()
         versionFile.text.contains("version.information.version=10.0.0")
-        apps1File.exists()
-        apps1File.text.contains("apps = test1.component(com.intershop.icm:icm-as:1.0.0)")
-        apps2File.exists()
-        apps2File.text.contains("apps = test2.component (com.intershop.search:solrcloud:1.0.0)")
-        apps3File.exists()
-        apps3File.text.contains("payment = test2.component")
-        testPropsFile.exists()
-        testPropsFile.text.contains("test_test = 1")
 
         where:
         gradleVersion << supportedGradleVersions
@@ -502,24 +441,12 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                 .build()
 
         def versionFile = new File(testProjectDir,"build/server/config_folder/system-conf/cluster/version.properties")
-        def apps1File = new File(testProjectDir,"build/server/config_folder/system-conf/apps/file.txt")
-        def apps2File = new File(testProjectDir,"build/server/config_folder/system-conf/apps/file2.txt")
-        def apps3File = new File(testProjectDir,"build/server/config_folder/system-conf/apps/paymenr.txt")
-        def testPropsFile = new File(testProjectDir,"build/server/config_folder/system-conf/cluster/test.properties")
 
         then:
         resultProdConf.task(":createConfig").outcome == SUCCESS
 
         versionFile.exists()
         versionFile.text.contains("version.information.version=10.0.0")
-        apps1File.exists()
-        apps1File.text.contains("apps = test1.component(com.intershop.icm:icm-as:1.0.0)")
-        apps2File.exists()
-        apps2File.text.contains("apps = test2.component (com.intershop.search:solrcloud:1.0.0)")
-        apps3File.exists()
-        apps3File.text.contains("payment = test2.component")
-        testPropsFile.exists()
-        testPropsFile.text.contains("dev_test = 1")
 
         where:
         gradleVersion << supportedGradleVersions
@@ -536,7 +463,6 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
 
 
         def configDir = new File(testProjectDir, "build/container/config_folder/system-conf" )
-        def configAppsDir = new File(configDir, "apps")
         def configClusterDir = new File(configDir, "cluster")
         def prodLibsDir = new File(testProjectDir, "build/libraries/production")
         def testLibsDir = new File(testProjectDir, "build/libraries/test")
@@ -544,11 +470,9 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         then:
         result.task(':prepareContainer').outcome == SUCCESS
         configDir.exists()
-        configDir.listFiles().size() == 2
-        configAppsDir.exists()
-        configAppsDir.listFiles().size() == 3
+        configDir.listFiles().size() == 1
         configClusterDir.exists()
-        configClusterDir.listFiles().size() == 2
+        configClusterDir.listFiles().size() == 1
         prodLibsDir.exists()
         prodLibsDir.listFiles()?.size() == 13
         testLibsDir.exists()
@@ -568,7 +492,6 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                 .build()
 
         def configDir = new File(testProjectDir, "build/server/config_folder/system-conf" )
-        def configAppsDir = new File(configDir, "apps")
         def configClusterDir = new File(configDir, "cluster")
         def prodLibsDir = new File(testProjectDir, "build/libraries/production")
         def testLibsDir = new File(testProjectDir, "build/libraries/test")
@@ -576,11 +499,9 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         then:
         result.task(':prepareServer').outcome == SUCCESS
         configDir.exists()
-        configDir.listFiles().size() == 2
-        configAppsDir.exists()
-        configAppsDir.listFiles().size() == 3
+        configDir.listFiles().size() == 1
         configClusterDir.exists()
-        configClusterDir.listFiles().size() == 2
+        configClusterDir.listFiles().size() == 1
         prodLibsDir.exists()
         prodLibsDir.listFiles()?.size() == 13
         testLibsDir.exists()
@@ -597,11 +518,6 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         settingsFile << """
         rootProject.name='rootproject'
         """.stripIndent()
-
-        createLocalFile("config/base/cluster/test.properties", "test.properties = base_dir")
-        createLocalFile("config/test/cluster/test.properties", "test_test = 1")
-        createLocalFile("config/dev/cluster/test.properties", "dev_test = 1")
-        createLocalFile("config/prod/cluster/test.properties", "test.properties = prod_dir")
 
         buildFile << """
             plugins {
@@ -629,43 +545,6 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                         paymentExt {
                             dependency.set("com.intershop.payment:paymenttest:1.0.0")
                             image.set("intershophub/paymenttest:11.0.1")
-                        }
-                    }
-
-                    serverDirConfig {
-                        base {
-                            dirs {
-                                main {
-                                    dir.set(file("config/base"))
-                                    exclude("**/cluster/test.properties")
-                                }
-                            }
-                            exclude("**/cluster/cartridgelist.properties")
-                        }
-                        prod {
-                            dirs {
-                                main {
-                                    dir.set(file("config/prod"))
-                                }
-                            }
-                        }
-                        test {
-                            dirs {
-                                main {
-                                    dir.set(file("config/test"))
-                                }
-                            }
-                        }
-                        dev {
-                            dirs {
-                                main {
-                                    dir.set(file("config/dev"))
-                                }
-                                test {
-                                    dir.set(file("config/test"))
-                                    exclude("**/cluster/test.properties")
-                                }
-                            }
                         }
                     }
                 }
@@ -841,59 +720,6 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         return repoConf
     }
 
-    def "prepare folder for publishing"() {
-        prepareDefaultBuildConfigwithPublishing(testProjectDir, settingsFile, buildFile)
-        when:
-        def result = getPreparedGradleRunner()
-                .withArguments("publish", "-s")
-                .withGradleVersion(gradleVersion)
-                .build()
-
-        def repoConfigFile = new File(testProjectDir, "build/pubrepo/com/intershop/test/rootproject/10.0.0/rootproject-10.0.0-configuration.zip")
-        def pomfile = new File(testProjectDir, "build/pubrepo/com/intershop/test/prjCartridge_testext/10.0.0/prjCartridge_testext-10.0.0.pom")
-
-        then:
-        result.task(':publish').outcome == SUCCESS
-        result.task(':zipConfiguration').outcome == SUCCESS
-        result.task(':prjCartridge_container:writeCartridgeDescriptor') == null
-        pomfile.exists()
-        pomfile.text.contains("<cartridge.style>test</cartridge.style>")
-        repoConfigFile.exists()
-        new ZipFile(repoConfigFile).entries().toList().size() == 3
-
-        when:
-        def resultDev = getPreparedGradleRunner()
-                .withArguments("prepareServer", "-s")
-                .withGradleVersion(gradleVersion)
-                .build()
-
-        then:
-        resultDev.task(':prjCartridge_container:writeCartridgeDescriptor').outcome == SUCCESS
-
-        when:
-        def resultPkgMain = getPreparedGradleRunner()
-                .withArguments(CreateMainPackage.DEFAULT_NAME)
-                .withGradleVersion(gradleVersion)
-                .build()
-
-        then:
-        resultPkgMain.task(":${CreateMainPackage.DEFAULT_NAME}").outcome == SUCCESS
-        file("build/packages/mainpkg.tgz").exists()
-
-        when:
-        def resultPkgTest = getPreparedGradleRunner()
-                .withArguments(CreateTestPackage.DEFAULT_NAME)
-                .withGradleVersion(gradleVersion)
-                .build()
-
-        then:
-        resultPkgTest.task(":${CreateTestPackage.DEFAULT_NAME}").outcome == SUCCESS
-        file("build/packages/testpkg.tgz").exists()
-
-        where:
-        gradleVersion << supportedGradleVersions
-    }
-
     private def prepareDefaultBuildConfigWithoutLibsTxt(File testProjectDir, File settingsFile, File buildFile) {
         TestRepo repo = new TestRepo(new File(testProjectDir, "/repo"))
         String repoConf = repo.getRepoConfig()
@@ -933,43 +759,6 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                         paymentExt {
                             dependency.set("com.intershop.payment:paymenttest:1.0.0")
                             image.set("intershophub/paymenttest:11.0.1")
-                        }
-                    }
-
-                    serverDirConfig {
-                        base {
-                            dirs {
-                                main {
-                                    dir.set(file("config/base"))
-                                    exclude("**/cluster/test.properties")
-                                }
-                            }
-                            exclude("**/cluster/cartridgelist.properties")
-                        }
-                        prod {
-                            dirs {
-                                main {
-                                    dir.set(file("config/prod"))
-                                }
-                            }
-                        }
-                        test {
-                            dirs {
-                                main {
-                                    dir.set(file("config/test"))
-                                }
-                            }
-                        }
-                        dev {
-                            dirs {
-                                main {
-                                    dir.set(file("config/dev"))
-                                }
-                                test {
-                                    dir.set(file("config/test"))
-                                    exclude("**/cluster/test.properties")
-                                }
-                            }
                         }
                     }
                 }
@@ -1072,7 +861,6 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                 .build()
 
         def configDir = new File(testProjectDir, "build/container/config_folder/system-conf" )
-        def configAppsDir = new File(configDir, "apps")
         def configClusterDir = new File(configDir, "cluster")
         def prodLibsDir = new File(testProjectDir, "build/libraries/production")
         def testLibsDir = new File(testProjectDir, "build/libraries/test")
@@ -1080,11 +868,9 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         then:
         result.task(':prepareContainer').outcome == SUCCESS
         configDir.exists()
-        configDir.listFiles().size() == 2
-        configAppsDir.exists()
-        configAppsDir.listFiles().size() == 3
+        configDir.listFiles().size() == 1
         configClusterDir.exists()
-        configClusterDir.listFiles().size() == 2
+        configClusterDir.listFiles().size() == 1
         prodLibsDir.exists()
         prodLibsDir.listFiles()?.size() == 13
         testLibsDir.exists()
@@ -1093,341 +879,7 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         where:
         gradleVersion << supportedGradleVersions
     }
-
-    private def prepareBuildConfigwithPublishingWithoutSites(File testProjectDir, File settingsFile, File buildFile) {
-        TestRepo repo = new TestRepo(new File(testProjectDir, "/repo"))
-        String repoConf = repo.getRepoConfig()
-
-        settingsFile << """
-        rootProject.name='rootproject'
-        """.stripIndent()
-
-        createLocalFile("config/base/cluster/test.properties", "test.properties = base_dir")
-        createLocalFile("config/base/cluster/cartridgelist.properties", "cartridgelist = base_dir")
-        createLocalFile("config/test/cluster/test.properties", "test_test = 1")
-        createLocalFile("config/dev/cluster/test.properties", "dev_test = 1")
-        createLocalFile("config/prod/cluster/test.properties", "test.properties = prod_dir")
-
-        createLocalFile("sites/base/.empty", "do not delete")
-
-        buildFile << """
-            plugins {
-                id 'java'
-                id 'com.intershop.gradle.icm.project'
-                id 'maven-publish'
-            }
-            
-            group = 'com.intershop.test'
-            version = '10.0.0'
-
-            intershop {
-                projectConfig {
-                    base {
-                        dependency.set("com.intershop.icm:icm-as:1.0.0")
-                    }
-
-                    modules {
-                        solrExt {
-                            dependency.set("com.intershop.search:solrcloud:1.0.0")
-                        }
-                        paymentExt {
-                            dependency.set("com.intershop.payment:paymenttest:1.0.0")
-                        }
-                    }
-
-                    serverDirConfig {
-                        base {
-                            dirs {
-                                main {
-                                    dir.set(file("config/base"))
-                                    exclude("**/cluster/test.properties")
-                                }
-                            }
-                            exclude("**/cluster/cartridgelist.properties")
-                        }
-                        prod {
-                            dirs {
-                                main {
-                                    dir.set(file("config/prod"))
-                                }
-                            }
-                        }
-                        test {
-                            dirs {
-                                main {
-                                    dir.set(file("config/test"))
-                                }
-                            }
-                        }
-                        dev {
-                            dirs {
-                                main {
-                                    dir.set(file("config/dev"))
-                                }
-                                test {
-                                    dir.set(file("config/test"))
-                                    exclude("**/cluster/test.properties")
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            ${repoConf}
-
-            publishing {
-                repositories {
-                    maven {
-                        // change to point to your repo, e.g. http://my.org/repo
-                        url = "\$buildDir/pubrepo"
-                    }
-                }
-            }
-        """.stripIndent()
-
-        def prj1dir = createSubProject('prjCartridge_prod', """
-        plugins {
-            id 'java-library'
-            id 'com.intershop.icm.cartridge.product'
-        }
-        
-        dependencies {
-            implementation 'com.google.inject:guice:4.0'
-            implementation 'com.google.inject.extensions:guice-servlet:3.0'
-            implementation 'javax.servlet:javax.servlet-api:3.1.0'
-        
-            implementation 'io.prometheus:simpleclient:0.6.0'
-            implementation 'io.prometheus:simpleclient_hotspot:0.6.0'
-            implementation 'io.prometheus:simpleclient_servlet:0.6.0'
-        } 
-        
-        repositories {
-            jcenter()
-        }
-        """.stripIndent())
-
-        def prj2dir = createSubProject('prjCartridge_test', """
-        plugins {
-            id 'java-library'
-            id 'com.intershop.icm.cartridge.test'
-        }
-        
-        dependencies {
-            implementation 'org.codehaus.janino:janino:2.5.16'
-            implementation 'org.codehaus.janino:commons-compiler:3.0.6'
-            implementation 'ch.qos.logback:logback-core:1.2.3'
-            implementation 'ch.qos.logback:logback-classic:1.2.3'
-            implementation 'commons-collections:commons-collections:3.2.2'
-        } 
-        
-        repositories {
-            jcenter()
-        }        
-        """.stripIndent())
-
-        def prj3dir = createSubProject('prjCartridge_dev', """
-        plugins {
-            id 'java-library'
-            id 'com.intershop.icm.cartridge.development'
-        }
-        
-        repositories {
-            jcenter()
-        }        
-        """.stripIndent())
-
-        def prj4dir = createSubProject('prjCartridge_adapter', """
-        plugins {
-            id 'java-library'
-            id 'com.intershop.icm.cartridge.adapter'
-        }
-        
-        dependencies {
-            implementation 'ch.qos.logback:logback-core:1.2.3'
-            implementation 'ch.qos.logback:logback-classic:1.2.3'
-        } 
-        
-        repositories {
-            jcenter()
-        }        
-        """.stripIndent())
-
-        writeJavaTestClass("com.intershop.prod", prj1dir)
-        writeJavaTestClass("com.intershop.test", prj2dir)
-        writeJavaTestClass("com.intershop.dev", prj3dir)
-        writeJavaTestClass("com.intershop.adapter", prj4dir)
-
-        return repoConf
-    }
-
-    def "prepare folder for publishing without sites"() {
-        prepareBuildConfigwithPublishingWithoutSites(testProjectDir, settingsFile, buildFile)
-
-        when:
-        def result = getPreparedGradleRunner()
-                .withArguments("publish", "-s")
-                .withGradleVersion(gradleVersion)
-                .build()
-
-        def repoConfigFile = new File(testProjectDir, "build/pubrepo/com/intershop/test/rootproject/10.0.0/rootproject-10.0.0-configuration.zip")
-
-        then:
-        result.task(':publish').outcome == SUCCESS
-        result.task(':zipConfiguration').outcome == SUCCESS
-        repoConfigFile.exists()
-        new ZipFile(repoConfigFile).entries().toList().size() == 3
-
-        where:
-        gradleVersion << supportedGradleVersions
-    }
-
-    private def prepareBuildConfigwithPublishingWithoutAnything(File testProjectDir, File settingsFile, File buildFile) {
-        TestRepo repo = new TestRepo(new File(testProjectDir, "/repo"))
-        String repoConf = repo.getRepoConfig()
-
-        settingsFile << """
-        rootProject.name='rootproject'
-        """.stripIndent()
-
-        createLocalFile("config/base/.empty", "do not delete")
-
-        buildFile << """
-            plugins {
-                id 'java'
-                id 'com.intershop.gradle.icm.project'
-                id 'maven-publish'
-            }
-            
-            group = 'com.intershop.test'
-            version = '10.0.0'
-
-            intershop {
-                projectConfig {
-                    base {
-                        dependency = "com.intershop.icm:icm-as:1.0.0"
-                        platforms = [ "com.intershop:libbom:1.0.0" ]
-                    }
-
-                    modules {
-                        solrExt {
-                            dependency.set("com.intershop.search:solrcloud:1.0.0")
-                        }
-                        paymentExt {
-                            dependency.set("com.intershop.payment:paymenttest:1.0.0")
-                        }
-                    }
-                }
-            }
-
-            ${repoConf}
-
-            publishing {
-                repositories {
-                    maven {
-                        // change to point to your repo, e.g. http://my.org/repo
-                        url = "\$buildDir/pubrepo"
-                    }
-                }
-            }
-        """.stripIndent()
-
-        def prj1dir = createSubProject('prjCartridge_prod', """
-        plugins {
-            id 'java-library'
-            id 'com.intershop.icm.cartridge.product'
-        }
-        
-        dependencies {
-            implementation 'com.google.inject:guice:4.0'
-            implementation 'com.google.inject.extensions:guice-servlet:3.0'
-            implementation 'javax.servlet:javax.servlet-api:3.1.0'
-        
-            implementation 'io.prometheus:simpleclient:0.6.0'
-            implementation 'io.prometheus:simpleclient_hotspot:0.6.0'
-            implementation 'io.prometheus:simpleclient_servlet:0.6.0'
-        } 
-        
-        repositories {
-            jcenter()
-        }
-        """.stripIndent())
-
-        def prj2dir = createSubProject('prjCartridge_test', """
-        plugins {
-            id 'java-library'
-            id 'com.intershop.icm.cartridge.test'
-        }
-        
-        dependencies {
-            implementation 'org.codehaus.janino:janino:2.5.16'
-            implementation 'org.codehaus.janino:commons-compiler:3.0.6'
-            implementation 'ch.qos.logback:logback-core:1.2.3'
-            implementation 'ch.qos.logback:logback-classic:1.2.3'
-            implementation 'commons-collections:commons-collections:3.2.2'
-        } 
-        
-        repositories {
-            jcenter()
-        }        
-        """.stripIndent())
-
-        def prj3dir = createSubProject('prjCartridge_dev', """
-        plugins {
-            id 'java-library'
-            id 'com.intershop.icm.cartridge.development'
-        }
-        
-        repositories {
-            jcenter()
-        }        
-        """.stripIndent())
-
-        def prj4dir = createSubProject('prjCartridge_adapter', """
-        plugins {
-            id 'java-library'
-            id 'com.intershop.icm.cartridge.adapter'
-        }
-        
-        dependencies {
-            implementation 'ch.qos.logback:logback-core:1.2.3'
-            implementation 'ch.qos.logback:logback-classic:1.2.3'
-        } 
-        
-        repositories {
-            jcenter()
-        }        
-        """.stripIndent())
-
-        writeJavaTestClass("com.intershop.prod", prj1dir)
-        writeJavaTestClass("com.intershop.test", prj2dir)
-        writeJavaTestClass("com.intershop.dev", prj3dir)
-        writeJavaTestClass("com.intershop.adapter", prj4dir)
-
-        return repoConf
-    }
-
-    def "prepare folder for publishing without anything"() {
-        prepareBuildConfigwithPublishingWithoutAnything(testProjectDir, settingsFile, buildFile)
-
-        when:
-        def result = getPreparedGradleRunner()
-                .withArguments("publish", "-s")
-                .withGradleVersion(gradleVersion)
-                .build()
-
-        def repoConfigFile = new File(testProjectDir, "build/pubrepo/com/intershop/test/rootproject/10.0.0/rootproject-10.0.0-configuration.zip")
-
-        then:
-        result.task(':publish').outcome == SUCCESS
-        result.task(':zipConfiguration').outcome == SUCCESS
-        repoConfigFile.exists()
-
-        where:
-        gradleVersion << supportedGradleVersions
-    }
-
-
+    
     def "Create list from Dependency"() {
         TestRepo repo = new TestRepo(new File(testProjectDir, "/repo"))
         String repoConf = repo.getRepoConfig()

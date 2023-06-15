@@ -16,14 +16,10 @@
  */
 package com.intershop.gradle.icm
 
-import com.intershop.gradle.icm.extension.IntershopExtension
-import com.intershop.gradle.icm.extension.ServerDir
 import com.intershop.gradle.icm.project.PluginConfig
-import com.intershop.gradle.icm.project.TaskName
 import com.intershop.gradle.icm.tasks.CreateMainPackage
 import com.intershop.gradle.icm.tasks.CreateServerInfo
 import com.intershop.gradle.icm.tasks.CreateTestPackage
-import com.intershop.gradle.icm.tasks.PreparePublishDir
 import com.intershop.gradle.icm.tasks.WriteCartridgeDescriptor
 import com.intershop.gradle.icm.utils.CartridgeStyle.ALL
 import com.intershop.gradle.icm.utils.CartridgeUtil
@@ -33,15 +29,8 @@ import com.intershop.gradle.icm.utils.EnvironmentType.TEST
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.gradle.api.UnknownTaskException
 import org.gradle.api.file.ProjectLayout
-import org.gradle.api.publish.PublishingExtension
-import org.gradle.api.publish.maven.MavenPublication
-import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
-import org.gradle.api.tasks.Sync
 import org.gradle.api.tasks.TaskProvider
-import org.gradle.api.tasks.bundling.Zip
-import java.util.*
 import javax.inject.Inject
 
 
@@ -63,20 +52,10 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
         with(project.rootProject) {
             plugins.apply(ICMBasePlugin::class.java)
 
-            val extension = extensions.findByType(
-                IntershopExtension::class.java
-            ) ?: extensions.create(IntershopExtension.INTERSHOP_EXTENSION_NAME, IntershopExtension::class.java)
-
             val pluginConfig = PluginConfig(this, projectLayout)
 
             pluginConfig.createLibFilterFile()
             configureProjectTasks(this, pluginConfig)
-
-            if(extension.projectConfig.newBaseProject.get()) {
-                configureBasePublishingTasks(this, extension)
-            } else {
-                configureAdapterPublishingTasks(this, extension)
-            }
         }
     }
 
@@ -156,104 +135,4 @@ open class ICMProjectPlugin @Inject constructor(private var projectLayout: Proje
         return prepareTask
     }
 
-    private fun configureAdapterPublishingTasks(project: Project, extension: IntershopExtension) {
-        val configZipTask = getZipTasks(
-            project = project,
-            baseDir = extension.projectConfig.serverDirConfig.base,
-            prodDir = extension.projectConfig.serverDirConfig.prod,
-            type = "configuration"
-        )
-
-        project.afterEvaluate {
-            with(project.extensions) {
-                project.plugins.withType(MavenPublishPlugin::class.java) {
-                    configure(PublishingExtension::class.java) { publishing ->
-                        publishing.publications.maybeCreate(
-                            extension.mavenPublicationName.get(),
-                            MavenPublication::class.java
-                        ).apply {
-                            artifact(configZipTask.get())
-                        }
-                    }
-                    project.tasks.named("publish").configure {
-                            task -> task.dependsOn(configZipTask)
-                    }
-                }
-            }
-        }
-    }
-
-    private fun getZipTasks(project: Project, baseDir: ServerDir, prodDir: ServerDir, type: String): TaskProvider<Zip> {
-        val preparePubTask =
-            project.tasks.register("preparePub${
-                    type.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
-            }", PreparePublishDir::class.java) { task ->
-                task.baseDirConfig.set(baseDir)
-                task.extraDirConfig.set(prodDir)
-
-                task.outputDirectory.set(project.layout.buildDirectory.dir("publish/predir${type}"))
-            }
-
-        return project.tasks.register("zip${
-                type.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
-            }", Zip::class.java) { task ->
-            task.from(preparePubTask.get().outputs)
-
-            task.archiveBaseName.set(type)
-            task.archiveClassifier.set(type)
-            task.destinationDirectory.set(project.layout.buildDirectory.dir("publish/${type}"))
-        }
-    }
-
-    private fun configureBasePublishingTasks(project: Project, extension: IntershopExtension) {
-        project.afterEvaluate {
-
-            var configTask: TaskProvider<Sync>? = null
-            try {
-                configTask = project.tasks.named(TaskName.PRODUCTION.config(), Sync::class.java)
-            } catch(ex: UnknownTaskException) {
-                project.logger.debug("No configuration task available.")
-            }
-
-            val confZipTask = if(configTask != null ) {
-                                    getZipFolder(project, configTask, "configuration")
-                                } else {
-                                    null
-                                }
-
-            if(confZipTask != null) {
-                with(project.extensions) {
-                    project.plugins.withType(MavenPublishPlugin::class.java) {
-                        configure(PublishingExtension::class.java) { publishing ->
-                            publishing.publications.maybeCreate(
-                                extension.mavenPublicationName.get(),
-                                MavenPublication::class.java
-                            ).apply {
-                                artifact(confZipTask.get())
-                            }
-                        }
-                        if(configTask != null) {
-                            project.tasks.named("publish").configure { task -> task.dependsOn(configTask) }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    private fun getZipFolder(project: Project, sync: TaskProvider<Sync>, type: String) : TaskProvider<Zip>? {
-        return if (! sync.get().outputs.files.isEmpty) {
-                project.tasks.register("zip${
-                    type.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
-                }", Zip::class.java) { zip ->
-                        zip.from(sync.get().outputs.files)
-
-                        zip.includeEmptyDirs = false
-
-                        zip.archiveFileName.set("${type}.zip")
-                        zip.archiveClassifier.set(type)
-                        zip.destinationDirectory.set(project.layout.buildDirectory.dir("publish/${type}"))
-                    }
-                } else { null }
-    }
 }
