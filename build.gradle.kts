@@ -118,8 +118,8 @@ gradlePlugin {
         create("icmAdapterCartridgePlugin") {
             id = "com.intershop.icm.cartridge.adapter"
             implementationClass = "com.intershop.gradle.icm.cartridge.AdapterPlugin"
-            displayName = "icm-adpater-cartridge"
-            description = "The adpater cartridge plugin applies all basic configurations and tasks of an external adpater cartridge."
+            displayName = "icm-adapter-cartridge"
+            description = "The adapter cartridge plugin applies all basic configurations and tasks of an external adapter cartridge."
         }
         create("icmExternalCartridgePlugin") {
             id = "com.intershop.icm.cartridge.external"
