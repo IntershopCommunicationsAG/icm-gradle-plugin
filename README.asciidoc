@@ -401,8 +401,10 @@ One of these values in the following order: +
 2. value of system property `licenseDir` +
 3. value of Gradle property `licenseDir` +
 4. default value `$GRADLE_USER_HOME/icm-default/lic` | Path of a directory with the
-Intershop license file. This is required by an ICM server instance.
-|`licenseFilePath`  | `String` | `<licenseDirectory>/license.xml` |The absolute path of the license file.
+Intershop license file. This is required by an ICM server instance. +
+*Deprecated since 5.8.0:* Property licenseDirectory is unsupported.
+|`licenseFilePath`  | `String` | `<licenseDirectory>/license.xml` |The absolute path of the license file. +
+*Deprecated since 5.8.0:* Property licenseFilePath is unsupported.
 |`configDirectory`  | `String` |
 One of these values in the following order: +
 1. value of environment variable `CONFIGDIR` +
