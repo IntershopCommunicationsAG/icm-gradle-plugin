@@ -16,81 +16,12 @@
  */
 package com.intershop.gradle.icm
 
-import com.intershop.gradle.icm.tasks.CreateMainPackage
-import com.intershop.gradle.icm.tasks.CreateTestPackage
 import com.intershop.gradle.icm.util.TestRepo
 import com.intershop.gradle.test.AbstractIntegrationGroovySpec
-
-import java.util.zip.ZipFile
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
-
-    def 'check lic configuration from extension'() {
-        given:
-        settingsFile << """
-        rootProject.name='rootproject'
-        """.stripIndent()
-
-        buildFile << """
-            plugins {
-                id 'java'
-                id 'com.intershop.gradle.icm.base'
-            }
-            
-            task showLicPath() { 
-                doLast {
-                    println(project.extensions.getByName("intershop").developmentConfig.licenseFilePath)
-                }
-            }
-
-            """.stripIndent()
-
-        when:
-        def result = getPreparedGradleRunner()
-                .withArguments("showLicPath", "-s", "--warning-mode", "all")
-                .withGradleVersion(gradleVersion)
-                .build()
-
-        then:
-        result.task(':showLicPath').outcome == SUCCESS
-        result.output.contains(new File("gradle/icm-default/lic/license.xml").toString())
-
-        when:
-        def result1 = getPreparedGradleRunner()
-                .withArguments("showLicPath", "-s", "--warning-mode", "all", "-DlicenseDir=/home/user/licdir")
-                .withGradleVersion(gradleVersion)
-                .build()
-
-        then:
-        result1.task(':showLicPath').outcome == SUCCESS
-        result1.output.contains(new File("/home/user/licdir/license.xml").toString())
-
-        when:
-        def result2 = getPreparedGradleRunner()
-                .withArguments("showLicPath", "-s", "--warning-mode", "all", "-PlicenseDir=/home/otheruser/licdir")
-                .withGradleVersion(gradleVersion)
-                .build()
-
-        then:
-        result2.task(':showLicPath').outcome == SUCCESS
-        result2.output.contains(new File("/home/otheruser/licdir/license.xml").toString())
-
-        when:
-        def result3 = getPreparedGradleRunner()
-                .withArguments("showLicPath", "-s")
-                .withEnvironment([ "LICENSEDIR": "/home/other/licdir" ])
-                .withGradleVersion(gradleVersion)
-                .build()
-
-        then:
-        result3.task(':showLicPath').outcome == SUCCESS
-        result3.output.contains(new File("/home/other/licdir/license.xml").toString())
-
-        where:
-        gradleVersion << supportedGradleVersions
-    }
 
     def 'check conf configuration from extension'() {
         given:

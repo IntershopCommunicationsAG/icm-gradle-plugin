@@ -43,23 +43,38 @@ open class DevelopmentConfiguration
          */
         val log: Logger = LoggerFactory.getLogger(this::class.java.name)
 
+        @Deprecated(
+            message = "Environment variable LICENSE_DIR_ENV is unsupported since 5.8.0 and no longer used",
+            level = DeprecationLevel.WARNING
+        )
         const val LICENSE_DIR_ENV = "LICENSEDIR"
         const val CONFIG_DIR_ENV = "CONFIGDIR"
         const val CONFIG_DIR_SEC_ENV = "CONFIGDIR"
 
+        @Deprecated(
+            message = "LICENSE_DIR_SYS is unsupported since 5.8.0 and no longer used",
+            level = DeprecationLevel.WARNING
+        )
         const val LICENSE_DIR_SYS = "licenseDir"
         const val CONFIG_DIR_SYS = "configDir"
         const val CONFIG_DIR_SEC_SYS = "configDir"
 
+        @Deprecated(
+            message = "DEFAULT_LIC_PATH is unsupported since 5.8.0 and no longer used",
+            level = DeprecationLevel.WARNING
+        )
         const val DEFAULT_LIC_PATH = "icm-default/lic"
         const val DEFAULT_CONFIG_PATH = "icm-default/conf"
         const val DEFAULT_CONFIGSEC_PATH = "icm-default/confSec"
 
+        @Deprecated(
+            message = "LICENSE_FILE_NAME is unsupported since 5.8.0 and no longer used",
+            level = DeprecationLevel.WARNING
+        )
         const val LICENSE_FILE_NAME = "license.xml"
         const val CONFIG_FILE_NAME = "icm.properties"
     }
 
-    private val licenseDirectoryProperty: Property<String> = objectFactory.property(String::class.java)
     private val configDirectoryProperty: Property<String> = objectFactory.property(String::class.java)
     private val configDirectorySecProperty: Property<String> = objectFactory.property(String::class.java)
     private val configProperties: Properties = Properties()
@@ -70,28 +85,14 @@ open class DevelopmentConfiguration
         val gradleUserHomePath = GradleUserHomeLookup.gradleUserHome().absolutePath
 
         with(providerFactory) {
-            var licDirPath = environmentVariable(LICENSE_DIR_ENV).forUseAtConfigurationTime().orNull
             var configDirPath = environmentVariable(CONFIG_DIR_ENV).forUseAtConfigurationTime().orNull
             var configDirSecPath = environmentVariable(CONFIG_DIR_SEC_ENV).forUseAtConfigurationTime().orNull
-
-            // read system if necessary
-            if (licDirPath == null) {
-                licDirPath = systemProperty(LICENSE_DIR_SYS).forUseAtConfigurationTime().orNull
-            }
 
             if (configDirPath == null) {
                 configDirPath = systemProperty(CONFIG_DIR_SYS).forUseAtConfigurationTime().orNull
             }
             if (configDirSecPath == null) {
                 configDirSecPath = systemProperty(CONFIG_DIR_SEC_SYS).forUseAtConfigurationTime().orNull
-            }
-
-            if (licDirPath == null) {
-                try {
-                    licDirPath = gradleProperty(LICENSE_DIR_SYS).forUseAtConfigurationTime().orNull
-                } catch (ise: IllegalStateException) {
-                    log.error(ise.message)
-                }
             }
 
             if (configDirPath == null) {
@@ -109,12 +110,6 @@ open class DevelopmentConfiguration
                 }
             }
 
-            if (licDirPath == null) {
-                logger.warn("The default value is used for license directory, because there is no " +
-                        "other value specified.")
-                licDirPath = File(File(gradleUserHomePath), DEFAULT_LIC_PATH).absolutePath
-            }
-
             if (configDirPath == null) {
                 logger.warn("The default value is used for configuration directory, because there is no " +
                         "other value specified.")
@@ -127,7 +122,6 @@ open class DevelopmentConfiguration
                                         tempConfigDirSecPath } else { null }
             }
 
-            licenseDirectoryProperty.set(licDirPath)
             configDirectoryProperty.set(configDirPath)
 
             if (configDirSecPath != null) {
@@ -139,13 +133,6 @@ open class DevelopmentConfiguration
                 } else {
                     logger.warn("File for second configuration '{}' does not exists!", configFile.absolutePath)
                 }
-            }
-
-            val licFile = File(licenseDirectory, LICENSE_FILE_NAME)
-            if (! licFile.exists() && ! licFile.canRead()) {
-                logger.error("The File {} does not exists." +
-                        "Please specify the directory with the license file with LICENSEDIR environment or" +
-                        "with 'licenseDir' Gradle Property or system variable.", licFile.absolutePath)
             }
 
             val configFile = File(configDirectory, CONFIG_FILE_NAME)
@@ -162,11 +149,19 @@ open class DevelopmentConfiguration
     /**
      * License directory path of the project.
      */
+    @Deprecated(
+        message = "licenseDirectory is unsupported since 5.8.0 and no longer used",
+        level = DeprecationLevel.WARNING
+    )
     val licenseDirectory: String
-        get() = licenseDirectoryProperty.get()
+        get() = ""
 
+    @Deprecated(
+        message = "licenseFilePath is unsupported since 5.8.0 and no longer used",
+        level = DeprecationLevel.WARNING
+    )
     val licenseFilePath: String
-        get() = File(licenseDirectory, LICENSE_FILE_NAME).absolutePath
+        get() = ""
 
     /**
      * Local configuration path of the project.

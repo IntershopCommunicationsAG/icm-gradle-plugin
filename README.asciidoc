@@ -12,7 +12,7 @@ Intershop Commerce Management Server.
 
 == Intershop Commerce Management Cartridge Plugins
 
-image::images/CartridgePlugins.png[Cartrdige Plugins, 500]
+image::images/CartridgePlugins.png[Cartridge Plugins, 500]
 
 The abstract Cartridge plugin adds a pom property "cartridge.style" if
 the https://docs.gradle.org/current/userguide/publishing_maven.html[Gradle "Maven Publish Plugin"] is applied.
@@ -227,19 +227,19 @@ It is not necessary to apply this plugin to a project separately, because it has
 WriteCartridgeDescriptor` | Creates a the Cartridge descriptor file `cartridge.descriptor`.
 |===
 
-[[anchor-1]][1] The default value of "classpath.file.enabled" is false.
+[[anchor-1]][1] The default value of "classpath.file.enabled" is false.
 
 [[anchor-2]][2] Files, installed on the container of the base project, will be not copied if the base project provides
 a filter file. There is also a special setting in the extension possible. List entries have the following form:
 ``<group name>-<module name>-<version>``.
 
-=== Public Cartrige Plugin
+=== Public Cartridge Plugin
 This plugin applies the
 https://docs.gradle.org/current/userguide/publishing_maven.html[Gradle "Maven Publish Plugin"]
 to a project and configures the publication of a plugin for further development.
 It adds the project library, the source, and Java doc jars to the publication and
 the description and the inception year to the pom.
-Furthmore the pom property "cartridge.name" is added to the publishing configuration.
+Furthermore the pom property "cartridge.name" is added to the publishing configuration.
 
 It is not necessary to apply this plugin to a project separately, because it has been applied by some of the plugins above.
 
@@ -397,21 +397,23 @@ The project information (`projectInfo`) is used in the display of the login dial
 
 |`licenseDirectory` | `String` |
 One of these values in the following order: +
-1. value of environement variable `LICENSEDIR` +
+1. value of environment variable `LICENSEDIR` +
 2. value of system property `licenseDir` +
 3. value of Gradle property `licenseDir` +
 4. default value `$GRADLE_USER_HOME/icm-default/lic` | Path of a directory with the
-Intershop license file. This is required by an ICM server instance.
-|`licenseFilePath`  | `String` | `<licenseDirectory>/license.xml` |The absolute path of the license file.
+Intershop license file. This is required by an ICM server instance. +
+*Deprecated since 5.8.0:* Property licenseDirectory is unsupported.
+|`licenseFilePath`  | `String` | `<licenseDirectory>/license.xml` |The absolute path of the license file. +
+*Deprecated since 5.8.0:* Property licenseFilePath is unsupported.
 |`configDirectory`  | `String` |
 One of these values in the following order: +
-1. value of environement variable `CONFIGDIR` +
+1. value of environment variable `CONFIGDIR` +
 2. value of system property `configDir` +
 3. value of Gradle property `configDir` +
 4. default value `$GRADLE_USER_HOME/icm-default/conf` |Path of a directory with a
 local environment specific configuration file. This is necessary to overwrite an existing
 configuration of a server, such as the database settings.
-|`configFilePath`   | `String` | `<configDirectory>/icm.properties` | The absolute path of the configuration file.
+|`configFilePath`   | `String` | `<configDirectory>/icm.properties` | The absolute path of the configuration file.
 |===
 
 NOTE: All properties are read only.
@@ -612,8 +614,8 @@ server/config_folder` | Contains the complete configuration of a development ser
 |===
 |Property               | Type | Default value | Description
 | `newBaseProject` | `boolean` | `false` | If this property is true, the configuration release can be used as a new base project.
-| `cartridgeListDependency` | `Property<String>` | *optional* | If the base cartridge list configuration should not be taken from the base project, it is necessary to specify a separate configuration.
-| `libFilterFileDependency` | `Property<String>` | *optional* | If the base library filter configuration should not be taken from the base project, it is necessary to specify a separate configuration.
+| `cartridgeListDependency` | `Property<String>` | *optional* | If the base cartridge list configuration should not be taken from the base project, it is necessary to specify a separate configuration.
+| `libFilterFileDependency` | `Property<String>` | *optional* | If the base library filter configuration should not be taken from the base project, it is necessary to specify a separate configuration.
 | `cartridges` | `SetProperty<String>` |  | This configuration is used to extend the base cartridge list for the project. It contains a set of cartridge dependencies and project names.
 | `dbprepareCartridges` | `SetProperty<String>` |  | This configuration is used to extend the base cartridge list for the project for Database preparation. It contains a set of cartridge dependencies and project names.
 |===
