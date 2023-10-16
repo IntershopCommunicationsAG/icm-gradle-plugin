@@ -20,20 +20,15 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
 
-    // project plugins
-    `java-gradle-plugin`
     groovy
 
-    kotlin("jvm") version "1.7.10"
+    kotlin("jvm") version "1.9.10"
 
     // test coverage
     jacoco
 
     // ide plugin
     idea
-
-    // publish plugin
-    `maven-publish`
 
     // artifact signing - necessary on Maven Central
     signing
@@ -51,7 +46,7 @@ plugins {
     id("io.gitlab.arturbosch.detekt") version "1.18.0"
 
     // plugin for publishing to Gradle Portal
-    id("com.gradle.plugin-publish") version "1.0.0"
+    id("com.gradle.plugin-publish") version "1.1.0"
 }
 
 scm {
@@ -72,80 +67,88 @@ repositories {
 }
 
 gradlePlugin {
+    val pluginURL = "https://github.com/IntershopCommunicationsAG/${project.name}"
+    website = pluginURL
+    vcsUrl = pluginURL
+    val customTags = listOf("intershop", "build", "icm")
     plugins {
         create("icmBasePlugin") {
             id = "com.intershop.gradle.icm.base"
             implementationClass = "com.intershop.gradle.icm.ICMBasePlugin"
             displayName = "icm-base-plugin"
             description = "This ICM plugin contains configuration and some main aspects of all plugins."
+            tags = customTags
         }
         create("icmProjectPlugin") {
             id = "com.intershop.gradle.icm.project"
             implementationClass = "com.intershop.gradle.icm.ICMProjectPlugin"
             displayName = "icm-project-plugin"
             description = "This plugin should be applied to Intershop Commerce Management customer projects."
+            tags = customTags
         }
         create("icmCartridgePlugin") {
             id = "com.intershop.icm.cartridge"
             implementationClass = "com.intershop.gradle.icm.cartridge.CartridgePlugin"
             displayName = "icm-cartridge"
             description = "The cartridge plugin applies all basic configurations and tasks."
+            tags = customTags
         }
         create("icmContainerPlugin") {
             id = "com.intershop.icm.cartridge.container"
             implementationClass = "com.intershop.gradle.icm.cartridge.ContainerPlugin"
             displayName = "icm-container-cartridge"
             description = "The container cartridge plugin applies all basic configurations and tasks for container cartridges."
+            tags = customTags
         }
         create("icmProductCartridgePlugin") {
             id = "com.intershop.icm.cartridge.product"
             implementationClass = "com.intershop.gradle.icm.cartridge.ProductPlugin"
             displayName = "icm-product-cartridge"
             description = "The product cartridge plugin applies all basic configurations and tasks for product cartridges."
+            tags = customTags
         }
         create("icmTestCartridgePlugin") {
             id = "com.intershop.icm.cartridge.test"
             implementationClass = "com.intershop.gradle.icm.cartridge.TestPlugin"
             displayName = "icm-test-cartridge"
             description = "The test cartridge plugin applies all basic configurations and tasks of an integration test cartridge."
+            tags = customTags
         }
         create("icmDevelopmentCartridgePlugin") {
             id = "com.intershop.icm.cartridge.development"
             implementationClass = "com.intershop.gradle.icm.cartridge.DevelopmentPlugin"
             displayName = "icm-development-cartridge"
             description = "The development cartridge plugin applies all basic configurations and tasks of and development cartridge."
+            tags = customTags
         }
         create("icmAdapterCartridgePlugin") {
             id = "com.intershop.icm.cartridge.adapter"
             implementationClass = "com.intershop.gradle.icm.cartridge.AdapterPlugin"
             displayName = "icm-adapter-cartridge"
             description = "The adapter cartridge plugin applies all basic configurations and tasks of an external adapter cartridge."
+            tags = customTags
         }
         create("icmExternalCartridgePlugin") {
             id = "com.intershop.icm.cartridge.external"
             implementationClass = "com.intershop.gradle.icm.cartridge.ExternalPlugin"
             displayName = "icm-external-cartridge"
             description = "The cartridge plugin applies all basic configurations and tasks of an external cartridge (with static folder)."
+            tags = customTags
         }
         create("icmPublicCartridgePlugin") {
             id = "com.intershop.icm.cartridge.public"
             implementationClass = "com.intershop.gradle.icm.cartridge.PublicPlugin"
             displayName = "icm-external-cartridge"
             description = "The cartridge plugin applies all basic configurations and tasks of an public cartridge (published to Maven)."
+            tags = customTags
         }
     }
 }
 
-pluginBundle {
-    val pluginURL = "https://github.com/IntershopCommunicationsAG/${project.name}"
-    website = pluginURL
-    vcsUrl = pluginURL
-    tags = listOf("intershop", "build", "icm")
-}
-
 java {
-    sourceCompatibility = JavaVersion.VERSION_11
-    targetCompatibility = JavaVersion.VERSION_11
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
 }
 
 // set correct project status
@@ -161,7 +164,7 @@ detekt {
 tasks {
 
     withType<Test>().configureEach {
-        systemProperty("intershop.gradle.versions", "7.5.1")
+        systemProperty("intershop.gradle.versions", "8.4")
         useJUnitPlatform()
 
         dependsOn("jar")
@@ -226,10 +229,6 @@ tasks {
     }
 
     getByName("jar").dependsOn("asciidoctor")
-
-    withType<KotlinCompile>  {
-        kotlinOptions.jvmTarget = JavaVersion.VERSION_1_8.toString()
-    }
 
     dokkaJavadoc.configure {
         outputDirectory.set(buildDir.resolve("dokka"))
