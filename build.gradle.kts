@@ -1,5 +1,4 @@
 import org.asciidoctor.gradle.jvm.AsciidoctorTask
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 /*
  * Copyright 2021 Intershop Communications AG.
@@ -33,7 +32,7 @@ plugins {
     // artifact signing - necessary on Maven Central
     signing
 
-    // intershop version plugin
+    // intershop version plugin todo
     id("com.intershop.gradle.scmversion") version "6.2.0"
 
     // plugin for documentation
@@ -43,10 +42,10 @@ plugins {
     id("org.jetbrains.dokka") version "1.9.0"
 
     // code analysis for kotlin
-    id("io.gitlab.arturbosch.detekt") version "1.18.0"
+    id("io.gitlab.arturbosch.detekt") version "1.23.1"
 
     // plugin for publishing to Gradle Portal
-    id("com.gradle.plugin-publish") version "1.1.0"
+    id("com.gradle.plugin-publish") version "1.2.1"
 }
 
 scm {
@@ -161,6 +160,8 @@ detekt {
     config = files("detekt.yml")
 }
 
+val buildDir = layout.buildDirectory.asFile.get()
+
 tasks {
 
     withType<Test>().configureEach {
@@ -221,7 +222,7 @@ tasks {
             xml.required.set(true)
             html.required.set(true)
 
-            html.outputLocation.set( File(project.buildDir, "jacocoHtml") )
+            html.outputLocation.set( File(buildDir, "jacocoHtml") )
         }
 
         val jacocoTestReport by tasks
@@ -318,9 +319,10 @@ dependencies {
     implementation(gradleApi())
     implementation(localGroovy())
 
-    compileOnly("org.apache.ant:ant:1.10.12")
+    compileOnly("org.apache.ant:ant:1.10.14")
     implementation("com.intershop.version:semantic-version:1.0.0")
 
+    //todo
     testImplementation("com.intershop.gradle.test:test-gradle-plugin:4.1.2")
     testImplementation(gradleTestKit())
 }
