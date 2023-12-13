@@ -31,8 +31,8 @@ open class ZipStaticFiles: Zip() {
         archiveClassifier.set("staticfiles")
         duplicatesStrategy =  DuplicatesStrategy.EXCLUDE
 
-        destinationDirectory.set(File(project.buildDir, "staticfiles"))
+        destinationDirectory.set(project.layout.buildDirectory.dir("staticfiles"))
 
-        this.from("staticfiles/cartridge")
+        from("staticfiles/cartridge")
     }
 }

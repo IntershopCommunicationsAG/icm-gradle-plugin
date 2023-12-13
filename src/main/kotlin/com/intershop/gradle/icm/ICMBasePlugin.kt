@@ -152,10 +152,10 @@ open class ICMBasePlugin: Plugin<Project> {
 
         val prodLibListTask = registerLibListTask(EnvironmentType.PRODUCTION)
         val prodLibCopyTask = registerLibCopyTask(EnvironmentType.PRODUCTION, prodLibListTask)
-        createMainPackage.configure {
-            it.dependsOn(prodLibCopyTask)
-            it.from(prodLibCopyTask.get().librariesDirectory) {
-                it.into("lib")
+        createMainPackage.configure { cmp ->
+            cmp.dependsOn(prodLibCopyTask)
+            cmp.from(prodLibCopyTask.get().librariesDirectory) { copySpec ->
+                copySpec.into("lib")
             }
         }
 
@@ -208,19 +208,17 @@ open class ICMBasePlugin: Plugin<Project> {
     }
 
     private fun Project.registerLibListTask(type: EnvironmentType): TaskProvider<CreateLibList> {
-        return tasks.register(
-            CreateLibList.getName(type.toString()), CreateLibList::class.java) {
-                it.environmentType.set(type.name)
-                it.libraryListFile.set(File(buildDir, CreateLibList.getOutputPath(type.name)))
+        return tasks.register(CreateLibList.getName(type.toString()), CreateLibList::class.java) {
+            it.environmentType.set(type.name)
+            it.libraryListFile.set(project.layout.buildDirectory.file(CreateLibList.getOutputPath(type.name)))
         }
     }
 
     private fun Project.registerLibCopyTask(type: EnvironmentType,
                                             cll: TaskProvider<CreateLibList>): TaskProvider<CopyLibraries> {
-        return tasks.register(
-            CopyLibraries.getName(type.toString()), CopyLibraries::class.java) {
+        return tasks.register(CopyLibraries.getName(type.toString()), CopyLibraries::class.java) {
             it.environmentType.set(type.name)
-            it.librariesDirectory.set(File(buildDir, CopyLibraries.getOutputPath(type.name)))
+            it.librariesDirectory.set(project.layout.buildDirectory.dir(CopyLibraries.getOutputPath(type.name)))
             it.dependencyIDFile.set(cll.get().libraryListFile)
             it.dependsOn(cll)
         }

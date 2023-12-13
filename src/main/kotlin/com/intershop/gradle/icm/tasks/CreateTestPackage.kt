@@ -42,6 +42,6 @@ open class CreateTestPackage: Tar() {
         compression = Compression.GZIP
         duplicatesStrategy =  DuplicatesStrategy.EXCLUDE
 
-        destinationDirectory.set(File(project.buildDir, "packages"))
+        destinationDirectory.set(project.layout.buildDirectory.dir("packages"))
     }
 }

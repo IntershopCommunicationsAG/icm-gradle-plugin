@@ -1,5 +1,4 @@
 import org.asciidoctor.gradle.jvm.AsciidoctorTask
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 /*
  * Copyright 2021 Intershop Communications AG.
@@ -37,6 +36,8 @@ plugins {
 
     // artifact signing - necessary on Maven Central
     signing
+
+    `jvm-test-suite`
 
     // plugin for documentation
     id("org.asciidoctor.jvm.convert") version "3.3.2"
@@ -155,14 +156,25 @@ if (project.version.toString().endsWith("-SNAPSHOT")) {
     status = "snapshot"
 }
 
-tasks {
+testing {
+    suites.withType<JvmTestSuite> {
+        useSpock()
+        dependencies {
+            implementation("com.intershop.gradle.test:test-gradle-plugin:5.0.1")
+            implementation(gradleTestKit())
+        }
 
-    withType<Test>().configureEach {
-        systemProperty("intershop.gradle.versions", "8.5")
-        useJUnitPlatform()
-
-        dependsOn(jar)
+        targets {
+            all {
+                testTask.configure {
+                    systemProperty("intershop.gradle.versions", "8.5")
+                }
+            }
+        }
     }
+}
+
+tasks {
 
     register<Copy>("copyAsciiDoc") {
         includeEmptyDirs = false
@@ -316,8 +328,4 @@ dependencies {
 
     compileOnly("org.apache.ant:ant:1.10.14")
     implementation("com.intershop.version:semantic-version:1.0.0")
-
-    testImplementation("com.intershop.gradle.test:test-gradle-plugin:5.0.1")
-    testImplementation(gradleTestKit())
 }
-

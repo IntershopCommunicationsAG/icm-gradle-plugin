@@ -685,31 +685,6 @@ Methods of `CartridgeProject`
 | `excludes` | `Collection<String>` | Adds a collection of exclude patterns to the set.
 |===
 
-====== Object `ProjectServerDirs`
-
-*Deprecated since 5.6.0*: Configuration via folder is unsupported
-
-This configures directories for environment types. These configurations are all optional.
-
-Methods of `ProjectServerDirs`
-
-[cols="17%,17%,66%", width="99%, options="header"]
-|===
-|Method | Parameter | Description
-
-| `base` | `Action<in ServerDir>` | This configures basically directories and files of the project from an action.
-| `base` | `Closure<ServerDirSet> | This configures basically directories and files of the project from a closure.
-| `prod` | `Action<in ServerDir>` | This configures production (container) directories and files of the project from an action.
-| `prod` | `Closure<ServerDir> | This configures production (container) directories and files of the project from a closure.
-| `test` | `Action<in ServerDir>` | This configures test (testcontainer) directories and files of the project from an action.
-| `test` | `Closure<ServerDir> | This configures test (testcontainer) directories and files of the project from a closure.
-| `dev` | `Action<in ServerDir>` | This configures development (server) directories and files of the project from an action.
-| `dev` | `Closure<ServerDir> | This configures development (server) directories and files of the project from a closure.
-|===
-
-There is one preconfigured base configuration "main". The path for the configuration is 'configuration/base'.
-*The directory must be available in a project.*
-
 ====== Object `ServerDirSet`
 
 This configuration prepares a https://docs.gradle.org/current/javadoc/org/gradle/api/file/CopySpec.html[CopySpec] for the directories of the project.
