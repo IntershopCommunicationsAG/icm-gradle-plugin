@@ -203,9 +203,9 @@ tasks {
             dir.set(copyAsciiDocTask.get().outputs.files.first())
             dir.get()
         })
-        sources(delegateClosureOf<PatternSet> {
+        sources {
             include("README.asciidoc")
-        })
+        }
 
         outputOptions {
             setBackends(listOf("html5", "docbook"))
@@ -329,6 +329,5 @@ dependencies {
     implementation(gradleApi())
     implementation(gradleKotlinDsl())
 
-    compileOnly("org.apache.ant:ant:1.10.14")
     implementation("com.intershop.version:semantic-version:1.0.0")
 }
