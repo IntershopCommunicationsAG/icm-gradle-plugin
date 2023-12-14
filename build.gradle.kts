@@ -176,7 +176,7 @@ testing {
 
 tasks {
 
-    register<Copy>("copyAsciiDoc") {
+    val copyAsciiDocTask = register<Copy>("copyAsciiDoc") {
         includeEmptyDirs = false
 
         val outputDir = project.layout.buildDirectory.dir("tmp/asciidoctorSrc")
@@ -197,9 +197,12 @@ tasks {
     }
 
     withType<AsciidoctorTask> {
-        dependsOn("copyAsciiDoc")
-
-        setSourceDir(outputDir)
+        dependsOn(copyAsciiDocTask)
+        sourceDirProperty.set(project.provider<Directory>{
+            val dir = project.objects.directoryProperty()
+            dir.set(copyAsciiDocTask.get().outputs.files.first())
+            dir.get()
+        })
         sources(delegateClosureOf<PatternSet> {
             include("README.asciidoc")
         })
