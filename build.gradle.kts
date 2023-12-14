@@ -168,6 +168,9 @@ testing {
             all {
                 testTask.configure {
                     systemProperty("intershop.gradle.versions", "8.5")
+                    testLogging {
+                        showStandardStreams = true
+                    }
                 }
             }
         }
