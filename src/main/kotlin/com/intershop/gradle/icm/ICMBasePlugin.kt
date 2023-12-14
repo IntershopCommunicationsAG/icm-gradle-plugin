@@ -39,7 +39,6 @@ import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.diagnostics.DependencyReportTask
-import java.io.File
 
 /**
  * The base plugin for the configuration of the ICM project.
