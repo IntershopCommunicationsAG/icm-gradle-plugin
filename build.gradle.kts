@@ -332,5 +332,5 @@ dependencies {
     implementation(gradleApi())
     implementation(gradleKotlinDsl())
 
-    implementation("com.intershop.version:semantic-version:1.0.0")
+    implementation("com.intershop.version:semantic-version:2.0.0")
 }
