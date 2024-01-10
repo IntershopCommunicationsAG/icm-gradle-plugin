@@ -1,10 +1,10 @@
 = Intershop Commerce Management Project Plugins
-:latestRevision: 3.0.0
+:latestRevision: 6.0.0
 :toc:
 :icons: font
 
 CAUTION:
-Version ??? requires Gradle 7.5.1!
+Version {latestRevision} requires Gradle 8.5!
 
 == Summary
 This plugin collection contains plugins for building all necessary artifacts of an
@@ -29,6 +29,7 @@ The value of the property is "container". There is no publishing configuration f
 ++++
 .build.gradle
 [source,groovy]
+[subs=+attributes]
 ----
 plugins {
     id 'com.intershop.icm.cartridge.container' version '{latestRevision}'
@@ -44,6 +45,7 @@ plugins {
 ++++
 .build.gradle.kts
 [source,kotlin]
+[subs=+attributes]
 ----
 plugins {
     id("com.intershop.icm.cartridge.container") version "{latestRevision}"
@@ -66,6 +68,7 @@ published to a Maven repository: jar, source jar, and javadoc jar.
 ++++
 .build.gradle
 [source,groovy]
+[subs=+attributes]
 ----
 plugins {
     id 'com.intershop.icm.cartridge.product' version '{latestRevision}'
@@ -81,6 +84,7 @@ plugins {
 ++++
 .build.gradle.kts
 [source,kotlin]
+[subs=+attributes]
 ----
 plugins {
     id("com.intershop.icm.cartridge.product") version "{latestRevision}"
@@ -102,6 +106,7 @@ payment or search connectors.
 ++++
 .build.gradle
 [source,groovy]
+[subs=+attributes]
 ----
 plugins {
     id 'com.intershop.icm.cartridge.adapter' version '{latestRevision}'
@@ -117,6 +122,7 @@ plugins {
 ++++
 .build.gradle.kts
 [source,kotlin]
+[subs=+attributes]
 ----
 plugins {
     id("com.intershop.icm.cartridge.adapter") version "{latestRevision}"
@@ -137,6 +143,7 @@ in a production or test container.
 ++++
 .build.gradle
 [source,groovy]
+[subs=+attributes]
 ----
 plugins {
     id 'com.intershop.icm.cartridge.development' version '{latestRevision}'
@@ -152,6 +159,7 @@ plugins {
 ++++
 .build.gradle.kts
 [source,kotlin]
+[subs=+attributes]
 ----
 plugins {
     id("com.intershop.icm.cartridge.development") version "{latestRevision}"
@@ -173,6 +181,7 @@ in a production container.
 ++++
 .build.gradle
 [source,groovy]
+[subs=+attributes]
 ----
 plugins {
     id 'com.intershop.icm.cartridge.test' version '{latestRevision}'
@@ -188,6 +197,7 @@ plugins {
 ++++
 .build.gradle.kts
 [source,kotlin]
+[subs=+attributes]
 ----
 plugins {
     id("com.intershop.icm.cartridge.test") version "{latestRevision}"
@@ -269,6 +279,7 @@ ZipStaticFiles` | Creates a zip file with the static Cartridge content.
 ++++
 .build.gradle
 [source,groovy]
+[subs=+attributes]
 ----
 plugins {
     id 'com.intershop.icm.cartridge.test' version '{latestRevision}'
@@ -285,6 +296,7 @@ plugins {
 ++++
 .build.gradle.kts
 [source,kotlin]
+[subs=+attributes]
 ----
 plugins {
     id("com.intershop.icm.cartridge.test") version "{latestRevision}"
@@ -313,6 +325,7 @@ project and it creates the configurations `cartridge` and `cartridgeRuntime` in 
 ++++
 .build.gradle
 [source,groovy]
+[subs=+attributes]
 ----
 plugins {
     id 'com.intershop.gradle.icm.base' version '{latestRevision}'
@@ -341,6 +354,7 @@ intershop {
 ++++
 .build.gradle.kts
 [source,kotlin]
+[subs=+attributes]
 ----
 plugins {
     id("com.intershop.gradle.icm.base") version "{latestRevision}"
@@ -395,16 +409,6 @@ The project information (`projectInfo`) is used in the display of the login dial
 |===
 |Property           | Type     | Default value | Description
 
-|`licenseDirectory` | `String` |
-One of these values in the following order: +
-1. value of environment variable `LICENSEDIR` +
-2. value of system property `licenseDir` +
-3. value of Gradle property `licenseDir` +
-4. default value `$GRADLE_USER_HOME/icm-default/lic` | Path of a directory with the
-Intershop license file. This is required by an ICM server instance. +
-*Deprecated since 5.8.0:* Property licenseDirectory is unsupported.
-|`licenseFilePath`  | `String` | `<licenseDirectory>/license.xml` |The absolute path of the license file. +
-*Deprecated since 5.8.0:* Property licenseFilePath is unsupported.
 |`configDirectory`  | `String` |
 One of these values in the following order: +
 1. value of environment variable `CONFIGDIR` +
@@ -480,6 +484,7 @@ extended by this plugin. It adds files configured by the extension of this plugi
 ++++
 .build.gradle
 [source,groovy]
+[subs=+attributes]
 ----
 plugins {
     id 'com.intershop.gradle.icm.project' version '{latestRevision}'
@@ -532,6 +537,7 @@ intershop {
 ++++
 .build.gradle.kts
 [source,kotlin]
+[subs=+attributes]
 ----
 plugins {
     id("com.intershop.gradle.icm.project") version "{latestRevision}"
@@ -628,10 +634,6 @@ server/config_folder` | Contains the complete configuration of a development ser
 
 | `cartridge` | `String` | Add a cartridge to the list of cartridges. This can be a project name or a short module dependency configuration (`group:module:version`).
 | `dbprepareCartridge` | `String` | Add a cartridge to the list of cartridges for Database preparation. This can be a project name or a short module dependency configuration (`group:module:version`).
-| `serverDirConfig` | Action<in ProjectServerDirs> |  Configures the usage of project directories for configuration from an action. +
-*Deprecated since 5.6.0*: Configuration via folder is unsupported
-| `serverDirConfig` | Closure<ProjectServerDirs> | Configures the usage of project directories for configuration from a closure. +
-*Deprecated since 5.6.0*: Configuration via folder is unsupported
 |===
 
 `modules` is a `NamedDomainObjectContainer` of `CartridgeProject` a configuration is possible in a `Closure` or in a `Action`.
@@ -684,31 +686,6 @@ Methods of `CartridgeProject`
 | `exclude` | `String` | Adds an exclude pattern to the set.
 | `excludes` | `Collection<String>` | Adds a collection of exclude patterns to the set.
 |===
-
-====== Object `ProjectServerDirs`
-
-*Deprecated since 5.6.0*: Configuration via folder is unsupported
-
-This configures directories for environment types. These configurations are all optional.
-
-Methods of `ProjectServerDirs`
-
-[cols="17%,17%,66%", width="99%, options="header"]
-|===
-|Method | Parameter | Description
-
-| `base` | `Action<in ServerDir>` | This configures basically directories and files of the project from an action.
-| `base` | `Closure<ServerDirSet> | This configures basically directories and files of the project from a closure.
-| `prod` | `Action<in ServerDir>` | This configures production (container) directories and files of the project from an action.
-| `prod` | `Closure<ServerDir> | This configures production (container) directories and files of the project from a closure.
-| `test` | `Action<in ServerDir>` | This configures test (testcontainer) directories and files of the project from an action.
-| `test` | `Closure<ServerDir> | This configures test (testcontainer) directories and files of the project from a closure.
-| `dev` | `Action<in ServerDir>` | This configures development (server) directories and files of the project from an action.
-| `dev` | `Closure<ServerDir> | This configures development (server) directories and files of the project from a closure.
-|===
-
-There is one preconfigured base configuration "main". The path for the configuration is 'configuration/base'.
-*The directory must be available in a project.*
 
 ====== Object `ServerDirSet`
 

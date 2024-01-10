@@ -19,10 +19,12 @@ package com.intershop.gradle.icm
 
 import com.intershop.gradle.icm.util.TestRepo
 import com.intershop.gradle.test.AbstractIntegrationKotlinSpec
+import org.gradle.testkit.runner.GradleRunner
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpec {
+    public final static String ENV_GRADLE_USER_HOME = "GRADLE_USER_HOME"
 
     def 'check conf configuration from extension'() {
         given:
@@ -51,38 +53,41 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
                 .build()
 
         then:
-        result.output.contains(".gradle/icm-default/conf/icm.properties")
+        result.output.contains(new File(getGradleUserHome(), "icm-default/conf/icm.properties").toString())
 
         when:
+        def confDir1 = new File(getUserHome(), "conf")
         def result1 = getPreparedGradleRunner()
-                .withArguments("showConfPath", "-s", "--warning-mode", "all", "-DconfigDir=/home/user/conf")
+                .withArguments("showConfPath", "-s", "--warning-mode", "all", "-DconfigDir=$confDir1")
                 .withGradleVersion(gradleVersion)
                 .build()
 
         then:
         result1.task(':showConfPath').outcome == SUCCESS
-        result1.output.contains("/home/user/conf/icm.properties")
+        result1.output.contains(new File(confDir1, "icm.properties").toString())
 
         when:
+        def confDir2 = new File(getUserHome().parentFile, "otheruser/conf")
         def result2 = getPreparedGradleRunner()
-                .withArguments("showConfPath", "-s", "--warning-mode", "all", "-PconfigDir=/home/otheruser/conf")
+                .withArguments("showConfPath", "-s", "--warning-mode", "all", "-PconfigDir=$confDir2")
                 .withGradleVersion(gradleVersion)
                 .build()
 
         then:
         result2.task(':showConfPath').outcome == SUCCESS
-        result2.output.contains("/home/otheruser/conf/icm.properties")
+        result2.output.contains(new File(confDir2, "icm.properties").toString())
 
         when:
+        def confDir3 = new File(getUserHome().parentFile, "otheruser/conf")
         def result3 = getPreparedGradleRunner()
                 .withArguments("showConfPath", "-s", "--warning-mode", "all")
-                .withEnvironment([ "CONFIGDIR": "/home/other/conf" ])
+                .withEnvironment([ "CONFIGDIR": confDir3.toString() ])
                 .withGradleVersion(gradleVersion)
                 .build()
 
         then:
         result3.task(':showConfPath').outcome == SUCCESS
-        result3.output.contains("/home/other/conf/icm.properties")
+        result3.output.contains(new File(confDir3, "icm.properties").toString())
 
         where:
         gradleVersion << supportedGradleVersions
@@ -783,5 +788,25 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
         writeJavaTestClass("com.intershop.adapter", prj4dir)
 
         return repoConf
+    }
+
+    @Override
+    protected GradleRunner getPreparedGradleRunner() {
+        def runner = super.getPreparedGradleRunner()
+        runner.withEnvironment([(ENV_GRADLE_USER_HOME): getGradleUserHome().toString()])
+        return runner
+    }
+
+    private File getGradleUserHome() {
+        String gradleUserHomeStr = System.getenv(ENV_GRADLE_USER_HOME)
+        if (gradleUserHomeStr != null){
+            return new File(gradleUserHomeStr)
+        }
+
+        return getUserHome()
+    }
+
+    private File getUserHome() {
+        return new File(System.getProperty("user.home"), ".gradle")
     }
 }

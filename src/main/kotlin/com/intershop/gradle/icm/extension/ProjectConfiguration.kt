@@ -42,8 +42,6 @@ open class ProjectConfiguration
     val testcontainerConfig: File = TargetConf.TEST.config(projectLayout).get().asFile
 
     val config: File = TargetConf.DEVELOPMENT.config(projectLayout).get().asFile
-    @Deprecated("newBaseProject feature is unsupported since 5.6.0", level = DeprecationLevel.WARNING)
-    val newBaseProject: Property<Boolean> = objectFactory.property(Boolean::class.java).convention(false)
 
     /**
      * Base project configuration for final project.
@@ -78,29 +76,6 @@ open class ProjectConfiguration
             NamedCartridgeProjectFactory(project, objectFactory))
 
     val libFilterFileDependency: Property<String> = objectFactory.property(String::class.java)
-
-    @Deprecated("Configuration via folder is unsupported since 5.6.0", level = DeprecationLevel.WARNING)
-    val serverDirConfig: ProjectServerDirs = objectFactory.newInstance(ProjectServerDirs::class.java, project)
-
-    /**
-     * Configures the directory configuration of the project.
-     *
-     * @param action Action to configure project server dirs
-     */
-    @Deprecated("Configuration via folder is unsupported since 5.6.0", level = DeprecationLevel.WARNING)
-    fun serverDirConfig(action: Action<in ProjectServerDirs>) {
-        action.execute(serverDirConfig)
-    }
-
-    /**
-     * Configures the directory configuration of the project.
-     *
-     * @param closure Closure to configure project server dirs
-     */
-    @Deprecated("Configuration via folder is unsupported since 5.6.0", level = DeprecationLevel.WARNING)
-    fun serverDirConfig(closure: Closure<ProjectServerDirs>) {
-        project.configure(serverDirConfig, closure)
-    }
 
 }
 

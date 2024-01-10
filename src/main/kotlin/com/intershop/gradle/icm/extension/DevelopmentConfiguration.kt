@@ -43,35 +43,12 @@ open class DevelopmentConfiguration
          */
         val log: Logger = LoggerFactory.getLogger(this::class.java.name)
 
-        @Deprecated(
-            message = "Environment variable LICENSE_DIR_ENV is unsupported since 5.8.0 and no longer used",
-            level = DeprecationLevel.WARNING
-        )
-        const val LICENSE_DIR_ENV = "LICENSEDIR"
         const val CONFIG_DIR_ENV = "CONFIGDIR"
         const val CONFIG_DIR_SEC_ENV = "CONFIGDIR"
-
-        @Deprecated(
-            message = "LICENSE_DIR_SYS is unsupported since 5.8.0 and no longer used",
-            level = DeprecationLevel.WARNING
-        )
-        const val LICENSE_DIR_SYS = "licenseDir"
         const val CONFIG_DIR_SYS = "configDir"
         const val CONFIG_DIR_SEC_SYS = "configDir"
-
-        @Deprecated(
-            message = "DEFAULT_LIC_PATH is unsupported since 5.8.0 and no longer used",
-            level = DeprecationLevel.WARNING
-        )
-        const val DEFAULT_LIC_PATH = "icm-default/lic"
         const val DEFAULT_CONFIG_PATH = "icm-default/conf"
         const val DEFAULT_CONFIGSEC_PATH = "icm-default/confSec"
-
-        @Deprecated(
-            message = "LICENSE_FILE_NAME is unsupported since 5.8.0 and no longer used",
-            level = DeprecationLevel.WARNING
-        )
-        const val LICENSE_FILE_NAME = "license.xml"
         const val CONFIG_FILE_NAME = "icm.properties"
     }
 
@@ -85,26 +62,26 @@ open class DevelopmentConfiguration
         val gradleUserHomePath = GradleUserHomeLookup.gradleUserHome().absolutePath
 
         with(providerFactory) {
-            var configDirPath = environmentVariable(CONFIG_DIR_ENV).forUseAtConfigurationTime().orNull
-            var configDirSecPath = environmentVariable(CONFIG_DIR_SEC_ENV).forUseAtConfigurationTime().orNull
+            var configDirPath = environmentVariable(CONFIG_DIR_ENV).orNull
+            var configDirSecPath = environmentVariable(CONFIG_DIR_SEC_ENV).orNull
 
             if (configDirPath == null) {
-                configDirPath = systemProperty(CONFIG_DIR_SYS).forUseAtConfigurationTime().orNull
+                configDirPath = systemProperty(CONFIG_DIR_SYS).orNull
             }
             if (configDirSecPath == null) {
-                configDirSecPath = systemProperty(CONFIG_DIR_SEC_SYS).forUseAtConfigurationTime().orNull
+                configDirSecPath = systemProperty(CONFIG_DIR_SEC_SYS).orNull
             }
 
             if (configDirPath == null) {
                 try {
-                    configDirPath = gradleProperty(CONFIG_DIR_SYS).forUseAtConfigurationTime().orNull
+                    configDirPath = gradleProperty(CONFIG_DIR_SYS).orNull
                 } catch (ise: IllegalStateException) {
                     log.error(ise.message)
                 }
             }
             if (configDirSecPath == null) {
                 try {
-                    configDirSecPath = gradleProperty(CONFIG_DIR_SEC_SYS).forUseAtConfigurationTime().orNull
+                    configDirSecPath = gradleProperty(CONFIG_DIR_SEC_SYS).orNull
                 } catch (ise: IllegalStateException) {
                     log.info(ise.message)
                 }
@@ -145,23 +122,6 @@ open class DevelopmentConfiguration
             }
         }
     }
-
-    /**
-     * License directory path of the project.
-     */
-    @Deprecated(
-        message = "licenseDirectory is unsupported since 5.8.0 and no longer used",
-        level = DeprecationLevel.WARNING
-    )
-    val licenseDirectory: String
-        get() = ""
-
-    @Deprecated(
-        message = "licenseFilePath is unsupported since 5.8.0 and no longer used",
-        level = DeprecationLevel.WARNING
-    )
-    val licenseFilePath: String
-        get() = ""
 
     /**
      * Local configuration path of the project.

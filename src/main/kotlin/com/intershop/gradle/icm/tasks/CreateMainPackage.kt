@@ -20,7 +20,6 @@ package com.intershop.gradle.icm.tasks
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.tasks.bundling.Compression
 import org.gradle.api.tasks.bundling.Tar
-import java.io.File
 
 /**
  * Task for the creation of a tar package. This
@@ -43,6 +42,6 @@ open class CreateMainPackage: Tar() {
         compression = Compression.GZIP
         duplicatesStrategy =  DuplicatesStrategy.EXCLUDE
 
-        destinationDirectory.set(File(project.buildDir, "packages"))
+        destinationDirectory.set(project.layout.buildDirectory.dir("packages"))
     }
 }

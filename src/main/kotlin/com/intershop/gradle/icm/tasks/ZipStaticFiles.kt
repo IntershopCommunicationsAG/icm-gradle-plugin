@@ -19,7 +19,6 @@ package com.intershop.gradle.icm.tasks
 
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.tasks.bundling.Zip
-import java.io.File
 
 /**
  * Task to create a package of static
@@ -31,8 +30,8 @@ open class ZipStaticFiles: Zip() {
         archiveClassifier.set("staticfiles")
         duplicatesStrategy =  DuplicatesStrategy.EXCLUDE
 
-        destinationDirectory.set(File(project.buildDir, "staticfiles"))
+        destinationDirectory.set(project.layout.buildDirectory.dir("staticfiles"))
 
-        this.from("staticfiles/cartridge")
+        from("staticfiles/cartridge")
     }
 }

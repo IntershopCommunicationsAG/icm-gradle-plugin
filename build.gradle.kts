@@ -1,5 +1,4 @@
 import org.asciidoctor.gradle.jvm.AsciidoctorTask
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 /*
  * Copyright 2021 Intershop Communications AG.
@@ -24,7 +23,7 @@ plugins {
     `java-gradle-plugin`
     groovy
 
-    kotlin("jvm") version "1.7.10"
+    kotlin("jvm") version "1.9.21"
 
     // test coverage
     jacoco
@@ -38,29 +37,23 @@ plugins {
     // artifact signing - necessary on Maven Central
     signing
 
-    // intershop version plugin
-    id("com.intershop.gradle.scmversion") version "6.2.0"
+    `jvm-test-suite`
 
     // plugin for documentation
     id("org.asciidoctor.jvm.convert") version "3.3.2"
 
     // documentation
-    id("org.jetbrains.dokka") version "1.5.0"
-
-    // code analysis for kotlin
-    id("io.gitlab.arturbosch.detekt") version "1.18.0"
+    id("org.jetbrains.dokka") version "1.9.10"
 
     // plugin for publishing to Gradle Portal
-    id("com.gradle.plugin-publish") version "1.0.0"
-}
-
-scm {
-    version.initialVersion = "1.0.0"
+    id("com.gradle.plugin-publish") version "1.2.1"
 }
 
 group = "com.intershop.gradle.icm"
 description = "Intershop Commerce Management Plugins"
-version = scm.version.version
+// apply gradle property 'projectVersion' to project.version, default to 'LOCAL'
+val projectVersion : String? by project
+version = projectVersion ?: "LOCAL"
 
 val sonatypeUsername: String? by project
 val sonatypePassword: String? by project
@@ -71,106 +64,125 @@ repositories {
     gradlePluginPortal()
 }
 
+val pluginUrl = "https://github.com/IntershopCommunicationsAG/${project.name}"
+val pluginTags = listOf("intershop", "build", "icm")
 gradlePlugin {
+    website = pluginUrl
+    vcsUrl = pluginUrl
     plugins {
         create("icmBasePlugin") {
             id = "com.intershop.gradle.icm.base"
             implementationClass = "com.intershop.gradle.icm.ICMBasePlugin"
             displayName = "icm-base-plugin"
             description = "This ICM plugin contains configuration and some main aspects of all plugins."
+            tags = pluginTags
         }
         create("icmProjectPlugin") {
             id = "com.intershop.gradle.icm.project"
             implementationClass = "com.intershop.gradle.icm.ICMProjectPlugin"
             displayName = "icm-project-plugin"
             description = "This plugin should be applied to Intershop Commerce Management customer projects."
+            tags = pluginTags
         }
         create("icmCartridgePlugin") {
             id = "com.intershop.icm.cartridge"
             implementationClass = "com.intershop.gradle.icm.cartridge.CartridgePlugin"
             displayName = "icm-cartridge"
             description = "The cartridge plugin applies all basic configurations and tasks."
+            tags = pluginTags
         }
         create("icmContainerPlugin") {
             id = "com.intershop.icm.cartridge.container"
             implementationClass = "com.intershop.gradle.icm.cartridge.ContainerPlugin"
             displayName = "icm-container-cartridge"
             description = "The container cartridge plugin applies all basic configurations and tasks for container cartridges."
+            tags = pluginTags
         }
         create("icmProductCartridgePlugin") {
             id = "com.intershop.icm.cartridge.product"
             implementationClass = "com.intershop.gradle.icm.cartridge.ProductPlugin"
             displayName = "icm-product-cartridge"
             description = "The product cartridge plugin applies all basic configurations and tasks for product cartridges."
+            tags = pluginTags
         }
         create("icmTestCartridgePlugin") {
             id = "com.intershop.icm.cartridge.test"
             implementationClass = "com.intershop.gradle.icm.cartridge.TestPlugin"
             displayName = "icm-test-cartridge"
             description = "The test cartridge plugin applies all basic configurations and tasks of an integration test cartridge."
+            tags = pluginTags
         }
         create("icmDevelopmentCartridgePlugin") {
             id = "com.intershop.icm.cartridge.development"
             implementationClass = "com.intershop.gradle.icm.cartridge.DevelopmentPlugin"
             displayName = "icm-development-cartridge"
             description = "The development cartridge plugin applies all basic configurations and tasks of and development cartridge."
+            tags = pluginTags
         }
         create("icmAdapterCartridgePlugin") {
             id = "com.intershop.icm.cartridge.adapter"
             implementationClass = "com.intershop.gradle.icm.cartridge.AdapterPlugin"
             displayName = "icm-adapter-cartridge"
             description = "The adapter cartridge plugin applies all basic configurations and tasks of an external adapter cartridge."
+            tags = pluginTags
         }
         create("icmExternalCartridgePlugin") {
             id = "com.intershop.icm.cartridge.external"
             implementationClass = "com.intershop.gradle.icm.cartridge.ExternalPlugin"
             displayName = "icm-external-cartridge"
             description = "The cartridge plugin applies all basic configurations and tasks of an external cartridge (with static folder)."
+            tags = pluginTags
         }
         create("icmPublicCartridgePlugin") {
             id = "com.intershop.icm.cartridge.public"
             implementationClass = "com.intershop.gradle.icm.cartridge.PublicPlugin"
             displayName = "icm-external-cartridge"
             description = "The cartridge plugin applies all basic configurations and tasks of an public cartridge (published to Maven)."
+            tags = pluginTags
         }
     }
 }
 
-pluginBundle {
-    val pluginURL = "https://github.com/IntershopCommunicationsAG/${project.name}"
-    website = pluginURL
-    vcsUrl = pluginURL
-    tags = listOf("intershop", "build", "icm")
-}
-
 java {
-    sourceCompatibility = JavaVersion.VERSION_11
-    targetCompatibility = JavaVersion.VERSION_11
+    withJavadocJar()
+    withSourcesJar()
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
 }
 
 // set correct project status
 if (project.version.toString().endsWith("-SNAPSHOT")) {
-    status = "snapshot'"
+    status = "snapshot"
 }
 
-detekt {
-    source = files("src/main/kotlin")
-    config = files("detekt.yml")
+testing {
+    suites.withType<JvmTestSuite> {
+        useSpock()
+        dependencies {
+            implementation("com.intershop.gradle.test:test-gradle-plugin:5.0.1")
+            implementation(gradleTestKit())
+        }
+
+        targets {
+            all {
+                testTask.configure {
+                    systemProperty("intershop.gradle.versions", "8.5")
+                    testLogging {
+                        showStandardStreams = true
+                    }
+                }
+            }
+        }
+    }
 }
 
 tasks {
 
-    withType<Test>().configureEach {
-        systemProperty("intershop.gradle.versions", "7.5.1")
-        useJUnitPlatform()
-
-        dependsOn("jar")
-    }
-
-    register<Copy>("copyAsciiDoc") {
+    val copyAsciiDocTask = register<Copy>("copyAsciiDoc") {
         includeEmptyDirs = false
 
-        val outputDir = file("$buildDir/tmp/asciidoctorSrc")
+        val outputDir = project.layout.buildDirectory.dir("tmp/asciidoctorSrc")
         val inputFiles = fileTree(rootDir) {
             include("**/*.asciidoc")
             exclude("build/**")
@@ -180,7 +192,7 @@ tasks {
         outputs.dir( outputDir )
 
         doFirst {
-            outputDir.mkdir()
+            outputDir.get().asFile.mkdir()
         }
 
         from(inputFiles)
@@ -188,12 +200,15 @@ tasks {
     }
 
     withType<AsciidoctorTask> {
-        dependsOn("copyAsciiDoc")
-
-        setSourceDir(file("$buildDir/tmp/asciidoctorSrc"))
-        sources(delegateClosureOf<PatternSet> {
-            include("README.asciidoc")
+        dependsOn(copyAsciiDocTask)
+        sourceDirProperty.set(project.provider<Directory>{
+            val dir = project.objects.directoryProperty()
+            dir.set(copyAsciiDocTask.get().outputs.files.first())
+            dir.get()
         })
+        sources {
+            include("README.asciidoc")
+        }
 
         outputOptions {
             setBackends(listOf("html5", "docbook"))
@@ -218,21 +233,19 @@ tasks {
             xml.required.set(true)
             html.required.set(true)
 
-            html.outputLocation.set( File(project.buildDir, "jacocoHtml") )
+            html.outputLocation.set( project.layout.buildDirectory.dir("jacocoHtml") )
         }
 
         val jacocoTestReport by tasks
-        jacocoTestReport.dependsOn("test")
+        jacocoTestReport.dependsOn(test)
     }
 
-    getByName("jar").dependsOn("asciidoctor")
-
-    withType<KotlinCompile>  {
-        kotlinOptions.jvmTarget = JavaVersion.VERSION_1_8.toString()
+    jar.configure {
+        dependsOn(asciidoctor)
     }
 
     dokkaJavadoc.configure {
-        outputDirectory.set(buildDir.resolve("dokka"))
+        outputDirectory.set(project.layout.buildDirectory.dir("dokka"))
     }
 
     withType<Sign> {
@@ -246,7 +259,7 @@ tasks {
     }
 
     afterEvaluate {
-        getByName<Jar>("javadocJar") {
+        named<Jar>("javadocJar") {
             dependsOn(dokkaJavadoc)
             from(dokkaJavadoc)
         }
@@ -259,18 +272,18 @@ publishing {
 
             from(components["java"])
 
-            artifact(File(buildDir, "docs/asciidoc/html5/README.html")) {
+            artifact(project.layout.buildDirectory.file("docs/asciidoc/html5/README.html")) {
                 classifier = "reference"
             }
 
-            artifact(File(buildDir, "docs/asciidoc/docbook/README.xml")) {
+            artifact(project.layout.buildDirectory.file("docs/asciidoc/docbook/README.xml")) {
                 classifier = "docbook"
             }
 
             pom {
                 name.set(project.name)
                 description.set(project.description)
-                url.set("https://github.com/IntershopCommunicationsAG/${project.name}")
+                url.set(pluginUrl)
                 licenses {
                     license {
                         name.set("The Apache License, Version 2.0")
@@ -292,7 +305,7 @@ publishing {
                 scm {
                     connection.set("git@github.com:IntershopCommunicationsAG/${project.name}.git")
                     developerConnection.set("git@github.com:IntershopCommunicationsAG/${project.name}.git")
-                    url.set("https://github.com/IntershopCommunicationsAG/${project.name}")
+                    url.set(pluginUrl)
                 }
             }
         }
@@ -317,12 +330,7 @@ signing {
 
 dependencies {
     implementation(gradleApi())
-    implementation(localGroovy())
+    implementation(gradleKotlinDsl())
 
-    compileOnly("org.apache.ant:ant:1.10.12")
-    implementation("com.intershop.version:semantic-version:1.0.0")
-
-    testImplementation("com.intershop.gradle.test:test-gradle-plugin:4.1.2")
-    testImplementation(gradleTestKit())
+    implementation("com.intershop.version:semantic-version:2.0.0")
 }
-
