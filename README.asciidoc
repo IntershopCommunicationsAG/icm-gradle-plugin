@@ -831,6 +831,9 @@ PreparePublishDir` | Prepares the directory for publishing of a configuration pa
        +- prjlibs
 ----
 
+== Contribute
+
+See link:https://github.com/IntershopCommunicationsAG/.github/blob/main/CONTRIBUTE.asciidoc[here] for details.
 
 == License
 
