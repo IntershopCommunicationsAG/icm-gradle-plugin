@@ -28,7 +28,7 @@ open class ICMEncryptionStrictMode(val isStrictModeEnabled: (Unit) -> Boolean) {
 
     fun applyICMParameterIfNecessary(actualApply : (key: String, value: Boolean) -> Unit) {
         if (!isStrictModeEnabled()){
-            disableInICM(actualApply);
+            disableInICM(actualApply)
         }
     }
 
