@@ -17,17 +17,21 @@
 
 package com.intershop.gradle.icm.tasks
 
-import com.intershop.gradle.icm.utils.DependencyListUtil
+import com.intershop.gradle.icm.utils.EnvironmentType
+import com.intershop.gradle.icm.utils.LibraryListFile
 import com.intershop.version.semantic.SemanticVersion
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
+import org.gradle.api.file.Directory
 import org.gradle.api.file.RegularFile
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import java.io.FileInputStream
@@ -43,28 +47,36 @@ open class CreateLibList @Inject constructor(
 
     companion object {
         const val DEFAULT_NAME = "CreateLibraries"
-        const val BUILD_FOLDER = "libraries"
+        const val BUILD_FOLDER = "librarylist"
 
         fun getName(type: String): String {
             return "${type.lowercase()}${DEFAULT_NAME}"
         }
 
         fun getOutputPath(type: String): String {
-            return "librarylist/${type.lowercase()}/file.list"
+            return "$BUILD_FOLDER/${type.lowercase()}/file.list"
+        }
+
+        fun getCumulativeOutputPath(type: String): String {
+            return "$BUILD_FOLDER/${type.lowercase()}/cumulative-file.list"
         }
     }
 
     @get:InputFiles
-    val exludeLibraryLists: ListProperty<RegularFile> = objectFactory.listProperty(RegularFile::class.java)
+    val basedOnLibraryLists: ListProperty<RegularFile> = objectFactory.listProperty(RegularFile::class.java)
 
     @get:Input
-    val environmentType: Property<String> = objectFactory.property(String::class.java)
+    val environmentType: Property<EnvironmentType> = objectFactory.property(EnvironmentType::class.java)
 
     @get:InputFiles
     val cartridgeDescriptors: ListProperty<RegularFile> = objectFactory.listProperty(RegularFile::class.java)
 
     @get:OutputFile
-    val libraryListFile: RegularFileProperty = objectFactory.fileProperty()
+    val libraryListFile: RegularFileProperty = objectFactory.fileProperty().convention(project.layout.buildDirectory.file(project.provider {getOutputPath(environmentType.get().name)}))
+
+    @get:OutputFile
+    @Optional
+    val cumulativeLibraryListFile: RegularFileProperty = objectFactory.fileProperty().convention(project.layout.buildDirectory.file(project.provider {getCumulativeOutputPath(environmentType.get().name)}))
 
     init {
         group = "ICM server build"
@@ -94,28 +106,41 @@ open class CreateLibList @Inject constructor(
             }
         }
 
-        // convert dependenciesVersions into a list of dependencyIds resolving version conflicts if required
-        val dependencies = dependenciesVersions.toSortedMap().map { (groupAndName, versionToCartridges) ->
+        // convert dependenciesVersions into a LibraryListFile containing dependencyIds (resolving version conflicts if required)
+        // afterwards: ownDependencies contains dependencies directly or transitively referenced by <cartridgeDescriptors>
+        val descriptorDependencies = LibraryListFile(dependenciesVersions.toSortedMap().map { (groupAndName, versionToCartridges) ->
             toDependencyId(groupAndName, resolveVersionConflict(groupAndName, versionToCartridges))
-        }.toMutableList()
+        }.toSet())
 
-        exludeLibraryLists.get().forEach {
-            val excludeList = DependencyListUtil.getIDList(environmentType.get(), it)
-            dependencies.removeAll(excludeList.toSet())
+        // example of what the following lines intend to.
+        // If:
+        //   descriptorDependencies == lib0, lib1, lib2
+        //   basedOnList == lib1, lib3
+        // then:
+        //   ownDependencies == lib0, lib2
+        //   cumulativeDependencies == lib0, lib1, lib2, lib3
+        val basedOnList = calculateBasedOnList(basedOnLibraryLists.get())
+        val ownDependencies = descriptorDependencies.minus(basedOnList)
+        val cumulativeDependencies = ownDependencies.plus(basedOnList)
+
+        ownDependencies.write(libraryListFile.get())
+        cumulativeDependencies.write(cumulativeLibraryListFile.get())
+    }
+
+    fun provideLibraryFolder() : Provider<Directory> {
+        return project.provider {
+            val dir = libraryListFile.get().asFile.parentFile
+            project.objects.directoryProperty().fileValue(dir).get()
         }
+    }
 
-        val sortedDeps = dependencies.toList().sorted()
-        val listFile = libraryListFile.asFile.get()
-
-        if (listFile.exists()) {
-            listFile.delete()
+    private fun calculateBasedOnList(basedOnLibraryLists : List<RegularFile>) : LibraryListFile {
+        var result = LibraryListFile(setOf())
+        basedOnLibraryLists.forEach {
+            val excludeList = LibraryListFile.read(it)
+            result = result.plus(excludeList) // join
         }
-
-        listFile.printWriter().use { out ->
-            sortedDeps.forEach {
-                out.println(it)
-            }
-        }
+        return result
     }
 
     /**

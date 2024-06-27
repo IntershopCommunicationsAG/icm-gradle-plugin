@@ -38,6 +38,7 @@ import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.TaskProvider
+import org.gradle.api.tasks.bundling.Tar
 import org.gradle.api.tasks.diagnostics.DependencyReportTask
 
 /**
@@ -149,37 +150,14 @@ open class ICMBasePlugin: Plugin<Project> {
                                                       createTestPackage: TaskProvider<CreateTestPackage>) {
         val collectLibraries = tasks.register("collectLibraries")
 
-        val prodLibListTask = registerLibListTask(EnvironmentType.PRODUCTION)
-        val prodLibCopyTask = registerLibCopyTask(EnvironmentType.PRODUCTION, prodLibListTask)
-        createMainPackage.configure { cmp ->
-            cmp.dependsOn(prodLibCopyTask)
-            cmp.from(prodLibCopyTask.get().librariesDirectory) { copySpec ->
-                copySpec.into("lib")
-            }
-        }
+        val prodLibListTask = registerLibListTask(EnvironmentType.PRODUCTION, packageUsing = createMainPackage)
+        val prodLibCopyTask = registerLibCopyTask(EnvironmentType.PRODUCTION, prodLibListTask, createMainPackage)
 
-        val testLibListTask = registerLibListTask(EnvironmentType.TEST)
-        val testLibCopyTask = registerLibCopyTask(EnvironmentType.TEST, testLibListTask)
-        createTestPackage.configure {
-            it.dependsOn(testLibCopyTask)
-            it.from(testLibCopyTask.get().librariesDirectory) {
-                it.into("lib")
-            }
-        }
+        val testLibListTask = registerLibListTask(EnvironmentType.TEST, packageUsing = createTestPackage, prodLibListTask)
+        val testLibCopyTask = registerLibCopyTask(EnvironmentType.TEST, testLibListTask, packageUsing = createTestPackage)
 
-        testLibListTask.configure {
-            it.exludeLibraryLists.add(prodLibListTask.get().libraryListFile)
-            it.dependsOn(prodLibListTask)
-        }
-
-        val devLibListTask = registerLibListTask(EnvironmentType.DEVELOPMENT)
-        val devLibCopyTask = registerLibCopyTask(EnvironmentType.DEVELOPMENT, devLibListTask)
-
-        devLibListTask.configure {
-            it.exludeLibraryLists.add(prodLibListTask.get().libraryListFile)
-            it.exludeLibraryLists.add(testLibListTask.get().libraryListFile)
-            it.dependsOn(prodLibListTask, testLibListTask)
-        }
+        val devLibListTask = registerLibListTask(EnvironmentType.DEVELOPMENT, packageUsing = null /* not packaged */, prodLibListTask, testLibListTask)
+        val devLibCopyTask = registerLibCopyTask(EnvironmentType.DEVELOPMENT, devLibListTask, packageUsing = null /* not packaged */)
 
         collectLibraries.configure {
             it.dependsOn(prodLibCopyTask, testLibCopyTask, devLibCopyTask)
@@ -206,21 +184,39 @@ open class ICMBasePlugin: Plugin<Project> {
         }
     }
 
-    private fun Project.registerLibListTask(type: EnvironmentType): TaskProvider<CreateLibList> {
-        return tasks.register(CreateLibList.getName(type.toString()), CreateLibList::class.java) {
-            it.environmentType.set(type.name)
-            it.libraryListFile.set(project.layout.buildDirectory.file(CreateLibList.getOutputPath(type.name)))
+    private fun Project.registerLibListTask(type: EnvironmentType, packageUsing : TaskProvider<out Tar>? = null, vararg basedOn : TaskProvider<CreateLibList>): TaskProvider<CreateLibList> {
+        val libList = tasks.register(CreateLibList.getName(type.toString()), CreateLibList::class.java) { cll ->
+            cll.environmentType.set(type)
+            cll.libraryListFile.set(project.layout.buildDirectory.file(CreateLibList.getOutputPath(type.name)))
+            cll.dependsOn(basedOn)
+            basedOn.forEach { bo ->
+                cll.basedOnLibraryLists.add(bo.get().libraryListFile)
+            }
         }
+        packageUsing?.configure { pkg ->
+            pkg.dependsOn(libList)
+            pkg.from(libList.get().outputs) { copySpec ->
+                copySpec.into("lib")
+            }
+        }
+        return libList
     }
 
     private fun Project.registerLibCopyTask(type: EnvironmentType,
-                                            cll: TaskProvider<CreateLibList>): TaskProvider<CopyLibraries> {
-        return tasks.register(CopyLibraries.getName(type.toString()), CopyLibraries::class.java) {
-            it.environmentType.set(type.name)
-            it.librariesDirectory.set(project.layout.buildDirectory.dir(CopyLibraries.getOutputPath(type.name)))
-            it.dependencyIDFile.set(cll.get().libraryListFile)
-            it.dependsOn(cll)
+                                            cll: TaskProvider<CreateLibList>, packageUsing : TaskProvider<out Tar>? = null): TaskProvider<CopyLibraries> {
+        val copyLibraries = tasks.register(CopyLibraries.getName(type.toString()), CopyLibraries::class.java) { cl ->
+            cl.environmentType.set(type.name)
+            cl.librariesDirectory.set(project.layout.buildDirectory.dir(CopyLibraries.getOutputPath(type.name)))
+            cl.dependencyIDFile.set(cll.get().libraryListFile)
+            cl.dependsOn(cll)
         }
+        packageUsing?.configure { pkg ->
+            pkg.dependsOn(copyLibraries)
+            pkg.from(copyLibraries.get().librariesDirectory) { copySpec ->
+                copySpec.into("lib")
+            }
+        }
+        return copyLibraries
     }
     private fun configureLibListTask(clt: TaskProvider<CreateLibList>,
                                      wcd: TaskProvider<WriteCartridgeDescriptor>) {
