@@ -19,10 +19,10 @@ package com.intershop.gradle.icm.tasks
 import com.intershop.gradle.icm.extension.IntershopExtension
 import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.ExternalModuleDependency
+import org.gradle.api.artifacts.ResolveException
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.file.RegularFile
 import org.gradle.api.file.RegularFileProperty
-import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
@@ -129,7 +129,7 @@ open class ProvideLibFilter @Inject constructor(
         try {
             val files = dcfg.resolve()
             return files.first()
-        } catch (anfe: DefaultLenientConfiguration.ArtifactResolveException) {
+        } catch (re: ResolveException) {
             project.logger.warn("No library filter is available!")
         }
         return null
