@@ -160,7 +160,7 @@ testing {
     suites.withType<JvmTestSuite> {
         useSpock()
         dependencies {
-            implementation("com.intershop.gradle.test:test-gradle-plugin:5.0.1")
+            implementation("com.intershop.gradle.test:test-gradle-plugin:5.1.0")
             implementation(gradleTestKit())
         }
 
@@ -335,5 +335,5 @@ dependencies {
     implementation(gradleApi())
     implementation(gradleKotlinDsl())
 
-    implementation("com.intershop.version:semantic-version:2.0.0")
+    implementation("com.intershop.version:semantic-version:2.0.1")
 }
