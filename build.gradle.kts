@@ -23,7 +23,7 @@ plugins {
     `java-gradle-plugin`
     groovy
 
-    kotlin("jvm") version "1.9.21"
+    kotlin("jvm") version "1.9.25"
 
     // test coverage
     jacoco
@@ -40,13 +40,13 @@ plugins {
     `jvm-test-suite`
 
     // plugin for documentation
-    id("org.asciidoctor.jvm.convert") version "3.3.2"
+    id("org.asciidoctor.jvm.convert") version "4.0.3"
 
     // documentation
-    id("org.jetbrains.dokka") version "1.9.10"
+    id("org.jetbrains.dokka") version "1.9.20"
 
     // plugin for publishing to Gradle Portal
-    id("com.gradle.plugin-publish") version "1.2.1"
+    id("com.gradle.plugin-publish") version "1.3.0"
 }
 
 group = "com.intershop.gradle.icm"
@@ -214,10 +214,12 @@ tasks {
             setBackends(listOf("html5", "docbook"))
         }
 
-        options = mapOf( "doctype" to "article",
-            "ruby"    to "erubis")
-        attributes = mapOf(
-            "latestRevision"        to  project.version,
+        setOptions(mapOf(
+            "doctype"               to "article",
+            "ruby"                  to "erubis"
+        ))
+        setAttributes(mapOf(
+            "latestRevision"        to project.version,
             "toc"                   to "left",
             "toclevels"             to "2",
             "source-highlighter"    to "coderay",
@@ -225,7 +227,8 @@ tasks {
             "setanchors"            to "true",
             "idprefix"              to "asciidoc",
             "idseparator"           to "-",
-            "docinfo1"              to "true")
+            "docinfo1"              to "true"
+        ))
     }
 
     withType<JacocoReport> {
