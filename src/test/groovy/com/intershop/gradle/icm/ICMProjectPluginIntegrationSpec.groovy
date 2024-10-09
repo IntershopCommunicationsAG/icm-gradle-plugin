@@ -199,7 +199,8 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         } 
         
         repositories {
-            jcenter()
+            mavenCentral()
+            gradlePluginPortal()
         }
         """.stripIndent())
 
@@ -218,7 +219,8 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         } 
         
         repositories {
-            jcenter()
+            mavenCentral()
+            gradlePluginPortal()
         }        
         """.stripIndent())
 
@@ -229,7 +231,8 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         }
         
         repositories {
-            jcenter()
+            mavenCentral()
+            gradlePluginPortal()
         }        
         """.stripIndent())
 
@@ -245,7 +248,8 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         } 
         
         repositories {
-            jcenter()
+            mavenCentral()
+            gradlePluginPortal()
         }        
         """.stripIndent())
 
@@ -510,7 +514,8 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         } 
         
         repositories {
-            jcenter()
+            mavenCentral()
+            gradlePluginPortal()
         }
         """.stripIndent())
 
@@ -529,7 +534,8 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         } 
         
         repositories {
-            jcenter()
+            mavenCentral()
+            gradlePluginPortal()
         }        
         """.stripIndent())
 
@@ -540,7 +546,8 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         }
         
         repositories {
-            jcenter()
+            mavenCentral()
+            gradlePluginPortal()
         }        
         """.stripIndent())
 
@@ -556,7 +563,8 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         } 
         
         repositories {
-            jcenter()
+            mavenCentral()
+            gradlePluginPortal()
         }        
         """.stripIndent())
 
@@ -724,7 +732,8 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         } 
         
         repositories {
-            jcenter()
+            mavenCentral()
+            gradlePluginPortal()
         }
         """.stripIndent())
 
@@ -743,7 +752,8 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         } 
         
         repositories {
-            jcenter()
+            mavenCentral()
+            gradlePluginPortal()
         }        
         """.stripIndent())
 
@@ -754,7 +764,8 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         }
         
         repositories {
-            jcenter()
+            mavenCentral()
+            gradlePluginPortal()
         }        
         """.stripIndent())
 
@@ -770,7 +781,8 @@ class ICMProjectPluginIntegrationSpec extends AbstractIntegrationGroovySpec {
         } 
         
         repositories {
-            jcenter()
+            mavenCentral()
+            gradlePluginPortal()
         }        
         """.stripIndent())
 

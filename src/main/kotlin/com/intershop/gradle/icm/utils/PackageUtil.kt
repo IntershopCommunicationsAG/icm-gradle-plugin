@@ -20,9 +20,9 @@ package com.intershop.gradle.icm.utils
 import com.intershop.gradle.icm.extension.FilePackage
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ExternalModuleDependency
+import org.gradle.api.artifacts.ResolveException
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DuplicatesStrategy
-import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration
 import java.io.File
 
 /**
@@ -52,7 +52,7 @@ object PackageUtil {
         try {
             val files = configuration.resolve()
             return files.first()
-        } catch (anfe: DefaultLenientConfiguration.ArtifactResolveException) {
+        } catch (re: ResolveException) {
             project.logger.warn("No package '{}' is available for {}!", classifier, dependency)
         }
 

@@ -55,7 +55,7 @@ class ICMBasePluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpec {
                 repositories {
                     maven {
                         // change to point to your repo, e.g. http://my.org/repo
-                        url = uri("\$buildDir/pubrepo")
+                        url = uri(project.rootProject.layout.buildDirectory.dir("pubrepo").get())
                     }
                 }
             }
@@ -75,17 +75,18 @@ class ICMBasePluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpec {
             implementation("io.prometheus:simpleclient:0.6.0")
             implementation("io.prometheus:simpleclient_hotspot:0.6.0")
             implementation("io.prometheus:simpleclient_servlet:0.6.0")
-        } 
+        }
         
         repositories {
-            jcenter()
+            mavenCentral()
+            gradlePluginPortal()
         }
         
         publishing {
             repositories {
                 maven {
                     // change to point to your repo, e.g. http://my.org/repo
-                    url = uri("\${project.rootProject.buildDir}/pubrepo")
+                    url = uri(project.rootProject.layout.buildDirectory.dir("pubrepo").get())
                 }
             }
         }
@@ -103,11 +104,12 @@ class ICMBasePluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpec {
             implementation("ch.qos.logback:logback-core:1.2.3")
             implementation("ch.qos.logback:logback-classic:1.2.3")
             implementation("commons-collections:commons-collections:3.2.2")
-        } 
+        }
         
         repositories {
-            jcenter()
-        } 
+            mavenCentral()
+            gradlePluginPortal()
+        }
         """.stripIndent())
 
         def prj3dir = createSubProject('prjCartridge_dev', """
@@ -117,17 +119,18 @@ class ICMBasePluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpec {
         }
         
         repositories {
-            jcenter()
-        }    
+            mavenCentral()
+            gradlePluginPortal()
+        }
         
         publishing {
             repositories {
                 maven {
                     // change to point to your repo, e.g. http://my.org/repo
-                    url = uri("\${project.rootProject.buildDir}/pubrepo")
+                    url = uri(project.rootProject.layout.buildDirectory.dir("pubrepo").get())
                 }
             }
-        }    
+        }
         """.stripIndent())
 
         def prj4dir = createSubProject('prjCartridge_adapter', """
@@ -139,20 +142,21 @@ class ICMBasePluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpec {
         dependencies {
             implementation("ch.qos.logback:logback-core:1.2.3")
             implementation("ch.qos.logback:logback-classic:1.2.3")
-        } 
+        }
         
         repositories {
-            jcenter()
-        }     
+            mavenCentral()
+            gradlePluginPortal()
+        }
         
         publishing {
             repositories {
                 maven {
                     // change to point to your repo, e.g. http://my.org/repo
-                    url = uri("\${project.rootProject.buildDir}/pubrepo")
+                    url = uri(project.rootProject.layout.buildDirectory.dir("pubrepo").get())
                 }
             }
-        }   
+        }
         """.stripIndent())
 
         writeJavaTestClass("com.intershop.prod", prj1dir)

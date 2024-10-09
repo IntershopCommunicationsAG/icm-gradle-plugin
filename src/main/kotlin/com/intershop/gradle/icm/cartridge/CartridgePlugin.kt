@@ -20,7 +20,6 @@ import com.intershop.gradle.icm.extension.IntershopExtension
 import com.intershop.gradle.icm.tasks.WriteCartridgeDescriptor
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.plugins.BasePlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.JavaPlugin.PROCESS_RESOURCES_TASK_NAME
 import org.gradle.api.tasks.TaskContainer
