@@ -184,7 +184,7 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
         
         repositories {
             mavenCentral()
-        }        
+        }
         """.stripIndent())
 
         def prj3dir = createSubProject('prjCartridge_dev', """
@@ -195,7 +195,7 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
         
         repositories {
             mavenCentral()
-        }        
+        }
         """.stripIndent())
 
         def prj4dir = createSubProject('prjCartridge_adapter', """
@@ -211,7 +211,7 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
         
         repositories {
             mavenCentral()
-        }        
+        }
         """.stripIndent())
 
         writeJavaTestClass("com.intershop.prod", prj1dir)
@@ -320,7 +320,7 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
                 repositories {
                     maven {
                         // change to point to your repo, e.g. http://my.org/repo
-                        url = uri("\$buildDir/pubrepo")
+                        url = uri(project.rootProject.layout.buildDirectory.dir("pubrepo").get())
                     }
                 }
             }
@@ -343,7 +343,8 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
         } 
         
         repositories {
-            jcenter()
+            mavenCentral()
+            gradlePluginPortal()
         }
         """.stripIndent())
 
@@ -362,8 +363,9 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
         } 
         
         repositories {
-            jcenter()
-        }        
+            mavenCentral()
+            gradlePluginPortal()
+        }
         """.stripIndent())
 
         def prj3dir = createSubProject('prjCartridge_dev', """
@@ -373,8 +375,9 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
         }
         
         repositories {
-            jcenter()
-        }        
+            mavenCentral()
+            gradlePluginPortal()
+        }
         """.stripIndent())
 
         def prj4dir = createSubProject('prjCartridge_adapter', """
@@ -389,8 +392,9 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
         } 
         
         repositories {
-            jcenter()
-        }        
+            mavenCentral()
+            gradlePluginPortal()
+        }
         """.stripIndent())
 
         writeJavaTestClass("com.intershop.prod", prj1dir)
@@ -451,7 +455,7 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
                 repositories {
                     maven {
                         // change to point to your repo, e.g. http://my.org/repo
-                        url = uri("\$buildDir/pubrepo")
+                        url = uri(project.rootProject.layout.buildDirectory.dir("pubrepo").get())
                     }
                 }
             }
@@ -474,7 +478,8 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
         } 
         
         repositories {
-            jcenter()
+            mavenCentral()
+            gradlePluginPortal()
         }
         """.stripIndent())
 
@@ -493,8 +498,9 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
         } 
         
         repositories {
-            jcenter()
-        }        
+            mavenCentral()
+            gradlePluginPortal()
+        }
         """.stripIndent())
 
         def prj3dir = createSubProject('prjCartridge_dev', """
@@ -504,8 +510,9 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
         }
         
         repositories {
-            jcenter()
-        }        
+            mavenCentral()
+            gradlePluginPortal()
+        }
         """.stripIndent())
 
         def prj4dir = createSubProject('prjCartridge_adapter', """
@@ -520,8 +527,9 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
         } 
         
         repositories {
-            jcenter()
-        }        
+            mavenCentral()
+            gradlePluginPortal()
+        }
         """.stripIndent())
 
         writeJavaTestClass("com.intershop.prod", prj1dir)
@@ -584,7 +592,7 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
                 repositories {
                     maven {
                         // change to point to your repo, e.g. http://my.org/repo
-                        url = uri("\$buildDir/pubrepo")
+                        url = uri(project.rootProject.layout.buildDirectory.dir("pubrepo").get())
                     }
                 }
             }
@@ -607,7 +615,8 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
         } 
         
         repositories {
-            jcenter()
+            mavenCentral()
+            gradlePluginPortal()
         }
         """.stripIndent())
 
@@ -626,8 +635,9 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
         } 
         
         repositories {
-            jcenter()
-        }        
+            mavenCentral()
+            gradlePluginPortal()
+        }
         """.stripIndent())
 
         def prj3dir = createSubProject('prjCartridge_dev', """
@@ -636,8 +646,9 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
         }
         
         repositories {
-            jcenter()
-        }        
+            mavenCentral()
+            gradlePluginPortal()
+        }
         """.stripIndent())
 
         def prj4dir = createSubProject('prjCartridge_adapter', """
@@ -652,8 +663,9 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
         } 
         
         repositories {
-            jcenter()
-        }        
+            mavenCentral()
+            gradlePluginPortal()
+        }
         """.stripIndent())
 
         writeJavaTestClass("com.intershop.prod", prj1dir)
@@ -709,7 +721,7 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
                 repositories {
                     maven {
                         // change to point to your repo, e.g. http://my.org/repo
-                        url = uri("\$buildDir/pubrepo")
+                        url = uri(project.rootProject.layout.buildDirectory.dir("pubrepo").get())
                     }
                 }
             }
@@ -732,7 +744,8 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
         } 
         
         repositories {
-            jcenter()
+            mavenCentral()
+            gradlePluginPortal()
         }
         """.stripIndent())
 
@@ -751,8 +764,9 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
         } 
         
         repositories {
-            jcenter()
-        }        
+            mavenCentral()
+            gradlePluginPortal()
+        }
         """.stripIndent())
 
         def prj3dir = createSubProject('prjCartridge_dev', """
@@ -762,8 +776,9 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
         }
         
         repositories {
-            jcenter()
-        }        
+            mavenCentral()
+            gradlePluginPortal()
+        }
         """.stripIndent())
 
         def prj4dir = createSubProject('prjCartridge_adapter', """
@@ -778,8 +793,9 @@ class ICMProjectPluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpe
         } 
         
         repositories {
-            jcenter()
-        }        
+            mavenCentral()
+            gradlePluginPortal()
+        }
         """.stripIndent())
 
         writeJavaTestClass("com.intershop.prod", prj1dir)

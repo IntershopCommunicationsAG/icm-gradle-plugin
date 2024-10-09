@@ -711,7 +711,7 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                 id 'com.intershop.icm.cartridge.adapter'
             }
 
-            def publishDir = "\$buildDir/repo"  
+            def publishDir = uri(project.rootProject.layout.buildDirectory.dir("pubrepo").get())
 
             group = "com.intershop"
             version = "1.0.0"
@@ -811,7 +811,7 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
                 repositories {
                     maven {
                         // change to point to your repo, e.g. http://my.org/repo
-                        url = "\$buildDir/pubrepo"
+                        url = uri(project.rootProject.layout.buildDirectory.dir("pubrepo").get())
                     }
                 }
             }
@@ -843,7 +843,7 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
             repositories {
                 maven {
                     // change to point to your repo, e.g. http://my.org/repo
-                    url = "\${project.rootProject.buildDir}/pubrepo"
+                    url = uri(project.rootProject.layout.buildDirectory.dir("pubrepo").get())
                 }
             }
         }
@@ -886,7 +886,7 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
             repositories {
                 maven {
                     // change to point to your repo, e.g. http://my.org/repo
-                    url = "\${project.rootProject.buildDir}/pubrepo"
+                    url = uri(project.rootProject.layout.buildDirectory.dir("pubrepo").get())
                 }
             }
         }    
@@ -913,7 +913,7 @@ class ICMBasePluginIntegrationSpec extends AbstractIntegrationGroovySpec {
             repositories {
                 maven {
                     // change to point to your repo, e.g. http://my.org/repo
-                    url = "\${project.rootProject.buildDir}/pubrepo"
+                    url = uri(project.rootProject.layout.buildDirectory.dir("pubrepo").get())
                 }
             }
         }   
