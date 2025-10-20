@@ -26,7 +26,7 @@ import org.gradle.api.tasks.bundling.Tar
  * is used by the docker creation task.
  * This package contains production artifacts.
  */
-open class CreateMainPackage: Tar() {
+abstract class CreateMainPackage: Tar() {
 
     companion object {
         const val DEFAULT_NAME = "createMainPkg"

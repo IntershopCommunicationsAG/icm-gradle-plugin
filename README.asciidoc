@@ -1,5 +1,5 @@
 = Intershop Commerce Management Project Plugins
-:latestRevision: 6.0.0
+:latestRevision: 7.0.0
 :toc:
 :icons: font
 
