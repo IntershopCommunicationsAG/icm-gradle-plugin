@@ -25,7 +25,7 @@ import org.gradle.api.tasks.bundling.Tar
  * is used by the docker creation task.
  * This package contains test artifacts.
  */
-open class CreateTestPackage: Tar() {
+abstract class CreateTestPackage: Tar() {
 
     companion object {
         const val DEFAULT_NAME = "createTestPkg"

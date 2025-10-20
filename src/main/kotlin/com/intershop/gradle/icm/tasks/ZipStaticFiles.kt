@@ -24,7 +24,7 @@ import org.gradle.api.tasks.bundling.Zip
  * Task to create a package of static
  * content of a cartridge.
  */
-open class ZipStaticFiles: Zip() {
+abstract class ZipStaticFiles: Zip() {
 
     init {
         archiveClassifier.set("staticfiles")
