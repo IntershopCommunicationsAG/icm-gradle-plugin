@@ -25,6 +25,7 @@ import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
+import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.Optional
@@ -38,6 +39,7 @@ import javax.inject.Inject
  *
  * @constructor Creates a task for file copienf from extension.
  */
+@CacheableTask
 open class PreparePublishDir @Inject constructor(objectFactory: ObjectFactory,
                                             @Internal var projectLayout: ProjectLayout,
                                             @Internal var fsOps: FileSystemOperations): DefaultTask() {

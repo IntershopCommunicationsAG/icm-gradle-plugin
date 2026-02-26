@@ -24,6 +24,8 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Optional
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 import javax.inject.Inject
 
 /**
@@ -40,6 +42,7 @@ open class DirConfig @Inject constructor(objectFactory: ObjectFactory, @Internal
 
     @get:Optional
     @get:InputDirectory
+    @get:PathSensitive(PathSensitivity.RELATIVE)
     val dir: DirectoryProperty = objectFactory.directoryProperty()
 
     @get:Optional

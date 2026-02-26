@@ -29,10 +29,13 @@ import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
+import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputFile
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import java.io.FileInputStream
 import java.util.Properties
@@ -41,6 +44,7 @@ import javax.inject.Inject
 /**
  * Collects all libraries (recursively through all (sub-)projects) and write IDs to a file
  */
+@CacheableTask
 open class CreateLibList @Inject constructor(
         objectFactory: ObjectFactory,
 ) : DefaultTask() {
@@ -63,12 +67,14 @@ open class CreateLibList @Inject constructor(
     }
 
     @get:InputFiles
+    @get:PathSensitive(PathSensitivity.RELATIVE)
     val basedOnLibraryLists: ListProperty<RegularFile> = objectFactory.listProperty(RegularFile::class.java)
 
     @get:Input
     val environmentType: Property<EnvironmentType> = objectFactory.property(EnvironmentType::class.java)
 
     @get:InputFiles
+    @get:PathSensitive(PathSensitivity.RELATIVE)
     val cartridgeDescriptors: ListProperty<RegularFile> = objectFactory.listProperty(RegularFile::class.java)
 
     @get:OutputFile
