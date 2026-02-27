@@ -29,15 +29,19 @@ import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
+import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import javax.inject.Inject
 
 /**
  * Collects all libraries (recursively through all (sub-)projects)
  */
+@CacheableTask
 open class CopyLibraries @Inject constructor( objectFactory: ObjectFactory ) : DefaultTask() {
 
     companion object {
@@ -60,6 +64,7 @@ open class CopyLibraries @Inject constructor( objectFactory: ObjectFactory ) : D
     val environmentType: Property<String> = objectFactory.property(String::class.java)
 
     @get:InputFile
+    @get:PathSensitive(PathSensitivity.RELATIVE)
     val dependencyIDFile: RegularFileProperty = objectFactory.fileProperty()
 
     @get:OutputDirectory

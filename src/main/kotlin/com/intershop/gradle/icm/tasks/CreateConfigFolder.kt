@@ -25,7 +25,10 @@ import org.gradle.api.file.RegularFile
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Provider
+import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import javax.inject.Inject
 
@@ -37,6 +40,7 @@ import javax.inject.Inject
  * @property fsOps service object for file system operations
  * @constructor Creates a task for folder handling.
  */
+@CacheableTask
 open class CreateConfigFolder
         @Inject constructor(
             projectLayout: ProjectLayout,
@@ -48,6 +52,7 @@ open class CreateConfigFolder
     }
 
     @get:InputFile
+    @get:PathSensitive(PathSensitivity.RELATIVE)
     val versionInfo: RegularFileProperty = objectFactory.fileProperty()
 
     /**

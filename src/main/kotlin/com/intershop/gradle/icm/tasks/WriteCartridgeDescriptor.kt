@@ -30,6 +30,7 @@ import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME
 import org.gradle.api.provider.Property
+import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
@@ -38,7 +39,6 @@ import java.nio.charset.StandardCharsets
 import java.util.Properties
 
 import javax.inject.Inject
-import kotlin.collections.HashSet
 
 /**
  * WriteCartridgeDescriptor Gradle task 'writeCartridgeDescriptor'
@@ -46,6 +46,7 @@ import kotlin.collections.HashSet
  * This task writes a cartridge descriptor file. This file
  * is used by the server startup and special tests.
  */
+@CacheableTask
 open class WriteCartridgeDescriptor
 @Inject constructor(
     projectLayout: ProjectLayout,
