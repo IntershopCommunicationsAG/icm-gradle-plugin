@@ -21,10 +21,12 @@ import com.intershop.gradle.icm.ICMBasePlugin.Companion.CONFIGURATION_CARTRIDGE_
 import com.intershop.gradle.icm.extension.IntershopExtension.Companion.INTERSHOP_GROUP_NAME
 import com.intershop.gradle.icm.utils.CartridgeUtil
 import org.gradle.api.DefaultTask
+import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.artifacts.ResolvedDependency
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier
+import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.model.ObjectFactory
@@ -58,6 +60,12 @@ open class WriteCartridgeDescriptor
         const val CARTRIDGE_DESCRIPTOR = "descriptor/cartridge.descriptor"
     }
 
+    // Configurations and DependencyHandler captured at configuration time to avoid calling task.project at execution time
+    private val cartridgeConfiguration: Configuration = project.configurations.getByName(CONFIGURATION_CARTRIDGE)
+    private val cartridgeRuntimeConfiguration: Configuration = project.configurations.getByName(CONFIGURATION_CARTRIDGE_RUNTIME)
+    private val runtimeClasspathConfiguration: Configuration = project.configurations.getByName(RUNTIME_CLASSPATH_CONFIGURATION_NAME)
+    private val storedDependencyHandler: DependencyHandler = project.dependencies
+
     /**
      * Set property for descriptor cartridge name property.
      *
@@ -67,9 +75,9 @@ open class WriteCartridgeDescriptor
     val cartridgeName: Property<String> = objectFactory.property(String::class.java)
 
     /**
-     * Set property for display cartridge name property.
+     * Set property for display name property.
      *
-     * @param cartridgeName set provider for cartridge name.
+     * @param displayName set provider for display name.
      */
     @get:Input
     val displayName: Property<String> = objectFactory.property(String::class.java)
@@ -83,7 +91,7 @@ open class WriteCartridgeDescriptor
     @get:Input
     val cartridgeDependencies: String by lazy {
         flattenToString(
-            { project.configurations.getByName(CONFIGURATION_CARTRIDGE).dependencies },
+            { cartridgeConfiguration.dependencies },
             { value ->
                 value.toString().apply {
                     project.logger.debug("CartridgeDependencies of project {}: {}", project.name, this)
@@ -96,8 +104,7 @@ open class WriteCartridgeDescriptor
     val runtimeDependencies: String by lazy {
         flattenToString(
             {
-                project.configurations.getByName(RUNTIME_CLASSPATH_CONFIGURATION_NAME).resolvedConfiguration
-                    .lenientConfiguration.allModuleDependencies
+                runtimeClasspathConfiguration.resolvedConfiguration.lenientConfiguration.allModuleDependencies
             },
             { value ->
                 value.toString().apply {
@@ -126,7 +133,6 @@ open class WriteCartridgeDescriptor
         cartridgeVersion.convention(project.version.toString())
 
         cartridgeStyle.convention(CartridgeUtil.getCartridgeStyle(project).name)
-
     }
 
     /**
@@ -217,8 +223,7 @@ open class WriteCartridgeDescriptor
                 }.toSet()
 
         val dependencies = HashSet<String>()
-        val resolvedConfig = project.configurations.getByName(RUNTIME_CLASSPATH_CONFIGURATION_NAME)
-                .resolvedConfiguration
+        val resolvedConfig = runtimeClasspathConfiguration.resolvedConfiguration
         // ensure build fails if there are resolve errors
         if (resolvedConfig.hasError()){
             resolvedConfig.rethrowFailure()
@@ -231,7 +236,7 @@ open class WriteCartridgeDescriptor
                 when (val identifier = artifact.id.componentIdentifier) {
                     is ModuleComponentIdentifier -> {
                         // only add non-cartridge-'jar's
-                        if (artifact.extension.equals("jar") && !CartridgeUtil.isCartridge(project, identifier)) {
+                        if (artifact.extension.equals("jar") && !CartridgeUtil.isCartridge(storedDependencyHandler, logger, identifier)) {
                             val id = "${identifier.group}:${identifier.module}:${identifier.version}"
                             transitiveCount++
                             // only return libs that haven't come along with other cartridges
@@ -251,8 +256,7 @@ open class WriteCartridgeDescriptor
 
     private fun getCartridgeDependencies(): Set<CartridgeDependency> {
         val dependencies = HashSet<CartridgeDependency>()
-        val resolvedConfig = project.configurations.getByName(CONFIGURATION_CARTRIDGE_RUNTIME)
-                .resolvedConfiguration
+        val resolvedConfig = cartridgeRuntimeConfiguration.resolvedConfiguration
         // ensure build fails if there are resolve errors
         if (resolvedConfig.hasError()){
             resolvedConfig.rethrowFailure()
@@ -263,7 +267,7 @@ open class WriteCartridgeDescriptor
                     is ProjectComponentIdentifier ->
                         dependencies.add(CartridgeDependency(identifier.projectName, dependency.children))
                     is ModuleComponentIdentifier ->
-                        if (CartridgeUtil.isCartridge(project, identifier)) {
+                        if (CartridgeUtil.isCartridge(storedDependencyHandler, logger, identifier)) {
                             dependencies.add(CartridgeDependency("${identifier.module}:${identifier.version}",
                                     dependency.children))
                         }
