@@ -94,7 +94,7 @@ open class WriteCartridgeDescriptor
             { cartridgeConfiguration.dependencies },
             { value ->
                 value.toString().apply {
-                    project.logger.debug("CartridgeDependencies of project {}: {}", project.name, this)
+                    logger.debug("CartridgeDependencies of cartridge {}: {}", cartridgeName.get(), this)
                 }
             }
         )
@@ -108,7 +108,7 @@ open class WriteCartridgeDescriptor
             },
             { value ->
                 value.toString().apply {
-                    project.logger.debug("RuntimeDependencies of project {}: {}", project.name, this)
+                    logger.debug("RuntimeDependencies of cartridge {}: {}", cartridgeName.get(), this)
                 }
             }
         )
@@ -176,7 +176,7 @@ open class WriteCartridgeDescriptor
                 "\n"
             )
         } finally {
-            project.logger.debug("Wrote cartridge descriptor.")
+            logger.debug("Wrote cartridge descriptor file for cartridge {} to {}", cartridgeName.get(), outputFile.asFile.get().absolutePath)
         }
     }
 
@@ -190,15 +190,15 @@ open class WriteCartridgeDescriptor
             dependency: ResolvedDependency,
             processedDependencies: MutableSet<ResolvedDependency>,
     ): Set<ResolvedArtifact> {
-        project.logger.debug("Determining module artifacts of {} transitively", dependency.name)
+        logger.debug("Determining module artifacts of {} transitively", dependency.name)
         // detect circular dependencies like
         if (processedDependencies.contains(dependency)) {
-            project.logger.debug("Dependency {} already has been processed", dependency.name)
+            logger.debug("Dependency {} already has been processed", dependency.name)
             return setOf() // no extra artifacts
         }
         processedDependencies.add(dependency) // mark as processed
         var artifacts = dependency.moduleArtifacts // own artifacts
-        project.logger.debug("Found artifacts {}", artifacts)
+        logger.debug("Found artifacts {}", artifacts)
         dependency.children.forEach { child ->
             artifacts = artifacts + getAllModuleArtifacts(child, processedDependencies) // append child artifacts
         }
@@ -249,8 +249,8 @@ open class WriteCartridgeDescriptor
                 }
             }
         }
-        project.logger.debug("Cartridge {} directly depends on {} libraries and transitively on {}",
-                project.name, directCount, transitiveCount)
+        logger.debug("Cartridge {} directly depends on {} libraries and transitively on {}",
+                cartridgeName.get(), directCount, transitiveCount)
         return dependencies
     }
 

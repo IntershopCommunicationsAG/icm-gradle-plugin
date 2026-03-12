@@ -182,7 +182,7 @@ object CartridgeUtil {
     fun getDependencySet(project: Project, moduleDependency: String): Set<String> {
         val d = moduleDependency.split(":")
         if( d.size < 3 ) {
-            project.logger.warn("This is not a valid external module dependency: '{}'.", moduledep)
+            project.logger.warn("This is not a valid external module dependency: '{}'.", moduleDependency)
         } else {
             return getDependencySet(project, d[0], d[1], d[2])
         }
@@ -307,7 +307,7 @@ object CartridgeUtil {
 
                     return xPath.evaluate(xpath, doc, XPathConstants.NODESET) as NodeList
                 } catch (ex: Exception) {
-                    project.logger.info("Pom file is not readable - {}:{}:{}", group, module, version)
+                    logger.info("Pom file is not readable - {}:{}:{}", group, module, version, ex)
                 }
             }
         }
