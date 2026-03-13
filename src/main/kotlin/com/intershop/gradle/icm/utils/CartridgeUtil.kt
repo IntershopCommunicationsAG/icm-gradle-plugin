@@ -21,10 +21,12 @@ import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.artifacts.query.ArtifactResolutionQuery
 import org.gradle.api.artifacts.result.ArtifactResolutionResult
 import org.gradle.api.artifacts.result.ArtifactResult
 import org.gradle.api.artifacts.result.ResolvedArtifactResult
+import org.gradle.api.logging.Logger
 import org.gradle.maven.MavenModule
 import org.gradle.maven.MavenPomArtifact
 import org.w3c.dom.Document
@@ -69,19 +71,33 @@ object CartridgeUtil {
     }
 
     /**
-     * Returns true, if dependency is a external cartridge.
+     * Returns true, if dependency is an external cartridge.
      *
      * @param project    the root project
      * @param identifier module identifier of the dependency
      */
     fun isCartridge(project: Project,
                     identifier: ModuleComponentIdentifier): Boolean {
-        return isCartridge(project, identifier.group, identifier.module, identifier.version, listOf())
+        return isCartridge(project.dependencies, project.logger, identifier)
     }
 
     /**
-     * Returns true, if dependency is a external cartridge and the style
-     * is a prdocution like cartridge. This is only checked if style is specified
+     * Returns true, if dependency is an external cartridge.
+     * Use this overload at task execution time to avoid accessing task.project.
+     *
+     * @param dependencyHandler the dependency handler
+     * @param logger            a logger instance
+     * @param identifier        module identifier of the dependency
+     */
+    fun isCartridge(dependencyHandler: DependencyHandler,
+                    logger: Logger,
+                    identifier: ModuleComponentIdentifier): Boolean {
+        return isCartridge(dependencyHandler, logger, identifier.group, identifier.module, identifier.version, listOf())
+    }
+
+    /**
+     * Returns true, if dependency is an external cartridge and the style
+     * is a production like cartridge. This is only checked if style is specified
      *
      * @param project    the root project
      * @param dependency cartridge dependency
@@ -90,12 +106,12 @@ object CartridgeUtil {
     fun isCartridge(project: Project,
                     dependency: ExternalModuleDependency,
                     environmentTypes: List<EnvironmentType>) : Boolean {
-        return isCartridge(project, dependency.group!!, dependency.name, dependency.version!!, environmentTypes)
+        return isCartridge(project.dependencies, project.logger, dependency.group!!, dependency.name, dependency.version!!, environmentTypes)
     }
 
     /**
-     * Returns true, if dependency is a external cartridge and the style
-     * is a prdocution like cartridge. This is only checked if style is specified
+     * Returns true, if dependency is an external cartridge and the style
+     * is a production like cartridge. This is only checked if style is specified
      *
      * @param project    the root project
      * @param group      module group of the external cartridge
@@ -106,9 +122,28 @@ object CartridgeUtil {
     fun isCartridge(project: Project,
                     group: String, module: String, version: String,
                     environmentTypes: List<EnvironmentType>) : Boolean {
+        return isCartridge(project.dependencies, project.logger, group, module, version, environmentTypes)
+    }
+
+    /**
+     * Returns true, if dependency is an external cartridge and the style
+     * is a production like cartridge. This is only checked if style is specified.
+     * Use this overload at task execution time to avoid accessing task.project.
+     *
+     * @param dependencyHandler the dependency handler
+     * @param logger            a logger instance
+     * @param group             module group of the external cartridge
+     * @param module            module name of the external cartridge
+     * @param version           version of the external cartridge
+     * @param environmentTypes  list of environment types
+     */
+    fun isCartridge(dependencyHandler: DependencyHandler,
+                    logger: Logger,
+                    group: String, module: String, version: String,
+                    environmentTypes: List<EnvironmentType>) : Boolean {
         var returnValue = false
 
-        val items = getNodeList(project, group, module, version, getXPath(environmentTypes.isNotEmpty()))
+        val items = getNodeList(dependencyHandler, logger, group, module, version, getXPath(environmentTypes.isNotEmpty()))
 
         if(items != null && items.length > 0) {
             returnValue = if (environmentTypes.isNotEmpty()) {
@@ -129,12 +164,27 @@ object CartridgeUtil {
      * @param project    the root project
      * @param moduledep  external module dependency - short notation
      */
+    @Deprecated(
+        message = "Will be removed in next major",
+        replaceWith = ReplaceWith("getDependencySet(project, moduledep)"),
+        level = DeprecationLevel.WARNING
+    )
     fun getDepenendencySet(project: Project, moduledep: String) : Set<String> {
-        val d = moduledep.split(":")
+        return getDependencySet(project, moduledep)
+    }
+
+    /**
+     * Returns a set of dependencies from a BOM file.
+     *
+     * @param project           the root project
+     * @param moduleDependency  external module dependency - short notation
+     */
+    fun getDependencySet(project: Project, moduleDependency: String): Set<String> {
+        val d = moduleDependency.split(":")
         if( d.size < 3 ) {
-            project.logger.warn("This is not a valid external module dependency: '{}'.", moduledep)
+            project.logger.warn("This is not a valid external module dependency: '{}'.", moduleDependency)
         } else {
-            return getDepenendencySet(project, d[0], d[1], d[2])
+            return getDependencySet(project, d[0], d[1], d[2])
         }
         return mutableSetOf()
     }
@@ -147,11 +197,46 @@ object CartridgeUtil {
      * @param module     module name of the BOM
      * @param version    version of the BOM
      */
+    @Deprecated(
+        message = "Will be removed in next major",
+        replaceWith = ReplaceWith("getDependencySet(project, group, module, version)"),
+        level = DeprecationLevel.WARNING
+    )
     fun getDepenendencySet(project: Project,
                            group: String, module: String, version: String): Set<String> {
+        return getDependencySet(project.dependencies, project.logger, group, module, version)
+    }
+
+    /**
+     * Returns a set of dependencies from a BOM file.
+     *
+     * @param project    the root project
+     * @param group      module group of the BOM
+     * @param module     module name of the BOM
+     * @param version    version of the BOM
+     */
+    fun getDependencySet(project: Project,
+                           group: String, module: String, version: String): Set<String> {
+        return getDependencySet(project.dependencies, project.logger, group, module, version)
+    }
+
+    /**
+     * Returns a set of dependencies from a BOM file.
+     * Use this overload at task execution time to avoid accessing task.project.
+     *
+     * @param dependencyHandler the dependency handler
+     * @param logger            a logger instance
+     * @param group             module group of the BOM
+     * @param module            module name of the BOM
+     * @param version           version of the BOM
+     */
+    fun getDependencySet(
+        dependencyHandler: DependencyHandler, logger: Logger,
+        group: String, module: String, version: String
+    ): Set<String> {
         val returnSet = mutableSetOf<String>()
 
-        val items = getNodeList(project, group, module, version,
+        val items = getNodeList(dependencyHandler, logger, group, module, version,
             "/project/dependencyManagement/dependencies/dependency")
 
         if(items != null && items.length > 0) {
@@ -195,11 +280,12 @@ object CartridgeUtil {
         return ""
     }
 
-    private fun getNodeList(project: Project,
+    private fun getNodeList(dependencyHandler: DependencyHandler,
+                            logger: Logger,
                             group: String, module: String, version: String,
                             xpath: String): NodeList? {
 
-        val query: ArtifactResolutionQuery = project.dependencies
+        val query: ArtifactResolutionQuery = dependencyHandler
             .createArtifactResolutionQuery()
             .forModule(group, module, version)
             .withArtifacts(MavenModule::class.java, MavenPomArtifact::class.java)
@@ -221,7 +307,7 @@ object CartridgeUtil {
 
                     return xPath.evaluate(xpath, doc, XPathConstants.NODESET) as NodeList
                 } catch (ex: Exception) {
-                    project.logger.info("Pom file is not readable - {}:{}:{}", group, module, version)
+                    logger.info("Pom file is not readable - {}:{}:{}", group, module, version, ex)
                 }
             }
         }

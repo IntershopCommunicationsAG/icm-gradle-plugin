@@ -45,7 +45,7 @@ open class GetDependencyList @Inject constructor(objectFactory: ObjectFactory): 
             throw GradleException("The dependency is not complete! Only module dependencies are allowed")
         }
 
-        val list = CartridgeUtil.getDepenendencySet(project, d[0], d[1], d[2])
+        val list = CartridgeUtil.getDependencySet(project, d[0], d[1], d[2])
         list.forEach {
             println("    $it")
         }
