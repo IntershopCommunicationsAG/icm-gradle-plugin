@@ -83,6 +83,49 @@ abstract class AbstractCacheabilitySpec extends AbstractIntegrationKotlinSpec {
     }
 
     /**
+     * Sets up a single-cartridge build that includes an external cartridge dependency
+     * ({@code com.intershop.cartridge:cartridge_prod:1.0.0}) and a direct library dependency
+     * ({@code com.other:library1:1.5.0}) backed by a local Maven repo created via {@link TestRepo}.
+     *
+     * <ul>
+     *   <li>{@code cartridge.dependsOn} should resolve to {@code cartridge_prod:1.0.0}</li>
+     *   <li>{@code cartridge.dependsOnLibs} should contain {@code com.other:library1:1.5.0}
+     *       but NOT {@code library2} / {@code library3} which are transitively provided by
+     *       {@code cartridge_prod}</li>
+     * </ul>
+     */
+    protected void prepareSingleCartridgeBuildWithDependencies() {
+        TestRepo repo = new TestRepo(new File(testProjectDir, "/repo"))
+        String repoConf = repo.getRepoKtsConfig()
+
+        settingsFile.text = """
+            ${buildCacheBlock()}
+            rootProject.name = "testCartridge"
+        """.stripIndent()
+
+        buildFile.text = """
+            plugins {
+                `java`
+                id("com.intershop.icm.cartridge.product")
+            }
+
+            group = "com.intershop.test"
+            version = "1.0.0"
+
+            ${repoConf}
+
+            dependencies {
+                // external cartridge: drives cartridge.dependsOn in the descriptor
+                add("cartridge", "com.intershop.cartridge:cartridge_prod:1.0.0")
+                // library NOT provided by cartridge_prod: drives cartridge.dependsOnLibs
+                implementation("com.other:library1:1.5.0")
+            }
+        """.stripIndent()
+
+        writeJavaTestClass("com.intershop.test", testProjectDir)
+    }
+
+    /**
      * Sets up a full multi-cartridge project build using the
      * {@code com.intershop.gradle.icm.project} plugin with three sub-projects
      * (test, development, adapter cartridges) backed by a local Maven

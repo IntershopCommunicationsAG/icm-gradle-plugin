@@ -7,9 +7,13 @@ import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 /**
  * Integration tests to verify that the {@code writeCartridgeDescriptor} task
- * is properly build cache compatible.
+ * is properly build cache and configuration cache compatible.
  */
 class WriteCartridgeDescriptorCacheabilityKtsSpec extends AbstractCacheabilitySpec {
+
+    // -------------------------------------------------------------------------
+    // Build-cache compatibility
+    // -------------------------------------------------------------------------
 
     def 'writeCartridgeDescriptor task should be loaded from cache on second build'() {
         given:
@@ -111,6 +115,103 @@ class WriteCartridgeDescriptorCacheabilityKtsSpec extends AbstractCacheabilitySp
 
         then: 'Task is loaded from cache because the original inputs are restored'
         result3.task(':writeCartridgeDescriptor').outcome == FROM_CACHE
+
+        where:
+        gradleVersion << supportedGradleVersions
+    }
+
+    def 'writeCartridgeDescriptor task should produce a cache miss when cartridgeDependsOn changes'() {
+        given:
+        prepareSingleCartridgeBuildWithDependencies()
+
+        when: 'First build populates the build cache'
+        def result1 = getPreparedGradleRunner()
+            .withArguments('writeCartridgeDescriptor', '--build-cache', '-s')
+            .withGradleVersion(gradleVersion)
+            .build()
+
+        then:
+        result1.task(':writeCartridgeDescriptor').outcome == SUCCESS
+
+        when: 'A second external cartridge dependency is added, changing the cartridgeDependsOn @Input'
+        buildFile.text = buildFile.text.replace(
+            'add("cartridge", "com.intershop.cartridge:cartridge_prod:1.0.0")',
+            '''add("cartridge", "com.intershop.cartridge:cartridge_prod:1.0.0")
+               add("cartridge", "com.intershop.cartridge:cartridge_dev:1.0.0")'''
+        )
+
+        and: 'Task is re-run against the build cache'
+        def result2 = getPreparedGradleRunner()
+            .withArguments('writeCartridgeDescriptor', '--build-cache', '-s')
+            .withGradleVersion(gradleVersion)
+            .build()
+
+        then: 'Task re-executes (cache miss) because cartridgeDependsOn changed'
+        result2.task(':writeCartridgeDescriptor').outcome == SUCCESS
+
+        where:
+        gradleVersion << supportedGradleVersions
+    }
+
+    def 'writeCartridgeDescriptor task should produce a cache miss when cartridgeDependsOnLibs changes'() {
+        given:
+        prepareSingleCartridgeBuildWithDependencies()
+
+        when: 'First build populates the build cache'
+        def result1 = getPreparedGradleRunner()
+            .withArguments('writeCartridgeDescriptor', '--build-cache', '-s')
+            .withGradleVersion(gradleVersion)
+            .build()
+
+        then:
+        result1.task(':writeCartridgeDescriptor').outcome == SUCCESS
+
+        when: 'An additional library dependency is added, changing the cartridgeDependsOnLibs @Input'
+        buildFile.text = buildFile.text.replace(
+            'implementation("com.other:library1:1.5.0")',
+            '''implementation("com.other:library1:1.5.0")
+               implementation("com.other:library4:1.0.0")'''
+        )
+
+        and: 'Task is re-run against the build cache'
+        def result2 = getPreparedGradleRunner()
+            .withArguments('writeCartridgeDescriptor', '--build-cache', '-s')
+            .withGradleVersion(gradleVersion)
+            .build()
+
+        then: 'Task re-executes (cache miss) because cartridgeDependsOnLibs changed'
+        result2.task(':writeCartridgeDescriptor').outcome == SUCCESS
+
+        where:
+        gradleVersion << supportedGradleVersions
+    }
+
+    // -------------------------------------------------------------------------
+    // Configuration-cache compatibility
+    // -------------------------------------------------------------------------
+
+    def 'writeCartridgeDescriptor task should be compatible with the configuration cache'() {
+        given:
+        prepareSingleCartridgeBuild()
+
+        when: 'First build stores the configuration-cache entry'
+        def result1 = getPreparedGradleRunner()
+                .withArguments('writeCartridgeDescriptor', '--configuration-cache', '-s')
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then: 'Task executes successfully'
+        result1.task(':writeCartridgeDescriptor').outcome == SUCCESS
+        !result1.output.contains('not supported with the configuration cache')
+
+        when: 'Second build runs with the same inputs'
+        def result2 = getPreparedGradleRunner()
+                .withArguments('writeCartridgeDescriptor', '--configuration-cache', '-s')
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then: 'The configuration-cache entry is reused'
+        result2.output.toLowerCase().contains('reusing configuration cache')
 
         where:
         gradleVersion << supportedGradleVersions

@@ -17,6 +17,7 @@
 package com.intershop.gradle.icm
 
 import com.intershop.gradle.icm.tasks.CreateServerInfo
+import com.intershop.gradle.icm.util.TestRepo
 import com.intershop.gradle.test.AbstractIntegrationKotlinSpec
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
@@ -208,6 +209,72 @@ class ICMBasePluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpec {
         resultpub.task(':prjCartridge_prod:publish').outcome == SUCCESS
 
         resultpub.task(':prjCartridge_test:publish') == null
+        where:
+        gradleVersion << supportedGradleVersions
+    }
+
+    def 'writeCartridgeDescriptor writes correct cartridge.dependsOn and cartridge.dependsOnLibs'() {
+        given:
+        TestRepo repo = new TestRepo(new File(testProjectDir, '/repo'))
+        String repoConf = repo.getRepoKtsConfig()
+
+        settingsFile << """
+            rootProject.name = "rootproject"
+            include("prjCartridge_prod")
+        """.stripIndent()
+
+        // Root project only needs the base plugin, repositories live in the sub-project
+        buildFile << """
+            plugins {
+                id("com.intershop.gradle.icm.base")
+            }
+            group   = "com.intershop.test"
+            version = "1.0.0"
+        """.stripIndent()
+
+        def prjDir = createSubProject('prjCartridge_prod', """
+            plugins {
+                `java`
+                id("com.intershop.icm.cartridge.product")
+            }
+
+            ${repoConf}
+
+            dependencies {
+                // external cartridge → drives cartridge.dependsOn
+                add("cartridge", "com.intershop.cartridge:cartridge_prod:1.0.0")
+                // library NOT transitively provided by cartridge_prod → drives cartridge.dependsOnLibs
+                implementation("com.other:library1:1.5.0")
+            }
+        """.stripIndent())
+
+        writeJavaTestClass('com.intershop.prod', prjDir)
+
+        when:
+        def result = getPreparedGradleRunner()
+                .withArguments(':prjCartridge_prod:writeCartridgeDescriptor', '-s')
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then: 'Task succeeds'
+        result.task(':prjCartridge_prod:writeCartridgeDescriptor').outcome == SUCCESS
+
+        and: 'The descriptor file is generated'
+        def descriptorFile = new File(testProjectDir, 'prjCartridge_prod/build/descriptor/cartridge.descriptor')
+        descriptorFile.exists()
+
+        and: 'cartridge.dependsOn lists the external cartridge'
+        def props = new Properties()
+        props.load(new FileInputStream(descriptorFile))
+        props.getProperty('cartridge.dependsOn') == 'cartridge_prod:1.0.0'
+
+        and: 'cartridge.dependsOnLibs contains library1 (not covered by the cartridge)'
+        props.getProperty('cartridge.dependsOnLibs').contains('com.other:library1:1.5.0')
+
+        and: 'cartridge.dependsOnLibs does NOT contain library2/library3 (provided transitively by cartridge_prod)'
+        !props.getProperty('cartridge.dependsOnLibs').contains('com.other:library2:1.5.0')
+        !props.getProperty('cartridge.dependsOnLibs').contains('com.other:library3:1.5.0')
+
         where:
         gradleVersion << supportedGradleVersions
     }
