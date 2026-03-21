@@ -16,12 +16,12 @@
  */
 package com.intershop.gradle.icm
 
+import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
+import static org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
+
 import com.intershop.gradle.icm.tasks.CreateServerInfo
 import com.intershop.gradle.icm.util.TestRepo
 import com.intershop.gradle.test.AbstractIntegrationKotlinSpec
-
-import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
-import static org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE 
 
 class ICMBasePluginIntegrationKotlinSpec extends AbstractIntegrationKotlinSpec {
 

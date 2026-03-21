@@ -1,9 +1,9 @@
 package com.intershop.gradle.icm.cacheability
 
-import java.nio.file.Files
-
 import static org.gradle.testkit.runner.TaskOutcome.FROM_CACHE
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
+
+import java.nio.file.Files
 
 /**
  * Integration tests to verify that the {@code writeCartridgeDescriptor} task
