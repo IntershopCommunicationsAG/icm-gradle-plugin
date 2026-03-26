@@ -60,12 +60,6 @@ open class WriteCartridgeDescriptor
         const val CARTRIDGE_DESCRIPTOR = "descriptor/cartridge.descriptor"
     }
 
-    // Configurations and DependencyHandler captured at configuration time to avoid calling task.project at execution time
-    private val cartridgeConfiguration: Configuration = project.configurations.getByName(CONFIGURATION_CARTRIDGE)
-    private val cartridgeRuntimeConfiguration: Configuration = project.configurations.getByName(CONFIGURATION_CARTRIDGE_RUNTIME)
-    private val runtimeClasspathConfiguration: Configuration = project.configurations.getByName(RUNTIME_CLASSPATH_CONFIGURATION_NAME)
-    private val storedDependencyHandler: DependencyHandler = project.dependencies
-
     /**
      * Set property for descriptor cartridge name property.
      *
@@ -89,30 +83,25 @@ open class WriteCartridgeDescriptor
     val cartridgeStyle: Property<String> = objectFactory.property(String::class.java)
 
     @get:Input
-    val cartridgeDependencies: String by lazy {
-        flattenToString(
-            { cartridgeConfiguration.dependencies },
-            { value ->
-                value.toString().apply {
-                    logger.debug("CartridgeDependencies of cartridge {}: {}", cartridgeName.get(), this)
-                }
-            }
-        )
-    }
+    val cartridgeDependencies: Property<String> = objectFactory.property(String::class.java)
 
     @get:Input
-    val runtimeDependencies: String by lazy {
-        flattenToString(
-            {
-                runtimeClasspathConfiguration.resolvedConfiguration.lenientConfiguration.allModuleDependencies
-            },
-            { value ->
-                value.toString().apply {
-                    logger.debug("RuntimeDependencies of cartridge {}: {}", cartridgeName.get(), this)
-                }
-            }
-        )
-    }
+    val runtimeDependencies: Property<String> = objectFactory.property(String::class.java)
+
+    /**
+     * Pre-computed value for the `cartridge.dependsOn` descriptor entry (semicolon-separated
+     * sorted cartridge IDs resolved from the cartridgeRuntime configuration).
+     */
+    @get:Input
+    val cartridgeDependsOn: Property<String> = objectFactory.property(String::class.java)
+
+    /**
+     * Pre-computed value for the `cartridge.dependsOnLibs` descriptor entry (semicolon-separated
+     * sorted library IDs resolved from the runtimeClasspath configuration, excluding libraries
+     * already provided by cartridge dependencies).
+     */
+    @get:Input
+    val cartridgeDependsOnLibs: Property<String> = objectFactory.property(String::class.java)
 
     /**
      * Output file for generated descriptor.
@@ -133,10 +122,51 @@ open class WriteCartridgeDescriptor
         cartridgeVersion.convention(project.version.toString())
 
         cartridgeStyle.convention(CartridgeUtil.getCartridgeStyle(project).name)
+
+        val cartridgeConfiguration = project.configurations.getByName(CONFIGURATION_CARTRIDGE)
+        val cartridgeRuntimeConfiguration = project.configurations.getByName(CONFIGURATION_CARTRIDGE_RUNTIME)
+        val runtimeClasspathConfiguration = project.configurations.getByName(RUNTIME_CLASSPATH_CONFIGURATION_NAME)
+        val dependencyHandler = project.dependencies
+
+        cartridgeDependencies.convention(project.provider {
+            flattenToString(
+                { cartridgeConfiguration.dependencies },
+                { value ->
+                    value.toString().apply {
+                        logger.debug("CartridgeDependencies of cartridge {}: {}", cartridgeName.get(), this)
+                    }
+                }
+            )
+        })
+
+        runtimeDependencies.convention(project.provider {
+            flattenToString(
+                {
+                    runtimeClasspathConfiguration.resolvedConfiguration.lenientConfiguration.allModuleDependencies
+                },
+                { value ->
+                    value.toString().apply {
+                        logger.debug("RuntimeDependencies of cartridge {}: {}", cartridgeName.get(), this)
+                    }
+                }
+            )
+        })
+
+        cartridgeDependsOn.convention(project.provider {
+            val cartDeps = getCartridgeDependencies(cartridgeRuntimeConfiguration, dependencyHandler)
+            cartDeps.map { it.cartridgeId }.toSortedSet().joinToString(separator = ";")
+        })
+
+        cartridgeDependsOnLibs.convention(project.provider {
+            val cartDeps = getCartridgeDependencies(cartridgeRuntimeConfiguration, dependencyHandler)
+            getLibs(cartDeps, runtimeClasspathConfiguration, dependencyHandler).toSortedSet().joinToString(separator = ";")
+        })
     }
 
     /**
      * Task method for the creation of a descriptor file.
+     * All resolution has already happened at configuration time via the @Input properties;
+     * this action only reads pre-computed String values.
      */
     @TaskAction
     fun runFileCreation() {
@@ -147,14 +177,10 @@ open class WriteCartridgeDescriptor
         val props = linkedMapOf<String, String>()
         val comment = "Intershop descriptor file"
 
-        val cartridgeDependencies = getCartridgeDependencies()
-        val libs = getLibs(cartridgeDependencies)
-
         props["descriptor.version"] = "1.0"
 
-        props["cartridge.dependsOn"] = cartridgeDependencies.map { it.cartridgeId }.toSortedSet()
-                .joinToString(separator = ";")
-        props["cartridge.dependsOnLibs"] = libs.toSortedSet().joinToString(separator = ";")
+        props["cartridge.dependsOn"] = cartridgeDependsOn.get()
+        props["cartridge.dependsOnLibs"] = cartridgeDependsOnLibs.get()
 
         props["cartridge.name"] = cartridgeName.get()
         props["cartridge.displayName"] = displayName.get()
@@ -205,7 +231,18 @@ open class WriteCartridgeDescriptor
         return artifacts
     }
 
-    private fun getLibs(cartridgeDependencies: Set<CartridgeDependency>): Set<String> {
+    /**
+     * Computes the set of library IDs that this cartridge directly depends on, excluding any
+     * libraries already provided transitively by its cartridge dependencies.
+     *
+     * Configurations and DependencyHandler are accepted as parameters (not stored as fields)
+     * to keep this method configuration-cache-safe when called from a provider lambda.
+     */
+    private fun getLibs(
+        cartridgeDependencies: Set<CartridgeDependency>,
+        runtimeClasspathConfiguration: Configuration,
+        dependencyHandler: DependencyHandler,
+    ): Set<String> {
         val processedDependencies = mutableSetOf<ResolvedDependency>()
         // put the ids of all cartridge dependencies into 1 single set for later lookup
         val derivedLibraryDependencyIds = cartridgeDependencies.flatMap {
@@ -236,7 +273,7 @@ open class WriteCartridgeDescriptor
                 when (val identifier = artifact.id.componentIdentifier) {
                     is ModuleComponentIdentifier -> {
                         // only add non-cartridge-'jar's
-                        if (artifact.extension.equals("jar") && !CartridgeUtil.isCartridge(storedDependencyHandler, logger, identifier)) {
+                        if (artifact.extension.equals("jar") && !CartridgeUtil.isCartridge(dependencyHandler, logger, identifier)) {
                             val id = "${identifier.group}:${identifier.module}:${identifier.version}"
                             transitiveCount++
                             // only return libs that haven't come along with other cartridges
@@ -254,7 +291,16 @@ open class WriteCartridgeDescriptor
         return dependencies
     }
 
-    private fun getCartridgeDependencies(): Set<CartridgeDependency> {
+    /**
+     * Resolves the first-level cartridge dependencies from [cartridgeRuntimeConfiguration].
+     *
+     * Configurations and DependencyHandler are accepted as parameters (not stored as fields)
+     * to keep this method configuration-cache-safe when called from a provider lambda.
+     */
+    private fun getCartridgeDependencies(
+        cartridgeRuntimeConfiguration: Configuration,
+        dependencyHandler: DependencyHandler,
+    ): Set<CartridgeDependency> {
         val dependencies = HashSet<CartridgeDependency>()
         val resolvedConfig = cartridgeRuntimeConfiguration.resolvedConfiguration
         // ensure build fails if there are resolve errors
@@ -267,7 +313,7 @@ open class WriteCartridgeDescriptor
                     is ProjectComponentIdentifier ->
                         dependencies.add(CartridgeDependency(identifier.projectName, dependency.children))
                     is ModuleComponentIdentifier ->
-                        if (CartridgeUtil.isCartridge(storedDependencyHandler, logger, identifier)) {
+                        if (CartridgeUtil.isCartridge(dependencyHandler, logger, identifier)) {
                             dependencies.add(CartridgeDependency("${identifier.module}:${identifier.version}",
                                     dependency.children))
                         }
