@@ -42,8 +42,7 @@ object PackageUtil {
         }
 
         val configuration = project.configurations.detachedConfiguration(dep)
-        configuration.setVisible(false)
-            .setTransitive(false)
+        configuration.setTransitive(false)
             .setDescription("$classifier for package download: $dependency")
             .defaultDependencies { ds ->
                 ds.add(dep)
