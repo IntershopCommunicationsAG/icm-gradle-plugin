@@ -26,7 +26,9 @@ import com.intershop.gradle.icm.tasks.ProvideLibFilter
 import com.intershop.gradle.icm.utils.EnvironmentType
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.file.CopySpec
+import org.gradle.api.file.FileCollection
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.bundling.Tar
@@ -110,5 +112,42 @@ class PluginConfig(val project: Project,
         project.tasks.register( ICMProjectPlugin.PROVIDE_LIBFILTER, ProvideLibFilter::class.java ) {task ->
             task.provideBaseDependency(projectConfig.base.dependency)
             task.provideFileDependency(projectConfig.libFilterFileDependency)
+            task.libFilterFiles.from(createLibFilterFiles())
         }
+
+    /*
+     * Resolves the lib filter artifact of the configured dependency at configuration time.
+     *
+     * The configuration and the artifact view are created here, so that the task itself does not access the
+     * project or resolve a configuration during execution. The artifact view is lenient, which keeps the
+     * previous behaviour of the task: a dependency without a lib filter artifact does not fail the build,
+     * it just results in an empty file collection.
+     */
+    private fun createLibFilterFiles(): FileCollection {
+        // capture the dependency handler at configuration time
+        val dependencyHandler = project.dependencies
+
+        val dependencyProvider = projectConfig.libFilterFileDependency.orElse("")
+                .zip(projectConfig.base.dependency.orElse("")) { fileDependency, baseDependency ->
+                    if (fileDependency.isNotEmpty()) fileDependency else baseDependency
+                }
+
+        val configuration = project.configurations.detachedConfiguration()
+        configuration.isTransitive = false
+        configuration.defaultDependencies { dependencies ->
+            val dependencyID = dependencyProvider.getOrElse("")
+            if (dependencyID.isNotEmpty()) {
+                val dependency = dependencyHandler.create(dependencyID) as ExternalModuleDependency
+                dependency.artifact {
+                    it.name = dependency.name
+                    it.classifier = "libs"
+                    it.extension = "txt"
+                    it.type = "txt"
+                }
+                dependencies.add(dependency)
+            }
+        }
+
+        return configuration.incoming.artifactView { view -> view.isLenient = true }.files
+    }
 }

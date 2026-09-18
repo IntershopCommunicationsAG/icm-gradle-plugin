@@ -40,7 +40,7 @@ import javax.inject.Inject
  * @constructor Creates a task for file copienf from extension.
  */
 @CacheableTask
-open class PreparePublishDir @Inject constructor(objectFactory: ObjectFactory,
+abstract class PreparePublishDir @Inject constructor(objectFactory: ObjectFactory,
                                             @Internal var projectLayout: ProjectLayout,
                                             @Internal var fsOps: FileSystemOperations): DefaultTask() {
 
@@ -60,21 +60,18 @@ open class PreparePublishDir @Inject constructor(objectFactory: ObjectFactory,
      */
     @TaskAction
     fun prepareDir() {
-        val cs = project.copySpec()
-        cs.duplicatesStrategy = DuplicatesStrategy.FAIL
+        fsOps.copy { cs ->
+            cs.duplicatesStrategy = DuplicatesStrategy.FAIL
+            cs.into(outputDirectory.get())
 
-        if(baseDirConfig.get().dirs.isNotEmpty()) {
-            cs.with(CopySpecUtil.getCSForServerDir(project, baseDirConfig.get()))
-        }
-        if(extraDirConfig.get().dirs.isNotEmpty()) {
-            cs.with(CopySpecUtil.getCSForServerDir(project, extraDirConfig.get()))
-        }
+            if(baseDirConfig.get().dirs.isNotEmpty()) {
+                CopySpecUtil.applyServerDirTo(cs, baseDirConfig.get())
+            }
+            if(extraDirConfig.get().dirs.isNotEmpty()) {
+                CopySpecUtil.applyServerDirTo(cs, extraDirConfig.get())
+            }
 
-        cs.includeEmptyDirs = true
-
-        fsOps.copy {
-            it.with(cs)
-            it.into(outputDirectory.get())
+            cs.includeEmptyDirs = true
         }
     }
 }
