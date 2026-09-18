@@ -19,12 +19,14 @@ package com.intershop.gradle.icm.tasks
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.tasks.bundling.Compression
 import org.gradle.api.tasks.bundling.Tar
+import org.gradle.work.DisableCachingByDefault
 
 /**
  * Task for the creation of a tar package. This
  * is used by the docker creation task.
  * This package contains test artifacts.
  */
+@DisableCachingByDefault(because = "Archives are cheap to recreate and not worth caching.")
 abstract class CreateTestPackage: Tar() {
 
     companion object {

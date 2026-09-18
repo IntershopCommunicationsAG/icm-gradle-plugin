@@ -36,6 +36,7 @@ import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
+import org.gradle.work.DisableCachingByDefault
 import javax.inject.Inject
 
 /**
@@ -46,6 +47,7 @@ import javax.inject.Inject
  * @property fsOps service object for file system operations
  * @constructor Creates a task for folder handling.
  */
+@DisableCachingByDefault(because = "The task copies files from external packages, caching is not worthwhile.")
 abstract class AbstractCreateFolder
         @Inject constructor(@Internal val projectLayout: ProjectLayout,
                             @Internal val objectFactory: ObjectFactory,

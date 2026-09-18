@@ -28,6 +28,7 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import org.gradle.internal.util.PropertiesUtils
+import org.gradle.work.DisableCachingByDefault
 import java.io.IOException
 import java.nio.charset.Charset
 import java.time.LocalDateTime
@@ -41,7 +42,8 @@ import javax.inject.Inject
  * This task creates a properties file with all project
  * information. This property is used by the server.
  */
-open class CreateServerInfo @Inject constructor(
+@DisableCachingByDefault(because = "The output contains the build time stamp, so it is never up to date.")
+abstract class CreateServerInfo @Inject constructor(
         projectLayout: ProjectLayout,
         objectFactory: ObjectFactory) : DefaultTask() {
 
@@ -108,6 +110,30 @@ open class CreateServerInfo @Inject constructor(
     fun provideOrganization(org: Provider<String>) = organization.set(org)
 
     /**
+     * The version of the project this task belongs to. It is provided by the plugin at configuration
+     * time, so that the task does not access the project during execution.
+     *
+     * @property projectVersion
+     */
+    @get:Input
+    val projectVersion: Property<String> = objectFactory.property(String::class.java)
+
+    /**
+     * Configure the project version provider for this task.
+     *
+     * @property projectVersion provider for the project version
+     */
+    fun provideProjectVersion(version: Provider<String>) = projectVersion.set(version)
+
+    /**
+     * The name of the project this task belongs to. It is used as fall back for the product name.
+     *
+     * @property projectName
+     */
+    @get:Input
+    val projectName: Property<String> = objectFactory.property(String::class.java)
+
+    /**
      * Output file for generated cluster id.
      *
      * @property outputFile
@@ -127,6 +153,7 @@ open class CreateServerInfo @Inject constructor(
         description = "Writes the server information to a file."
 
         outputFile.convention(projectLayout.buildDirectory.file(VERSIONINFO))
+        projectName.convention(project.name)
     }
 
     /**
@@ -143,11 +170,11 @@ open class CreateServerInfo @Inject constructor(
         val props = linkedMapOf<String,String>()
         val comment = "Generated - during build for server"
 
-        props["version.information.version"] = project.version.toString()
+        props["version.information.version"] = projectVersion.get()
         props["version.information.installationDate"] = dateTime
 
         props["version.information.productId"] = productId.getOrElse("product id")
-        props["version.information.productName"] = productName.getOrElse(project.name)
+        props["version.information.productName"] = productName.getOrElse(projectName.get())
         props["version.information.copyrightOwner"] = copyrightOwner.getOrElse("Intershop Communications")
         props["version.information.copyrightFrom"] = copyrightFrom.getOrElse("2021")
 
@@ -165,7 +192,7 @@ open class CreateServerInfo @Inject constructor(
                 "\n"
             )
         } finally {
-            project.logger.debug("Write properties finished.")
+            logger.debug("Write properties finished.")
         }
     }
 }

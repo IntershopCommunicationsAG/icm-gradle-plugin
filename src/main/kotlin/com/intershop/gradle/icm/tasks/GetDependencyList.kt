@@ -24,12 +24,14 @@ import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.TaskAction
+import org.gradle.work.DisableCachingByDefault
 import javax.inject.Inject
 
 /**
  * This is a helper task to list all dependencies of a BOM
  * file in a list.
  */
+@DisableCachingByDefault(because = "This task only prints the dependency list to the console.")
 open class GetDependencyList @Inject constructor(objectFactory: ObjectFactory): DefaultTask() {
 
     @get:Input

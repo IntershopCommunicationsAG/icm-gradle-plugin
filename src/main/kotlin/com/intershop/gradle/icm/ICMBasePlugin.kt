@@ -143,6 +143,7 @@ open class ICMBasePlugin: Plugin<Project> {
             task.provideCopyrightOwner(extension.projectInfo.copyrightOwnerProvider)
             task.provideCopyrightFrom(extension.projectInfo.copyrightFromProvider)
             task.provideOrganization(extension.projectInfo.organizationProvider)
+            task.provideProjectVersion(provider { version.toString() })
         }
     }
 
