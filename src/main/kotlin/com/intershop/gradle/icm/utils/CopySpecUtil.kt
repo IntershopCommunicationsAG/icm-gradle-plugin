@@ -28,35 +28,6 @@ import org.gradle.api.file.CopySpec
 object CopySpecUtil {
 
     /**
-     * Creates a CopySpec from a ServerDir configuration.
-     *
-     * @param project project
-     * @param serverDir a ServerDir configurtion.
-     */
-    fun getCSForServerDir(project: Project, serverDir: ServerDir): CopySpec {
-        val cs = project.copySpec()
-
-        with(serverDir) {
-            dirs.all { dirConfig ->
-                cs.with(getCSForDirConfig(project, dirConfig))
-            }
-
-            if (excludes.get().isNotEmpty()) {
-                cs.exclude(*excludes.get().toTypedArray())
-            }
-
-            if (includes.get().isNotEmpty()) {
-                cs.exclude(*includes.get().toTypedArray())
-            }
-
-            if (target.isPresent && serverDir.target.get().isNotBlank()) {
-                cs.into(target.get())
-            }
-        }
-        return cs
-    }
-
-    /**
      * Applies a ServerDir configuration to an existing CopySpec.
      *
      * Use this overload at task execution time. In contrast to {@link #getCSForServerDir} it does not
