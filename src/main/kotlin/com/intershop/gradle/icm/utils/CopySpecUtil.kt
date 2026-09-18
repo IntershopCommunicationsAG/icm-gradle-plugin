@@ -56,6 +56,58 @@ object CopySpecUtil {
         return cs
     }
 
+    /**
+     * Applies a ServerDir configuration to an existing CopySpec.
+     *
+     * Use this overload at task execution time. In contrast to {@link #getCSForServerDir} it does not
+     * need a project to create a CopySpec, so it can be used inside a
+     * {@code FileSystemOperations.copy {}} block.
+     *
+     * @param parent    the CopySpec the configuration is added to as a child spec
+     * @param serverDir a ServerDir configuration
+     */
+    fun applyServerDirTo(parent: CopySpec, serverDir: ServerDir) {
+        with(serverDir) {
+            val targetPath = if (target.isPresent && target.get().isNotBlank()) target.get() else ""
+
+            parent.into(targetPath) { cs ->
+                dirs.all { dirConfig ->
+                    applyDirConfigTo(cs, dirConfig)
+                }
+
+                if (excludes.get().isNotEmpty()) {
+                    cs.exclude(*excludes.get().toTypedArray())
+                }
+
+                // NOTE: keeps the behaviour of getCSForServerDir - includes are added as excludes there
+                if (includes.get().isNotEmpty()) {
+                    cs.exclude(*includes.get().toTypedArray())
+                }
+            }
+        }
+    }
+
+    private fun applyDirConfigTo(parent: CopySpec, dirConfig: DirConfig) {
+        with(dirConfig) {
+            if (dir.isPresent) {
+                val targetPath = if (target.isPresent && target.get().isNotBlank()) target.get() else ""
+
+                parent.into(targetPath) { cs ->
+                    cs.from(dir.get())
+
+                    if (excludes.get().isNotEmpty()) {
+                        cs.exclude(*excludes.get().toTypedArray())
+                    }
+
+                    // NOTE: keeps the behaviour of getCSForDirConfig - includes are added as excludes there
+                    if (includes.get().isNotEmpty()) {
+                        cs.exclude(*includes.get().toTypedArray())
+                    }
+                }
+            }
+        }
+    }
+
     private fun getCSForDirConfig(project: Project, dirConfig: DirConfig): CopySpec {
         val cs = project.copySpec()
 
