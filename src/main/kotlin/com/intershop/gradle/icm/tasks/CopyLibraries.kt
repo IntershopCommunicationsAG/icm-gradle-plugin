@@ -16,33 +16,31 @@
  */
 package com.intershop.gradle.icm.tasks
 
-import com.intershop.gradle.icm.utils.DependencyListUtil
 import org.gradle.api.DefaultTask
-import org.gradle.api.artifacts.Configuration
-import org.gradle.api.attributes.Bundling
-import org.gradle.api.attributes.Category
-import org.gradle.api.attributes.LibraryElements
-import org.gradle.api.attributes.Usage
-import org.gradle.api.attributes.java.TargetJvmEnvironment
-import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
+import java.io.File
 import javax.inject.Inject
 
 /**
  * Collects all libraries (recursively through all (sub-)projects)
  */
 @CacheableTask
-open class CopyLibraries @Inject constructor( objectFactory: ObjectFactory ) : DefaultTask() {
+abstract class CopyLibraries @Inject constructor(
+        objectFactory: ObjectFactory,
+        private val fsOps: FileSystemOperations ) : DefaultTask() {
 
     companion object {
         const val DEFAULT_NAME = "CopyLibraries"
@@ -71,95 +69,38 @@ open class CopyLibraries @Inject constructor( objectFactory: ObjectFactory ) : D
     val librariesDirectory: DirectoryProperty = objectFactory.directoryProperty()
 
     /**
-     * Task action starts the java process in the background.
+     * The libraries to be copied, mapped from their target file name
+     * '''${dependency.moduleGroup}_${dependency.moduleName}_${dependency.moduleVersion}.${artifact.extension}'''
+     * to the resolved artifact file.
+     *
+     * The dependencies are resolved by the plugin at configuration time, so that the task neither accesses
+     * the project nor resolves a configuration during execution. The libraries are derived from the content
+     * of {@link #dependencyIDFile}, which is tracked as an input of this task.
+     *
+     * This property must not be an input: the dependency IDs are written by the task that produces
+     * {@link #dependencyIDFile}, so the configuration can only be resolved after that task has run.
+     * Declaring it as an input would force the resolution while the task graph is built, which fails
+     * because the list file does not exist yet.
+     *
+     * @property resolvedLibraries
+     */
+    @get:Internal
+    abstract val resolvedLibraries: MapProperty<String, File>
+
+    /**
+     * Task action copies the resolved libraries to the libraries directory.
      */
     @TaskAction
     fun execute() {
-        val libraryDependencyIds = DependencyListUtil.getIDList(environmentType.get(),
-                                                                dependencyIDFile.get())
-        project.sync {
-            it.with(copySpecFor(libraryDependencyIds))
-            it.into(librariesDirectory)
-        }
-    }
+        val libraries = resolvedLibraries.get()
 
+        fsOps.sync { spec ->
+            spec.into(librariesDirectory)
 
-    /**
-     * Creates a ```CopySpec``` which describes that libraries get copied into the folder
-     * '''libraries/{environmentName}''' using file-name
-     * '''${dependency.moduleGroup}_${dependency.moduleName}_${dependency.moduleVersion}.${artifact.extension}'''
-     */
-    private fun copySpecFor(ids: Collection<String>): CopySpec {
-        with(project) {
-            val libCopySpec = copySpec()
-
-            val configuration = project.configurations.create("CollectedLibraries${environmentType.get()}")
-            setupConfiguration(configuration)
-
-            // add dependencies
-            ids.forEach { configuration.dependencies.add(project.dependencies.create(it)) }
-
-            // process resolved artifacts
-            configuration.resolvedConfiguration.resolvedArtifacts.forEach { artifact ->
-                val id = artifact.moduleVersion.id
-                libCopySpec.with(project.copySpec().from(artifact.file).rename {
-                    "${id.group}_${id.name}_${id.version}.${artifact.extension}"
-                })
-            }
-            return libCopySpec
-        }
-    }
-
-
-    /* Need to configure attributes to avoid:
-        org.gradle.internal.component.AmbiguousConfigurationSelectionException:
-            Cannot choose between the following variants of org.junit.jupiter:junit-jupiter-params:5.7.1:
-          - runtimeElements
-          - shadowRuntimeElements
-        All of them match the consumer attributes:
-          - Variant 'runtimeElements' capability org.junit.jupiter:junit-jupiter-params:5.7.1:
-              - Unmatched attributes:
-                  - Provides org.gradle.category 'library' but the consumer didn't ask for it
-                  - Provides org.gradle.dependency.bundling 'external' but the consumer didn't ask for it
-                  - Provides org.gradle.jvm.version '8' but the consumer didn't ask for it
-                  - Provides org.gradle.libraryelements 'jar' but the consumer didn't ask for it
-                  - Provides org.gradle.status 'release' but the consumer didn't ask for it
-                  - Provides org.gradle.usage 'java-runtime' but the consumer didn't ask for it
-                  - Provides org.jetbrains.kotlin.localToProject 'public' but the consumer didn't ask for it
-                  - Provides org.jetbrains.kotlin.platform.type 'jvm' but the consumer didn't ask for it
-          - Variant 'shadowRuntimeElements' capability org.junit.jupiter:junit-jupiter-params:5.7.1:
-              - Unmatched attributes:
-                  - Provides org.gradle.category 'library' but the consumer didn't ask for it
-                  - Provides org.gradle.dependency.bundling 'embedded' but the consumer didn't ask for it
-                  - Provides org.gradle.jvm.version '8' but the consumer didn't ask for it
-                  - Provides org.gradle.libraryelements 'jar' but the consumer didn't ask for it
-                  - Provides org.gradle.status 'release' but the consumer didn't ask for it
-                  - Provides org.gradle.usage 'java-runtime' but the consumer didn't ask for it
-     */
-    private fun setupConfiguration(configuration: Configuration) {
-        configuration.isTransitive = false
-        with(project) {
-            configuration.attributes { attributeContainer ->
-                attributeContainer.attribute(
-                    Category.CATEGORY_ATTRIBUTE,
-                    objects.named(Category::class.java, Category.LIBRARY)
-                )
-                attributeContainer.attribute(
-                    Bundling.BUNDLING_ATTRIBUTE,
-                    objects.named(Bundling::class.java, Bundling.EXTERNAL)
-                )
-                attributeContainer.attribute(
-                    TargetJvmEnvironment.TARGET_JVM_ENVIRONMENT_ATTRIBUTE,
-                    objects.named(TargetJvmEnvironment::class.java, TargetJvmEnvironment.STANDARD_JVM)
-                )
-                attributeContainer.attribute(
-                    LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE,
-                    objects.named(LibraryElements::class.java, LibraryElements.JAR)
-                )
-                attributeContainer.attribute(
-                    Usage.USAGE_ATTRIBUTE,
-                    objects.named(Usage::class.java, Usage.JAVA_RUNTIME)
-                )
+            libraries.forEach { (targetName, libraryFile) ->
+                spec.from(libraryFile) { fileSpec ->
+                    fileSpec.rename { targetName }
+                }
             }
         }
     }
