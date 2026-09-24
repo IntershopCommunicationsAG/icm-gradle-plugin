@@ -36,6 +36,7 @@ import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
+import org.gradle.work.DisableCachingByDefault
 import javax.inject.Inject
 
 /**
@@ -46,6 +47,7 @@ import javax.inject.Inject
  * @property fsOps service object for file system operations
  * @constructor Creates a task for folder handling.
  */
+@DisableCachingByDefault(because = "The task copies files from external packages, caching is not worthwhile.")
 abstract class AbstractCreateFolder
         @Inject constructor(@Internal val projectLayout: ProjectLayout,
                             @Internal val objectFactory: ObjectFactory,
@@ -85,23 +87,20 @@ abstract class AbstractCreateFolder
     val extraDirConfig: Property<ServerDir> = objectFactory.property(ServerDir::class.java)
 
     protected fun createFolder() {
-        val cs = project.copySpec()
-        cs.duplicatesStrategy = DuplicatesStrategy.FAIL
+        fsOps.copy { cs ->
+            cs.duplicatesStrategy = DuplicatesStrategy.FAIL
+            cs.into(outputDir)
 
-        addPackages(cs)
+            addPackages(cs)
 
-        cs.exclude("**/**/cartridgelist.properties")
-        if(baseDirConfig.isPresent && baseDirConfig.get().dirs.isNotEmpty()) {
-            cs.with(CopySpecUtil.getCSForServerDir(project, baseDirConfig.get()))
-        }
+            cs.exclude("**/**/cartridgelist.properties")
+            if(baseDirConfig.isPresent && baseDirConfig.get().dirs.isNotEmpty()) {
+                CopySpecUtil.applyServerDirTo(cs, baseDirConfig.get())
+            }
 
-        if(extraDirConfig.isPresent && extraDirConfig.get().dirs.isNotEmpty()) {
-            cs.with(CopySpecUtil.getCSForServerDir(project, extraDirConfig.get()))
-        }
-
-        fsOps.copy {
-            it.with(cs)
-            it.into(outputDir)
+            if(extraDirConfig.isPresent && extraDirConfig.get().dirs.isNotEmpty()) {
+                CopySpecUtil.applyServerDirTo(cs, extraDirConfig.get())
+            }
         }
     }
 

@@ -20,17 +20,32 @@ package com.intershop.gradle.icm.tasks
 import com.intershop.gradle.icm.utils.CartridgeUtil
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
+import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.TaskAction
+import org.gradle.work.DisableCachingByDefault
 import javax.inject.Inject
 
 /**
  * This is a helper task to list all dependencies of a BOM
  * file in a list.
  */
-open class GetDependencyList @Inject constructor(objectFactory: ObjectFactory): DefaultTask() {
+@DisableCachingByDefault(because = "This task only prints the dependency list to the console.")
+abstract class GetDependencyList @Inject constructor(objectFactory: ObjectFactory): DefaultTask() {
+
+    /*
+     * The dependency handler is needed to resolve the POM of the BOM. There is no injectable service for
+     * this, so it is captured at configuration time to avoid accessing the project during execution.
+     */
+    private val dependencyHandler: DependencyHandler = project.dependencies
+
+    init {
+        // resolving artifacts through the dependency handler is not supported by the configuration cache
+        notCompatibleWithConfigurationCache(
+                "This task resolves the POM of a BOM through the dependency handler.")
+    }
 
     @get:Input
     val dependency: Property<String> = objectFactory.property(String::class.java)
@@ -45,7 +60,7 @@ open class GetDependencyList @Inject constructor(objectFactory: ObjectFactory): 
             throw GradleException("The dependency is not complete! Only module dependencies are allowed")
         }
 
-        val list = CartridgeUtil.getDependencySet(project, d[0], d[1], d[2])
+        val list = CartridgeUtil.getDependencySet(dependencyHandler, logger, d[0], d[1], d[2])
         list.forEach {
             println("    $it")
         }

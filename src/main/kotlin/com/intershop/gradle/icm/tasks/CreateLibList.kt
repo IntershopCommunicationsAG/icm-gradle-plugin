@@ -23,12 +23,14 @@ import com.intershop.version.semantic.SemanticVersion
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.file.Directory
+import org.gradle.api.file.ProjectLayout
 import org.gradle.api.file.RegularFile
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
+import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
@@ -46,7 +48,9 @@ import javax.inject.Inject
  */
 @CacheableTask
 open class CreateLibList @Inject constructor(
-        objectFactory: ObjectFactory,
+        private val objectFactory: ObjectFactory,
+        projectLayout: ProjectLayout,
+        providerFactory: ProviderFactory,
 ) : DefaultTask() {
 
     companion object {
@@ -78,11 +82,15 @@ open class CreateLibList @Inject constructor(
     val cartridgeDescriptors: ListProperty<RegularFile> = objectFactory.listProperty(RegularFile::class.java)
 
     @get:OutputFile
-    val libraryListFile: RegularFileProperty = objectFactory.fileProperty().convention(project.layout.buildDirectory.file(project.provider {getOutputPath(environmentType.get().name)}))
+    val libraryListFile: RegularFileProperty = objectFactory.fileProperty().convention(
+            projectLayout.buildDirectory.file(
+                    providerFactory.provider { getOutputPath(environmentType.get().name) }))
 
     @get:OutputFile
     @Optional
-    val cumulativeLibraryListFile: RegularFileProperty = objectFactory.fileProperty().convention(project.layout.buildDirectory.file(project.provider {getCumulativeOutputPath(environmentType.get().name)}))
+    val cumulativeLibraryListFile: RegularFileProperty = objectFactory.fileProperty().convention(
+            projectLayout.buildDirectory.file(
+                    providerFactory.provider { getCumulativeOutputPath(environmentType.get().name) }))
 
     init {
         group = "ICM server build"
@@ -134,9 +142,8 @@ open class CreateLibList @Inject constructor(
     }
 
     fun provideLibraryFolder() : Provider<Directory> {
-        return project.provider {
-            val dir = libraryListFile.get().asFile.parentFile
-            project.objects.directoryProperty().fileValue(dir).get()
+        return libraryListFile.map {
+            objectFactory.directoryProperty().fileValue(it.asFile.parentFile).get()
         }
     }
 
@@ -162,7 +169,7 @@ open class CreateLibList @Inject constructor(
             return versionToCartridges.keys.first()
         }
 
-        project.logger.debug("Trying to resolve a version conflict for dependency '{}' requiring the versions {}",
+        logger.debug("Trying to resolve a version conflict for dependency '{}' requiring the versions {}",
                 groupAndName, versionToCartridges.keys)
 
         // parse to org.gradle.util.internal.VersionNumber
@@ -193,14 +200,14 @@ open class CreateLibList @Inject constructor(
             }
             val chosen = maxOf(prev, curr)
             if (prev.minor != curr.minor) {
-                project.logger.warn(
+                logger.warn(
                         "There's a minor version conflict for dependency '{}': {} <-> {}. Version {} is chosen. If " +
                         "this is not the correct version please resolve this conflict by analyzing the dependencies " +
                         "of the following cartridges: {}",
                         groupAndName, prev.version, curr.version, chosen.version, versionToCartridges)
             }
             if (prev.patch != curr.patch) {
-                project.logger.info(
+                logger.info(
                         "There's a patch version conflict for dependency '{}': {} <-> {}. Version {} is chosen. If " +
                         "this is not the correct version please resolve this conflict by analyzing the dependencies " +
                         "of the following cartridges: {}",
@@ -211,7 +218,7 @@ open class CreateLibList @Inject constructor(
 
         // finally take the first (highest) version
         val chosen = versions.first().version
-        project.logger.debug("Resolved the version conflict for dependency '{}' choosing version {}",
+        logger.debug("Resolved the version conflict for dependency '{}' choosing version {}",
                 groupAndName, chosen)
         return chosen
     }

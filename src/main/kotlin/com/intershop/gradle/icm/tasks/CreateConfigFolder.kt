@@ -41,7 +41,7 @@ import javax.inject.Inject
  * @constructor Creates a task for folder handling.
  */
 @CacheableTask
-open class CreateConfigFolder
+abstract class CreateConfigFolder
         @Inject constructor(
             projectLayout: ProjectLayout,
             objectFactory: ObjectFactory,
@@ -64,11 +64,9 @@ open class CreateConfigFolder
     fun provideVersionInfoFile(file: Provider<RegularFile>) = versionInfo.set(file)
 
     override fun addPackages(cs: CopySpec) {
-        val fileCS = project.copySpec()
-        fileCS.from(versionInfo.get())
-        fileCS.into("system-conf/cluster")
-
-        cs.with(fileCS)
+        cs.into("system-conf/cluster") {
+            it.from(versionInfo.get())
+        }
     }
 
     /**

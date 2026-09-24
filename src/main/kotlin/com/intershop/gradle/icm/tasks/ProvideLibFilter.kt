@@ -18,8 +18,7 @@ package com.intershop.gradle.icm.tasks
 
 import com.intershop.gradle.icm.extension.IntershopExtension
 import org.gradle.api.DefaultTask
-import org.gradle.api.artifacts.ExternalModuleDependency
-import org.gradle.api.artifacts.ResolveException
+import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.file.RegularFile
 import org.gradle.api.file.RegularFileProperty
@@ -28,10 +27,12 @@ import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputFile
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
-import java.io.File
 import javax.inject.Inject
 
 /**
@@ -42,7 +43,7 @@ import javax.inject.Inject
  * @constructor Creates a task that provides the base libraries filter file.
  */
 @CacheableTask
-open class ProvideLibFilter @Inject constructor(
+abstract class ProvideLibFilter @Inject constructor(
     projectLayout: ProjectLayout,
     objectFactory: ObjectFactory ) : DefaultTask() {
 
@@ -75,6 +76,19 @@ open class ProvideLibFilter @Inject constructor(
     val outputFile: RegularFileProperty = objectFactory.fileProperty()
 
     /**
+     * The resolved lib filter file of the configured dependency.
+     *
+     * The dependency is resolved by the plugin at configuration time through a lenient artifact view, so
+     * that the task neither accesses the project nor resolves a configuration during execution. The
+     * collection is empty if no dependency is configured or if it provides no lib filter artifact.
+     *
+     * @property libFilterFiles
+     */
+    @get:InputFiles
+    @get:PathSensitive(PathSensitivity.NAME_ONLY)
+    val libFilterFiles: ConfigurableFileCollection = objectFactory.fileCollection()
+
+    /**
      * Provide the output file for the task.
      *
      * @param file regular file provider.
@@ -94,46 +108,23 @@ open class ProvideLibFilter @Inject constructor(
      */
     @TaskAction
     fun downloadFile() {
-        val dependency = when {
-            fileDependency.isPresent && fileDependency.get().isNotEmpty() -> fileDependency.get()
-            baseDependency.isPresent && baseDependency.get().isNotEmpty() -> baseDependency.get()
-            else -> null
+        val target = outputFile.asFile.get()
+        if(target.exists()) {
+            target.delete()
         }
 
-        if(outputFile.asFile.get().exists()) {
-            outputFile.asFile.get().delete()
-        }
+        val resultFile = libFilterFiles.files.firstOrNull()
 
-        if (dependency != null) {
-            val resultFile = downloadLibFilter(dependency)
-            if (resultFile != null) {
-                resultFile.copyTo(outputFile.get().asFile)
-            } else {
-                outputFile.get().asFile.createNewFile()
-            }
+        if (resultFile != null) {
+            resultFile.copyTo(target)
         } else {
-            outputFile.get().asFile.createNewFile()
+            if (isDependencyConfigured()) {
+                logger.warn("No library filter is available!")
+            }
+            target.createNewFile()
         }
     }
 
-    private fun downloadLibFilter(dependency: String): File? {
-        val dependencyHandler = project.dependencies
-        val dep = dependencyHandler.create(dependency) as ExternalModuleDependency
-
-        dep.artifact {
-            it.name = dep.name
-            it.classifier = "libs"
-            it.extension = "txt"
-            it.type = "txt"
-        }
-        val dcfg = project.configurations.detachedConfiguration(dep)
-
-        try {
-            val files = dcfg.resolve()
-            return files.first()
-        } catch (re: ResolveException) {
-            project.logger.warn("No library filter is available!")
-        }
-        return null
-    }
+    private fun isDependencyConfigured(): Boolean =
+            fileDependency.getOrElse("").isNotEmpty() || baseDependency.getOrElse("").isNotEmpty()
 }

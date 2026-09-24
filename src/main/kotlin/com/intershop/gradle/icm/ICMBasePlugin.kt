@@ -29,6 +29,7 @@ import com.intershop.gradle.icm.tasks.CreateServerInfo
 import com.intershop.gradle.icm.tasks.CreateTestPackage
 import com.intershop.gradle.icm.tasks.WriteCartridgeDescriptor
 import com.intershop.gradle.icm.utils.CartridgeUtil
+import com.intershop.gradle.icm.utils.CollectedLibraries
 import com.intershop.gradle.icm.utils.EnvironmentType
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -143,6 +144,7 @@ open class ICMBasePlugin: Plugin<Project> {
             task.provideCopyrightOwner(extension.projectInfo.copyrightOwnerProvider)
             task.provideCopyrightFrom(extension.projectInfo.copyrightFromProvider)
             task.provideOrganization(extension.projectInfo.organizationProvider)
+            task.provideProjectVersion(provider { version.toString() })
         }
     }
 
@@ -204,10 +206,14 @@ open class ICMBasePlugin: Plugin<Project> {
 
     private fun Project.registerLibCopyTask(type: EnvironmentType,
                                             cll: TaskProvider<CreateLibList>, packageUsing : TaskProvider<out Tar>? = null): TaskProvider<CopyLibraries> {
+        val collectedLibraries = CollectedLibraries(this,
+                "CollectedLibraries${type.name}", cll.flatMap { it.libraryListFile })
+
         val copyLibraries = tasks.register(CopyLibraries.getName(type.toString()), CopyLibraries::class.java) { cl ->
             cl.environmentType.set(type.name)
             cl.librariesDirectory.set(project.layout.buildDirectory.dir(CopyLibraries.getOutputPath(type.name)))
             cl.dependencyIDFile.set(cll.get().libraryListFile)
+            cl.resolvedLibraries.set(collectedLibraries.resolvedLibraries)
             cl.dependsOn(cll)
         }
         packageUsing?.configure { pkg ->

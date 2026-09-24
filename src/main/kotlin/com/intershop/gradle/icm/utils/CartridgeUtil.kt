@@ -106,7 +106,7 @@ object CartridgeUtil {
     fun isCartridge(project: Project,
                     dependency: ExternalModuleDependency,
                     environmentTypes: List<EnvironmentType>) : Boolean {
-        return isCartridge(project.dependencies, project.logger, dependency.group!!, dependency.name, dependency.version!!, environmentTypes)
+        return isCartridge(project.dependencies, project.logger, dependency.group, dependency.name, dependency.version!!, environmentTypes)
     }
 
     /**

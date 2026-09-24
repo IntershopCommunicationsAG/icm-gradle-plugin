@@ -19,11 +19,13 @@ package com.intershop.gradle.icm.tasks
 
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.tasks.bundling.Zip
+import org.gradle.work.DisableCachingByDefault
 
 /**
  * Task to create a package of static
  * content of a cartridge.
  */
+@DisableCachingByDefault(because = "Archives are cheap to recreate and not worth caching.")
 abstract class ZipStaticFiles: Zip() {
 
     init {

@@ -28,32 +28,55 @@ import org.gradle.api.file.CopySpec
 object CopySpecUtil {
 
     /**
-     * Creates a CopySpec from a ServerDir configuration.
+     * Applies a ServerDir configuration to an existing CopySpec.
      *
-     * @param project project
-     * @param serverDir a ServerDir configurtion.
+     * Use this overload at task execution time. In contrast to {@link #getCSForServerDir} it does not
+     * need a project to create a CopySpec, so it can be used inside a
+     * {@code FileSystemOperations.copy {}} block.
+     *
+     * @param parent    the CopySpec the configuration is added to as a child spec
+     * @param serverDir a ServerDir configuration
      */
-    fun getCSForServerDir(project: Project, serverDir: ServerDir): CopySpec {
-        val cs = project.copySpec()
-
+    fun applyServerDirTo(parent: CopySpec, serverDir: ServerDir) {
         with(serverDir) {
-            dirs.all { dirConfig ->
-                cs.with(getCSForDirConfig(project, dirConfig))
-            }
+            val targetPath = if (target.isPresent && target.get().isNotBlank()) target.get() else ""
 
-            if (excludes.get().isNotEmpty()) {
-                cs.exclude(*excludes.get().toTypedArray())
-            }
+            parent.into(targetPath) { cs ->
+                dirs.all { dirConfig ->
+                    applyDirConfigTo(cs, dirConfig)
+                }
 
-            if (includes.get().isNotEmpty()) {
-                cs.exclude(*includes.get().toTypedArray())
-            }
+                if (excludes.get().isNotEmpty()) {
+                    cs.exclude(*excludes.get().toTypedArray())
+                }
 
-            if (target.isPresent && serverDir.target.get().isNotBlank()) {
-                cs.into(target.get())
+                // NOTE: keeps the behaviour of getCSForServerDir - includes are added as excludes there
+                if (includes.get().isNotEmpty()) {
+                    cs.exclude(*includes.get().toTypedArray())
+                }
             }
         }
-        return cs
+    }
+
+    private fun applyDirConfigTo(parent: CopySpec, dirConfig: DirConfig) {
+        with(dirConfig) {
+            if (dir.isPresent) {
+                val targetPath = if (target.isPresent && target.get().isNotBlank()) target.get() else ""
+
+                parent.into(targetPath) { cs ->
+                    cs.from(dir.get())
+
+                    if (excludes.get().isNotEmpty()) {
+                        cs.exclude(*excludes.get().toTypedArray())
+                    }
+
+                    // NOTE: keeps the behaviour of getCSForDirConfig - includes are added as excludes there
+                    if (includes.get().isNotEmpty()) {
+                        cs.exclude(*includes.get().toTypedArray())
+                    }
+                }
+            }
+        }
     }
 
     private fun getCSForDirConfig(project: Project, dirConfig: DirConfig): CopySpec {
