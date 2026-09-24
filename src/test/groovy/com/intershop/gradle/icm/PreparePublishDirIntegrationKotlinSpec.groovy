@@ -26,6 +26,12 @@ import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
  */
 class PreparePublishDirIntegrationKotlinSpec extends AbstractIntegrationKotlinSpec {
 
+    private static final String ROOT_PROJECT_SETTINGS = """
+        rootProject.name="rootproject"
+        """.stripIndent()
+
+    private static final String OUTPUT_DIR = "build/publish"
+
     private void createSourceFiles() {
         File baseDir = new File(testProjectDir, "src/base")
         baseDir.mkdirs()
@@ -41,15 +47,15 @@ class PreparePublishDirIntegrationKotlinSpec extends AbstractIntegrationKotlinSp
         new File(extraDir, "extra.properties") << "extra=1"
     }
 
-    def 'copies the configured directories to the output directory'() {
-        given:
-        createSourceFiles()
-
-        settingsFile << """
-        rootProject.name="rootproject"
-        """.stripIndent()
-
-        buildFile << """
+    /**
+     * Builds a test build script registering a {@code PreparePublishDir} task. Only the configuration of the
+     * base server directory differs between the tests, so it is handed in.
+     *
+     * @param baseServerDirConfig statements applied to the base server directory configuration itself
+     * @param baseDirConfig statements applied to the directory configuration within the base server directory
+     */
+    private static String buildFileFor(String baseServerDirConfig, String baseDirConfig) {
+        """
             import com.intershop.gradle.icm.extension.ServerDir
             import com.intershop.gradle.icm.tasks.PreparePublishDir
 
@@ -58,10 +64,11 @@ class PreparePublishDirIntegrationKotlinSpec extends AbstractIntegrationKotlinSp
             }
 
             val baseConfig = objects.newInstance(ServerDir::class.java, "", listOf<String>(), listOf<String>())
+            ${baseServerDirConfig}
             baseConfig.dirs.create("base") {
                 dir.set(file("src/base"))
+                ${baseDirConfig}
             }
-            baseConfig.exclude("**/*.log")
 
             val extraConfig = objects.newInstance(ServerDir::class.java, "", listOf<String>(), listOf<String>())
             extraConfig.dirs.create("extra") {
@@ -74,14 +81,32 @@ class PreparePublishDirIntegrationKotlinSpec extends AbstractIntegrationKotlinSp
                 outputDirectory.set(layout.buildDirectory.dir("publish"))
             }
         """.stripIndent()
+    }
 
-        when:
-        def result = getPreparedGradleRunner()
+    /**
+     * Runs the {@code preparePublish} task of a prepared test project.
+     *
+     * @param gradleVersion the Gradle version to run the build with
+     */
+    private def runPreparePublish(String gradleVersion) {
+        getPreparedGradleRunner()
                 .withArguments("preparePublish", "-s", "--warning-mode", "all")
                 .withGradleVersion(gradleVersion)
                 .build()
+    }
 
-        File outputDir = new File(testProjectDir, "build/publish")
+    def 'copies the configured directories to the output directory'() {
+        given:
+        createSourceFiles()
+
+        settingsFile << ROOT_PROJECT_SETTINGS
+
+        buildFile << buildFileFor('baseConfig.exclude("**/*.log")', "")
+
+        when:
+        def result = runPreparePublish(gradleVersion)
+
+        File outputDir = new File(testProjectDir, OUTPUT_DIR)
 
         then:
         result.task(':preparePublish').outcome == SUCCESS
@@ -98,45 +123,16 @@ class PreparePublishDirIntegrationKotlinSpec extends AbstractIntegrationKotlinSp
         given:
         createSourceFiles()
 
-        settingsFile << """
-        rootProject.name="rootproject"
-        """.stripIndent()
+        settingsFile << ROOT_PROJECT_SETTINGS
 
-        buildFile << """
-            import com.intershop.gradle.icm.extension.ServerDir
-            import com.intershop.gradle.icm.tasks.PreparePublishDir
-
-            plugins {
-                id("com.intershop.gradle.icm.base")
-            }
-
-            val baseConfig = objects.newInstance(ServerDir::class.java, "", listOf<String>(), listOf<String>())
-            baseConfig.target.set("serverTarget")
-            baseConfig.dirs.create("base") {
-                dir.set(file("src/base"))
-                target.set("dirTarget")
-                exclude("**/*.log")
-            }
-
-            val extraConfig = objects.newInstance(ServerDir::class.java, "", listOf<String>(), listOf<String>())
-            extraConfig.dirs.create("extra") {
-                dir.set(file("src/extra"))
-            }
-
-            tasks.register<PreparePublishDir>("preparePublish") {
-                baseDirConfig.set(baseConfig)
-                extraDirConfig.set(extraConfig)
-                outputDirectory.set(layout.buildDirectory.dir("publish"))
-            }
-        """.stripIndent()
+        buildFile << buildFileFor('baseConfig.target.set("serverTarget")',
+                '''target.set("dirTarget")
+                exclude("**/*.log")''')
 
         when:
-        def result = getPreparedGradleRunner()
-                .withArguments("preparePublish", "-s", "--warning-mode", "all")
-                .withGradleVersion(gradleVersion)
-                .build()
+        def result = runPreparePublish(gradleVersion)
 
-        File outputDir = new File(testProjectDir, "build/publish")
+        File outputDir = new File(testProjectDir, OUTPUT_DIR)
 
         then:
         result.task(':preparePublish').outcome == SUCCESS
