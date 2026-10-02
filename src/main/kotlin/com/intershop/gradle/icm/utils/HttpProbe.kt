@@ -16,19 +16,25 @@
  */
 package com.intershop.gradle.icm.utils
 
-import org.gradle.api.Project
-import org.gradle.internal.service.ServiceRegistry
+import org.gradle.api.logging.Logger
+import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 import java.time.Duration
 
+/**
+ * Probes an HTTP endpoint until it answers with an accepted status code.
+ *
+ * Takes the [Logger] and the [ProgressLoggerFactory] of the owning task instead of its `Project`, so that executing
+ * this probe never touches the build model - see [AbstractProbe].
+ */
 class HttpProbe(
-        private val project : Project,
-        serviceRegistrySupplier : () -> ServiceRegistry,
+        private val logger : Logger,
+        progressLoggerFactory : ProgressLoggerFactory,
         target : URI,
-        requestTimeout : Duration = Duration.ofSeconds(30)) : AbstractProbe(serviceRegistrySupplier) {
+        requestTimeout : Duration = Duration.ofSeconds(30)) : AbstractProbe(progressLoggerFactory) {
     private val client : HttpClient = HttpClient.newHttpClient()
     private var statusCheck : (statusCode : Int) -> Boolean = { statusCode -> statusCode == 200 }
     val request : HttpRequest = HttpRequest.newBuilder().GET().timeout(requestTimeout).uri(target).build()
@@ -36,13 +42,13 @@ class HttpProbe(
     override fun executeOnce(): Boolean {
         val reqDesc = describeRequest()
         val response = try {
-            project.logger.debug("(Re-)trying to probe a {}", reqDesc)
+            logger.debug("(Re-)trying to probe a {}", reqDesc)
             client.send(request, HttpResponse.BodyHandlers.ofString())
         } catch (e: Exception) {
-            project.logger.debug("Unable to probe {}", reqDesc, e)
+            logger.debug("Unable to probe {}", reqDesc, e)
             return false
         }
-        project.logger.debug("Received response while probing a {}: status={}", reqDesc, response.statusCode())
+        logger.debug("Received response while probing a {}: status={}", reqDesc, response.statusCode())
         return statusCheck.invoke(response.statusCode())
     }
 
