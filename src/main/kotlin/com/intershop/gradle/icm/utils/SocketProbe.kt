@@ -16,19 +16,25 @@
  */
 package com.intershop.gradle.icm.utils
 
-import org.gradle.api.Project
-import org.gradle.internal.service.ServiceRegistry
+import org.gradle.api.logging.Logger
+import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import java.net.Socket
 
+/**
+ * Probes a TCP endpoint until a socket connection can be established.
+ *
+ * Takes the [Logger] and the [ProgressLoggerFactory] of the owning task instead of its `Project`, so that executing
+ * this probe never touches the build model - see [AbstractProbe].
+ */
 class SocketProbe(
-        private val project: Project,
-        serviceRegistrySupplier : () -> ServiceRegistry,
+        private val logger: Logger,
+        progressLoggerFactory : ProgressLoggerFactory,
         private val hostName : String,
-        private val port : Int) : AbstractProbe(serviceRegistrySupplier) {
+        private val port : Int) : AbstractProbe(progressLoggerFactory) {
 
     companion object {
-        fun toLocalhost(project: Project, serviceRegistrySupplier : () -> ServiceRegistry, port : Int) : SocketProbe {
-            return SocketProbe(project, serviceRegistrySupplier, "localhost", port)
+        fun toLocalhost(logger: Logger, progressLoggerFactory : ProgressLoggerFactory, port : Int) : SocketProbe {
+            return SocketProbe(logger, progressLoggerFactory, "localhost", port)
         }
     }
 
@@ -36,10 +42,10 @@ class SocketProbe(
         val reqDesc = describeRequest()
         try {
             Socket(hostName, port).use {
-                project.logger.debug("Successfully probed {}", reqDesc)
+                logger.debug("Successfully probed {}", reqDesc)
             }
         } catch (e: Exception) {
-            project.logger.debug("Unable to probe {}", reqDesc, e)
+            logger.debug("Unable to probe {}", reqDesc, e)
             return false
         }
         return true

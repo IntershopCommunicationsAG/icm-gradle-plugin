@@ -18,12 +18,19 @@ package com.intershop.gradle.icm.utils
 
 import org.gradle.internal.logging.progress.ProgressLogger
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
-import org.gradle.internal.service.ServiceRegistry
 import java.time.Duration
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 
-abstract class AbstractProbe(private val serviceRegistrySupplier : () -> ServiceRegistry) : Probe {
+/**
+ * Base class of all [Probe] implementations.
+ *
+ * Takes the [ProgressLoggerFactory] directly instead of looking it up through a `ServiceRegistry` of the owning
+ * project or task. Gradle injects that factory into tasks, so a probe no longer has to carry a reference to the
+ * build model: holding a `Project` or a `Task` is deprecated at execution time since Gradle 9, fails from Gradle 10
+ * on and cannot be stored by the configuration cache.
+ */
+abstract class AbstractProbe(private val progressLoggerFactory : ProgressLoggerFactory) : Probe {
     var retryInterval = Duration.ofMinutes(1)
     var retryTimeout = retryInterval.multipliedBy(3)
     private var onSuccess : (Unit) -> Unit = { }
@@ -95,8 +102,7 @@ abstract class AbstractProbe(private val serviceRegistrySupplier : () -> Service
     }
 
     private fun getProgressLogger() : ProgressLogger {
-        val factory = serviceRegistrySupplier.invoke().get(ProgressLoggerFactory::class.java)
-        return factory.newOperation(javaClass)
+        return progressLoggerFactory.newOperation(javaClass)
     }
 
 }
